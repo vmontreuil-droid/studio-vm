@@ -9,6 +9,8 @@ import {
   CalendarCheck,
   Search,
   Lock,
+  ArrowRightLeft,
+  Rocket,
   type LucideIcon,
 } from "lucide-react";
 
@@ -78,5 +80,17 @@ export const capabilities: Capability[] = [
     title: "GDPR-conform",
     description:
       "Cookie-policy, consent management, data-export en -verwijdering ingebouwd. Geen juridische kopzorgen.",
+  },
+  {
+    icon: ArrowRightLeft,
+    title: "Migratie vanaf WordPress / Squarespace",
+    description:
+      "Bestaande site overzetten zonder SEO-verlies: redirects, sitemap, structured data en alle content geïmporteerd. Geen blanco pagina op dag 1.",
+  },
+  {
+    icon: Rocket,
+    title: "Hosting, deploy & onderhoud",
+    description:
+      "Vercel + Supabase setup, automatische backups, error tracking, security updates. Eén aanspreekpunt voor de hele stack.",
   },
 ];
