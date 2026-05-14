@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { NewsletterForm } from "@/components/newsletter-form";
 
 function brandIconBase(props: { className?: string }) {
   return {
@@ -131,13 +132,16 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t pt-8 text-xs">
-          <p className="font-mono text-muted">
-            © {new Date().getFullYear()} Studio VM · BE 0xxx.xxx.xxx
-          </p>
-          <p className="font-mono text-muted">
-            Gebouwd met Next.js, Tailwind en koffie.
-          </p>
+        <div className="mt-12 grid gap-8 border-t pt-8 lg:grid-cols-2">
+          <NewsletterForm />
+          <div className="flex flex-wrap items-end justify-end gap-4 text-xs">
+            <p className="font-mono text-muted">
+              © {new Date().getFullYear()} Studio VM · BE 0xxx.xxx.xxx
+            </p>
+            <p className="font-mono text-muted">
+              Gebouwd met Next.js, Tailwind en koffie.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

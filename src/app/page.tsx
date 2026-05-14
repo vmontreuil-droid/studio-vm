@@ -4,6 +4,7 @@ import { projects } from "@/lib/projects";
 import { capabilities } from "@/lib/capabilities";
 import { testimonials } from "@/lib/testimonials";
 import { ProjectCard } from "@/components/project-card";
+import { ContactForm } from "@/components/contact-form";
 
 export default function Home() {
   return (
@@ -163,7 +164,7 @@ function Contact() {
   return (
     <section id="contact" className="border-b">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
-        <div className="grid gap-12 lg:grid-cols-2">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               Contact
@@ -172,43 +173,29 @@ function Contact() {
               Een nieuwe site, een verbouwing of gewoon een vraag?
             </h2>
             <p className="mt-6 max-w-xl text-muted">
-              Stuur me een mail of bel. Ik antwoord meestal dezelfde dag. Voor een eerste
-              gesprek kom ik graag bij je langs — koffie van jou, ideeën van mij.
+              Stuur me een berichtje hier — of bel/mail rechtstreeks. Ik antwoord meestal
+              dezelfde dag. Voor een eerste gesprek kom ik graag bij je langs.
             </p>
+            <div className="mt-8 space-y-3">
+              <a
+                href="mailto:vmontreuil@outlook.be"
+                className="flex items-center gap-3 text-sm transition-colors hover:text-accent"
+              >
+                <Mail className="h-4 w-4 text-accent" strokeWidth={1.5} />
+                vmontreuil@outlook.be
+              </a>
+              <p className="flex items-center gap-3 text-sm text-muted">
+                <Phone className="h-4 w-4 text-accent" strokeWidth={1.5} />
+                [telefoonnummer toevoegen]
+              </p>
+              <p className="flex items-center gap-3 text-sm">
+                <MapPin className="h-4 w-4 text-accent" strokeWidth={1.5} />
+                West-Vlaanderen, België
+              </p>
+            </div>
           </div>
-          <div className="space-y-4">
-            <a
-              href="mailto:vmontreuil@outlook.be"
-              className="flex items-start gap-4 rounded-2xl border bg-card p-6 transition-colors hover:bg-card-hover"
-            >
-              <Mail className="mt-0.5 h-5 w-5 text-accent" strokeWidth={1.5} />
-              <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                  E-mail
-                </p>
-                <p className="mt-1 text-base font-medium">vmontreuil@outlook.be</p>
-              </div>
-            </a>
-            <div className="flex items-start gap-4 rounded-2xl border bg-card p-6">
-              <Phone className="mt-0.5 h-5 w-5 text-accent" strokeWidth={1.5} />
-              <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                  Telefoon
-                </p>
-                <p className="mt-1 text-base font-medium text-muted">
-                  [telefoonnummer toevoegen]
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 rounded-2xl border bg-card p-6">
-              <MapPin className="mt-0.5 h-5 w-5 text-accent" strokeWidth={1.5} />
-              <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                  Locatie
-                </p>
-                <p className="mt-1 text-base font-medium">West-Vlaanderen, België</p>
-              </div>
-            </div>
+          <div className="rounded-2xl border bg-card p-6 sm:p-8">
+            <ContactForm />
           </div>
         </div>
       </div>
