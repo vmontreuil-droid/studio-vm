@@ -8,21 +8,23 @@ export default function AppleIcon() {
     (
       <div
         style={{
-          background: "#b45309",
+          background: "#0c0a09",
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#fafaf9",
-          fontSize: 88,
+          fontSize: 56,
+          fontFamily:
+            'ui-monospace, SFMono-Regular, Menlo, "Cascadia Code", monospace',
           fontWeight: 700,
-          fontFamily: "system-ui, sans-serif",
-          letterSpacing: -4,
+          letterSpacing: -3,
           borderRadius: 36,
         }}
       >
-        VM
+        <span style={{ color: "#f59e0b" }}>&lt;</span>
+        <span style={{ color: "#fafaf9" }}>vm</span>
+        <span style={{ color: "#f59e0b" }}>/&gt;</span>
       </div>
     ),
     size,

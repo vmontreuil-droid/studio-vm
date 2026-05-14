@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" role="img" aria-label="Studio VM">
+  <style>
+    .accent { fill: #f59e0b }
+    .fg { fill: currentColor }
+    text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Cascadia Code", monospace;
+      font-weight: 700;
+      font-size: 56px;
+      letter-spacing: -2px;
+      dominant-baseline: middle;
+    }
+  </style>
+  <text x="20" y="48">
+    <tspan class="accent">&lt;</tspan><tspan class="fg">vm</tspan><tspan class="accent">/&gt;</tspan>
+  </text>
+</svg>

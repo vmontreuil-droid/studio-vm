@@ -78,7 +78,14 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
-            <p className="font-mono text-sm font-semibold tracking-tight">studio-vm</p>
+            <p
+              aria-label="Studio VM"
+              className="font-mono text-base font-semibold tracking-tight"
+            >
+              <span className="text-accent">&lt;</span>
+              vm
+              <span className="text-accent">/&gt;</span>
+            </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               Vincent Montreuil — websites en webshops voor lokale ondernemers.
             </p>

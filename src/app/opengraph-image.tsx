@@ -35,31 +35,16 @@ export default function OG() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 16,
-            color: "#f59e0b",
-            fontSize: 22,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            fontFamily: "monospace",
+            fontSize: 48,
+            fontFamily:
+              'ui-monospace, SFMono-Regular, Menlo, "Cascadia Code", monospace',
+            fontWeight: 700,
+            letterSpacing: -2,
           }}
         >
-          <span
-            style={{
-              display: "flex",
-              width: 44,
-              height: 44,
-              background: "#f59e0b",
-              color: "#0c0a09",
-              borderRadius: 10,
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 22,
-              fontWeight: 700,
-            }}
-          >
-            VM
-          </span>
-          studio-vm
+          <span style={{ color: "#f59e0b" }}>&lt;</span>
+          <span>vm</span>
+          <span style={{ color: "#f59e0b" }}>/&gt;</span>
         </div>
         <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
           <h1
