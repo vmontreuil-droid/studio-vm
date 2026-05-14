@@ -6,45 +6,12 @@ import { ProjectCard } from "@/components/project-card";
 
 export default function Home() {
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <Hero />
-        <Werk />
-        <Mogelijkheden />
-        <Contact />
-      </main>
-      <SiteFooter />
-    </>
-  );
-}
-
-function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="font-mono text-sm font-semibold tracking-tight">
-          studio-vm
-        </Link>
-        <nav className="flex items-center gap-6 text-sm">
-          <a href="#werk" className="text-muted transition-colors hover:text-foreground">
-            Werk
-          </a>
-          <a
-            href="#mogelijkheden"
-            className="text-muted transition-colors hover:text-foreground"
-          >
-            Mogelijkheden
-          </a>
-          <a
-            href="#contact"
-            className="text-muted transition-colors hover:text-foreground"
-          >
-            Contact
-          </a>
-        </nav>
-      </div>
-    </header>
+    <main>
+      <Hero />
+      <Werk />
+      <Mogelijkheden />
+      <Contact />
+    </main>
   );
 }
 
@@ -71,6 +38,13 @@ function Hero() {
             Bekijk werk
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </a>
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
+          >
+            Pricing
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
           <a
             href="#contact"
             className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
@@ -196,20 +170,5 @@ function Contact() {
         </div>
       </div>
     </section>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer>
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm">
-        <p className="font-mono text-xs text-muted">
-          © {new Date().getFullYear()} Studio VM
-        </p>
-        <p className="font-mono text-xs text-muted">
-          Gebouwd met Next.js, Tailwind en koffie.
-        </p>
-      </div>
-    </footer>
   );
 }
