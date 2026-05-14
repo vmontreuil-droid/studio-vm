@@ -21,6 +21,8 @@ export const allNav: NavItem[] = [
   { href: "/support", label: "Support tickets", group: "Voor klanten" },
   { href: "/status", label: "Status", group: "Voor klanten" },
   { href: "/#contact", label: "Contact", group: "Voor klanten" },
+  { href: "/now", label: "Wat ik nu doe", group: "Over Vincent" },
+  { href: "/uses", label: "Tools die ik gebruik", group: "Over Vincent" },
   { href: "/privacy", label: "Privacy", group: "Legal" },
   { href: "/cookies", label: "Cookies", group: "Legal" },
   { href: "/voorwaarden", label: "Algemene voorwaarden", group: "Legal" },

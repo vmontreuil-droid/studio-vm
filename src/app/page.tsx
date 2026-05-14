@@ -10,11 +10,39 @@ export default function Home() {
   return (
     <main>
       <Hero />
+      <Stats />
       <Werk />
       <Testimonials />
       <Mogelijkheden />
       <Contact />
     </main>
+  );
+}
+
+function Stats() {
+  const stats = [
+    { value: "10+", label: "live projecten" },
+    { value: "3", label: "talen (NL · FR · EN)" },
+    { value: "100%", label: "Next.js + Supabase" },
+    { value: "0", label: "WordPress-plugins" },
+  ];
+  return (
+    <section className="border-b bg-card">
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-card px-6 py-8 text-center">
+              <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {s.label}
+              </dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+                {s.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
   );
 }
 

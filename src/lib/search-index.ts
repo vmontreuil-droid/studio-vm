@@ -19,6 +19,8 @@ const pages: SearchEntry[] = [
   { title: "Klantportaal", href: "/portail", kind: "Pagina", hint: "Inloggen voor klanten" },
   { title: "Support tickets", href: "/support", kind: "Pagina", hint: "Open een ticket" },
   { title: "Status", href: "/status", kind: "Pagina", hint: "Uptime + system status" },
+  { title: "Wat ik nu doe", href: "/now", kind: "Pagina", hint: "Now-page van Vincent" },
+  { title: "Tools die ik gebruik", href: "/uses", kind: "Pagina", hint: "Mijn dagelijkse stack" },
   { title: "Contact", href: "/#contact", kind: "Pagina", hint: "Stuur een bericht" },
   { title: "Privacy", href: "/privacy", kind: "Pagina" },
   { title: "Cookies", href: "/cookies", kind: "Pagina" },

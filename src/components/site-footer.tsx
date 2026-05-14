@@ -59,7 +59,16 @@ const sections = [
     links: [
       { href: "/portail", label: "Klantportaal" },
       { href: "/support", label: "Support tickets" },
+      { href: "/status", label: "Status" },
       { href: "/#contact", label: "Contact" },
+    ],
+  },
+  {
+    title: "Over Vincent",
+    links: [
+      { href: "/now", label: "Wat ik nu doe" },
+      { href: "/uses", label: "Tools die ik gebruik" },
+      { href: "/journal", label: "Journal" },
     ],
   },
   {
