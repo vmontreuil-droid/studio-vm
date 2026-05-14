@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SearchTrigger } from "@/components/search";
+import { MobileMenu } from "@/components/mobile-menu";
+import { primaryNav } from "@/lib/nav";
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link
           href="/"
           aria-label="Studio VM"
@@ -14,33 +17,22 @@ export function SiteHeader() {
           vm
           <span className="text-accent">/&gt;</span>
         </Link>
-        <nav className="flex items-center gap-3 text-sm sm:gap-6">
-          <Link
-            href="/#werk"
-            className="hidden text-muted transition-colors hover:text-foreground sm:inline"
-          >
-            Werk
-          </Link>
-          <Link
-            href="/#mogelijkheden"
-            className="hidden text-muted transition-colors hover:text-foreground sm:inline"
-          >
-            Mogelijkheden
-          </Link>
-          <Link
-            href="/pricing"
-            className="text-muted transition-colors hover:text-foreground"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/#contact"
-            className="text-muted transition-colors hover:text-foreground"
-          >
-            Contact
-          </Link>
-          <ThemeToggle />
+        <nav className="hidden items-center gap-6 text-sm sm:flex">
+          {primaryNav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-muted transition-colors hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
+        <div className="flex items-center gap-2">
+          <SearchTrigger />
+          <ThemeToggle />
+          <MobileMenu />
+        </div>
       </div>
     </header>
   );

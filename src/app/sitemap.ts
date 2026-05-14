@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/portail",
     "/support",
     "/builder",
+    "/status",
     "/privacy",
     "/cookies",
     "/voorwaarden",
