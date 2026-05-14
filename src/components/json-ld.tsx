@@ -21,7 +21,7 @@ export function OrganizationJsonLd() {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      email: "vmontreuil@outlook.be",
+      email: "info@studio-vm.be",
       contactType: "Sales",
       areaServed: "BE",
       availableLanguage: ["nl", "fr", "en"],

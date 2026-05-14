@@ -84,7 +84,7 @@ export function SiteFooter() {
             </p>
             <div className="mt-6 flex gap-3">
               <a
-                href="mailto:vmontreuil@outlook.be"
+                href="mailto:info@studio-vm.be"
                 aria-label="E-mail"
                 className="rounded-full border p-2 text-muted transition-colors hover:text-foreground"
               >
@@ -136,7 +136,7 @@ export function SiteFooter() {
           <NewsletterForm />
           <div className="flex flex-wrap items-end justify-end gap-4 text-xs">
             <p className="font-mono text-muted">
-              © {new Date().getFullYear()} Studio VM · BE 0xxx.xxx.xxx
+              © {new Date().getFullYear()} Studio VM · BE 0672.960.066
             </p>
             <p className="font-mono text-muted">
               Gebouwd met Next.js, Tailwind en koffie.

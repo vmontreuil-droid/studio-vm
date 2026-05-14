@@ -225,7 +225,7 @@ export default function BuilderPage() {
                 eigen content en admin.
               </p>
               <a
-                href={`mailto:vmontreuil@outlook.be?subject=${encodeURIComponent(
+                href={`mailto:info@studio-vm.be?subject=${encodeURIComponent(
                   `Builder preview voor ${businessName}`,
                 )}&body=${encodeURIComponent(
                   `Hoi Vincent,\n\nIk bouwde een preview op studio-vm.be/builder voor "${businessName}".\nThema: ${theme.label}\nSecties: ${sections.join(", ")}\n\nKan je een offerte maken?\n\nGroeten`,

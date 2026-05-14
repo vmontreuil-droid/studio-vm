@@ -1,6 +1,6 @@
 "use server";
 
-const TO = "vmontreuil@outlook.be";
+const TO = "info@studio-vm.be";
 const FROM = "Studio VM <noreply@studio-vm.be>";
 
 export type ContactState = {

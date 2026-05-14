@@ -85,10 +85,10 @@ export default function VoorwaardenPage() {
 
           <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
             Studio VM · Vincent Montreuil · West-Vlaanderen, België ·{" "}
-            <a href="mailto:vmontreuil@outlook.be" className="text-accent underline">
-              vmontreuil@outlook.be
+            <a href="mailto:info@studio-vm.be" className="text-accent underline">
+              info@studio-vm.be
             </a>{" "}
-            · BE 0xxx.xxx.xxx
+            · BE 0672.960.066
           </p>
         </div>
       </article>

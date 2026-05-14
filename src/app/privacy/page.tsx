@@ -28,8 +28,8 @@ export default function PrivacyPage() {
             <p>
               Studio VM is een eenmanszaak van Vincent Montreuil, gevestigd in
               West-Vlaanderen, België. Voor vragen kan je terecht op{" "}
-              <a href="mailto:vmontreuil@outlook.be" className="text-accent underline">
-                vmontreuil@outlook.be
+              <a href="mailto:info@studio-vm.be" className="text-accent underline">
+                info@studio-vm.be
               </a>
               .
             </p>
@@ -81,8 +81,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               Stuur je vraag naar{" "}
-              <a href="mailto:vmontreuil@outlook.be" className="text-accent underline">
-                vmontreuil@outlook.be
+              <a href="mailto:info@studio-vm.be" className="text-accent underline">
+                info@studio-vm.be
               </a>
               . We antwoorden binnen 30 dagen.
             </p>

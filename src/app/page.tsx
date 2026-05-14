@@ -178,16 +178,19 @@ function Contact() {
             </p>
             <div className="mt-8 space-y-3">
               <a
-                href="mailto:vmontreuil@outlook.be"
+                href="mailto:info@studio-vm.be"
                 className="flex items-center gap-3 text-sm transition-colors hover:text-accent"
               >
                 <Mail className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                vmontreuil@outlook.be
+                info@studio-vm.be
               </a>
-              <p className="flex items-center gap-3 text-sm text-muted">
+              <a
+                href="tel:+32477995651"
+                className="flex items-center gap-3 text-sm transition-colors hover:text-accent"
+              >
                 <Phone className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                [telefoonnummer toevoegen]
-              </p>
+                +32 477 99 56 51
+              </a>
               <p className="flex items-center gap-3 text-sm">
                 <MapPin className="h-4 w-4 text-accent" strokeWidth={1.5} />
                 West-Vlaanderen, België
