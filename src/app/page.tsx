@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowRight, Quote } from "lucide-react";
 import { projects } from "@/lib/projects";
 import { capabilities } from "@/lib/capabilities";
+import { testimonials } from "@/lib/testimonials";
 import { ProjectCard } from "@/components/project-card";
 
 export default function Home() {
@@ -9,9 +10,51 @@ export default function Home() {
     <main>
       <Hero />
       <Werk />
+      <Testimonials />
       <Mogelijkheden />
       <Contact />
     </main>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section className="border-b bg-card">
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+            Klanten
+          </p>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Wat ze achteraf zeggen
+          </h2>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <figure
+              key={t.author}
+              className="flex h-full flex-col rounded-2xl border bg-background p-6"
+            >
+              <Quote className="h-5 w-5 text-accent" strokeWidth={1.5} />
+              <blockquote className="mt-4 flex-1 leading-relaxed">
+                "{t.quote}"
+              </blockquote>
+              <figcaption className="mt-6 flex items-center gap-3 border-t pt-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 font-mono text-xs font-semibold text-accent">
+                  {t.initials}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">{t.author}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    {t.role}
+                  </p>
+                </div>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

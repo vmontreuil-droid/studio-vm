@@ -11,6 +11,7 @@
   --card-hover: #f5f5f4;
 }
 
+/* Tailwind v4 maps these onto bg-X / text-X / border-X utilities */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -24,8 +25,24 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark waarden (gedeeld) — gelden voor system-dark én voor manuele override */
+@layer base {
+  :root.theme-dark,
+  :root[data-theme="dark"] {
+    --background: #0c0a09;
+    --foreground: #fafaf9;
+    --muted: #d6d3d1;
+    --muted-foreground: #a8a29e;
+    --accent: #f59e0b;
+    --border: #292524;
+    --card: #1c1917;
+    --card-hover: #292524;
+  }
+}
+
+/* System preference: dark, tenzij user expliciet light gekozen heeft */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light):not([data-theme="light"]) {
     --background: #0c0a09;
     --foreground: #fafaf9;
     --muted: #d6d3d1;
@@ -43,6 +60,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light dark;
 }
 
 body {
@@ -60,4 +78,31 @@ body {
 /* Tailwind v4 opacity-modifier op CSS-var kleuren werkt niet — eigen utility met color-mix() */
 .bg-header {
   background: color-mix(in srgb, var(--background) 80%, transparent);
+}
+
+/* Subtiele view transitions tussen pages (Chromium voor nu) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mooie fade-in van children op page-load */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }

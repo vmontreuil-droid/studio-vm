@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   return (
@@ -7,16 +8,16 @@ export function SiteHeader() {
         <Link href="/" className="font-mono text-sm font-semibold tracking-tight">
           studio-vm
         </Link>
-        <nav className="flex items-center gap-6 text-sm">
+        <nav className="flex items-center gap-3 text-sm sm:gap-6">
           <Link
             href="/#werk"
-            className="text-muted transition-colors hover:text-foreground"
+            className="hidden text-muted transition-colors hover:text-foreground sm:inline"
           >
             Werk
           </Link>
           <Link
             href="/#mogelijkheden"
-            className="text-muted transition-colors hover:text-foreground"
+            className="hidden text-muted transition-colors hover:text-foreground sm:inline"
           >
             Mogelijkheden
           </Link>
@@ -32,6 +33,7 @@ export function SiteHeader() {
           >
             Contact
           </Link>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
