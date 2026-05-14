@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { Project } from "@/lib/projects";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({
+  project,
+  locale,
+}: {
+  project: Project;
+  locale: Locale;
+}) {
   return (
     <Link
-      href={`/werk/${project.slug}`}
+      href={localePath(locale, `/werk/${project.slug}`)}
       className="group flex h-full flex-col bg-card p-8 transition-colors hover:bg-card-hover"
     >
       <div

@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { allNav } from "@/lib/nav";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
-export function MobileMenu() {
+export function MobileMenu({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export function MobileMenu() {
           <aside className="flex w-72 max-w-[85vw] flex-col bg-background shadow-2xl">
             <div className="flex items-center justify-between border-b p-4">
               <Link
-                href="/"
+                href={localePath(locale, "/")}
                 onClick={() => setOpen(false)}
                 aria-label="Studio VM"
                 className="font-mono text-base font-semibold tracking-tight"
@@ -72,7 +73,7 @@ export function MobileMenu() {
                     {items.map((item) => (
                       <li key={item.href}>
                         <Link
-                          href={item.href}
+                          href={localePath(locale, item.href)}
                           onClick={() => setOpen(false)}
                           className="block rounded-lg px-2 py-2 text-sm transition-colors hover:bg-card-hover"
                         >

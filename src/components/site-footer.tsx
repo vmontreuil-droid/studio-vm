@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { getMessages } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 function brandIconBase(props: { className?: string }) {
   return {
@@ -35,57 +37,59 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
-const sections = [
-  {
-    title: "Studio",
-    links: [
-      { href: "/#werk", label: "Werk" },
-      { href: "/#mogelijkheden", label: "Mogelijkheden" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/journal", label: "Journal" },
-    ],
-  },
-  {
-    title: "Diensten",
-    links: [
-      { href: "/diensten", label: "Diensten" },
-      { href: "/shop", label: "Templates shop" },
-      { href: "/builder", label: "Site builder demo" },
-      { href: "/faq", label: "FAQ" },
-    ],
-  },
-  {
-    title: "Voor klanten",
-    links: [
-      { href: "/portail", label: "Klantportaal" },
-      { href: "/support", label: "Support tickets" },
-      { href: "/status", label: "Status" },
-      { href: "/#contact", label: "Contact" },
-    ],
-  },
-  {
-    title: "Over Vincent",
-    links: [
-      { href: "/now", label: "Wat ik nu doe" },
-      { href: "/uses", label: "Tools die ik gebruik" },
-      { href: "/journal", label: "Journal" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { href: "/privacy", label: "Privacy" },
-      { href: "/cookies", label: "Cookies" },
-      { href: "/voorwaarden", label: "Algemene voorwaarden" },
-    ],
-  },
-];
+export function SiteFooter({ locale }: { locale: Locale }) {
+  const t = getMessages(locale);
 
-export function SiteFooter() {
+  const sections = [
+    {
+      title: t.footer.sections.studio,
+      links: [
+        { href: localePath(locale, "/#werk"), label: t.nav.werk },
+        { href: localePath(locale, "/#mogelijkheden"), label: t.nav.mogelijkheden },
+        { href: localePath(locale, "/pricing"), label: t.nav.pricing },
+        { href: localePath(locale, "/journal"), label: "Journal" },
+      ],
+    },
+    {
+      title: t.footer.sections.diensten,
+      links: [
+        { href: localePath(locale, "/diensten"), label: "Diensten" },
+        { href: localePath(locale, "/shop"), label: "Templates shop" },
+        { href: localePath(locale, "/builder"), label: "Site builder demo" },
+        { href: localePath(locale, "/faq"), label: "FAQ" },
+      ],
+    },
+    {
+      title: t.footer.sections.klanten,
+      links: [
+        { href: localePath(locale, "/portail"), label: "Klantportaal" },
+        { href: localePath(locale, "/support"), label: "Support tickets" },
+        { href: localePath(locale, "/status"), label: "Status" },
+        { href: localePath(locale, "/#contact"), label: t.nav.contact },
+      ],
+    },
+    {
+      title: t.footer.sections.vincent,
+      links: [
+        { href: localePath(locale, "/now"), label: "Wat ik nu doe" },
+        { href: localePath(locale, "/uses"), label: "Tools die ik gebruik" },
+        { href: localePath(locale, "/journal"), label: "Journal" },
+      ],
+    },
+    {
+      title: t.footer.sections.legal,
+      links: [
+        { href: localePath(locale, "/privacy"), label: "Privacy" },
+        { href: localePath(locale, "/cookies"), label: "Cookies" },
+        { href: localePath(locale, "/voorwaarden"), label: "Algemene voorwaarden" },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t bg-card">
       <div className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
             <p
               aria-label="Studio VM"
@@ -96,7 +100,7 @@ export function SiteFooter() {
               <span className="text-accent">/&gt;</span>
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">
-              Vincent Montreuil — websites en webshops voor lokale ondernemers.
+              {t.footer.tagline}
             </p>
             <div className="mt-6 flex gap-3">
               <a
@@ -154,9 +158,7 @@ export function SiteFooter() {
             <p className="font-mono text-muted">
               © {new Date().getFullYear()} Studio VM · BE 0672.960.066
             </p>
-            <p className="font-mono text-muted">
-              Gebouwd met Next.js, Tailwind en koffie.
-            </p>
+            <p className="font-mono text-muted">{t.footer.built}</p>
           </div>
         </div>
       </div>
