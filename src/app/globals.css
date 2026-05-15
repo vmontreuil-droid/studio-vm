@@ -336,6 +336,74 @@ body {
     filter: blur(55px) hue-rotate(360deg);
   }
 }
+/* rechts → links */
+.hero-sweep-rev {
+  opacity: 0.5;
+  animation: hero-sweep-rev 15s linear infinite;
+}
+@keyframes hero-sweep-rev {
+  0% {
+    transform: translateX(120vw);
+    filter: blur(55px) hue-rotate(360deg);
+  }
+  50% {
+    transform: translateX(40vw);
+    filter: blur(55px) hue-rotate(160deg);
+  }
+  100% {
+    transform: translateX(-36rem);
+    filter: blur(55px) hue-rotate(0deg);
+  }
+}
+/* boven → onder */
+.hero-sweep-down {
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 26rem;
+  opacity: 0.42;
+  animation: hero-sweep-down 17s linear infinite;
+}
+@keyframes hero-sweep-down {
+  0% {
+    transform: translateY(-30rem);
+    filter: blur(55px) hue-rotate(90deg);
+  }
+  50% {
+    transform: translateY(40vh);
+    filter: blur(55px) hue-rotate(270deg);
+  }
+  100% {
+    transform: translateY(135vh);
+    filter: blur(55px) hue-rotate(450deg);
+  }
+}
+/* onder → boven */
+.hero-sweep-up {
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 26rem;
+  opacity: 0.42;
+  animation: hero-sweep-up 21s linear infinite;
+}
+@keyframes hero-sweep-up {
+  0% {
+    transform: translateY(30rem);
+    filter: blur(55px) hue-rotate(270deg);
+  }
+  50% {
+    transform: translateY(-40vh);
+    filter: blur(55px) hue-rotate(90deg);
+  }
+  100% {
+    transform: translateY(-135vh);
+    filter: blur(55px) hue-rotate(-90deg);
+  }
+}
 .hero-grid {
   position: absolute;
   inset: 0;
@@ -347,16 +415,16 @@ body {
     linear-gradient(to bottom, var(--border) 1px, transparent 1px);
   background-size: 60px 60px;
   -webkit-mask-image: radial-gradient(
-    ellipse 95% 85% at 50% 50%,
-    #000 35%,
-    transparent 80%
+    ellipse 100% 95% at 50% 45%,
+    #000 50%,
+    transparent 90%
   );
   mask-image: radial-gradient(
-    ellipse 95% 85% at 50% 50%,
-    #000 35%,
-    transparent 80%
+    ellipse 100% 95% at 50% 45%,
+    #000 50%,
+    transparent 90%
   );
-  opacity: 0.4;
+  opacity: 0.75;
 }
 @keyframes hero-drift-a {
   0%,
