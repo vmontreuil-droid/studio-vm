@@ -266,16 +266,24 @@ export default async function WerkDetailPage({
               </h2>
               <div className="grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-3">
                 {cs.metrics.map((m) => (
-                  <div key={m.label} className="bg-background p-6">
+                  <div
+                    key={m.label}
+                    className="flex min-h-[9rem] flex-col bg-background p-6"
+                  >
                     <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
                       {m.label}
                     </p>
-                    <p className="mt-3 flex items-baseline gap-2">
-                      <span className="text-sm text-muted line-through decoration-muted/50">
+                    <p className="mt-3 text-balance text-2xl font-semibold leading-tight tracking-tight text-accent">
+                      {m.after}
+                    </p>
+                    <p className="mt-auto pt-4 text-xs leading-snug text-muted">
+                      {locale === "fr"
+                        ? "avant : "
+                        : locale === "en"
+                          ? "before: "
+                          : "voorheen: "}
+                      <span className="line-through decoration-muted/40">
                         {m.before}
-                      </span>
-                      <span className="text-2xl font-semibold tracking-tight text-accent">
-                        {m.after}
                       </span>
                     </p>
                   </div>

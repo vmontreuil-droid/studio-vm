@@ -23,9 +23,9 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
         "Cottage is een gevestigd restaurant in Waregem met een trouw publiek, maar de Squarespace-site werkte tegen de zaak. Elke menuwijziging vereiste gepruts in een trage editor, mobiele bezoekers (de meerderheid) wachtten 5+ seconden, en de kost liep jaarlijks op zonder dat de zaak er iets voor terugkreeg.",
       metricsTitle: "In cijfers",
       metrics: [
-        { label: "PageSpeed (mobiel)", before: "32", after: "98" },
-        { label: "Menu aanpassen", before: "~30 min", after: "~2 min" },
-        { label: "Laadtijd boven de vouw", before: "5,4 s", after: "0,8 s" },
+        { label: "PageSpeed (mobiel)", before: "zwak", after: "top" },
+        { label: "Menu aanpassen", before: "een gedoe", after: "enkele min" },
+        { label: "Laadtijd boven de vouw", before: "traag", after: "vrijwel direct" },
       ],
       decisionsTitle: "Belangrijkste keuzes",
       decisions: [
@@ -49,9 +49,9 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
         "Cottage est un restaurant établi à Waregem avec un public fidèle, mais le site Squarespace travaillait contre l'établissement. Chaque changement de carte demandait de bricoler dans un éditeur lent, les visiteurs mobiles (la majorité) attendaient 5+ secondes, et le coût montait chaque année sans contrepartie.",
       metricsTitle: "En chiffres",
       metrics: [
-        { label: "PageSpeed (mobile)", before: "32", after: "98" },
-        { label: "Adapter la carte", before: "~30 min", after: "~2 min" },
-        { label: "Chargement above-the-fold", before: "5,4 s", after: "0,8 s" },
+        { label: "PageSpeed (mobile)", before: "faible", after: "excellent" },
+        { label: "Adapter la carte", before: "une corvée", after: "quelques min" },
+        { label: "Chargement above-the-fold", before: "lent", after: "quasi instantané" },
       ],
       decisionsTitle: "Choix clés",
       decisions: [
@@ -75,9 +75,9 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
         "Cottage is an established restaurant in Waregem with a loyal audience, but the Squarespace site worked against the business. Every menu change meant fiddling in a slow editor, mobile visitors (the majority) waited 5+ seconds, and the cost rose yearly with nothing in return.",
       metricsTitle: "In numbers",
       metrics: [
-        { label: "PageSpeed (mobile)", before: "32", after: "98" },
-        { label: "Update the menu", before: "~30 min", after: "~2 min" },
-        { label: "Above-the-fold load", before: "5.4 s", after: "0.8 s" },
+        { label: "PageSpeed (mobile)", before: "weak", after: "top" },
+        { label: "Update the menu", before: "a chore", after: "a few min" },
+        { label: "Above-the-fold load", before: "slow", after: "near-instant" },
       ],
       decisionsTitle: "Key decisions",
       decisions: [
