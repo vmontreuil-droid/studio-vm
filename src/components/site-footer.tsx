@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Logo } from "@/components/logo";
 import { getMessages } from "@/lib/i18n";
@@ -165,6 +165,14 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               © {new Date().getFullYear()} Studio VM · BE 0672.960.066
             </p>
             <p className="font-mono text-muted">{t.footer.built}</p>
+            <Link
+              href="/admin"
+              aria-label="Admin"
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono uppercase tracking-widest text-muted transition-colors hover:border-foreground hover:text-foreground"
+            >
+              <Lock className="h-3 w-3" strokeWidth={1.75} />
+              <span>Admin</span>
+            </Link>
           </div>
         </div>
       </div>
