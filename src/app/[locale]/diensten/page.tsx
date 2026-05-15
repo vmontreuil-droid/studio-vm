@@ -160,7 +160,7 @@ export default async function DienstenPage({
       </section>
 
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
             {c.services.map((s, i) => {
               const Icon = icons[i];
@@ -196,7 +196,7 @@ export default async function DienstenPage({
       </section>
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="mb-14 max-w-2xl">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {c.processEyebrow}

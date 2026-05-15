@@ -247,7 +247,7 @@ export default function BuilderPage() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mx-auto max-w-7xl px-6 py-16">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
           </p>

@@ -93,7 +93,7 @@ export default async function MogelijkhedenPage({
       </section>
 
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mx-auto max-w-7xl px-6 py-16">
           <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
             {caps.map((cap) => {
               const Icon = cap.icon;

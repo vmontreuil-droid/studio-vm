@@ -335,7 +335,7 @@ export default async function WerkDetailPage({
       )}
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="mb-10 flex items-end justify-between">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               {t.other}

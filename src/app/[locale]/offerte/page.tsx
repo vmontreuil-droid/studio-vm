@@ -421,7 +421,7 @@ export default function OffertePage() {
       </section>
 
       <section className="border-b print:hidden">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[1.6fr_1fr]">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1.6fr_1fr]">
           <div className="space-y-12">
             <div>
               <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">

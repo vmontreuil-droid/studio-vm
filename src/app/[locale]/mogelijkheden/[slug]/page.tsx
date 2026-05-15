@@ -287,7 +287,7 @@ export default async function CapabilityDetailPage({
       </section>
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mx-auto max-w-7xl px-6 py-16">
           <h2 className="mb-8 font-mono text-xs uppercase tracking-widest text-accent">
             {t.more}
           </h2>

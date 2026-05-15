@@ -245,7 +245,7 @@ export default async function OverPage({
       </section>
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
           <h2 className="mb-12 font-mono text-xs uppercase tracking-widest text-accent">
             {c.valuesTitle}
           </h2>

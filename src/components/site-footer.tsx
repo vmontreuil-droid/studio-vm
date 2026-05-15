@@ -99,7 +99,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
   return (
     <footer className="border-t bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
             <p aria-label="Studio VM" className="leading-none">

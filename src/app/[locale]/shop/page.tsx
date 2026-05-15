@@ -182,7 +182,7 @@ export default function ShopPage() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto flex max-w-6xl items-end justify-between gap-6 px-6 py-16 sm:py-24">
+        <div className="mx-auto flex max-w-7xl items-end justify-between gap-6 px-6 py-16 sm:py-24">
           <div className="flex-1">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {c.eyebrow}
@@ -209,7 +209,7 @@ export default function ShopPage() {
       </section>
 
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mx-auto max-w-7xl px-6 py-16">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
               <article

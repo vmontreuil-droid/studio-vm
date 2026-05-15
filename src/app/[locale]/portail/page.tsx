@@ -158,7 +158,7 @@ export default async function PortailPage({
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2 lg:py-24">
+        <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-2 lg:py-24">
           <div className="flex flex-col justify-center">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {c.eyebrow}
@@ -252,7 +252,7 @@ export default async function PortailPage({
       </section>
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-20">
           <div className="mb-12 max-w-2xl">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {c.featuresEyebrow}

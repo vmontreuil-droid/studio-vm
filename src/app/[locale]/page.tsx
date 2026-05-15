@@ -56,7 +56,7 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
         <div className="hero-sweep hero-sweep-down" />
         <div className="hero-sweep hero-sweep-up" />
       </div>
-      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 sm:py-32 lg:py-40">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
         <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
           {t.hero.eyebrow}
         </p>
@@ -107,7 +107,7 @@ function Stats({ t }: { t: T }) {
   ];
   return (
     <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+      <div className="mx-auto max-w-7xl px-6 py-12">
         <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {stats.map((s) => (
             <div key={s.label} className="bg-card px-6 py-8 text-center">
@@ -128,7 +128,7 @@ function Stats({ t }: { t: T }) {
 function Werk({ locale, t }: { locale: Locale; t: T }) {
   return (
     <section id="werk" className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
         <div className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -153,7 +153,7 @@ function Werk({ locale, t }: { locale: Locale; t: T }) {
 function Testimonials({ t, locale }: { t: T; locale: Locale }) {
   return (
     <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
             {t.testimonials.eyebrow}
@@ -194,7 +194,7 @@ function Testimonials({ t, locale }: { t: T; locale: Locale }) {
 function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
   return (
     <section id="mogelijkheden" className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
         <div className="mb-16 max-w-2xl">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
             {t.mogelijkheden.eyebrow}
@@ -246,7 +246,7 @@ function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
 function Contact({ t }: { t: T }) {
   return (
     <section id="contact" className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">

@@ -17,7 +17,7 @@ export function CtaBanner({
 }) {
   return (
     <section className="border-b">
-      <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
         <div className="relative overflow-hidden rounded-3xl border bg-card p-8 sm:p-12">
           <div
             aria-hidden

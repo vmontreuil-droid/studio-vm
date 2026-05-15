@@ -221,7 +221,7 @@ export default function SupportPage() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mx-auto max-w-7xl px-6 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -257,7 +257,7 @@ export default function SupportPage() {
       </section>
 
       <section className="border-b">
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[1fr_2fr]">
+        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 lg:grid-cols-[1fr_2fr]">
           <ul className="space-y-2">
             {tickets.map((tk) => (
               <li key={tk.id}>
