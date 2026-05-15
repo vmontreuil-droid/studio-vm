@@ -7,11 +7,13 @@ import { X } from "lucide-react";
 const STORAGE_KEY = "studio-vm-cookie-consent";
 
 export function CookieBanner() {
-  const [show, setShow] = useState(false);
+  // Standaard zichtbaar (ook server-side gerenderd, zodat de banner in de
+  // HTML staat zonder JS). Bij terugkeer na keuze verbergt de effect 'm.
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(STORAGE_KEY)) setShow(true);
+      if (localStorage.getItem(STORAGE_KEY)) setShow(false);
     } catch {}
   }, []);
 
@@ -29,7 +31,10 @@ export function CookieBanner() {
 
   return (
     <div
+      id="cookie-consent"
+      data-cookie-consent
       role="dialog"
+      aria-label="Cookie-consent"
       aria-labelledby="cookie-title"
       className="fixed inset-x-4 bottom-4 z-[80] mx-auto max-w-2xl rounded-2xl border bg-background/95 p-5 shadow-2xl backdrop-blur sm:inset-x-auto sm:right-6"
     >

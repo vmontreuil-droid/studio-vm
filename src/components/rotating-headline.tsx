@@ -44,38 +44,28 @@ export function RotatingHeadline({
 
   return (
     <>
-      <h1 className={className} style={{ position: "relative" }}>
+      <h1 className={`relative ${className ?? ""}`}>
         {/* onzichtbare spacer = langste variant → vaste hoogte, geen wip */}
-        <span aria-hidden style={{ visibility: "hidden" }}>
+        <span aria-hidden className="invisible">
           {longestTitle}
         </span>
         <span
-          className="transition-opacity duration-300"
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: 0,
-            opacity: show ? 1 : 0,
-          }}
+          className={`absolute inset-x-0 top-0 transition-opacity duration-300 ${
+            show ? "opacity-100" : "opacity-0"
+          }`}
         >
           {titles[i] ?? titles[0]}
         </span>
       </h1>
       {sub && (
-        <p className={subtitleClassName} style={{ position: "relative" }}>
-          <span aria-hidden style={{ visibility: "hidden" }}>
+        <p className={`relative ${subtitleClassName ?? ""}`}>
+          <span aria-hidden className="invisible">
             {longestSub}
           </span>
           <span
-            className="transition-opacity duration-300"
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              opacity: show ? 1 : 0,
-            }}
+            className={`absolute inset-x-0 top-0 transition-opacity duration-300 ${
+              show ? "opacity-100" : "opacity-0"
+            }`}
           >
             {sub}
           </span>

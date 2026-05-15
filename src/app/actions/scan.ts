@@ -843,7 +843,16 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       /<link[^>]+rel=["']apple-touch-icon["']/i.test(html);
     const enc = (head.get("content-encoding") || "").toLowerCase();
     const compressed = enc.includes("gzip") || enc.includes("br");
-    const scriptCount = (html.match(/<script[\s>]/gi) || []).length;
+    // Render-blokkerende externe scripts: <script src> zonder async/defer/
+    // module. Inline scripts (incl. streaming-frameworks zoals Next RSC) en
+    // JSON-LD blokkeren het renderen niet en tellen dus niet mee — dit meet
+    // wat de check bedoelt: plugin-/script-stapeling die de pagina ophoudt.
+    const blockingScripts = (html.match(/<script\b[^>]*>/gi) || []).filter(
+      (t) =>
+        /\bsrc\s*=/i.test(t) &&
+        !/\b(?:async|defer)\b/i.test(t) &&
+        !/type\s*=\s*["'](?:module|application\/ld\+json)["']/i.test(t),
+    ).length;
     const inlineStyle = (html.match(/style\s*=\s*["']/gi) || []).length;
     const extDomains = new Set(
       (html.match(/https?:\/\/([a-z0-9.-]+)/gi) || [])
@@ -1080,7 +1089,7 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       (responseMs > 1500 ? 2 : responseMs > 800 ? 1 : 0) +
       (htmlKb > 400 ? 2 : htmlKb > 150 ? 1 : 0) +
       (renderBlockingCss > 4 ? 2 : renderBlockingCss > 2 ? 1 : 0) +
-      (scriptCount > 25 ? 2 : scriptCount > 12 ? 1 : 0) +
+      (blockingScripts > 10 ? 2 : blockingScripts > 4 ? 1 : 0) +
       (imgCount > 0 && !responsiveImg ? 1 : 0) +
       (imgCount > 3 && lazyImg < 0.3 ? 1 : 0);
     const cwvRisk: "low" | "medium" | "high" =
@@ -1146,8 +1155,12 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       F(
         "scripts",
         "speed",
-        scriptCount < 12 ? "good" : scriptCount < 25 ? "warning" : "critical",
-        `${scriptCount}`,
+        blockingScripts < 4
+          ? "good"
+          : blockingScripts < 10
+            ? "warning"
+            : "critical",
+        `${blockingScripts}`,
       ),
       F(
         "externalDomains",
@@ -1490,7 +1503,8 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       outdated: det.hasOutdatedLib || det.pluginCount >= 15,
       insecure: !isHttps || !!mixedContent || (!hsts && !csp),
       slow,
-      bloated: scriptCount >= 25 || htmlKb >= 400 || det.pluginCount >= 15,
+      bloated:
+        blockingScripts >= 12 || htmlKb >= 400 || det.pluginCount >= 15,
       modern:
         ["Next.js", "Nuxt", "Astro", "SvelteKit", "Gatsby"].includes(stack) &&
         score >= 75,
