@@ -35,6 +35,11 @@ const copy: Record<
     payEyebrow: string;
     payTitle: string;
     payItems: { t: string; d: string }[];
+    domEyebrow: string;
+    domTitle: string;
+    domIntro: string;
+    domItems: { t: string; price: string; d: string }[];
+    domNote: string;
     faqEyebrow: string;
     faqTitle: string;
     faqs: { q: string; a: string }[];
@@ -67,6 +72,18 @@ const copy: Record<
       { t: "In 3 schijven", d: "Gespreid over de looptijd van het project, zonder extra kosten." },
       { t: "Formule", d: "Lagere startprijs + maandelijks (site + Care samen). Ideaal om klein te starten." },
     ],
+    domEyebrow: "Domein & e-mail",
+    domTitle: "Nog geen domein of e-mailadres?",
+    domIntro:
+      "Geen probleem — dat regelen wij voor je. Je blijft altijd 100% eigenaar van je domein, geen lock-in.",
+    domItems: [
+      { t: "Domein (.be / .com)", price: "€ 15 / jaar", d: "Wij registreren en beheren je domeinnaam. Jij blijft de eigenaar." },
+      { t: "Domein + 1 e-mailadres", price: "€ 5 / maand", d: "Professioneel adres (jij@jouwzaak.be), spamfilter, op al je toestellen." },
+      { t: "Domein + team-e-mail", price: "vanaf € 6 / gebruiker / maand", d: "Volwaardige mailbox via Google Workspace of Microsoft 365, met agenda & drive." },
+      { t: "Domeinverhuis", price: "€ 49 — gratis bij een nieuw pakket", d: "We halen je domein volledig beheerd weg bij je huidige host (API-gedreven). Jij keurt 1× goed, wij doen de rest — meestal binnen enkele uren (.be), zonder downtime." },
+    ],
+    domNote:
+      "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Richtprijzen, transparant doorgerekend — exacte prijs hangt af van extensie en provider (we vergelijken o.a. one.com, Combell en Cloudflare).",
     faqEyebrow: "Vragen die vaak terugkomen",
     faqTitle: "Goed om te weten",
     faqs: [
@@ -105,6 +122,18 @@ const copy: Record<
       { t: "En 3 fois", d: "Étalé sur la durée du projet, sans frais supplémentaires." },
       { t: "Formule", d: "Prix de départ réduit + mensuel (site + Care ensemble). Idéal pour démarrer petit." },
     ],
+    domEyebrow: "Domaine & e-mail",
+    domTitle: "Pas encore de domaine ou d'e-mail ?",
+    domIntro:
+      "Aucun souci — on s'en occupe. Vous restez toujours 100 % propriétaire de votre domaine, sans lock-in.",
+    domItems: [
+      { t: "Domaine (.be / .com)", price: "€ 15 / an", d: "Nous enregistrons et gérons votre nom de domaine. Vous en restez propriétaire." },
+      { t: "Domaine + 1 e-mail", price: "€ 5 / mois", d: "Adresse pro (vous@votresociete.be), anti-spam, sur tous vos appareils." },
+      { t: "Domaine + e-mail d'équipe", price: "dès € 6 / utilisateur / mois", d: "Boîte complète via Google Workspace ou Microsoft 365, avec agenda & drive." },
+      { t: "Transfert de domaine", price: "€ 49 — offert avec un nouveau forfait", d: "Nous rapatrions votre domaine, entièrement géré (piloté par API). Vous approuvez 1×, on fait le reste — souvent en quelques heures (.be), sans interruption." },
+    ],
+    domNote:
+      "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix indicatifs, calculés en toute transparence — le prix exact dépend de l'extension et du fournisseur (nous comparons one.com, Combell, Cloudflare…).",
     faqEyebrow: "Questions fréquentes",
     faqTitle: "Bon à savoir",
     faqs: [
@@ -143,6 +172,18 @@ const copy: Record<
       { t: "In 3 instalments", d: "Spread over the project duration, at no extra cost." },
       { t: "Formula", d: "Lower start price + monthly (site + Care together). Ideal to start small." },
     ],
+    domEyebrow: "Domain & email",
+    domTitle: "No domain or email address yet?",
+    domIntro:
+      "No problem — we sort that for you. You always stay 100% owner of your domain, no lock-in.",
+    domItems: [
+      { t: "Domain (.be / .com)", price: "€ 15 / year", d: "We register and manage your domain name. You remain the owner." },
+      { t: "Domain + 1 email", price: "€ 5 / month", d: "Professional address (you@yourbiz.be), spam filter, on all your devices." },
+      { t: "Domain + team email", price: "from € 6 / user / month", d: "Full mailbox via Google Workspace or Microsoft 365, with calendar & drive." },
+      { t: "Domain transfer", price: "€ 49 — free with a new package", d: "We move your domain over, fully managed (API-driven). You approve once, we do the rest — usually within hours (.be), zero downtime." },
+    ],
+    domNote:
+      "Already have a domain or email? We connect it free of charge. Indicative prices, transparently passed through — the exact price depends on the extension and provider (we compare one.com, Combell, Cloudflare and others).",
     faqEyebrow: "Questions that keep coming up",
     faqTitle: "Good to know",
     faqs: [
@@ -259,6 +300,37 @@ export default async function PricingPage({
       </section>
 
       <section className="border-b">
+        <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+              {c.domEyebrow}
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              {c.domTitle}
+            </h2>
+            <p className="mt-4 text-muted">{c.domIntro}</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {c.domItems.map((d) => (
+              <div
+                key={d.t}
+                className="flex flex-col rounded-2xl border bg-card p-6"
+              >
+                <h3 className="font-semibold">{d.t}</h3>
+                <p className="mt-2 font-mono text-sm font-semibold text-accent">
+                  {d.price}
+                </p>
+                <p className="mt-3 flex-1 text-sm text-muted">{d.d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mx-auto mt-8 max-w-2xl text-center font-mono text-xs text-muted">
+            {c.domNote}
+          </p>
+        </div>
+      </section>
+
+      <section className="border-b">
         <div className="mx-auto max-w-3xl px-6 py-20 sm:py-24">
           <div className="mb-12 text-center">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -315,7 +387,7 @@ function PricingSection({
 }) {
   return (
     <section className={`border-b ${muted ? "bg-card" : ""}`}>
-      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
+      <div className="mx-auto max-w-[88rem] px-6 py-20 sm:py-24">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
             {eyebrow}
@@ -324,12 +396,12 @@ function PricingSection({
           <p className="mt-4 text-muted">{intro}</p>
         </div>
         <div
-          className={`grid gap-6 sm:grid-cols-2 ${
+          className={`grid gap-5 ${
             tiers.length >= 5
-              ? "lg:grid-cols-3 xl:grid-cols-5"
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
               : tiers.length === 4
-                ? "lg:grid-cols-4"
-                : "lg:grid-cols-3"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                : "grid-cols-1 sm:grid-cols-3"
           }`}
         >
           {tiers.map((tier) => (
@@ -365,27 +437,20 @@ function TierCard({
           {tier.tagline}
         </span>
       )}
-      <p className="font-mono text-xs uppercase tracking-widest text-muted">
+      <p className="flex min-h-[2.5rem] items-start font-mono text-xs uppercase leading-snug tracking-widest text-muted">
         {tier.tagline}
       </p>
-      <h3 className="mt-2 text-xl font-semibold tracking-tight">{tier.name}</h3>
+      <h3 className="mt-1 text-xl font-semibold tracking-tight">{tier.name}</h3>
       {(() => {
         const m = tier.price.match(/^(vanaf|dès|from)\s+(.*)$/i);
         const lead = m ? m[1] : null;
         const main = m ? m[2] : tier.price;
-        const hasDigits = /\d/.test(main);
         return (
           <div className="mt-6">
-            {lead && (
-              <span className="block font-mono text-xs uppercase tracking-widest text-muted">
-                {lead}
-              </span>
-            )}
-            <p
-              className={`whitespace-nowrap font-semibold tracking-tight ${
-                hasDigits ? "text-3xl" : "text-2xl"
-              }`}
-            >
+            <span className="block h-4 font-mono text-xs uppercase tracking-widest text-muted">
+              {lead ?? " "}
+            </span>
+            <p className="whitespace-nowrap text-2xl font-semibold tracking-tight xl:text-3xl">
               {main}
             </p>
             <p className="mt-1 font-mono text-xs text-muted">
