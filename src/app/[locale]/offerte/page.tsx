@@ -11,40 +11,53 @@ import {
   type Locale,
 } from "@/lib/i18n/config";
 
-type BaseKind = "website" | "webshop" | "migratie" | "custom";
+type BaseKind = "onepager" | "starter" | "pro" | "webshop" | "custom";
 
 const basePrice: Record<BaseKind, number> = {
-  website: 2500,
-  webshop: 7500,
-  migratie: 3500,
-  custom: 6000,
+  onepager: 550,
+  starter: 950,
+  pro: 1900,
+  webshop: 3900,
+  custom: 4500,
 };
 
 const moduleKeys = [
   "meertalig",
-  "admin",
+  "copywriting",
+  "fotoshoot",
+  "formulieren",
+  "reservatie",
+  "blog",
+  "ledenzone",
+  "seoMigratie",
+  "cookies",
   "pwa",
-  "newsletters",
-  "boekingen",
-  "media",
+  "koppeling",
 ] as const;
 type ModuleKey = (typeof moduleKeys)[number];
 
 const modulePrice: Record<ModuleKey, number> = {
-  meertalig: 1200,
-  admin: 1500,
-  pwa: 800,
-  newsletters: 900,
-  boekingen: 700,
-  media: 900,
+  meertalig: 350,
+  copywriting: 300,
+  fotoshoot: 450,
+  formulieren: 200,
+  reservatie: 600,
+  blog: 350,
+  ledenzone: 900,
+  seoMigratie: 250,
+  cookies: 150,
+  pwa: 300,
+  koppeling: 450,
 };
 
-type PlanKey = "geen" | "care" | "plus" | "scale";
+type PlanKey = "geen" | "basis" | "care" | "plus" | "scale" | "partner";
 const planMonthly: Record<PlanKey, number> = {
   geen: 0,
+  basis: 19,
   care: 49,
   plus: 149,
   scale: 399,
+  partner: 799,
 };
 
 const T: Record<
@@ -90,24 +103,32 @@ const T: Record<
     step2: "2 · Extra modules",
     step3: "3 · Onderhoud achteraf",
     bases: {
-      website: { label: "Website", desc: "Vitrine-site, tot ~15 pagina's" },
+      onepager: { label: "One-pager", desc: "1 sterke pagina, alles op één scroll" },
+      starter: { label: "Starter", desc: "Tot ~5 pagina's, eigen design" },
+      pro: { label: "Pro", desc: "Tot ~15 pagina's + eigen admin" },
       webshop: { label: "Webshop", desc: "Verkoop online, Mollie/Stripe" },
-      migratie: { label: "Migratie", desc: "Van WordPress/Squarespace" },
       custom: { label: "Custom", desc: "Multi-app, integraties, op maat" },
     },
     modules: {
-      meertalig: { label: "Tweetalig (NL/FR/EN)", desc: "Vertaalde routes + SEO per taal" },
-      admin: { label: "Admin op maat", desc: "Eigen dashboard, jij beheert" },
+      meertalig: { label: "Extra taal", desc: "Volledige extra taal + hreflang SEO" },
+      copywriting: { label: "Teksten / copywriting", desc: "Professionele, SEO-bewuste webteksten" },
+      fotoshoot: { label: "Fotoshoot", desc: "Halve dag pro shoot, webklaar" },
+      formulieren: { label: "Formulieren + opvolging", desc: "Contact/offerte met spamfilter" },
+      reservatie: { label: "Reservatie / afspraken", desc: "Boekingsmodule + bevestigingen" },
+      blog: { label: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving" },
+      ledenzone: { label: "Ledenzone", desc: "Afgeschermd deel met logins" },
+      seoMigratie: { label: "SEO-behoud bij migratie", desc: "Volledig 301-plan, posities blijven" },
+      cookies: { label: "Cookiebanner & GDPR", desc: "Consent vóór scripts — boetevrij" },
       pwa: { label: "Progressive Web App", desc: "Installeerbaar, offline" },
-      newsletters: { label: "Newsletters", desc: "Mailing-tool in de admin" },
-      boekingen: { label: "Reservaties", desc: "Boekingsflow + bevestigingen" },
-      media: { label: "Beeld-pipeline", desc: "Bulk-upload + optimalisatie" },
+      koppeling: { label: "Koppeling / integratie", desc: "Boekhouding, CRM, nieuwsbrief…" },
     },
     plans: {
       geen: { label: "Geen", desc: "Free tier, support per uur" },
-      care: { label: "Care", desc: "Hosting + backups + 1u/m" },
+      basis: { label: "Basis", desc: "Hosting + SSL + backups" },
+      care: { label: "Care", desc: "+ updates + 1u support/m" },
       plus: { label: "Plus", desc: "+ content-updates + 4u/m" },
       scale: { label: "Scale", desc: "+ features + onbeperkt support" },
+      partner: { label: "Partner", desc: "Vaste partner, onbeperkt + dev" },
     },
     estimate: "Richtprijs",
     estimateNote:
@@ -141,24 +162,32 @@ const T: Record<
     step2: "2 · Modules supplémentaires",
     step3: "3 · Maintenance ensuite",
     bases: {
-      website: { label: "Site web", desc: "Site vitrine, jusqu'à ~15 pages" },
+      onepager: { label: "One-pager", desc: "1 page forte, tout en un scroll" },
+      starter: { label: "Starter", desc: "Jusqu'à ~5 pages, design propre" },
+      pro: { label: "Pro", desc: "Jusqu'à ~15 pages + admin propre" },
       webshop: { label: "Boutique", desc: "Vente en ligne, Mollie/Stripe" },
-      migratie: { label: "Migration", desc: "Depuis WordPress/Squarespace" },
       custom: { label: "Sur mesure", desc: "Multi-app, intégrations" },
     },
     modules: {
-      meertalig: { label: "Bilingue (NL/FR/EN)", desc: "Routes traduites + SEO par langue" },
-      admin: { label: "Admin sur mesure", desc: "Dashboard propre, vous gérez" },
+      meertalig: { label: "Langue supplémentaire", desc: "Langue complète + hreflang SEO" },
+      copywriting: { label: "Textes / rédaction", desc: "Textes web pro, optimisés SEO" },
+      fotoshoot: { label: "Shooting photo", desc: "Demi-journée pro, prêt web" },
+      formulieren: { label: "Formulaires + suivi", desc: "Contact/devis avec anti-spam" },
+      reservatie: { label: "Réservation / RDV", desc: "Module de réservation + confirmations" },
+      blog: { label: "CMS blog / actus", desc: "Environnement de rédaction propre" },
+      ledenzone: { label: "Espace membres", desc: "Zone protégée avec logins" },
+      seoMigratie: { label: "Préservation SEO (migration)", desc: "Plan 301 complet, positions gardées" },
+      cookies: { label: "Bannière cookies & RGPD", desc: "Consentement avant scripts" },
       pwa: { label: "Progressive Web App", desc: "Installable, hors ligne" },
-      newsletters: { label: "Newsletters", desc: "Outil d'emailing dans l'admin" },
-      boekingen: { label: "Réservations", desc: "Flux de réservation + confirmations" },
-      media: { label: "Pipeline d'images", desc: "Upload masse + optimisation" },
+      koppeling: { label: "Intégration / connexion", desc: "Compta, CRM, newsletter…" },
     },
     plans: {
       geen: { label: "Aucun", desc: "Free tier, support à l'heure" },
-      care: { label: "Care", desc: "Hébergement + backups + 1h/m" },
+      basis: { label: "Basis", desc: "Hébergement + SSL + backups" },
+      care: { label: "Care", desc: "+ mises à jour + 1h support/m" },
       plus: { label: "Plus", desc: "+ mises à jour contenu + 4h/m" },
       scale: { label: "Scale", desc: "+ fonctions + support illimité" },
+      partner: { label: "Partner", desc: "Partenaire fixe, illimité + dev" },
     },
     estimate: "Prix indicatif",
     estimateNote:
@@ -192,24 +221,32 @@ const T: Record<
     step2: "2 · Extra modules",
     step3: "3 · Maintenance afterwards",
     bases: {
-      website: { label: "Website", desc: "Showcase site, up to ~15 pages" },
+      onepager: { label: "One-pager", desc: "1 strong page, all on one scroll" },
+      starter: { label: "Starter", desc: "Up to ~5 pages, custom design" },
+      pro: { label: "Pro", desc: "Up to ~15 pages + own admin" },
       webshop: { label: "Webshop", desc: "Sell online, Mollie/Stripe" },
-      migratie: { label: "Migration", desc: "From WordPress/Squarespace" },
       custom: { label: "Custom", desc: "Multi-app, integrations" },
     },
     modules: {
-      meertalig: { label: "Multilingual (NL/FR/EN)", desc: "Translated routes + per-language SEO" },
-      admin: { label: "Custom admin", desc: "Own dashboard, you manage" },
+      meertalig: { label: "Extra language", desc: "Full extra language + hreflang SEO" },
+      copywriting: { label: "Copywriting / texts", desc: "Professional, SEO-aware web copy" },
+      fotoshoot: { label: "Photo shoot", desc: "Half-day pro shoot, web-ready" },
+      formulieren: { label: "Forms + follow-up", desc: "Contact/quote with spam filter" },
+      reservatie: { label: "Booking / appointments", desc: "Booking module + confirmations" },
+      blog: { label: "Blog / news CMS", desc: "Own editorial environment" },
+      ledenzone: { label: "Member area", desc: "Gated section with logins" },
+      seoMigratie: { label: "SEO preservation (migration)", desc: "Full 301 plan, rankings kept" },
+      cookies: { label: "Cookie banner & GDPR", desc: "Consent before scripts — fine-free" },
       pwa: { label: "Progressive Web App", desc: "Installable, offline" },
-      newsletters: { label: "Newsletters", desc: "Mailing tool in the admin" },
-      boekingen: { label: "Reservations", desc: "Booking flow + confirmations" },
-      media: { label: "Image pipeline", desc: "Bulk upload + optimization" },
+      koppeling: { label: "Integration / connection", desc: "Accounting, CRM, newsletter…" },
     },
     plans: {
       geen: { label: "None", desc: "Free tier, hourly support" },
-      care: { label: "Care", desc: "Hosting + backups + 1h/m" },
+      basis: { label: "Basis", desc: "Hosting + SSL + backups" },
+      care: { label: "Care", desc: "+ updates + 1h support/m" },
       plus: { label: "Plus", desc: "+ content updates + 4h/m" },
       scale: { label: "Scale", desc: "+ features + unlimited support" },
+      partner: { label: "Partner", desc: "Dedicated partner, unlimited + dev" },
     },
     estimate: "Indicative price",
     estimateNote:
@@ -242,7 +279,7 @@ export default function OffertePage() {
   const locale: Locale = isValidLocale(raw) ? raw : DEFAULT_LOCALE;
   const c = T[locale];
 
-  const [base, setBase] = useState<BaseKind>("website");
+  const [base, setBase] = useState<BaseKind>("starter");
   const [mods, setMods] = useState<ModuleKey[]>([]);
   const [plan, setPlan] = useState<PlanKey>("care");
 
@@ -258,7 +295,7 @@ export default function OffertePage() {
   const fmt = (n: number) => "€ " + n.toLocaleString("nl-BE");
 
   const reset = () => {
-    setBase("website");
+    setBase("starter");
     setMods([]);
     setPlan("care");
   };
@@ -442,7 +479,7 @@ export default function OffertePage() {
               <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">
                 {c.step3}
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {(Object.keys(planMonthly) as PlanKey[]).map((p) => (
                   <button
                     key={p}
