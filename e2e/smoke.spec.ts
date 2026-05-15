@@ -43,8 +43,9 @@ test.describe("Tools", () => {
 
   test("offerte-calculator toont een richtprijs", async ({ page }) => {
     await page.goto("/nl/offerte");
-    await expect(page.getByText(/Richtprijs/i).first()).toBeVisible();
-    await expect(page.locator('input[type="range"]').first()).toBeVisible();
+    const aside = page.locator("aside");
+    await expect(aside.getByText(/Richtprijs/i).first()).toBeVisible();
+    await expect(aside.getByText(/€\s?\d/).first()).toBeVisible();
   });
 
   test("ROI-calculator rekent en toont verlies", async ({ page }) => {
