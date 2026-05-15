@@ -286,8 +286,8 @@ export default async function QuoteDetail({
         </div>
       )}
 
-      {/* Bericht */}
-      {q.message && (
+      {/* Bericht — niet voor builder-leads met visueel ontwerp (dubbel) */}
+      {q.message && !(isBuilder && snap?.pages) && (
         <div className="mt-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Bericht
