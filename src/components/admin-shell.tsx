@@ -8,6 +8,7 @@ import {
   Inbox,
   Activity,
   Newspaper,
+  Mail,
   LogOut,
   Menu,
   X,
@@ -31,6 +32,7 @@ const items = [
     badge: "monitorsActief",
   },
   { href: "/admin/journal", label: "Journal", icon: Newspaper },
+  { href: "/admin/newsletter", label: "Nieuwsbrief", icon: Mail },
 ] as const;
 
 function Sidebar({

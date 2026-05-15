@@ -7,7 +7,13 @@ import { subscribe, type NewsletterState } from "@/app/actions/newsletter";
 
 const initial: NewsletterState = { ok: false, message: "" };
 
-export function NewsletterForm() {
+export function NewsletterForm({
+  locale = "nl",
+  source = "footer",
+}: {
+  locale?: string;
+  source?: string;
+}) {
   const [state, setState] = useState<NewsletterState>(initial);
   const [pending, startTransition] = useTransition();
 
@@ -37,6 +43,8 @@ export function NewsletterForm() {
           className="hidden"
           aria-hidden
         />
+        <input type="hidden" name="locale" value={locale} />
+        <input type="hidden" name="source" value={source} />
         <input
           type="email"
           name="email"

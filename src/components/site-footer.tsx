@@ -159,7 +159,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         </div>
 
         <div className="mt-12 grid gap-8 border-t pt-8 lg:grid-cols-2">
-          <NewsletterForm />
+          <NewsletterForm locale={locale} source="footer" />
           <div className="flex flex-wrap items-end justify-end gap-4 text-xs">
             <p className="font-mono text-muted">
               © {new Date().getFullYear()} Studio VM · BE 0672.960.066

@@ -65,3 +65,26 @@ export async function deleteMonitor(formData: FormData): Promise<void> {
   await getSupabaseAdmin().from("monitors").delete().eq("id", id);
   revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
+
+export async function setSubscriberActive(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  const active = String(formData.get("active") ?? "") === "1";
+  if (!id) return;
+  await getSupabaseAdmin()
+    .from("newsletter_subscribers")
+    .update({
+      active,
+      unsubscribed_at: active ? null : new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidatePath("/admin"); revalidatePath("/admin/newsletter");
+}
+
+export async function deleteSubscriber(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin().from("newsletter_subscribers").delete().eq("id", id);
+  revalidatePath("/admin"); revalidatePath("/admin/newsletter");
+}

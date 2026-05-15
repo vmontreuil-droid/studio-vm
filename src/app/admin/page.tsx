@@ -9,16 +9,21 @@ export default async function AdminDashboard() {
   if (!adminConfigured || !(await requireAdmin())) return null;
 
   const db = getSupabaseAdmin();
-  const [{ data: q }, { data: m }] = await Promise.all([
+  const [{ data: q }, { data: m }, subsR] = await Promise.all([
     db
       .from("quotes")
       .select("id, name, email, source, status, created_at")
       .order("created_at", { ascending: false })
       .limit(300),
     db.from("monitors").select("id, active").limit(500),
+    db
+      .from("newsletter_subscribers")
+      .select("id", { count: "exact", head: true })
+      .eq("active", true),
   ]);
   const quotes = q ?? [];
   const monitors = m ?? [];
+  const subscribers = subsR.count ?? 0;
 
   const stats = [
     { k: "Aanvragen", v: quotes.length },
@@ -28,12 +33,13 @@ export default async function AdminDashboard() {
       k: "Monitors actief",
       v: monitors.filter((r) => r.active).length,
     },
+    { k: "Abonnees", v: subscribers },
   ];
 
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
           <div key={s.k} className="rounded-2xl border bg-card p-5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
