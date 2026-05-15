@@ -5,7 +5,7 @@ import { getMessages } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
-import { OrganizationJsonLd } from "@/components/json-ld";
+import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/json-ld";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -53,6 +53,7 @@ export default async function LocaleLayout({
   return (
     <>
       <OrganizationJsonLd />
+      <WebsiteJsonLd locale={typedLocale} />
       <SiteHeader locale={typedLocale} />
       <div id="main" className="flex-1">
         {children}

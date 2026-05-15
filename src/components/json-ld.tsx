@@ -109,6 +109,22 @@ export function ServiceJsonLd({
   );
 }
 
+export function WebsiteJsonLd({ locale }: { locale: string }) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Studio VM",
+        alternateName: "studio-vm.be",
+        url: `https://studio-vm.be/${locale}`,
+        inLanguage: locale,
+        publisher: { "@type": "Organization", name: "Studio VM" },
+      }}
+    />
+  );
+}
+
 export function OrganizationJsonLd() {
   const data = {
     "@context": "https://schema.org",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { track } from "@vercel/analytics";
 import { Send, Check, AlertCircle, Mail } from "lucide-react";
 import { sendContact, type ContactState } from "@/app/actions/contact";
 
@@ -16,6 +17,7 @@ export function ContactForm() {
         startTransition(async () => {
           const result = await sendContact(formData);
           setState(result);
+          if (result.ok) track("contact_submitted");
         });
       }}
       className="space-y-4"

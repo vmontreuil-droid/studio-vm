@@ -116,8 +116,32 @@ function SearchDialog({
   const results = useMemo(() => search(query, locale), [query, locale]);
   const total = matchedCmds.length + results.length;
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
     inputRef.current?.focus();
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const f = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, input, a[href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (f.length === 0) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onTab);
+    return () => {
+      document.removeEventListener("keydown", onTab);
+      prev?.focus?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -164,6 +188,7 @@ function SearchDialog({
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Zoeken"
       className="fixed inset-0 z-[90] flex items-start justify-center p-4 sm:p-12"
     >
@@ -172,7 +197,10 @@ function SearchDialog({
         onClick={onClose}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
       />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border bg-background shadow-2xl">
+      <div
+        ref={panelRef}
+        className="relative w-full max-w-xl overflow-hidden rounded-2xl border bg-background shadow-2xl"
+      >
         <div className="flex items-center gap-3 border-b px-4 py-3">
           <SearchIcon className="h-4 w-4 text-muted" strokeWidth={2} />
           <input

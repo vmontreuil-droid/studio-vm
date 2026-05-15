@@ -79,6 +79,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         { href: localePath(locale, "/over"), label: t.footer.sections.vincent },
         { href: localePath(locale, "/now"), label: "Wat ik nu doe" },
         { href: localePath(locale, "/uses"), label: "Tools die ik gebruik" },
+        { href: localePath(locale, "/pers"), label: "Pers & brand kit" },
         { href: localePath(locale, "/journal"), label: "Journal" },
       ],
     },

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { track } from "@vercel/analytics";
 import {
   Search,
   Check,
@@ -361,7 +362,18 @@ export function SiteScanner() {
   return (
     <div className="space-y-4">
       <form
-        action={(fd) => start(async () => setResult(await scanSite(fd)))}
+        action={(fd) =>
+          start(async () => {
+            const r = await scanSite(fd);
+            setResult(r);
+            if (r.ok)
+              track("site_scan", {
+                stack: r.stack,
+                score:
+                  r.score >= 75 ? "good" : r.score >= 45 ? "medium" : "poor",
+              });
+          })
+        }
         className="flex flex-col gap-3 sm:flex-row"
       >
         <div className="relative flex-1">

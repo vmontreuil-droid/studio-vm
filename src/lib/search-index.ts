@@ -17,6 +17,7 @@ const pageDefs: Record<
   nl: [
     { title: "Home", path: "/", hint: "Hero, werk, mogelijkheden, contact" },
     { title: "Over Vincent", path: "/over", hint: "Wie zit er achter Studio VM" },
+    { title: "Pers & brand kit", path: "/pers", hint: "Logo's, kleuren, bio" },
     { title: "Offerte-calculator", path: "/offerte", hint: "Reken je project uit" },
     { title: "Gratis site-scan", path: "/scan", hint: "Live check van je huidige site" },
     { title: "Mogelijkheden", path: "/mogelijkheden", hint: "Alle modules in detail" },
@@ -41,6 +42,7 @@ const pageDefs: Record<
   fr: [
     { title: "Accueil", path: "/", hint: "Hero, travaux, capacités, contact" },
     { title: "À propos de Vincent", path: "/over", hint: "Qui est derrière Studio VM" },
+    { title: "Presse & brand kit", path: "/pers", hint: "Logos, couleurs, bio" },
     { title: "Calculateur de devis", path: "/offerte", hint: "Estimez votre projet" },
     { title: "Scan de site gratuit", path: "/scan", hint: "Check en direct de votre site actuel" },
     { title: "Capacités", path: "/mogelijkheden", hint: "Tous les modules en détail" },
@@ -65,6 +67,7 @@ const pageDefs: Record<
   en: [
     { title: "Home", path: "/", hint: "Hero, work, capabilities, contact" },
     { title: "About Vincent", path: "/over", hint: "Who is behind Studio VM" },
+    { title: "Press & brand kit", path: "/pers", hint: "Logos, colours, bio" },
     { title: "Quote calculator", path: "/offerte", hint: "Estimate your project" },
     { title: "Free site scan", path: "/scan", hint: "Live check of your current site" },
     { title: "Capabilities", path: "/mogelijkheden", hint: "All modules in detail" },

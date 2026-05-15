@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { track } from "@vercel/analytics";
 import { Send, Check, AlertCircle } from "lucide-react";
 import { subscribe, type NewsletterState } from "@/app/actions/newsletter";
 
@@ -16,6 +17,7 @@ export function NewsletterForm() {
         startTransition(async () => {
           const result = await subscribe(formData);
           setState(result);
+          if (result.ok) track("newsletter_signup");
         });
       }}
       className="space-y-2"
