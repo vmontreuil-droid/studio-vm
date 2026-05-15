@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
 import { getPricing, type PricingTier } from "@/lib/pricing";
+import { openproviderConfigured } from "@/lib/openprovider";
+import { DomainCheck } from "@/components/domain-check";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -324,6 +326,12 @@ export default async function PricingPage({
               </div>
             ))}
           </div>
+          {openproviderConfigured && (
+            <DomainCheck
+              locale={locale}
+              contactHref={localePath(locale, "/#contact")}
+            />
+          )}
           <p className="mx-auto mt-8 max-w-2xl text-center font-mono text-xs text-muted">
             {c.domNote}
           </p>
