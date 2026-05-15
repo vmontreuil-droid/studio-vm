@@ -23,9 +23,13 @@ import {
 type SectionKind =
   | "hero"
   | "features"
+  | "about"
+  | "stats"
   | "testimonials"
   | "pricing"
   | "gallery"
+  | "faq"
+  | "cta"
   | "contact";
 
 type Theme = { slug: string; bg: string; fg: string; accent: string };
@@ -35,14 +39,22 @@ const themes: Theme[] = [
   { slug: "cool", bg: "#f8fafc", fg: "#0f172a", accent: "#0ea5e9" },
   { slug: "bos", bg: "#f7faf6", fg: "#14271d", accent: "#15803d" },
   { slug: "noir", bg: "#0c0a09", fg: "#fafaf9", accent: "#f59e0b" },
+  { slug: "zee", bg: "#f0fdfa", fg: "#0f2e2a", accent: "#0d9488" },
+  { slug: "roze", bg: "#fff1f5", fg: "#3f1320", accent: "#e11d48" },
+  { slug: "mono", bg: "#fafafa", fg: "#171717", accent: "#525252" },
+  { slug: "paars", bg: "#faf5ff", fg: "#2b1147", accent: "#7c3aed" },
 ];
 
 const sectionKinds: SectionKind[] = [
   "hero",
   "features",
+  "about",
+  "stats",
   "testimonials",
   "pricing",
   "gallery",
+  "faq",
+  "cta",
   "contact",
 ];
 
@@ -85,6 +97,15 @@ const T: Record<
       email: string;
       message: string;
       send: string;
+      aboutTitle: string;
+      aboutText: string;
+      statsTitle: string;
+      statsItems: { v: string; l: string }[];
+      faqTitle: string;
+      faqs: { q: string; a: string }[];
+      ctaTitle2: string;
+      ctaText2: string;
+      ctaBtn2: string;
     };
   }
 > = {
@@ -95,9 +116,9 @@ const T: Record<
       "Probeer eens. Kies een thema, voeg secties toe, herschik ze, en zie je site groeien. Klaar? Stuur je preview door en ik werk hem voor je uit.",
     panelTheme: "Naam + thema",
     bizName: "Zaak-naam",
-    themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir" },
+    themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
     panelSections: "Secties",
-    sectionLabels: { hero: "Hero", features: "Features", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", cta: "Oproep", contact: "Contact" },
     add: "Voeg toe",
     panelReady: "Klaar?",
     readyText: "Stuur je preview door en ik bouw 'm voor je uit als echte site, met eigen content en admin.",
@@ -128,6 +149,23 @@ const T: Record<
       email: "E-mail",
       message: "Je bericht",
       send: "Verstuur",
+      aboutTitle: "Over ons",
+      aboutText:
+        "Vertel hier kort je verhaal: wie je bent, waar je voor staat en waarom klanten bij jou moeten zijn.",
+      statsTitle: "In cijfers",
+      statsItems: [
+        { v: "10+", l: "jaar ervaring" },
+        { v: "250", l: "tevreden klanten" },
+        { v: "24/7", l: "bereikbaar" },
+      ],
+      faqTitle: "Veelgestelde vragen",
+      faqs: [
+        { q: "Hoe snel kan ik starten?", a: "Meestal binnen enkele dagen." },
+        { q: "Wat kost het?", a: "Een eerlijke vaste prijs, vooraf bepaald." },
+      ],
+      ctaTitle2: "Klaar om te beginnen?",
+      ctaText2: "Eén klik en we plannen een vrijblijvend gesprek.",
+      ctaBtn2: "Neem contact op",
     },
   },
   fr: {
@@ -137,9 +175,9 @@ const T: Record<
       "Essayez. Choisissez un thème, ajoutez des sections, réorganisez-les, et regardez votre site grandir. Prêt ? Envoyez votre preview et je le finalise pour vous.",
     panelTheme: "Nom + thème",
     bizName: "Nom de l'activité",
-    themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir" },
+    themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
     panelSections: "Sections",
-    sectionLabels: { hero: "Hero", features: "Atouts", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Atouts", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", cta: "Appel", contact: "Contact" },
     add: "Ajouter",
     panelReady: "Prêt ?",
     readyText: "Envoyez votre preview et je le construis en vrai site, avec contenu propre et admin.",
@@ -170,6 +208,23 @@ const T: Record<
       email: "E-mail",
       message: "Votre message",
       send: "Envoyer",
+      aboutTitle: "À propos",
+      aboutText:
+        "Racontez votre histoire en bref : qui vous êtes, vos valeurs et pourquoi vous choisir.",
+      statsTitle: "En chiffres",
+      statsItems: [
+        { v: "10+", l: "ans d'expérience" },
+        { v: "250", l: "clients satisfaits" },
+        { v: "24/7", l: "joignable" },
+      ],
+      faqTitle: "Questions fréquentes",
+      faqs: [
+        { q: "Quand puis-je démarrer ?", a: "En général sous quelques jours." },
+        { q: "Quel est le prix ?", a: "Un prix fixe et honnête, défini à l'avance." },
+      ],
+      ctaTitle2: "Prêt à commencer ?",
+      ctaText2: "Un clic et on planifie un échange sans engagement.",
+      ctaBtn2: "Contactez-nous",
     },
   },
   en: {
@@ -179,9 +234,9 @@ const T: Record<
       "Give it a try. Pick a theme, add sections, reorder them, and watch your site grow. Done? Send your preview and I'll finalize it for you.",
     panelTheme: "Name + theme",
     bizName: "Business name",
-    themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir" },
+    themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
     panelSections: "Sections",
-    sectionLabels: { hero: "Hero", features: "Features", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", cta: "Call-out", contact: "Contact" },
     add: "Add",
     panelReady: "Done?",
     readyText: "Send your preview and I'll build it into a real site, with your own content and admin.",
@@ -212,6 +267,23 @@ const T: Record<
       email: "Email",
       message: "Your message",
       send: "Send",
+      aboutTitle: "About us",
+      aboutText:
+        "Tell your story in short: who you are, what you stand for and why clients should pick you.",
+      statsTitle: "In numbers",
+      statsItems: [
+        { v: "10+", l: "years experience" },
+        { v: "250", l: "happy clients" },
+        { v: "24/7", l: "reachable" },
+      ],
+      faqTitle: "Frequently asked",
+      faqs: [
+        { q: "How fast can I start?", a: "Usually within a few days." },
+        { q: "What does it cost?", a: "A fair fixed price, set upfront." },
+      ],
+      ctaTitle2: "Ready to start?",
+      ctaText2: "One click and we schedule a no-obligation chat.",
+      ctaBtn2: "Get in touch",
     },
   },
 };
@@ -571,6 +643,81 @@ function PreviewSection({
               />
             ))}
           </div>
+        </div>
+      );
+    case "about":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_1.4fr]">
+            <div
+              className="aspect-[4/3] rounded-lg"
+              style={{
+                background: `linear-gradient(135deg, ${theme.accent}33, ${theme.fg}11)`,
+              }}
+            />
+            <div>
+              <h3 className="text-xl font-semibold tracking-tight">
+                {p.aboutTitle}
+              </h3>
+              <p className="mt-3 text-sm opacity-70">{p.aboutText}</p>
+            </div>
+          </div>
+        </div>
+      );
+    case "stats":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            {p.statsTitle}
+          </h3>
+          <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+            {p.statsItems.map((s, i) => (
+              <div key={i}>
+                <p className="text-3xl font-bold" style={accentText}>
+                  {s.v}
+                </p>
+                <p className="mt-1 text-xs opacity-70">{s.l}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "faq":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            {p.faqTitle}
+          </h3>
+          <div className="mx-auto mt-6 max-w-lg space-y-3">
+            {p.faqs.map((f, i) => (
+              <div
+                key={i}
+                className="rounded-lg border p-4 text-xs"
+                style={border}
+              >
+                <p className="font-semibold">{f.q}</p>
+                <p className="mt-1 opacity-70">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "cta":
+      return (
+        <div
+          className="border-t px-8 py-14 text-center"
+          style={{ ...border, background: `${theme.accent}14` }}
+        >
+          <h3 className="text-2xl font-semibold tracking-tight">
+            {p.ctaTitle2}
+          </h3>
+          <p className="mt-2 text-sm opacity-70">{p.ctaText2}</p>
+          <button
+            className="mt-5 rounded-full px-5 py-2 text-xs font-medium"
+            style={{ background: theme.accent, color: theme.bg }}
+          >
+            {p.ctaBtn2}
+          </button>
         </div>
       );
     case "contact":
