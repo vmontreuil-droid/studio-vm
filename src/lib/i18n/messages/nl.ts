@@ -24,8 +24,14 @@ const nl = {
       "Jouw site, jouw code, jouw data — voorgoed.",
       "Van traag WordPress naar razendsnel.",
     ],
-    subtitle:
+    subtitles: [
       "Ik bouw snelle, tweetalige websites en webshops voor lokale ondernemers in Vlaanderen. Zonder plugin-spaghetti, zonder maandelijkse kostenexplosie, met een admin die voor jou werkt.",
+      "Restaurants, ateliers, fotografen en KMO's — een site die laadt vóór je bezoeker afhaakt.",
+      "Eén schone Next.js-codebase in plaats van dertig plugins die elkaar om de oren slaan.",
+      "Gebouwd rond conversie: razendsnel, vindbaar in Google en simpel om zelf te beheren.",
+      "Geen lock-in, geen verplichte abonnementen. Je bezit alles wat ik oplever.",
+      "Ik migreer je bestaande site mét behoud van je Google-posities. Zonder downtime.",
+    ],
     ctaWerk: "Bekijk realisaties",
     ctaPricing: "Pricing",
     ctaContact: "Praat met me",
@@ -35,6 +41,10 @@ const nl = {
     languages: "talen (NL · FR · EN)",
     stack: "Next.js + Supabase",
     plugins: "WordPress-plugins",
+    pagespeed: "gem. PageSpeed",
+    uptime: "uptime",
+    ervaring: "jaar ervaring",
+    respons: "reactietijd",
   },
   werk: {
     eyebrow: "Realisaties",

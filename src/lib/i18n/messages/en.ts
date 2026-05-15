@@ -26,8 +26,14 @@ const en: Messages = {
       "Your site, your code, your data — for good.",
       "From slow WordPress to lightning fast.",
     ],
-    subtitle:
+    subtitles: [
       "I build fast, multilingual websites and webshops for local entrepreneurs in Flanders. No plugin spaghetti, no monthly cost explosion, with an admin built for you.",
+      "Restaurants, studios, photographers and SMEs — a site that loads before your visitor leaves.",
+      "One clean Next.js codebase instead of thirty plugins fighting each other.",
+      "Built around conversion: lightning fast, findable on Google and simple to manage yourself.",
+      "No lock-in, no mandatory subscriptions. You own everything I deliver.",
+      "I migrate your existing site while keeping your Google rankings. Zero downtime.",
+    ],
     ctaWerk: "See work",
     ctaPricing: "Pricing",
     ctaContact: "Let's talk",
@@ -37,6 +43,10 @@ const en: Messages = {
     languages: "languages (NL · FR · EN)",
     stack: "Next.js + Supabase",
     plugins: "WordPress plugins",
+    pagespeed: "avg. PageSpeed",
+    uptime: "uptime",
+    ervaring: "years experience",
+    respons: "response time",
   },
   werk: {
     eyebrow: "Work",

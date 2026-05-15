@@ -42,11 +42,10 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
         </p>
         <RotatingHeadline
           titles={t.hero.titles}
+          subtitles={t.hero.subtitles}
           className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
+          subtitleClassName="mt-8 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl"
         />
-        <p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
-          {t.hero.subtitle}
-        </p>
         <div className="mt-10 flex flex-wrap gap-3">
           <a
             href="#werk"
@@ -77,9 +76,13 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
 
 function Stats({ t }: { t: T }) {
   const stats = [
-    { value: "10+", label: t.stats.projects },
+    { value: "14+", label: t.stats.projects },
     { value: "3", label: t.stats.languages },
+    { value: "100", label: t.stats.pagespeed },
     { value: "100%", label: t.stats.stack },
+    { value: "99.9%", label: t.stats.uptime },
+    { value: "8", label: t.stats.ervaring },
+    { value: "< 1d", label: t.stats.respons },
     { value: "0", label: t.stats.plugins },
   ];
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat, Geist_Mono } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -8,7 +8,7 @@ import { WebVitals } from "@/components/web-vitals";
 import { isValidLocale, DEFAULT_LOCALE } from "@/lib/i18n/config";
 import "./globals.css";
 
-const geistSans = Geist({
+const geistSans = Montserrat({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
