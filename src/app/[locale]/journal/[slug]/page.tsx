@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { postSlugs, getPostBySlug } from "@/lib/posts";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Params = { locale: string; slug: string };
@@ -60,9 +61,23 @@ export default async function JournalPostPage({
   if (!post) notFound();
   const t = ui[locale];
   const paragraphs = post.body.split("\n\n");
+  const url = `https://studio-vm.be/${locale}/journal/${post.slug}`;
 
   return (
     <main>
+      <ArticleJsonLd
+        title={post.title}
+        description={post.excerpt}
+        url={url}
+        datePublished={post.date}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Studio VM", url: `https://studio-vm.be/${locale}` },
+          { name: "Journal", url: `https://studio-vm.be/${locale}/journal` },
+          { name: post.title, url },
+        ]}
+      />
       <article>
         <section className="border-b">
           <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">

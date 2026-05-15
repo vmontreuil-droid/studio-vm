@@ -8,6 +8,7 @@ import {
   getOtherProjects,
   type Project,
 } from "@/lib/projects";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Params = { locale: string; slug: string };
@@ -116,6 +117,16 @@ export default async function WerkDetailPage({
 
   return (
     <main>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Studio VM", url: `https://studio-vm.be/${locale}` },
+          { name: "Werk", url: `https://studio-vm.be/${locale}#werk` },
+          {
+            name: project.name,
+            url: `https://studio-vm.be/${locale}/werk/${project.slug}`,
+          },
+        ]}
+      />
       <article>
         <section className="relative overflow-hidden border-b">
           <div

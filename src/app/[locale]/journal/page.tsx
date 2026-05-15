@@ -42,7 +42,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { title: copy[locale].metaTitle };
+  return {
+    title: copy[locale].metaTitle,
+    alternates: {
+      types: {
+        "application/rss+xml": `https://studio-vm.be/${locale}/journal/rss.xml`,
+      },
+    },
+  };
 }
 
 export default async function JournalPage({
