@@ -41,7 +41,7 @@ const base: ProjectBase[] = [
   {
     slug: "cottage-waregem",
     name: "Cottage Waregem",
-    url: "https://cottage-waregem.be",
+    url: "https://cottage-waregem.vercel.app",
     stack: ["Next.js 16", "Tailwind v4", "Supabase"],
     accent: "#7c3a2e",
     year: "2026",
