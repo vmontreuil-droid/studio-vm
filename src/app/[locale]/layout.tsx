@@ -54,7 +54,9 @@ export default async function LocaleLayout({
     <>
       <OrganizationJsonLd />
       <SiteHeader locale={typedLocale} />
-      <div className="flex-1">{children}</div>
+      <div id="main" className="flex-1">
+        {children}
+      </div>
       <SiteFooter locale={typedLocale} />
       <CookieBanner />
     </>

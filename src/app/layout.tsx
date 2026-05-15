@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { isValidLocale, DEFAULT_LOCALE } from "@/lib/i18n/config";
 import "./globals.css";
 
@@ -43,7 +45,15 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col font-sans antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-background"
+        >
+          Skip to content
+        </a>
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
