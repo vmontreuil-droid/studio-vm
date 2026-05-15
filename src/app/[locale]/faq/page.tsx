@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { FaqJsonLd } from "@/components/json-ld";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Group = { title: string; items: { q: string; a: string }[] };
@@ -173,9 +174,11 @@ export default async function FAQPage({
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
   const contact = localePath(locale, "/#contact");
+  const allFaqs = c.groups.flatMap((g) => g.items);
 
   return (
     <main>
+      <FaqJsonLd items={allFaqs} />
       <section className="border-b">
         <div className="mx-auto max-w-3xl px-6 py-20 text-center sm:py-28">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">

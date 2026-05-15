@@ -92,6 +92,45 @@ body {
   }
 }
 
+/* Print: schone, papier-vriendelijke output (offertes, scans, cases worden geprint) */
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  :root {
+    --background: #ffffff;
+    --foreground: #111111;
+    --muted: #444444;
+    --border: #cccccc;
+    --card: #ffffff;
+    --card-hover: #ffffff;
+    --accent: #b45309;
+  }
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  main,
+  section {
+    border: 0 !important;
+  }
+  a {
+    color: #111 !important;
+    text-decoration: none !important;
+  }
+  .border,
+  [class*="rounded-2xl"] {
+    border-color: #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  @page {
+    margin: 1.6cm;
+  }
+}
+
 /* Tailwind v4 opacity-modifier op CSS-var kleuren werkt niet — eigen utility met color-mix() */
 .bg-header {
   background: color-mix(in srgb, var(--background) 80%, transparent);

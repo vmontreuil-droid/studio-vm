@@ -10,6 +10,9 @@ import {
   AlertTriangle,
   ArrowRight,
   Loader2,
+  Printer,
+  ClipboardCheck,
+  Clipboard,
 } from "lucide-react";
 import { scanSite, type ScanResult } from "@/app/actions/scan";
 import {
@@ -37,6 +40,14 @@ const T: Record<
     ctaButton: string;
     disclaimer: string;
     again: string;
+    benchTitle: string;
+    benchYou: string;
+    benchSvm: string;
+    benchNote: string;
+    print: string;
+    copy: string;
+    copied: string;
+    copyTpl: (host: string, score: number, stack: string, ms: number, kb: number) => string;
   }
 > = {
   nl: {
@@ -56,6 +67,16 @@ const T: Record<
     disclaimer:
       "Snelle heuristische check, geen volledige audit. Live opgehaald vanaf onze server. Voor een grondige analyse: stuur een bericht.",
     again: "Andere site scannen",
+    benchTitle: "Jouw site vs. een Studio VM-build",
+    benchYou: "Jouw site",
+    benchSvm: "Studio VM-standaard",
+    benchNote:
+      "Een Studio VM-build mikt standaard op 100/100 op exact deze punten — snelheid en SEO-basis zijn geen extra, maar het vertrekpunt.",
+    print: "Print / bewaar als PDF",
+    copy: "Kopieer samenvatting",
+    copied: "Gekopieerd",
+    copyTpl: (host, score, stack, ms, kb) =>
+      `Site-scan van ${host} (via studio-vm.be/scan)\nScore: ${score}/100\nPlatform: ${stack}\nReactietijd: ${ms} ms\nHTML: ${kb} KB\n\nEen Studio VM-build mikt op 100/100. Bespreek: studio-vm.be`,
   },
   fr: {
     placeholder: "votresiteactuel.be",
@@ -74,6 +95,16 @@ const T: Record<
     disclaimer:
       "Check heuristique rapide, pas un audit complet. Récupéré en direct depuis notre serveur. Pour une analyse approfondie : envoyez un message.",
     again: "Scanner un autre site",
+    benchTitle: "Votre site vs. un build Studio VM",
+    benchYou: "Votre site",
+    benchSvm: "Standard Studio VM",
+    benchNote:
+      "Un build Studio VM vise par défaut 100/100 sur exactement ces points — vitesse et base SEO ne sont pas un extra, mais le point de départ.",
+    print: "Imprimer / enregistrer en PDF",
+    copy: "Copier le résumé",
+    copied: "Copié",
+    copyTpl: (host, score, stack, ms, kb) =>
+      `Scan de ${host} (via studio-vm.be/scan)\nScore : ${score}/100\nPlateforme : ${stack}\nTemps de réponse : ${ms} ms\nHTML : ${kb} KB\n\nUn build Studio VM vise 100/100. Discutons : studio-vm.be`,
   },
   en: {
     placeholder: "yourcurrentsite.com",
@@ -92,6 +123,16 @@ const T: Record<
     disclaimer:
       "Quick heuristic check, not a full audit. Fetched live from our server. For a thorough analysis: send a message.",
     again: "Scan another site",
+    benchTitle: "Your site vs. a Studio VM build",
+    benchYou: "Your site",
+    benchSvm: "Studio VM standard",
+    benchNote:
+      "A Studio VM build aims for 100/100 on exactly these points by default — speed and SEO basics aren't an extra, they're the starting point.",
+    print: "Print / save as PDF",
+    copy: "Copy summary",
+    copied: "Copied",
+    copyTpl: (host, score, stack, ms, kb) =>
+      `Site scan of ${host} (via studio-vm.be/scan)\nScore: ${score}/100\nPlatform: ${stack}\nResponse time: ${ms} ms\nHTML: ${kb} KB\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
   },
 };
 
@@ -138,6 +179,42 @@ function Ring({ score }: { score: number }) {
   );
 }
 
+function BenchBar({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-sm">
+        <span className={accent ? "font-semibold text-accent" : "font-medium"}>
+          {label}
+        </span>
+        <span className="font-mono text-xs text-muted">{value}/100</span>
+      </div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-border">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${value}%`,
+            background: accent
+              ? "var(--accent)"
+              : value >= 75
+                ? "#16a34a"
+                : value >= 45
+                  ? "#f59e0b"
+                  : "#ef4444",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function SiteScanner() {
   const params = useParams();
   const raw = Array.isArray(params.locale) ? params.locale[0] : params.locale;
@@ -146,6 +223,7 @@ export function SiteScanner() {
 
   const [result, setResult] = useState<ScanResult | null>(null);
   const [pending, start] = useTransition();
+  const [copied, setCopied] = useState(false);
 
   const verdict =
     result && result.ok
@@ -157,8 +235,24 @@ export function SiteScanner() {
       : "";
 
   if (result && result.ok) {
+    const host = (() => {
+      try {
+        return new URL(result.finalUrl).hostname;
+      } catch {
+        return result.url;
+      }
+    })();
+    const copySummary = async () => {
+      try {
+        await navigator.clipboard.writeText(
+          t.copyTpl(host, result.score, result.stack, result.responseMs, result.htmlKb),
+        );
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {}
+    };
     return (
-      <div className="space-y-8">
+      <div id="scan-report" className="space-y-8">
         <div className="flex flex-col items-center gap-6 rounded-2xl border bg-card p-8 text-center sm:flex-row sm:text-left">
           <Ring score={result.score} />
           <div className="flex-1">
@@ -203,6 +297,17 @@ export function SiteScanner() {
           ))}
         </ul>
 
+        <div className="rounded-2xl border bg-card p-6">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            {t.benchTitle}
+          </p>
+          <div className="mt-5 space-y-3">
+            <BenchBar label={t.benchYou} value={result.score} accent={false} />
+            <BenchBar label={t.benchSvm} value={100} accent />
+          </div>
+          <p className="mt-4 text-sm text-muted">{t.benchNote}</p>
+        </div>
+
         <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             {t.recoTitle}
@@ -218,8 +323,28 @@ export function SiteScanner() {
             </Link>
             <button
               type="button"
+              onClick={() => window.print()}
+              className="no-print inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm transition-colors hover:bg-card-hover"
+            >
+              <Printer className="h-4 w-4" strokeWidth={2} />
+              {t.print}
+            </button>
+            <button
+              type="button"
+              onClick={copySummary}
+              className="no-print inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm transition-colors hover:bg-card-hover"
+            >
+              {copied ? (
+                <ClipboardCheck className="h-4 w-4 text-accent" strokeWidth={2} />
+              ) : (
+                <Clipboard className="h-4 w-4" strokeWidth={2} />
+              )}
+              {copied ? t.copied : t.copy}
+            </button>
+            <button
+              type="button"
               onClick={() => setResult(null)}
-              className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm transition-colors hover:bg-card-hover"
+              className="no-print inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm transition-colors hover:bg-card-hover"
             >
               {t.again}
             </button>

@@ -63,6 +63,52 @@ export function BreadcrumbJsonLd({
   );
 }
 
+export function FaqJsonLd({ items }: { items: { q: string; a: string }[] }) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: items.map((it) => ({
+          "@type": "Question",
+          name: it.q,
+          acceptedAnswer: { "@type": "Answer", text: it.a },
+        })),
+      }}
+    />
+  );
+}
+
+export function ServiceJsonLd({
+  name,
+  description,
+  url,
+}: {
+  name: string;
+  description: string;
+  url: string;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Service",
+        serviceType: name,
+        name,
+        description,
+        url,
+        provider: {
+          "@type": "Organization",
+          name: "Studio VM",
+          url: "https://studio-vm.be",
+        },
+        areaServed: { "@type": "Country", name: "Belgium" },
+        availableLanguage: ["nl", "fr", "en"],
+      }}
+    />
+  );
+}
+
 export function OrganizationJsonLd() {
   const data = {
     "@context": "https://schema.org",

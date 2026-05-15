@@ -8,7 +8,11 @@ import {
   getCapabilityDetails,
 } from "@/lib/capabilities";
 import { getProjectBySlug } from "@/lib/projects";
-import { BreadcrumbJsonLd } from "@/components/json-ld";
+import {
+  BreadcrumbJsonLd,
+  FaqJsonLd,
+  ServiceJsonLd,
+} from "@/components/json-ld";
 import {
   LOCALES,
   isValidLocale,
@@ -115,6 +119,12 @@ export default async function CapabilityDetailPage({
           },
         ]}
       />
+      <ServiceJsonLd
+        name={d.title}
+        description={d.heroIntro}
+        url={`https://studio-vm.be/${locale}/mogelijkheden/${slug}`}
+      />
+      <FaqJsonLd items={d.faq} />
 
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
