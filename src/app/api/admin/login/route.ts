@@ -10,10 +10,10 @@ export async function POST(req: NextRequest) {
   const base = req.nextUrl.origin;
 
   if (!adminConfigured || pw !== adminPassword) {
-    return NextResponse.redirect(`${base}/admin/aanvragen?e=1`, 303);
+    return NextResponse.redirect(`${base}/admin?e=1`, 303);
   }
 
-  const res = NextResponse.redirect(`${base}/admin/aanvragen`, 303);
+  const res = NextResponse.redirect(`${base}/admin`, 303);
   res.cookies.set(ADMIN_COOKIE, adminToken(), {
     httpOnly: true,
     secure: true,
