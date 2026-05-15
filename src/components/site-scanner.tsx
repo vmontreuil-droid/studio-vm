@@ -335,6 +335,8 @@ const UI: Record<
       weeks: (a: number, b: number) => string;
       careTitle: string;
       careNote: string;
+      optTitle: string;
+      optNote: string;
       own: string;
       cta: string;
     };
@@ -481,6 +483,7 @@ const UI: Record<
         members: { name: "Ledenzone", desc: "Afgeschermd gedeelte met logins en rollen." },
         content: { name: "Contentmigratie", desc: "Bestaande pagina's overgezet, geschaald op de omvang van je site." },
         seoPreserve: { name: "SEO-behoud & redirects", desc: "Volledig 301-plan + sitemap zodat je niet terugvalt in Google." },
+        photoshoot: { name: "Fotoshoot / beeldmateriaal", desc: "Geen eigen foto's? Een halve dag professionele shoot van je zaak, producten of team — bewerkt en webklaar." },
       },
       base: "Vertrekpunt",
       addons: "Op maat van wat je hebt",
@@ -490,6 +493,8 @@ const UI: Record<
       weeks: (a, b) => `±${a}–${b} weken`,
       careTitle: "Daarna: zorgeloos onderhoud",
       careNote: "Hosting, SSL, back-ups, updates en support — zodat het 100/100 blíjft.",
+      optTitle: "Optioneel — als je nog geen beeldmateriaal hebt",
+      optNote: "Goede foto's maken of breken een site. Heb je niets bruikbaars? Dan regel ik een fotoshoot. Enkel als je het nodig hebt — anders gewoon weglaten.",
       own: "Bij oplevering bezit jij de volledige code én data. Geen lock-in, geen verplichte afname.",
       cta: "Bespreek dit plan met mij",
     },
@@ -636,6 +641,7 @@ const UI: Record<
         members: { name: "Espace membres", desc: "Zone protégée avec logins et rôles." },
         content: { name: "Migration du contenu", desc: "Pages existantes transférées, dimensionné selon la taille du site." },
         seoPreserve: { name: "Préservation SEO & redirections", desc: "Plan 301 complet + sitemap pour ne pas chuter dans Google." },
+        photoshoot: { name: "Shooting photo / visuels", desc: "Pas de photos exploitables ? Une demi-journée de shooting pro de votre activité, produits ou équipe — retouché et prêt pour le web." },
       },
       base: "Point de départ",
       addons: "Sur mesure selon l'existant",
@@ -645,6 +651,8 @@ const UI: Record<
       weeks: (a, b) => `±${a}–${b} semaines`,
       careTitle: "Ensuite : entretien sans souci",
       careNote: "Hébergement, SSL, sauvegardes, mises à jour et support — pour rester à 100/100.",
+      optTitle: "Optionnel — si vous n'avez pas encore de visuels",
+      optNote: "De bonnes photos font ou défont un site. Rien d'exploitable ? J'organise un shooting. Uniquement si nécessaire — sinon, à omettre.",
       own: "À la livraison, vous possédez tout le code et les données. Pas de lock-in, pas d'abonnement obligatoire.",
       cta: "Discuter de ce plan avec moi",
     },
@@ -791,6 +799,7 @@ const UI: Record<
         members: { name: "Member area", desc: "Gated section with logins and roles." },
         content: { name: "Content migration", desc: "Existing pages moved over, scaled to your site's size." },
         seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
+        photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
       },
       base: "Starting point",
       addons: "Tailored to what you have",
@@ -800,6 +809,8 @@ const UI: Record<
       weeks: (a, b) => `±${a}–${b} weeks`,
       careTitle: "Then: worry-free maintenance",
       careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
+      optTitle: "Optional — if you don't have visuals yet",
+      optNote: "Good photos make or break a site. Nothing usable? I arrange a shoot. Only if you need it — otherwise just leave it out.",
       own: "On delivery you own all the code and data. No lock-in, no mandatory subscription.",
       cta: "Discuss this plan with me",
     },
@@ -903,14 +914,14 @@ export function SiteScanner({
               : "xl";
     const contentPrice =
       pages == null
-        ? 600
+        ? 200
         : pages <= 10
-          ? 600
+          ? 200
           : pages <= 30
-            ? 1200
+            ? 500
             : pages <= 80
-              ? 2400
-              : 4000;
+              ? 1000
+              : 1600;
     const baseKey: "base_webshop" | "base_pro" | "base_starter" = inv.shop
       ? "base_webshop"
       : inv.members || bucket === "xl" || (inv.multilingual && bucket === "large")
@@ -919,15 +930,15 @@ export function SiteScanner({
           ? "base_starter"
           : "base_pro";
     const basePrice =
-      baseKey === "base_webshop" ? 7500 : baseKey === "base_pro" ? 4500 : 2500;
+      baseKey === "base_webshop" ? 3900 : baseKey === "base_pro" ? 1900 : 950;
     const addons: { key: string; price: number }[] = [];
-    if (inv.multilingual) addons.push({ key: "multilingual", price: 900 });
-    if (inv.forms) addons.push({ key: "forms", price: 450 });
-    if (inv.booking) addons.push({ key: "booking", price: 1400 });
-    if (inv.blog) addons.push({ key: "blog", price: 900 });
-    if (inv.members) addons.push({ key: "members", price: 1800 });
+    if (inv.multilingual) addons.push({ key: "multilingual", price: 350 });
+    if (inv.forms) addons.push({ key: "forms", price: 200 });
+    if (inv.booking) addons.push({ key: "booking", price: 600 });
+    if (inv.blog) addons.push({ key: "blog", price: 350 });
+    if (inv.members) addons.push({ key: "members", price: 900 });
     addons.push({ key: "content", price: contentPrice });
-    addons.push({ key: "seoPreserve", price: 450 });
+    addons.push({ key: "seoPreserve", price: 250 });
     const oneOffLow =
       basePrice + addons.reduce((s, a) => s + a.price, 0);
     const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;
@@ -1440,6 +1451,21 @@ export function SiteScanner({
                 {pl.weeks(weeksRange[0], weeksRange[1])}
               </span>
             </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-dashed bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">{pl.optTitle}</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  {pl.mod.photoshoot.name} — {pl.mod.photoshoot.desc}
+                </p>
+              </div>
+              <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                {fmt(450, locale)}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-muted">{pl.optNote}</p>
           </div>
 
           <div className="mt-3 rounded-xl border bg-card p-4">

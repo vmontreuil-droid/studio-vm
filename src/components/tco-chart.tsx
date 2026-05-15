@@ -48,7 +48,7 @@ const T: Record<
       agency: "Agency (build + retainer)",
     },
     method:
-      "Indicatief model. Studio VM: €4 500 eenmalig + €49/m. WordPress: €2 500 + ~€115/m (plugins, security, hosting). Shopify: €1 500 setup + €36/m + 2% van de omzet (app/transactie-overhead). Agency: €12 000 + €200/m. Jouw echte cijfers bepalen we samen.",
+      "Indicatief model. Studio VM: €1 900 eenmalig + €49/m. WordPress: €2 500 + ~€115/m (plugins, security, hosting). Shopify: €1 500 setup + €36/m + 2% van de omzet (app/transactie-overhead). Agency: €12 000 + €200/m. Jouw echte cijfers bepalen we samen.",
     ctaTitle: "De goedkoopste lijn op lange termijn is meestal de eigen build.",
     ctaText: "Niet omdat 't moet — omdat de cijfers het zeggen. Laten we ze op jouw situatie zetten.",
     ctaButton: "Bereken mijn geval",
@@ -69,7 +69,7 @@ const T: Record<
       agency: "Agence (build + forfait)",
     },
     method:
-      "Modèle indicatif. Studio VM : €4 500 unique + €49/m. WordPress : €2 500 + ~€115/m (plugins, sécurité, hébergement). Shopify : €1 500 setup + €36/m + 2% du CA (overhead app/transaction). Agence : €12 000 + €200/m. Vos vrais chiffres, on les définit ensemble.",
+      "Modèle indicatif. Studio VM : €1 900 unique + €49/m. WordPress : €2 500 + ~€115/m (plugins, sécurité, hébergement). Shopify : €1 500 setup + €36/m + 2% du CA (overhead app/transaction). Agence : €12 000 + €200/m. Vos vrais chiffres, on les définit ensemble.",
     ctaTitle: "La ligne la moins chère à long terme est souvent le build propre.",
     ctaText: "Pas par principe — parce que les chiffres le disent. Appliquons-les à votre cas.",
     ctaButton: "Calculer mon cas",
@@ -90,7 +90,7 @@ const T: Record<
       agency: "Agency (build + retainer)",
     },
     method:
-      "Indicative model. Studio VM: €4,500 one-off + €49/m. WordPress: €2,500 + ~€115/m (plugins, security, hosting). Shopify: €1,500 setup + €36/m + 2% of revenue (app/transaction overhead). Agency: €12,000 + €200/m. Your real numbers we define together.",
+      "Indicative model. Studio VM: €1,900 one-off + €49/m. WordPress: €2,500 + ~€115/m (plugins, security, hosting). Shopify: €1,500 setup + €36/m + 2% of revenue (app/transaction overhead). Agency: €12,000 + €200/m. Your real numbers we define together.",
     ctaTitle: "The cheapest line long-term is usually the own build.",
     ctaText: "Not on principle — because the numbers say so. Let's apply them to your case.",
     ctaButton: "Calculate my case",
@@ -106,7 +106,7 @@ export function TcoChart() {
   const [rev, setRev] = useState(8000);
 
   const plans: Plan[] = [
-    { key: "svm", label: t.plans.svm, color: "#b45309", setup: 4500, monthly: 49, pctRevenue: 0 },
+    { key: "svm", label: t.plans.svm, color: "#b45309", setup: 1900, monthly: 49, pctRevenue: 0 },
     { key: "wp", label: t.plans.wp, color: "#6b7280", setup: 2500, monthly: 115, pctRevenue: 0 },
     { key: "shopify", label: t.plans.shopify, color: "#16a34a", setup: 1500, monthly: 36, pctRevenue: 0.02 },
     { key: "agency", label: t.plans.agency, color: "#7c3aed", setup: 12000, monthly: 200, pctRevenue: 0 },
