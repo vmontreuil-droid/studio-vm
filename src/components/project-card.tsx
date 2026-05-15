@@ -17,13 +17,33 @@ export function ProjectCard({
     >
       <div
         aria-hidden
-        className="mb-6 flex h-32 items-center justify-center rounded-lg"
+        className="relative mb-6 h-40 overflow-hidden rounded-xl"
         style={{
-          background: `linear-gradient(135deg, ${project.accent}, ${project.accent}cc)`,
+          background: `linear-gradient(135deg, ${project.accent}, color-mix(in oklab, ${project.accent} 65%, #0c0a09))`,
         }}
       >
-        <span className="font-mono text-xs uppercase tracking-widest text-white/80">
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.65) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+            WebkitMaskImage: "linear-gradient(135deg, #000, transparent 72%)",
+            maskImage: "linear-gradient(135deg, #000, transparent 72%)",
+          }}
+        />
+        <div
+          className="absolute -right-12 -top-12 h-44 w-44 rounded-full opacity-30"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(255,255,255,0.7), transparent 65%)",
+          }}
+        />
+        <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-white/70">
           {project.slug}
+        </span>
+        <span className="absolute bottom-5 left-5 right-5 text-2xl font-semibold tracking-tight text-white">
+          {project.name}
         </span>
       </div>
       <p className="font-mono text-xs uppercase tracking-widest text-muted">

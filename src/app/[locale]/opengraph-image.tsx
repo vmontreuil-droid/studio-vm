@@ -53,6 +53,24 @@ export default async function OG({
         />
         <div
           style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.05), transparent 42%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 7,
+            background: "#f59e0b",
+          }}
+        />
+        <div
+          style={{
             display: "flex",
             alignItems: "center",
             fontSize: 48,

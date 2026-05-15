@@ -205,3 +205,88 @@ body {
     }
   }
 }
+
+/* Hero-banner: ingetogen, premium diepte (amber + violet) achter de titel */
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+}
+.hero-blob-a {
+  width: 44rem;
+  height: 44rem;
+  left: -14rem;
+  top: -18rem;
+  opacity: 0.45;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--accent) 60%, transparent),
+    transparent 70%
+  );
+  animation: hero-drift-a 24s ease-in-out infinite;
+}
+.hero-blob-b {
+  width: 36rem;
+  height: 36rem;
+  right: -12rem;
+  top: -8rem;
+  opacity: 0.32;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, #7c3aed 55%, transparent),
+    transparent 70%
+  );
+  animation: hero-drift-b 30s ease-in-out infinite;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      to right,
+      var(--border) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 60% at 25% 0%,
+    #000 20%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    ellipse 80% 60% at 25% 0%,
+    #000 20%,
+    transparent 72%
+  );
+  opacity: 0.4;
+}
+@keyframes hero-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(7%, -5%, 0) scale(1.18);
+  }
+}
+@keyframes hero-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.12);
+  }
+  50% {
+    transform: translate3d(-6%, 6%, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob {
+    animation: none !important;
+  }
+}

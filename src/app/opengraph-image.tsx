@@ -24,6 +24,16 @@ export default function OG() {
           style={{
             position: "absolute",
             top: 0,
+            left: 0,
+            right: 0,
+            height: 7,
+            background: "#f59e0b",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
             right: 0,
             width: "60%",
             height: "100%",

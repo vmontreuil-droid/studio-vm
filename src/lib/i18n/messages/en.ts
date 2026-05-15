@@ -54,6 +54,12 @@ const en: Messages = {
     intro:
       "A selection of the sites and webshops I've built recently — restaurants, ateliers, photographers and businesses.",
   },
+  ctaBanner: {
+    eyebrow: "Ready to start?",
+    title: "A site that actually works for you.",
+    sub: "No plugin spaghetti, no surprises afterwards. First a no-obligation chat — I think along for free.",
+    button: "Let's talk",
+  },
   testimonials: {
     eyebrow: "Clients",
     title: "What they say afterwards",

@@ -52,6 +52,12 @@ const nl = {
     intro:
       "Een greep uit de sites en webshops die ik de afgelopen maanden bouwde — restaurants, ateliers, fotografen en bedrijven.",
   },
+  ctaBanner: {
+    eyebrow: "Klaar om te starten?",
+    title: "Een site die wél voor je werkt.",
+    sub: "Geen plugin-spaghetti, geen verrassingen achteraf. Eerst een vrijblijvend gesprek — ik denk gratis mee.",
+    button: "Praat met me",
+  },
   testimonials: {
     eyebrow: "Klanten",
     title: "Wat ze achteraf zeggen",

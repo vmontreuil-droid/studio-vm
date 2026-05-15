@@ -54,6 +54,12 @@ const fr: Messages = {
     intro:
       "Un aperçu des sites et boutiques que j'ai construits ces derniers mois — restaurants, ateliers, photographes et entreprises.",
   },
+  ctaBanner: {
+    eyebrow: "Prêt à démarrer ?",
+    title: "Un site qui travaille vraiment pour vous.",
+    sub: "Sans usine à plugins, sans surprises. D'abord un échange sans engagement — je réfléchis gratuitement avec vous.",
+    button: "Discutons-en",
+  },
   testimonials: {
     eyebrow: "Clients",
     title: "Ce qu'ils en disent ensuite",

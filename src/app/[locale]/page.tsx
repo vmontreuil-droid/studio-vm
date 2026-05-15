@@ -7,6 +7,7 @@ import { getTestimonials } from "@/lib/testimonials";
 import { ProjectCard } from "@/components/project-card";
 import { ContactForm } from "@/components/contact-form";
 import { RotatingHeadline } from "@/components/rotating-headline";
+import { CtaBanner } from "@/components/cta-banner";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -26,6 +27,13 @@ export default async function Home({
       <Werk locale={locale} t={t} />
       <Testimonials t={t} locale={locale} />
       <Mogelijkheden t={t} locale={locale} />
+      <CtaBanner
+        locale={locale}
+        eyebrow={t.ctaBanner.eyebrow}
+        title={t.ctaBanner.title}
+        sub={t.ctaBanner.sub}
+        button={t.ctaBanner.button}
+      />
       <Contact t={t} />
     </main>
   );
@@ -35,8 +43,13 @@ type T = ReturnType<typeof getMessages>;
 
 function Hero({ locale, t }: { locale: Locale; t: T }) {
   return (
-    <section className="border-b">
-      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32 lg:py-40">
+    <section className="relative isolate overflow-hidden border-b">
+      <div aria-hidden className="hero-backdrop">
+        <div className="hero-grid" />
+        <div className="hero-blob hero-blob-a" />
+        <div className="hero-blob hero-blob-b" />
+      </div>
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 sm:py-32 lg:py-40">
         <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
           {t.hero.eyebrow}
         </p>
