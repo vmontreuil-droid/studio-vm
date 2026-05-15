@@ -81,7 +81,7 @@ function Stats({ t }: { t: T }) {
     { value: "0", label: t.stats.plugins },
   ];
   return (
-    <section className="border-b bg-card">
+    <section className="reveal-on-scroll border-b bg-card">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {stats.map((s) => (
@@ -102,7 +102,7 @@ function Stats({ t }: { t: T }) {
 
 function Werk({ locale, t }: { locale: Locale; t: T }) {
   return (
-    <section id="werk" className="border-b">
+    <section id="werk" className="reveal-on-scroll border-b">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
         <div className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -127,7 +127,7 @@ function Werk({ locale, t }: { locale: Locale; t: T }) {
 
 function Testimonials({ t, locale }: { t: T; locale: Locale }) {
   return (
-    <section className="border-b bg-card">
+    <section className="reveal-on-scroll border-b bg-card">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -168,7 +168,7 @@ function Testimonials({ t, locale }: { t: T; locale: Locale }) {
 
 function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
   return (
-    <section id="mogelijkheden" className="border-b bg-card">
+    <section id="mogelijkheden" className="reveal-on-scroll border-b bg-card">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
         <div className="mb-16 max-w-2xl">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -220,7 +220,7 @@ function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
 
 function Contact({ t }: { t: T }) {
   return (
-    <section id="contact" className="border-b">
+    <section id="contact" className="reveal-on-scroll border-b">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
           <div>

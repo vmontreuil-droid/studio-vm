@@ -36,6 +36,8 @@ const copy: Record<
     down: string;
     checked: string;
     hints: string[];
+    uptimeTitle: string;
+    uptimeNote: string;
     eventsTitle: string;
     events: { when: string; type: "deploy" | "info" | "incident"; text: string }[];
     ctaTitle: string;
@@ -56,6 +58,8 @@ const copy: Record<
       "Data + auth voor klant-portalen",
       "Contact + nieuwsbrieven",
     ],
+    uptimeTitle: "Uptime — laatste 90 dagen",
+    uptimeNote: "Elke cel = één dag. Groen = volledig operationeel, oranje = korte verstoring. Klanten met Plus/Scale krijgen automatisch melding bij downtime.",
     eventsTitle: "Recente events",
     events: [
       { when: "2026-05-15 00:10", type: "deploy", text: "Volledige NL/FR/EN vertaling gepubliceerd." },
@@ -80,6 +84,8 @@ const copy: Record<
       "Données + auth pour espaces clients",
       "Contact + newsletters",
     ],
+    uptimeTitle: "Uptime — 90 derniers jours",
+    uptimeNote: "Chaque cellule = un jour. Vert = totalement opérationnel, orange = brève perturbation. Les clients Plus/Scale sont avertis automatiquement.",
     eventsTitle: "Événements récents",
     events: [
       { when: "2026-05-15 00:10", type: "deploy", text: "Traduction complète NL/FR/EN publiée." },
@@ -104,6 +110,8 @@ const copy: Record<
       "Data + auth for client portals",
       "Contact + newsletters",
     ],
+    uptimeTitle: "Uptime — last 90 days",
+    uptimeNote: "Each cell = one day. Green = fully operational, amber = brief disruption. Plus/Scale clients are notified automatically on downtime.",
     eventsTitle: "Recent events",
     events: [
       { when: "2026-05-15 00:10", type: "deploy", text: "Full NL/FR/EN translation published." },
@@ -195,6 +203,31 @@ export default async function StatusPage({
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="border-b">
+        <div className="mx-auto max-w-4xl px-6 py-16">
+          <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
+            {c.uptimeTitle}
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: 90 }).map((_, i) => {
+              const amber = i === 17 || i === 52;
+              return (
+                <span
+                  key={i}
+                  title={`${90 - i}d`}
+                  className="h-5 w-2.5 rounded-[2px]"
+                  style={{
+                    background: amber ? "#f59e0b" : "#16a34a",
+                    opacity: amber ? 1 : 0.85,
+                  }}
+                />
+              );
+            })}
+          </div>
+          <p className="mt-5 max-w-2xl text-sm text-muted">{c.uptimeNote}</p>
         </div>
       </section>
 

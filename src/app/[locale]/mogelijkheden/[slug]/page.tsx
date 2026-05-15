@@ -14,6 +14,7 @@ import {
   ServiceJsonLd,
 } from "@/components/json-ld";
 import { LoadingRace } from "@/components/loading-race";
+import { BeforeAfter } from "@/components/before-after";
 import {
   LOCALES,
   isValidLocale,
@@ -233,6 +234,14 @@ export default async function CapabilityDetailPage({
         <section className="border-b bg-card">
           <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
             <LoadingRace />
+          </div>
+        </section>
+      )}
+
+      {slug === "migratie" && (
+        <section className="border-b bg-card">
+          <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+            <BeforeAfter />
           </div>
         </section>
       )}

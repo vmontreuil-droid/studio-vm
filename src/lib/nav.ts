@@ -30,6 +30,7 @@ export const allNav: NavItem[] = [
   { href: "/now", label: "Wat ik nu doe", group: "Over Vincent" },
   { href: "/uses", label: "Tools die ik gebruik", group: "Over Vincent" },
   { href: "/pers", label: "Pers & brand kit", group: "Over Vincent" },
+  { href: "/changelog", label: "Changelog", group: "Over Vincent" },
   { href: "/offerte", label: "Offerte-calculator", group: "Diensten" },
   { href: "/privacy", label: "Privacy", group: "Legal" },
   { href: "/cookies", label: "Cookies", group: "Legal" },
