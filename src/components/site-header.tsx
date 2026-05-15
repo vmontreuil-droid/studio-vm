@@ -28,11 +28,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <Link
           href={home}
           aria-label="Studio VM"
-          className="font-mono text-base font-semibold tracking-tight"
+          className="shrink-0 font-mono text-base font-semibold tracking-tight"
         >
           <span className="text-accent">&lt;</span>
           vm
@@ -48,8 +48,10 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             />
           ))}
         </nav>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <LangSwitcher current={locale} />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="hidden sm:block">
+            <LangSwitcher current={locale} />
+          </div>
           <SearchTrigger locale={locale} />
           <ThemeToggle />
           <MobileMenu locale={locale} />
