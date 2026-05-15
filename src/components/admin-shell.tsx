@@ -8,6 +8,7 @@ import {
   Inbox,
   Activity,
   Newspaper,
+  History,
   Mail,
   LogOut,
   Menu,
@@ -32,6 +33,7 @@ const items = [
     badge: "monitorsActief",
   },
   { href: "/admin/journal", label: "Journal", icon: Newspaper },
+  { href: "/admin/changelog", label: "Changelog", icon: History },
   { href: "/admin/newsletter", label: "Nieuwsbrief", icon: Mail },
 ] as const;
 

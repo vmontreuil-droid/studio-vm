@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Rocket, Sparkles, Wrench, Bug, ArrowRight } from "lucide-react";
 import { getChangelog, type ChangeKind } from "@/lib/changelog";
+import { dbChangelog } from "@/lib/changelog-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+
+export const dynamic = "force-dynamic";
 
 const copy: Record<
   Locale,
@@ -99,7 +102,7 @@ export default async function ChangelogPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
-  const entries = getChangelog(locale);
+  const entries = (await dbChangelog(locale)) ?? getChangelog(locale);
 
   return (
     <main>

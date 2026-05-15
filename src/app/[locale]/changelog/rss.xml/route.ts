@@ -1,9 +1,8 @@
 import { getChangelog } from "@/lib/changelog";
-import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
+import { dbChangelog } from "@/lib/changelog-db";
+import { isValidLocale, type Locale } from "@/lib/i18n/config";
 
-export function generateStaticParams() {
-  return LOCALES.map((locale) => ({ locale }));
-}
+export const dynamic = "force-dynamic";
 
 const meta: Record<Locale, { title: string; desc: string }> = {
   nl: { title: "Studio VM — Changelog", desc: "Wat ik aan studio-vm.be bouw." },
@@ -29,7 +28,8 @@ export async function GET(
 
   const base = `https://studio-vm.be/${locale}`;
   const m = meta[locale];
-  const items = getChangelog(locale)
+  const entries = (await dbChangelog(locale)) ?? getChangelog(locale);
+  const items = entries
     .map(
       (e) => `    <item>
       <title>${esc(`v${e.version} — ${e.title}`)}</title>
