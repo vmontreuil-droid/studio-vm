@@ -9,7 +9,7 @@ const fr: Messages = {
     locale: "fr_BE",
   },
   nav: {
-    werk: "Travaux",
+    werk: "Réalisations",
     mogelijkheden: "Capacités",
     pricing: "Tarifs",
     contact: "Contact",

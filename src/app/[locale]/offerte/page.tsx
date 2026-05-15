@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Check, ArrowRight, Send, RotateCcw, Printer } from "lucide-react";
+import { Check, Send, RotateCcw, Printer, Loader2 } from "lucide-react";
+import { submitQuote } from "@/app/actions/quote";
 import {
   isValidLocale,
   localePath,
@@ -83,6 +84,12 @@ const T: Record<
     sendTitle: string;
     sendText: string;
     sendButton: string;
+    formName: string;
+    formEmail: string;
+    formMsg: string;
+    formSending: string;
+    formSent: string;
+    formErr: string;
     mailSubject: string;
     mailIntro: string;
     mailBase: string;
@@ -143,6 +150,12 @@ const T: Record<
     sendText:
       "Stuur deze samenvatting door. Ik bekijk 't en kom met een exacte offerte — meestal binnen één werkdag.",
     sendButton: "Stuur naar Studio VM",
+    formName: "Je naam",
+    formEmail: "Je e-mail",
+    formMsg: "Iets toevoegen? (optioneel)",
+    formSending: "Versturen…",
+    formSent: "Bedankt! Je aanvraag is binnen — ik reageer meestal binnen één werkdag.",
+    formErr: "Er ging iets mis. Probeer opnieuw of mail me rechtstreeks.",
     mailSubject: "Offerte-aanvraag via de calculator",
     mailIntro: "Hoi Vincent,\n\nIk rekende een project uit op studio-vm.be/offerte:",
     mailBase: "Type",
@@ -202,6 +215,12 @@ const T: Record<
     sendText:
       "Envoyez ce résumé. Je l'examine et reviens avec un devis exact — généralement sous un jour ouvré.",
     sendButton: "Envoyer à Studio VM",
+    formName: "Votre nom",
+    formEmail: "Votre e-mail",
+    formMsg: "Ajouter un mot ? (facultatif)",
+    formSending: "Envoi…",
+    formSent: "Merci ! Votre demande est bien reçue — je réponds généralement sous un jour ouvré.",
+    formErr: "Une erreur est survenue. Réessayez ou écrivez-moi directement.",
     mailSubject: "Demande de devis via le calculateur",
     mailIntro: "Bonjour Vincent,\n\nJ'ai estimé un projet sur studio-vm.be/offerte :",
     mailBase: "Type",
@@ -261,6 +280,12 @@ const T: Record<
     sendText:
       "Send this summary. I'll review it and come back with an exact quote — usually within one working day.",
     sendButton: "Send to Studio VM",
+    formName: "Your name",
+    formEmail: "Your email",
+    formMsg: "Add something? (optional)",
+    formSending: "Sending…",
+    formSent: "Thanks! Your request is in — I usually reply within one working day.",
+    formErr: "Something went wrong. Try again or email me directly.",
     mailSubject: "Quote request via the calculator",
     mailIntro: "Hi Vincent,\n\nI estimated a project on studio-vm.be/offerte:",
     mailBase: "Type",
@@ -282,6 +307,8 @@ export default function OffertePage() {
   const [base, setBase] = useState<BaseKind>("starter");
   const [mods, setMods] = useState<ModuleKey[]>([]);
   const [plan, setPlan] = useState<PlanKey>("care");
+  const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
+  const [pending, startSend] = useTransition();
 
   const toggleMod = (m: ModuleKey) =>
     setMods((s) => (s.includes(m) ? s.filter((x) => x !== m) : [...s, m]));
@@ -525,7 +552,7 @@ export default function OffertePage() {
                 {c.estimateNote}
               </p>
               <a
-                href={mailto}
+                href="#aanvraag"
                 className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 <Send className="h-4 w-4" strokeWidth={2} />
@@ -558,19 +585,78 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section className="border-b print:hidden">
-        <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+      <section id="aanvraag" className="border-b print:hidden">
+        <div className="mx-auto max-w-xl px-6 py-16 text-center">
           <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
             {c.sendTitle}
           </h2>
           <p className="mt-3 text-muted">{c.sendText}</p>
-          <a
-            href={mailto}
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            {c.sendButton}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </a>
+
+          {sent === "ok" ? (
+            <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
+              {c.formSent}
+            </p>
+          ) : (
+            <form
+              action={(fd) =>
+                startSend(async () => {
+                  fd.set("locale", locale);
+                  fd.set("base", base);
+                  fd.set("modules", mods.join(","));
+                  fd.set("plan", plan);
+                  fd.set("estLow", String(lo));
+                  fd.set("estHigh", String(hi));
+                  fd.set("monthly", String(monthly));
+                  const r = await submitQuote(fd);
+                  if (r.ok) {
+                    setSent("ok");
+                  } else if (r.error === "not_configured") {
+                    window.location.href = mailto;
+                  } else {
+                    setSent("err");
+                  }
+                })
+              }
+              className="mt-8 space-y-3 text-left"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  name="name"
+                  required
+                  placeholder={c.formName}
+                  className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                />
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder={c.formEmail}
+                  className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                />
+              </div>
+              <textarea
+                name="message"
+                rows={3}
+                placeholder={c.formMsg}
+                className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              />
+              {sent === "err" && (
+                <p className="text-sm text-red-500">{c.formErr}</p>
+              )}
+              <button
+                type="submit"
+                disabled={pending}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                {pending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+                ) : (
+                  <Send className="h-4 w-4" strokeWidth={2} />
+                )}
+                {pending ? c.formSending : c.sendButton}
+              </button>
+            </form>
+          )}
         </div>
       </section>
     </main>

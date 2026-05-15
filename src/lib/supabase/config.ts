@@ -20,3 +20,10 @@ export const resendApiKey = process.env.RESEND_API_KEY ?? "";
 export const cronSecret = process.env.CRON_SECRET ?? "";
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://studio-vm.be";
+
+// Admin voor offerte-aanvragen: opslag via service-role (monitorConfigured),
+// afscherming met één wachtwoord. Zonder ADMIN_PASSWORD blijft /admin dicht
+// en valt de offerte-knop terug op een mailto (niets verandert live).
+export const adminPassword = process.env.ADMIN_PASSWORD ?? "";
+export const leadsConfigured = monitorConfigured;
+export const adminConfigured = Boolean(monitorConfigured && adminPassword);

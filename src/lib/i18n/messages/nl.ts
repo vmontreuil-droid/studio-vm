@@ -7,7 +7,7 @@ const nl = {
     locale: "nl_BE",
   },
   nav: {
-    werk: "Werk",
+    werk: "Realisaties",
     mogelijkheden: "Mogelijkheden",
     pricing: "Pricing",
     contact: "Contact",

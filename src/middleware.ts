@@ -23,6 +23,7 @@ export function middleware(req: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/auth/") ||
     pathname === "/security-txt" ||
     pathname.startsWith("/.well-known/") ||

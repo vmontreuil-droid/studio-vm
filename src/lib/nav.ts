@@ -1,7 +1,7 @@
 export type NavItem = { href: string; label: string; group?: string };
 
 export const primaryNav: NavItem[] = [
-  { href: "/#werk", label: "Werk" },
+  { href: "/#werk", label: "Realisaties" },
   { href: "/mogelijkheden", label: "Mogelijkheden" },
   { href: "/pricing", label: "Pricing" },
   { href: "/#contact", label: "Contact" },
@@ -9,7 +9,7 @@ export const primaryNav: NavItem[] = [
 
 export const allNav: NavItem[] = [
   { href: "/", label: "Home", group: "Studio" },
-  { href: "/#werk", label: "Werk", group: "Studio" },
+  { href: "/#werk", label: "Realisaties", group: "Studio" },
   { href: "/mogelijkheden", label: "Mogelijkheden", group: "Studio" },
   { href: "/pricing", label: "Pricing", group: "Studio" },
   { href: "/journal", label: "Journal", group: "Studio" },
