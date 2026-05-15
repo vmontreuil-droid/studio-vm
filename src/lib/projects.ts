@@ -96,7 +96,7 @@ const base: ProjectBase[] = [
   {
     slug: "barbotte",
     name: "Bar'Botte",
-    url: "https://barbotte.be",
+    url: "https://barbotte.vercel.app",
     stack: ["Next.js 16", "Tailwind v4", "Supabase", "i18n"],
     accent: "#1f4e3d",
     year: "2026",
