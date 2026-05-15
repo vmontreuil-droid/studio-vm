@@ -201,9 +201,8 @@ const base: ProjectBase[] = [
   {
     slug: "allardphilippe",
     name: "Allard Philippe",
-    // Domein nog niet live (project draait op Vercel) — externe link uit tot
-    // de juiste URL bekend is, zodat er geen kapotte link op het portfolio staat.
-    url: null,
+    // Draait nog op Vercel; eigen domein volgt later.
+    url: "https://allardphilippe.vercel.app",
     stack: ["Next.js 16", "Supabase", "Mollie", "Resend", "i18n"],
     accent: "#3a4a5c",
     year: "2025–2026",
