@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setStatus, setNote, deleteQuote } from "@/app/actions/admin";
+import { BuilderRender } from "@/components/builder-render";
 
 export const dynamic = "force-dynamic";
 
@@ -31,22 +32,6 @@ type Snapshot = {
   pages?: SnapPage[];
   imageCount?: number;
 };
-
-function fieldVal(v: unknown): string {
-  if (v == null) return "";
-  if (Array.isArray(v))
-    return v
-      .map((x) =>
-        x && typeof x === "object"
-          ? Object.values(x as Record<string, unknown>)
-              .filter(Boolean)
-              .join(" — ")
-          : String(x),
-      )
-      .filter(Boolean)
-      .join("  |  ");
-  return String(v);
-}
 
 type Quote = {
   id: string;
@@ -244,43 +229,7 @@ export default async function QuoteDetail({
             )}
           </dl>
 
-          {snap.pages && (
-            <div className="mt-5 space-y-5">
-              {snap.pages.map((pageItem, pi) => (
-                <div key={pi} className="rounded-xl border bg-background p-4">
-                  <p className="font-mono text-xs font-semibold uppercase tracking-widest">
-                    {pageItem.name || `Pagina ${pi + 1}`}
-                  </p>
-                  <div className="mt-3 space-y-3">
-                    {pageItem.blocks.map((b, bi) => (
-                      <div key={bi} className="border-l-2 border-accent/40 pl-3">
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-                          {b.kind}
-                        </p>
-                        <dl className="mt-1 space-y-0.5">
-                          {Object.entries(b.data || {}).map(([k, v]) => {
-                            const s = fieldVal(v);
-                            if (!s) return null;
-                            return (
-                              <div
-                                key={k}
-                                className="flex flex-wrap gap-x-2 text-sm"
-                              >
-                                <dt className="font-mono text-[11px] text-muted">
-                                  {k}:
-                                </dt>
-                                <dd className="whitespace-pre-wrap">{s}</dd>
-                              </div>
-                            );
-                          })}
-                        </dl>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {snap.pages && <BuilderRender snap={snap} />}
           {snap.aboutText && (
             <div className="mt-4">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">

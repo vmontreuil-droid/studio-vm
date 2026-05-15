@@ -1334,6 +1334,7 @@ export default function BuilderPage() {
                     businessName={businessName}
                     images={images}
                     p={c.preview}
+                    edit={(patch) => patchData(s.id, patch)}
                   />
                 ))
               )}
@@ -1547,6 +1548,48 @@ function SectionEditor({
   );
 }
 
+function E({
+  value,
+  onChange,
+  className,
+  style,
+  multiline,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  multiline?: boolean;
+}) {
+  return (
+    <span
+      role="textbox"
+      tabIndex={0}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onBlur={(e) => {
+        const t = (e.currentTarget.textContent ?? "")
+          .replace(/ /g, " ")
+          .trim();
+        if (t !== value) onChange(t);
+      }}
+      onKeyDown={(e) => {
+        if (!multiline && e.key === "Enter") {
+          e.preventDefault();
+          e.currentTarget.blur();
+        }
+      }}
+      className={`-mx-0.5 cursor-text rounded-sm px-0.5 outline-none transition-colors hover:bg-current/[0.06] focus:bg-current/[0.08] focus:ring-1 focus:ring-current/30 ${
+        className ?? ""
+      }`}
+      style={style}
+    >
+      {value}
+    </span>
+  );
+}
+
 function PreviewSection({
   kind,
   data,
@@ -1554,6 +1597,7 @@ function PreviewSection({
   businessName,
   images,
   p,
+  edit,
 }: {
   kind: SectionKind;
   data: SectionData;
@@ -1561,6 +1605,7 @@ function PreviewSection({
   businessName: string;
   images: string[];
   p: Preview;
+  edit: (patch: SectionData) => void;
 }) {
   const accentText = { color: theme.accent };
   const border = { borderColor: `${theme.fg}1a` };
@@ -1571,6 +1616,14 @@ function PreviewSection({
   const list = Array.isArray(data.items)
     ? (data.items as Record<string, string>[])
     : [];
+  const rowsOr = (seed: Record<string, string>[]) =>
+    list.length ? list : seed.map((x) => ({ ...x }));
+  const setItem = (
+    rows: Record<string, string>[],
+    i: number,
+    field: string,
+    v: string,
+  ) => edit({ items: rows.map((r, j) => (j === i ? { ...r, [field]: v } : r)) });
 
   switch (kind) {
     case "hero":
@@ -1580,17 +1633,28 @@ function PreviewSection({
             className="font-mono text-[10px] uppercase tracking-widest"
             style={accentText}
           >
-            {g("eyebrow", p.welcome)}
+            <E
+              value={g("eyebrow", p.welcome)}
+              onChange={(v) => edit({ eyebrow: v })}
+            />
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            {g("heading", businessName)}
+            <E
+              value={g("heading", businessName)}
+              onChange={(v) => edit({ heading: v })}
+            />
           </h2>
-          <p className="mt-3 text-sm opacity-70">{g("sub", p.tagline)}</p>
+          <p className="mt-3 text-sm opacity-70">
+            <E value={g("sub", p.tagline)} onChange={(v) => edit({ sub: v })} />
+          </p>
           <button
             className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
-            {g("button", p.discover)}
+            <E
+              value={g("button", p.discover)}
+              onChange={(v) => edit({ button: v })}
+            />
           </button>
         </div>
       );
@@ -1598,79 +1662,147 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.featuresTitle)}
+            <E
+              value={g("title", p.featuresTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            {(list.length ? list : [{}, {}, {}]).map((it, i) => (
-              <div key={i} className="rounded-lg border p-4 text-xs" style={border}>
-                <div
-                  className="mb-2 h-6 w-6 rounded-full"
-                  style={{ background: theme.accent, opacity: 0.2 }}
-                />
-                <p className="font-semibold">
-                  {it.title || `${p.feature} ${i + 1}`}
-                </p>
-                <p className="mt-1 opacity-70">{it.desc || p.featureDesc}</p>
+          {(() => {
+            const rows = rowsOr([
+              { title: `${p.feature} 1`, desc: p.featureDesc },
+              { title: `${p.feature} 2`, desc: p.featureDesc },
+              { title: `${p.feature} 3`, desc: p.featureDesc },
+            ]);
+            return (
+              <div className="mt-6 grid grid-cols-3 gap-4">
+                {rows.map((it, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border p-4 text-xs"
+                    style={border}
+                  >
+                    <div
+                      className="mb-2 h-6 w-6 rounded-full"
+                      style={{ background: theme.accent, opacity: 0.2 }}
+                    />
+                    <p className="font-semibold">
+                      <E
+                        value={it.title || `${p.feature} ${i + 1}`}
+                        onChange={(v) => setItem(rows, i, "title", v)}
+                      />
+                    </p>
+                    <p className="mt-1 opacity-70">
+                      <E
+                        value={it.desc || p.featureDesc}
+                        onChange={(v) => setItem(rows, i, "desc", v)}
+                        multiline
+                      />
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "testimonials":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.testiTitle)}
+            <E
+              value={g("title", p.testiTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            {(list.length ? list : p.testi.map((t) => ({ quote: t.q, who: t.w }))).map(
-              (t, i) => (
-                <blockquote
-                  key={i}
-                  className="rounded-lg border p-4 text-xs"
-                  style={border}
-                >
-                  <p>&ldquo;{t.quote}&rdquo;</p>
-                  <footer className="mt-2 font-mono text-[10px] opacity-70">
-                    — {t.who}
-                  </footer>
-                </blockquote>
-              ),
-            )}
-          </div>
+          {(() => {
+            const rows = rowsOr(
+              p.testi.map((t) => ({ quote: t.q, who: t.w })),
+            );
+            return (
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                {rows.map((t, i) => (
+                  <blockquote
+                    key={i}
+                    className="rounded-lg border p-4 text-xs"
+                    style={border}
+                  >
+                    <p>
+                      &ldquo;
+                      <E
+                        value={t.quote}
+                        onChange={(v) => setItem(rows, i, "quote", v)}
+                        multiline
+                      />
+                      &rdquo;
+                    </p>
+                    <footer className="mt-2 font-mono text-[10px] opacity-70">
+                      —{" "}
+                      <E
+                        value={t.who}
+                        onChange={(v) => setItem(rows, i, "who", v)}
+                      />
+                    </footer>
+                  </blockquote>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       );
     case "pricing":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.pricingTitle)}
+            <E
+              value={g("title", p.pricingTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-            {(list.length
-              ? list
-              : p.tiers.map((t) => ({ name: t.n, price: t.p, per: p.perMonth }))
-            ).map((tier, i) => (
-              <div
-                key={i}
-                className="rounded-lg border p-4 text-center"
-                style={border}
-              >
-                <p className="font-semibold">{tier.name}</p>
-                <p className="mt-1 text-lg" style={accentText}>
-                  {tier.price}
-                </p>
-                <p className="mt-1 opacity-60">{tier.per || p.perMonth}</p>
+          {(() => {
+            const rows = rowsOr(
+              p.tiers.map((t) => ({ name: t.n, price: t.p, per: p.perMonth })),
+            );
+            return (
+              <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
+                {rows.map((tier, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border p-4 text-center"
+                    style={border}
+                  >
+                    <p className="font-semibold">
+                      <E
+                        value={tier.name}
+                        onChange={(v) => setItem(rows, i, "name", v)}
+                      />
+                    </p>
+                    <p className="mt-1 text-lg" style={accentText}>
+                      <E
+                        value={tier.price}
+                        onChange={(v) => setItem(rows, i, "price", v)}
+                      />
+                    </p>
+                    <p className="mt-1 opacity-60">
+                      <E
+                        value={tier.per || p.perMonth}
+                        onChange={(v) => setItem(rows, i, "per", v)}
+                      />
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "gallery":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.galleryTitle)}
+            <E
+              value={g("title", p.galleryTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
           <div className="mt-6 grid grid-cols-4 gap-2">
             {images.length > 0
@@ -1716,10 +1848,17 @@ function PreviewSection({
             )}
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
-                {g("title", p.aboutTitle)}
+                <E
+                  value={g("title", p.aboutTitle)}
+                  onChange={(v) => edit({ title: v })}
+                />
               </h3>
               <p className="mt-3 whitespace-pre-wrap text-sm opacity-70">
-                {g("text", p.aboutText)}
+                <E
+                  value={g("text", p.aboutText)}
+                  onChange={(v) => edit({ text: v })}
+                  multiline
+                />
               </p>
             </div>
           </div>
@@ -1729,76 +1868,124 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.statsTitle)}
+            <E
+              value={g("title", p.statsTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-            {(list.length
-              ? list
-              : p.statsItems.map((s) => ({ value: s.v, label: s.l }))
-            ).map((s, i) => (
-              <div key={i}>
-                <p className="text-3xl font-bold" style={accentText}>
-                  {s.value}
-                </p>
-                <p className="mt-1 text-xs opacity-70">{s.label}</p>
+          {(() => {
+            const rows = rowsOr(
+              p.statsItems.map((s) => ({ value: s.v, label: s.l })),
+            );
+            return (
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                {rows.map((s, i) => (
+                  <div key={i}>
+                    <p className="text-3xl font-bold" style={accentText}>
+                      <E
+                        value={s.value}
+                        onChange={(v) => setItem(rows, i, "value", v)}
+                      />
+                    </p>
+                    <p className="mt-1 text-xs opacity-70">
+                      <E
+                        value={s.label}
+                        onChange={(v) => setItem(rows, i, "label", v)}
+                      />
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "faq":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.faqTitle)}
+            <E
+              value={g("title", p.faqTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mx-auto mt-6 max-w-lg space-y-3">
-            {(list.length
-              ? list
-              : p.faqs.map((x) => ({ q: x.q, a: x.a }))
-            ).map((fitem, i) => (
-              <div
-                key={i}
-                className="rounded-lg border p-4 text-xs"
-                style={border}
-              >
-                <p className="font-semibold">{fitem.q}</p>
-                <p className="mt-1 opacity-70">{fitem.a}</p>
+          {(() => {
+            const rows = rowsOr(p.faqs.map((x) => ({ q: x.q, a: x.a })));
+            return (
+              <div className="mx-auto mt-6 max-w-lg space-y-3">
+                {rows.map((fitem, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border p-4 text-xs"
+                    style={border}
+                  >
+                    <p className="font-semibold">
+                      <E
+                        value={fitem.q}
+                        onChange={(v) => setItem(rows, i, "q", v)}
+                      />
+                    </p>
+                    <p className="mt-1 opacity-70">
+                      <E
+                        value={fitem.a}
+                        onChange={(v) => setItem(rows, i, "a", v)}
+                        multiline
+                      />
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "pricelist":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.pricelistTitle)}
+            <E
+              value={g("title", p.pricelistTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mx-auto mt-6 max-w-lg divide-y" style={border}>
-            {(list.length
-              ? list
-              : p.priceSeed
-            ).map((it, i) => (
-              <div
-                key={i}
-                className="flex items-baseline justify-between gap-4 py-2.5"
-              >
-                <div>
-                  <p className="text-sm font-medium">{it.name}</p>
-                  {it.desc && (
-                    <p className="text-xs opacity-60">{it.desc}</p>
-                  )}
-                </div>
-                <p
-                  className="shrink-0 text-sm font-semibold"
-                  style={accentText}
-                >
-                  {it.price}
-                </p>
+          {(() => {
+            const rows = rowsOr(p.priceSeed);
+            return (
+              <div className="mx-auto mt-6 max-w-lg divide-y" style={border}>
+                {rows.map((it, i) => (
+                  <div
+                    key={i}
+                    className="flex items-baseline justify-between gap-4 py-2.5"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        <E
+                          value={it.name}
+                          onChange={(v) => setItem(rows, i, "name", v)}
+                        />
+                      </p>
+                      <p className="text-xs opacity-60">
+                        <E
+                          value={it.desc || ""}
+                          onChange={(v) => setItem(rows, i, "desc", v)}
+                          multiline
+                        />
+                      </p>
+                    </div>
+                    <p
+                      className="shrink-0 text-sm font-semibold"
+                      style={accentText}
+                    >
+                      <E
+                        value={it.price}
+                        onChange={(v) => setItem(rows, i, "price", v)}
+                      />
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "hours":
@@ -1806,16 +1993,34 @@ function PreviewSection({
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="flex items-center justify-center gap-2 text-center text-xl font-semibold tracking-tight">
             <Clock className="h-5 w-5" strokeWidth={1.75} style={accentText} />
-            {g("title", p.hoursTitle)}
+            <E
+              value={g("title", p.hoursTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <div className="mx-auto mt-6 max-w-sm divide-y" style={border}>
-            {(list.length ? list : p.hoursSeed).map((it, i) => (
-              <div key={i} className="flex justify-between py-2 text-sm">
-                <span>{it.day}</span>
-                <span className="opacity-70">{it.time}</span>
+          {(() => {
+            const rows = rowsOr(p.hoursSeed);
+            return (
+              <div className="mx-auto mt-6 max-w-sm divide-y" style={border}>
+                {rows.map((it, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between py-2 text-sm"
+                  >
+                    <E
+                      value={it.day}
+                      onChange={(v) => setItem(rows, i, "day", v)}
+                    />
+                    <E
+                      value={it.time}
+                      onChange={(v) => setItem(rows, i, "time", v)}
+                      className="opacity-70"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       );
     case "map": {
@@ -1823,7 +2028,10 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.mapTitle)}
+            <E
+              value={g("title", p.mapTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
           <div
             className="mx-auto mt-6 flex max-w-2xl flex-col items-center justify-center gap-3 rounded-lg border py-12"
@@ -1838,7 +2046,10 @@ function PreviewSection({
               style={accentText}
             />
             <p className="px-6 text-center text-sm font-medium">
-              {addr || "Straat 1, 0000 Gemeente"}
+              <E
+                value={addr || "Straat 1, 0000 Gemeente"}
+                onChange={(v) => edit({ address: v })}
+              />
             </p>
           </div>
         </div>
@@ -1851,14 +2062,26 @@ function PreviewSection({
           style={{ ...border, background: `${theme.accent}14` }}
         >
           <h3 className="text-2xl font-semibold tracking-tight">
-            {g("title", p.ctaTitle2)}
+            <E
+              value={g("title", p.ctaTitle2)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          <p className="mt-2 text-sm opacity-70">{g("text", p.ctaText2)}</p>
+          <p className="mt-2 text-sm opacity-70">
+            <E
+              value={g("text", p.ctaText2)}
+              onChange={(v) => edit({ text: v })}
+              multiline
+            />
+          </p>
           <button
             className="mt-5 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
-            {g("button", p.ctaBtn2)}
+            <E
+              value={g("button", p.ctaBtn2)}
+              onChange={(v) => edit({ button: v })}
+            />
           </button>
         </div>
       );
@@ -1866,15 +2089,27 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {g("title", p.contactTitle)}
+            <E
+              value={g("title", p.contactTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
           </h3>
-          {(g("emailAddr") || g("phone") || g("address")) && (
-            <p className="mt-2 text-center text-xs opacity-70">
-              {[g("emailAddr"), g("phone"), g("address")]
-                .filter(Boolean)
-                .join("  ·  ")}
-            </p>
-          )}
+          <p className="mt-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-center text-xs opacity-70">
+            <E
+              value={g("emailAddr", "jouw@email.be")}
+              onChange={(v) => edit({ emailAddr: v })}
+            />
+            <span aria-hidden>·</span>
+            <E
+              value={g("phone", "+32 ...")}
+              onChange={(v) => edit({ phone: v })}
+            />
+            <span aria-hidden>·</span>
+            <E
+              value={g("address", "Straat 1, 0000 Gemeente")}
+              onChange={(v) => edit({ address: v })}
+            />
+          </p>
           <div className="mx-auto mt-6 max-w-sm space-y-2 text-xs">
             <input
               placeholder={p.name}
