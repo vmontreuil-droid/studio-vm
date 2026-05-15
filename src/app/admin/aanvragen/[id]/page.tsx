@@ -115,7 +115,10 @@ export default async function QuoteDetail({
               {q.email}
             </a>
             <span className="ml-2 font-mono text-xs text-muted">
-              {new Date(q.created_at).toLocaleString("nl-BE")} ·{" "}
+              {new Date(q.created_at).toLocaleString("nl-BE", {
+                timeZone: "Europe/Brussels",
+              })}{" "}
+              ·{" "}
               {q.locale.toUpperCase()}
             </span>
           </p>
@@ -187,6 +190,20 @@ export default async function QuoteDetail({
             <Field label="Maandelijks" value={`${eur(q.monthly)}/m`} />
           )}
         </dl>
+      )}
+
+      {/* tijdelijke diagnose: wat zit er in snapshot? */}
+      {isBuilder && (
+        <p className="mt-4 rounded-lg border border-dashed bg-card p-3 font-mono text-[11px] text-muted">
+          diagnose · snapshot:{" "}
+          {snap
+            ? `keys=[${Object.keys(snap as object).join(", ")}] · pages=${
+                Array.isArray((snap as { pages?: unknown[] }).pages)
+                  ? (snap as { pages: unknown[] }).pages.length
+                  : "—"
+              }`
+            : "NULL (geen ontwerp opgeslagen)"}
+        </p>
       )}
 
       {/* Builder-ontwerp */}
@@ -263,7 +280,9 @@ export default async function QuoteDetail({
             {history.map((h, i) => (
               <li key={i} className="flex items-center gap-3 text-sm">
                 <span className="font-mono text-[11px] text-muted">
-                  {new Date(h.created_at).toLocaleString("nl-BE")}
+                  {new Date(h.created_at).toLocaleString("nl-BE", {
+                    timeZone: "Europe/Brussels",
+                  })}
                 </span>
                 <span className="text-muted">
                   {h.from_status ? (
