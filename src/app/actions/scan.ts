@@ -82,6 +82,17 @@ export type ScanResult =
       } | null;
       crawledPages: number;
       brokenLinks: string[];
+      inventory: {
+        pages: number | null;
+        shop: boolean;
+        multilingual: boolean;
+        forms: boolean;
+        booking: boolean;
+        blog: boolean;
+        members: boolean;
+        mediaHeavy: boolean;
+        pageBuilder: boolean;
+      };
       flags: {
         diyPlatform: boolean;
         outdated: boolean;
@@ -1429,6 +1440,51 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       .slice(0, 6)
       .map((f) => f.key);
 
+    const hl = html.toLowerCase();
+    const techTypes = new Set(det.technologies.map((x) => x.type));
+    const inventory = {
+      pages:
+        sitemapUrls > 0
+          ? sitemapUrls
+          : internalList.length
+            ? internalList.length + 1
+            : null,
+      shop:
+        techTypes.has("ecommerce") ||
+        /woocommerce|add-to-cart|cdn\.shopify|snipcart|winkelmand|panier|warenkorb/.test(
+          hl,
+        ),
+      multilingual:
+        /wpml|polylang|sitepress/.test(hl) ||
+        (html.match(/hreflang=/gi) || []).length >= 2,
+      forms:
+        /contact-form-7|wpcf7|wpforms|gravityforms|ninja-forms|formidable/.test(
+          hl,
+        ) || /<form[\s>][\s\S]{0,800}?<(?:input|textarea)/i.test(html),
+      booking:
+        /bookly|ameliabooking|simply-schedule|calendly\.com|reserveer online|afspraak online|rendez-vous en ligne|book (?:a |an )?(?:table|appointment|room)/.test(
+          hl,
+        ),
+      blog:
+        stack === "WordPress" ||
+        /<article[\s>]/i.test(html) ||
+        /\/blog\b|\/category\/|\/nieuws\b|\/actualit|wp-json\/wp\/v2\/posts/.test(
+          hl,
+        ),
+      members:
+        /memberpress|restrict-content|wishlist-member|woocommerce-memberships|learndash|tutor-lms|s2member/.test(
+          hl,
+        ),
+      mediaHeavy:
+        imgCount >= 30 ||
+        det.technologies.some((x) =>
+          ["Swiper", "Slick Carousel", "Owl Carousel", "Lottie"].includes(
+            x.name,
+          ),
+        ),
+      pageBuilder: techTypes.has("builder"),
+    };
+
     const flags = {
       diyPlatform,
       outdated: det.hasOutdatedLib || det.pluginCount >= 15,
@@ -1480,6 +1536,7 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       dns,
       crawledPages,
       brokenLinks: brokenLinks.slice(0, 5),
+      inventory,
       flags,
     };
   } catch (err) {

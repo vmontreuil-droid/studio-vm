@@ -318,6 +318,26 @@ const UI: Record<
     reportFor: string;
     reportBy: string;
     modules: Record<ModuleKey, { name: string; desc: string }>;
+    plan: {
+      title: (stack: string) => string;
+      why: (stack: string, score: number) => string;
+      haveTitle: string;
+      feat: Record<string, string>;
+      buildTitle: string;
+      phasesTitle: string;
+      phases: { t: string; d: string }[];
+      mod: Record<string, { name: string; desc: string }>;
+      base: string;
+      addons: string;
+      total: string;
+      approx: string;
+      timeline: string;
+      weeks: (a: number, b: number) => string;
+      careTitle: string;
+      careNote: string;
+      own: string;
+      cta: string;
+    };
     copyTpl: (h: string, s: number, g: string, st: string) => string;
   }
 > = {
@@ -422,6 +442,56 @@ const UI: Record<
       migration: { name: "Migratie van content", desc: "Bestaande inhoud overzetten van WordPress/Wix/Squarespace." },
       rebuild: { name: "Volledige herbouw (Next.js)", desc: "Een nieuwe, snelle, veilige site die je zelf bezit." },
       care: { name: "Care-abonnement", desc: "Hosting, SSL, back-ups, updates en support." },
+    },
+    plan: {
+      title: (st) => `Jouw plan: geen geprutsel meer aan ${st} — een schone herbouw die jíj bezit`,
+      why: (st, s) =>
+        `Op ${st} blijven repareren is goed geld naar slecht gooien: elke fix is tijdelijk, plugin-afhankelijk en lost de oorzaak niet op (score nu ${s}/100). Ik herbouw exact wat je site dóét — schoon, snel en veilig in Next.js — en migreer je inhoud mét behoud van je Google-posities. Geen plugins, geen verrassingen, jij bezit de code en data.`,
+      haveTitle: "Wat ik op je site detecteerde",
+      feat: {
+        pages: "pagina's",
+        shop: "Webshop / verkoop online",
+        multilingual: "Meertalig",
+        forms: "Formulieren",
+        booking: "Reservatie / afspraken",
+        blog: "Blog / nieuws",
+        members: "Ledenzone / e-learning",
+        mediaHeavy: "Veel beeld / galerijen",
+        pageBuilder: "Page-builder (Elementor/Divi…)",
+        plugins: "plugins gedetecteerd",
+      },
+      buildTitle: "Wat ik ervoor in de plaats bouw",
+      phasesTitle: "Aanpak in fasen",
+      phases: [
+        { t: "1 · Audit & contentinventaris", d: "Ik lijst elke pagina, functie en URL op zodat niets verloren gaat." },
+        { t: "2 · Design op jouw merk", d: "Een eigen, snel ontwerp — geen template, mobiel-first." },
+        { t: "3 · Bouw in Next.js", d: "De volledige site native herbouwd, zonder plugins." },
+        { t: "4 · Contentmigratie", d: "Teksten, beelden en pagina's overgezet en opgeschoond." },
+        { t: "5 · SEO-behoud", d: "301-redirectplan zodat je Google-posities meeverhuizen i.p.v. kelderen." },
+        { t: "6 · Lancering & overdracht", d: "Live gezet; jij krijgt code, data en een eigen admin." },
+      ],
+      mod: {
+        base_starter: { name: "Basis-site (tot ±8 pagina's)", desc: "Eigen design, mobiel, contact, SEO-fundament — schoon herbouwd." },
+        base_pro: { name: "Volwaardige site (Pro)", desc: "Meerdere secties, eigen admin om alles zelf te wijzigen." },
+        base_webshop: { name: "Webshop", desc: "Volledige shop (Mollie/Stripe), voorraad, bestellingen-admin." },
+        multilingual: { name: "Meertalig", desc: "Zelfde inhoud, nette taalswitch + hreflang voor SEO." },
+        forms: { name: "Formulieren + opvolging", desc: "Contact/offerte-formulieren met spamfilter en mailopvolging." },
+        booking: { name: "Reservatiemodule", desc: "Afspraken/boekingen met agenda en bevestigingsmails." },
+        blog: { name: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving voor artikels — zonder WordPress." },
+        members: { name: "Ledenzone", desc: "Afgeschermd gedeelte met logins en rollen." },
+        content: { name: "Contentmigratie", desc: "Bestaande pagina's overgezet, geschaald op de omvang van je site." },
+        seoPreserve: { name: "SEO-behoud & redirects", desc: "Volledig 301-plan + sitemap zodat je niet terugvalt in Google." },
+      },
+      base: "Vertrekpunt",
+      addons: "Op maat van wat je hebt",
+      total: "Totale richtprijs",
+      approx: "indicatief, exacte offerte na een kort gesprek",
+      timeline: "Doorlooptijd",
+      weeks: (a, b) => `±${a}–${b} weken`,
+      careTitle: "Daarna: zorgeloos onderhoud",
+      careNote: "Hosting, SSL, back-ups, updates en support — zodat het 100/100 blíjft.",
+      own: "Bij oplevering bezit jij de volledige code én data. Geen lock-in, geen verplichte afname.",
+      cta: "Bespreek dit plan met mij",
     },
     copyTpl: (h, s, g, st) =>
       `Doorlichting van ${h} (via studio-vm.be/scan)\nRapportcijfer: ${g} — ${s}/100\nPlatform: ${st}\n\nEen Studio VM-build mikt op 100/100. Bespreek: studio-vm.be`,
@@ -528,6 +598,56 @@ const UI: Record<
       rebuild: { name: "Reconstruction complète (Next.js)", desc: "Un nouveau site rapide et sûr, que vous possédez." },
       care: { name: "Abonnement Care", desc: "Hébergement, SSL, sauvegardes, mises à jour et support." },
     },
+    plan: {
+      title: (st) => `Votre plan : fini de bricoler ${st} — une reconstruction propre que vous possédez`,
+      why: (st, s) =>
+        `Continuer à réparer ${st}, c'est jeter de l'argent par les fenêtres : chaque correctif est temporaire, dépend de plugins et ne règle pas la cause (score ${s}/100). Je reconstruis exactement ce que fait votre site — propre, rapide et sûr en Next.js — et je migre votre contenu en conservant vos positions Google. Pas de plugins, pas de surprises, vous possédez le code et les données.`,
+      haveTitle: "Ce que j'ai détecté sur votre site",
+      feat: {
+        pages: "pages",
+        shop: "Boutique / vente en ligne",
+        multilingual: "Multilingue",
+        forms: "Formulaires",
+        booking: "Réservation / rendez-vous",
+        blog: "Blog / actualités",
+        members: "Espace membres / e-learning",
+        mediaHeavy: "Beaucoup d'images / galeries",
+        pageBuilder: "Page-builder (Elementor/Divi…)",
+        plugins: "plugins détectés",
+      },
+      buildTitle: "Ce que je construis à la place",
+      phasesTitle: "Approche par phases",
+      phases: [
+        { t: "1 · Audit & inventaire du contenu", d: "Je liste chaque page, fonction et URL pour ne rien perdre." },
+        { t: "2 · Design à votre marque", d: "Un design propre et rapide — pas de template, mobile-first." },
+        { t: "3 · Construction en Next.js", d: "Tout le site recodé en natif, sans plugins." },
+        { t: "4 · Migration du contenu", d: "Textes, images et pages transférés et nettoyés." },
+        { t: "5 · Préservation SEO", d: "Plan de redirections 301 pour que vos positions Google suivent." },
+        { t: "6 · Mise en ligne & transfert", d: "Mis en ligne ; vous recevez code, données et un admin." },
+      ],
+      mod: {
+        base_starter: { name: "Site de base (jusqu'à ±8 pages)", desc: "Design propre, mobile, contact, fondation SEO — recodé proprement." },
+        base_pro: { name: "Site complet (Pro)", desc: "Plusieurs sections, admin pour tout modifier vous-même." },
+        base_webshop: { name: "Boutique", desc: "Boutique complète (Mollie/Stripe), stock, admin commandes." },
+        multilingual: { name: "Multilingue", desc: "Même contenu, bascule de langue propre + hreflang SEO." },
+        forms: { name: "Formulaires + suivi", desc: "Formulaires contact/devis avec anti-spam et suivi mail." },
+        booking: { name: "Module de réservation", desc: "Rendez-vous/réservations avec agenda et confirmations." },
+        blog: { name: "CMS blog / actus", desc: "Environnement de rédaction propre — sans WordPress." },
+        members: { name: "Espace membres", desc: "Zone protégée avec logins et rôles." },
+        content: { name: "Migration du contenu", desc: "Pages existantes transférées, dimensionné selon la taille du site." },
+        seoPreserve: { name: "Préservation SEO & redirections", desc: "Plan 301 complet + sitemap pour ne pas chuter dans Google." },
+      },
+      base: "Point de départ",
+      addons: "Sur mesure selon l'existant",
+      total: "Estimation totale",
+      approx: "indicatif, devis exact après un bref échange",
+      timeline: "Délai",
+      weeks: (a, b) => `±${a}–${b} semaines`,
+      careTitle: "Ensuite : entretien sans souci",
+      careNote: "Hébergement, SSL, sauvegardes, mises à jour et support — pour rester à 100/100.",
+      own: "À la livraison, vous possédez tout le code et les données. Pas de lock-in, pas d'abonnement obligatoire.",
+      cta: "Discuter de ce plan avec moi",
+    },
     copyTpl: (h, s, g, st) =>
       `Analyse de ${h} (via studio-vm.be/scan)\nNote : ${g} — ${s}/100\nPlateforme : ${st}\n\nUn build Studio VM vise 100/100. Discutons : studio-vm.be`,
   },
@@ -633,6 +753,56 @@ const UI: Record<
       rebuild: { name: "Full rebuild (Next.js)", desc: "A new, fast, secure site that you own." },
       care: { name: "Care plan", desc: "Hosting, SSL, backups, updates and support." },
     },
+    plan: {
+      title: (st) => `Your plan: no more tinkering in ${st} — a clean rebuild you own`,
+      why: (st, s) =>
+        `Keeping ${st} patched is throwing good money after bad: every fix is temporary, plugin-dependent and doesn't address the cause (score ${s}/100). I rebuild exactly what your site does — clean, fast and secure in Next.js — and migrate your content while preserving your Google rankings. No plugins, no surprises, you own the code and data.`,
+      haveTitle: "What I detected on your site",
+      feat: {
+        pages: "pages",
+        shop: "Webshop / online sales",
+        multilingual: "Multilingual",
+        forms: "Forms",
+        booking: "Booking / appointments",
+        blog: "Blog / news",
+        members: "Member area / e-learning",
+        mediaHeavy: "Image-heavy / galleries",
+        pageBuilder: "Page builder (Elementor/Divi…)",
+        plugins: "plugins detected",
+      },
+      buildTitle: "What I build instead",
+      phasesTitle: "Phased approach",
+      phases: [
+        { t: "1 · Audit & content inventory", d: "I list every page, feature and URL so nothing is lost." },
+        { t: "2 · Design on your brand", d: "A custom, fast design — no template, mobile-first." },
+        { t: "3 · Build in Next.js", d: "The whole site rebuilt natively, without plugins." },
+        { t: "4 · Content migration", d: "Texts, images and pages moved over and cleaned up." },
+        { t: "5 · SEO preservation", d: "A 301 redirect plan so your Google rankings move with you." },
+        { t: "6 · Launch & handover", d: "Taken live; you get the code, data and an admin." },
+      ],
+      mod: {
+        base_starter: { name: "Base site (up to ±8 pages)", desc: "Custom design, mobile, contact, SEO foundation — cleanly rebuilt." },
+        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, own admin to edit everything yourself." },
+        base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
+        multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
+        forms: { name: "Forms + follow-up", desc: "Contact/quote forms with spam filter and mail follow-up." },
+        booking: { name: "Booking module", desc: "Appointments/bookings with calendar and confirmations." },
+        blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
+        members: { name: "Member area", desc: "Gated section with logins and roles." },
+        content: { name: "Content migration", desc: "Existing pages moved over, scaled to your site's size." },
+        seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
+      },
+      base: "Starting point",
+      addons: "Tailored to what you have",
+      total: "Total estimate",
+      approx: "indicative, exact quote after a short chat",
+      timeline: "Timeline",
+      weeks: (a, b) => `±${a}–${b} weeks`,
+      careTitle: "Then: worry-free maintenance",
+      careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
+      own: "On delivery you own all the code and data. No lock-in, no mandatory subscription.",
+      cta: "Discuss this plan with me",
+    },
     copyTpl: (h, s, g, st) =>
       `Scan of ${h} (via studio-vm.be/scan)\nGrade: ${g} — ${s}/100\nPlatform: ${st}\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
   },
@@ -718,27 +888,67 @@ export function SiteScanner({
       (a, b) => sevRank[a.severity] - sevRank[b.severity],
     );
 
-    // Stappenplan: modules afgeleid uit findings
-    const cat = (c: string, sev: Severity[]) =>
-      r.findings.some((x) => x.cat === c && sev.includes(x.severity));
-    const need = {
-      security: cat("security", ["critical", "warning"]),
-      speed: cat("speed", ["critical", "warning"]),
-      seo: cat("seo", ["critical", "warning"]),
-      mobile: cat("mobile", ["critical", "warning"]),
-      migration: r.flags.diyPlatform || r.stack === "WordPress",
-    };
-    const steps: ModuleKey[] = [];
-    if (need.security) steps.push("security");
-    if (need.speed) steps.push("speed");
-    if (need.seo) steps.push("seo");
-    if (need.mobile) steps.push("mobile");
-    const fixesTotal = steps.reduce((s, k) => s + PRICE[k], 0);
-    const recommendRebuild =
-      r.flags.diyPlatform ||
-      r.flags.outdated ||
-      r.score < 55 ||
-      steps.length >= 3;
+    // Plan: herbouw-eerst, afgeleid uit de gedetecteerde inventaris
+    const inv = r.inventory;
+    const pages = inv.pages;
+    const bucket: "small" | "medium" | "large" | "xl" =
+      pages == null
+        ? "medium"
+        : pages <= 8
+          ? "small"
+          : pages <= 30
+            ? "medium"
+            : pages <= 80
+              ? "large"
+              : "xl";
+    const contentPrice =
+      pages == null
+        ? 600
+        : pages <= 10
+          ? 600
+          : pages <= 30
+            ? 1200
+            : pages <= 80
+              ? 2400
+              : 4000;
+    const baseKey: "base_webshop" | "base_pro" | "base_starter" = inv.shop
+      ? "base_webshop"
+      : inv.members || bucket === "xl" || (inv.multilingual && bucket === "large")
+        ? "base_pro"
+        : bucket === "small" && !inv.booking && !inv.members
+          ? "base_starter"
+          : "base_pro";
+    const basePrice =
+      baseKey === "base_webshop" ? 7500 : baseKey === "base_pro" ? 4500 : 2500;
+    const addons: { key: string; price: number }[] = [];
+    if (inv.multilingual) addons.push({ key: "multilingual", price: 900 });
+    if (inv.forms) addons.push({ key: "forms", price: 450 });
+    if (inv.booking) addons.push({ key: "booking", price: 1400 });
+    if (inv.blog) addons.push({ key: "blog", price: 900 });
+    if (inv.members) addons.push({ key: "members", price: 1800 });
+    addons.push({ key: "content", price: contentPrice });
+    addons.push({ key: "seoPreserve", price: 450 });
+    const oneOffLow =
+      basePrice + addons.reduce((s, a) => s + a.price, 0);
+    const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;
+    let wk =
+      baseKey === "base_webshop" ? 7 : baseKey === "base_pro" ? 5 : 3;
+    if (inv.multilingual) wk += 1;
+    if (inv.booking) wk += 1;
+    if (inv.members) wk += 2;
+    if (bucket === "large" || bucket === "xl") wk += 2;
+    const weeksRange: [number, number] = [wk, wk + 2];
+    const pl = t.plan;
+    const featChips: string[] = [];
+    if (pages != null) featChips.push(`~${pages} ${pl.feat.pages}`);
+    if (inv.shop) featChips.push(pl.feat.shop);
+    if (inv.multilingual) featChips.push(pl.feat.multilingual);
+    if (inv.forms) featChips.push(pl.feat.forms);
+    if (inv.booking) featChips.push(pl.feat.booking);
+    if (inv.blog) featChips.push(pl.feat.blog);
+    if (inv.members) featChips.push(pl.feat.members);
+    if (inv.mediaHeavy) featChips.push(pl.feat.mediaHeavy);
+    if (inv.pageBuilder) featChips.push(pl.feat.pageBuilder);
 
     const host = r.host;
     const copySummary = async () => {
@@ -1128,70 +1338,134 @@ export function SiteScanner({
 
         {/* Stappenplan + prijs */}
         <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6 print-avoid-break">
-          <p className="text-base font-semibold">{t.planTitle}</p>
-          <p className="mt-2 text-sm text-muted">
-            {steps.length ? t.planIntro : t.planNothing}
-          </p>
+          <p className="text-lg font-semibold">{pl.title(r.stack)}</p>
+          <p className="mt-3 leading-relaxed">{pl.why(r.stack, r.score)}</p>
 
-          {steps.length > 0 && (
-            <>
-              <ol className="mt-5 space-y-3">
-                {steps.map((k, i) => (
-                  <li key={k} className="flex items-start gap-3 rounded-xl border bg-card p-4">
-                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">
-                        {t.planStep} {i + 1}: {t.modules[k].name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted">{t.modules[k].desc}</p>
-                    </div>
-                    <span className="whitespace-nowrap font-mono text-sm font-semibold">
-                      {fmt(PRICE[k], locale)}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-3 flex items-center justify-between border-t pt-3">
-                <span className="text-sm font-semibold">{t.planTotal}</span>
-                <span className="font-mono text-base font-bold">
-                  {fmt(fixesTotal, locale)}{" "}
-                  <span className="text-xs font-normal text-muted">{t.excl}</span>
+          <div className="mt-6 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.haveTitle}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {featChips.length === 0 ? (
+                <span className="text-sm text-muted">{r.stack}</span>
+              ) : (
+                featChips.map((c) => (
+                  <span
+                    key={c}
+                    className="rounded-full border bg-background px-3 py-1 text-xs"
+                  >
+                    {c}
+                  </span>
+                ))
+              )}
+              {r.technologies.filter((x) => x.type === "plugin").length > 0 && (
+                <span className="rounded-full border bg-background px-3 py-1 text-xs">
+                  {r.technologies.filter((x) => x.type === "plugin").length}{" "}
+                  {pl.feat.plugins}
                 </span>
-              </div>
-            </>
-          )}
-
-          {recommendRebuild && (
-            <div className="mt-5 rounded-xl border border-accent/40 bg-card p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">{t.planRebuild}</p>
-                <span className="whitespace-nowrap font-mono text-sm font-bold">
-                  {t.from} {fmt(PRICE.rebuild, locale)}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-muted">{t.planRebuildNote}</p>
+              )}
             </div>
-          )}
+          </div>
+
+          <div className="mt-5 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.phasesTitle}
+            </p>
+            <ol className="mt-4 space-y-3">
+              {pl.phases.map((ph, i) => (
+                <li key={ph.t} className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">{ph.t}</p>
+                    <p className="mt-0.5 text-xs text-muted">{ph.d}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="mt-5 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.buildTitle}
+            </p>
+            <ul className="mt-4 space-y-2">
+              <li className="flex items-start justify-between gap-3 border-b pb-2">
+                <div>
+                  <p className="text-sm font-semibold">
+                    {pl.base}: {pl.mod[baseKey].name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {pl.mod[baseKey].desc}
+                  </p>
+                </div>
+                <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                  {fmt(basePrice, locale)}
+                </span>
+              </li>
+              {addons.map((a) => (
+                <li
+                  key={a.key}
+                  className="flex items-start justify-between gap-3 border-b pb-2 last:border-0"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {pl.mod[a.key].name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {pl.mod[a.key].desc}
+                    </p>
+                  </div>
+                  <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                    {fmt(a.price, locale)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t pt-4">
+              <div>
+                <p className="text-sm font-semibold">{pl.total}</p>
+                <p className="font-mono text-[11px] text-muted">
+                  {pl.approx} · {t.excl}
+                </p>
+              </div>
+              <span className="font-mono text-xl font-bold">
+                {fmt(oneOffLow, locale)} – {fmt(oneOffHigh, locale)}
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
+              <span className="font-semibold">{pl.timeline}</span>
+              <span className="font-mono">
+                {pl.weeks(weeksRange[0], weeksRange[1])}
+              </span>
+            </div>
+          </div>
 
           <div className="mt-3 rounded-xl border bg-card p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">{t.planCare}</p>
+              <p className="text-sm font-semibold">{pl.careTitle}</p>
               <span className="whitespace-nowrap font-mono text-sm font-bold">
                 {fmt(PRICE.care, locale)}
-                <span className="text-xs font-normal text-muted"> / {t.perMonth}</span>
+                <span className="text-xs font-normal text-muted">
+                  {" "}
+                  / {t.perMonth}
+                </span>
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted">{t.planCareNote}</p>
+            <p className="mt-1 text-xs text-muted">{pl.careNote}</p>
           </div>
+
+          <p className="mt-4 rounded-xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
+            {pl.own}
+          </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href={localePath(locale, "/#contact")}
               className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
-              {t.ctaButton}
+              {pl.cta}
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </Link>
             <button
