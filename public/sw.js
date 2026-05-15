@@ -1,7 +1,7 @@
 // Studio VM — minimal service worker
 // Network-first for navigations, cached offline fallback.
 
-const CACHE = "studio-vm-v1";
+const CACHE = "studio-vm-v2";
 const OFFLINE_URLS = ["/nl/offline", "/fr/offline", "/en/offline"];
 
 self.addEventListener("install", (event) => {
