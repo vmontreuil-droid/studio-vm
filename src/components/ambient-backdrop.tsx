@@ -21,10 +21,13 @@ export function AmbientBackdrop() {
   const tint = TINT[seg] ?? "var(--tint-amber)";
 
   return (
-    <div
-      aria-hidden
-      className="page-aura"
-      style={{ "--page-tint": tint } as React.CSSProperties}
-    />
+    <>
+      <div aria-hidden className="page-grid" />
+      <div
+        aria-hidden
+        className="page-aura"
+        style={{ "--page-tint": tint } as React.CSSProperties}
+      />
+    </>
   );
 }

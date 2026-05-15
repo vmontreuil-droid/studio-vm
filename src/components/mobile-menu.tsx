@@ -30,13 +30,13 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground sm:hidden"
+        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:hidden"
       >
         <Menu className="h-4 w-4" strokeWidth={2} />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[85] flex sm:hidden">
+        <div className="fixed inset-0 z-[85] flex md:hidden">
           <div
             aria-hidden
             onClick={() => setOpen(false)}
