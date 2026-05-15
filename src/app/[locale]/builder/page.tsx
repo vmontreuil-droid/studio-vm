@@ -8,10 +8,12 @@ import {
   X,
   ArrowUp,
   ArrowDown,
+  Copy,
   Send,
   ArrowRight,
   Palette,
   Layers,
+  Type,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -58,6 +60,17 @@ const sectionKinds: SectionKind[] = [
   "contact",
 ];
 
+const fontStacks = {
+  sans: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  serif: "Georgia, 'Times New Roman', serif",
+  mono: "ui-monospace, 'Cascadia Code', Menlo, monospace",
+  display: "'Trebuchet MS', 'Segoe UI', sans-serif",
+} as const;
+type FontKey = keyof typeof fontStacks;
+
+const radiusPx = { strak: "2px", zacht: "12px", rond: "24px" } as const;
+type RadiusKey = keyof typeof radiusPx;
+
 const T: Record<
   Locale,
   {
@@ -79,6 +92,13 @@ const T: Record<
     ctaTitle: string;
     ctaText: string;
     ctaButton: string;
+    panelStyle: string;
+    taglineLabel: string;
+    fontLabel: string;
+    fonts: { sans: string; serif: string; mono: string; display: string };
+    radiusLabel: string;
+    radii: { strak: string; zacht: string; rond: string };
+    dup: string;
     preview: {
       welcome: string;
       tagline: string;
@@ -131,6 +151,13 @@ const T: Record<
     ctaText:
       "De builder is een speelgoed — leuk om te proberen, niet om je echte zaak op te laten draaien. Voor dat laatste zit je beter bij een Pro-pakket.",
     ctaButton: "Bekijk pakketten",
+    panelStyle: "Tekst & stijl",
+    taglineLabel: "Slogan / tagline",
+    fontLabel: "Lettertype",
+    fonts: { sans: "Modern", serif: "Klassiek", mono: "Technisch", display: "Karakter" },
+    radiusLabel: "Hoeken",
+    radii: { strak: "Strak", zacht: "Zacht", rond: "Rond" },
+    dup: "Dupliceer",
     preview: {
       welcome: "Welkom bij",
       tagline: "Een tagline die uitlegt wat je doet.",
@@ -190,6 +217,13 @@ const T: Record<
     ctaText:
       "Le builder est un jouet — sympa à essayer, pas pour faire tourner votre vraie activité. Pour ça, un forfait Pro est plus indiqué.",
     ctaButton: "Voir les forfaits",
+    panelStyle: "Texte & style",
+    taglineLabel: "Slogan / accroche",
+    fontLabel: "Police",
+    fonts: { sans: "Moderne", serif: "Classique", mono: "Technique", display: "Caractère" },
+    radiusLabel: "Coins",
+    radii: { strak: "Net", zacht: "Doux", rond: "Rond" },
+    dup: "Dupliquer",
     preview: {
       welcome: "Bienvenue chez",
       tagline: "Une accroche qui explique ce que vous faites.",
@@ -249,6 +283,13 @@ const T: Record<
     ctaText:
       "The builder is a toy — fun to try, not to run your real business on. For that, a Pro package is the better fit.",
     ctaButton: "See packages",
+    panelStyle: "Text & style",
+    taglineLabel: "Slogan / tagline",
+    fontLabel: "Typeface",
+    fonts: { sans: "Modern", serif: "Classic", mono: "Technical", display: "Character" },
+    radiusLabel: "Corners",
+    radii: { strak: "Sharp", zacht: "Soft", rond: "Round" },
+    dup: "Duplicate",
     preview: {
       welcome: "Welcome to",
       tagline: "A tagline that explains what you do.",
@@ -304,9 +345,19 @@ export default function BuilderPage() {
     locale === "fr" ? "Mon Affaire" : locale === "en" ? "My Business" : "Mijn Zaak",
   );
 
+  const [tagline, setTagline] = useState("");
+  const [font, setFont] = useState<FontKey>("sans");
+  const [radius, setRadius] = useState<RadiusKey>("zacht");
+
   const addSection = (k: SectionKind) => setSections((s) => [...s, k]);
   const removeSection = (idx: number) =>
     setSections((s) => s.filter((_, i) => i !== idx));
+  const duplicateSection = (idx: number) =>
+    setSections((s) => {
+      const n = [...s];
+      n.splice(idx + 1, 0, s[idx]);
+      return n;
+    });
   const moveSection = (idx: number, dir: -1 | 1) =>
     setSections((s) => {
       const next = [...s];
@@ -367,6 +418,58 @@ export default function BuilderPage() {
               </div>
             </Panel>
 
+            <Panel icon={<Type className="h-4 w-4" />} title={c.panelStyle}>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.taglineLabel}
+              </label>
+              <input
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder={c.preview.tagline}
+                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.fontLabel}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(fontStacks) as FontKey[]).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFont(f)}
+                    style={{ fontFamily: fontStacks[f] }}
+                    className={`rounded-lg border p-2 text-sm transition-colors ${
+                      font === f
+                        ? "border-accent"
+                        : "border-border hover:bg-card-hover"
+                    }`}
+                  >
+                    {c.fonts[f]}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.radiusLabel}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(radiusPx) as RadiusKey[]).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRadius(r)}
+                    className={`border p-2 text-xs transition-colors ${
+                      radius === r
+                        ? "border-accent"
+                        : "border-border hover:bg-card-hover"
+                    }`}
+                    style={{ borderRadius: radiusPx[r] }}
+                  >
+                    {c.radii[r]}
+                  </button>
+                ))}
+              </div>
+            </Panel>
+
             <Panel icon={<Layers className="h-4 w-4" />} title={c.panelSections}>
               <ul className="space-y-2">
                 {sections.map((kind, i) => (
@@ -393,6 +496,15 @@ export default function BuilderPage() {
                         disabled={i === sections.length - 1}
                       >
                         <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => duplicateSection(i)}
+                        aria-label={c.dup}
+                        title={c.dup}
+                        className="rounded p-1 hover:text-foreground"
+                      >
+                        <Copy className="h-3.5 w-3.5" strokeWidth={2} />
                       </button>
                       <button
                         type="button"
@@ -456,9 +568,14 @@ export default function BuilderPage() {
               </span>
             </div>
             <div
-              style={{ background: theme.bg, color: theme.fg }}
-              className="min-h-[600px]"
+              style={{
+                background: theme.bg,
+                color: theme.fg,
+                fontFamily: fontStacks[font],
+              }}
+              className="bldr-frame min-h-[600px]"
             >
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}`}</style>
               {sections.length === 0 ? (
                 <div className="flex h-[600px] flex-col items-center justify-center gap-3 p-8 text-center text-muted">
                   <Layers className="h-12 w-12" strokeWidth={1} />
@@ -471,6 +588,7 @@ export default function BuilderPage() {
                     kind={kind}
                     theme={theme}
                     businessName={businessName}
+                    tagline={tagline}
                     p={c.preview}
                   />
                 ))
@@ -525,11 +643,13 @@ function PreviewSection({
   kind,
   theme,
   businessName,
+  tagline,
   p,
 }: {
   kind: SectionKind;
   theme: Theme;
   businessName: string;
+  tagline: string;
   p: Preview;
 }) {
   const accentText = { color: theme.accent };
@@ -549,7 +669,7 @@ function PreviewSection({
             {businessName}
           </h2>
           <p className="mt-3 text-sm opacity-70" style={{ color: theme.fg }}>
-            {p.tagline}
+            {tagline.trim() || p.tagline}
           </p>
           <button
             className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
