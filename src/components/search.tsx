@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search as SearchIcon, X, FileText, Briefcase, Newspaper } from "lucide-react";
 import { search, type SearchEntry } from "@/lib/search-index";
+import type { Locale } from "@/lib/i18n/config";
 
-export function SearchTrigger() {
+export function SearchTrigger({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -34,18 +35,24 @@ export function SearchTrigger() {
           ⌘K
         </kbd>
       </button>
-      {open && <SearchDialog onClose={() => setOpen(false)} />}
+      {open && <SearchDialog locale={locale} onClose={() => setOpen(false)} />}
     </>
   );
 }
 
-function SearchDialog({ onClose }: { onClose: () => void }) {
+function SearchDialog({
+  locale,
+  onClose,
+}: {
+  locale: Locale;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
 
-  const results = useMemo(() => search(query), [query]);
+  const results = useMemo(() => search(query, locale), [query, locale]);
 
   useEffect(() => {
     inputRef.current?.focus();

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Mail, Phone, MapPin, ArrowRight, Quote } from "lucide-react";
-import { projects } from "@/lib/projects";
-import { capabilities } from "@/lib/capabilities";
-import { testimonials } from "@/lib/testimonials";
+import { getProjects } from "@/lib/projects";
+import { getCapabilities } from "@/lib/capabilities";
+import { getTestimonials } from "@/lib/testimonials";
 import { ProjectCard } from "@/components/project-card";
 import { ContactForm } from "@/components/contact-form";
 import { getMessages } from "@/lib/i18n";
@@ -23,8 +23,8 @@ export default async function Home({
       <Hero locale={locale} t={t} />
       <Stats t={t} />
       <Werk locale={locale} t={t} />
-      <Testimonials t={t} />
-      <Mogelijkheden t={t} />
+      <Testimonials t={t} locale={locale} />
+      <Mogelijkheden t={t} locale={locale} />
       <Contact t={t} />
     </main>
   );
@@ -116,7 +116,7 @@ function Werk({ locale, t }: { locale: Locale; t: T }) {
           <p className="max-w-md text-sm text-muted">{t.werk.intro}</p>
         </div>
         <div className="grid gap-px bg-border sm:grid-cols-2">
-          {projects.map((p) => (
+          {getProjects(locale).map((p) => (
             <ProjectCard key={p.slug} project={p} locale={locale} />
           ))}
         </div>
@@ -125,7 +125,7 @@ function Werk({ locale, t }: { locale: Locale; t: T }) {
   );
 }
 
-function Testimonials({ t }: { t: T }) {
+function Testimonials({ t, locale }: { t: T; locale: Locale }) {
   return (
     <section className="border-b bg-card">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
@@ -138,7 +138,7 @@ function Testimonials({ t }: { t: T }) {
           </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          {testimonials.map((tm) => (
+          {getTestimonials(locale).map((tm) => (
             <figure
               key={tm.author}
               className="flex h-full flex-col rounded-2xl border bg-background p-6"
@@ -166,7 +166,7 @@ function Testimonials({ t }: { t: T }) {
   );
 }
 
-function Mogelijkheden({ t }: { t: T }) {
+function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
   return (
     <section id="mogelijkheden" className="border-b bg-card">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
@@ -180,7 +180,7 @@ function Mogelijkheden({ t }: { t: T }) {
           <p className="mt-6 text-muted">{t.mogelijkheden.intro}</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map((c) => (
+          {getCapabilities(locale).map((c) => (
             <div key={c.title} className="rounded-2xl border bg-background p-6">
               <c.icon className="h-6 w-6 text-accent" strokeWidth={1.5} />
               <h3 className="mt-4 font-semibold tracking-tight">{c.title}</h3>

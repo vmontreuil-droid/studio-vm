@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { projects } from "@/lib/projects";
-import { posts } from "@/lib/posts";
+import { projectSlugs } from "@/lib/projects";
+import { postSlugs } from "@/lib/posts";
 import { LOCALES } from "@/lib/i18n/config";
 
 const BASE = "https://studio-vm.be";
@@ -35,19 +35,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  const projectRoutes = projects.flatMap((p) =>
+  const projectRoutes = projectSlugs.flatMap((slug) =>
     LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/werk/${p.slug}`,
+      url: `${BASE}/${locale}/werk/${slug}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
   );
 
-  const postRoutes = posts.flatMap((p) =>
+  const postRoutes = postSlugs.flatMap((slug) =>
     LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/journal/${p.slug}`,
-      lastModified: new Date(p.date),
+      url: `${BASE}/${locale}/journal/${slug}`,
+      lastModified: now,
       changeFrequency: "yearly" as const,
       priority: 0.5,
     })),

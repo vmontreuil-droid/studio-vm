@@ -41,7 +41,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </nav>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <LangSwitcher current={locale} />
-          <SearchTrigger />
+          <SearchTrigger locale={locale} />
           <ThemeToggle />
           <MobileMenu locale={locale} />
         </div>

@@ -1,60 +1,103 @@
-import { projects } from "@/lib/projects";
-import { posts } from "@/lib/posts";
+import { getProjects } from "@/lib/projects";
+import { getPosts } from "@/lib/posts";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 export type SearchEntry = {
   title: string;
   href: string;
-  kind: "Pagina" | "Werk" | "Journal";
+  kind: "Page" | "Werk" | "Journal";
   hint?: string;
 };
 
-const pages: SearchEntry[] = [
-  { title: "Home", href: "/", kind: "Pagina", hint: "Hero, werk-overzicht, mogelijkheden, contact" },
-  { title: "Pricing", href: "/pricing", kind: "Pagina", hint: "Pakketten + abonnementen" },
-  { title: "Diensten", href: "/diensten", kind: "Pagina", hint: "Wat ik bouw + werkproces" },
-  { title: "FAQ", href: "/faq", kind: "Pagina", hint: "Veelgestelde vragen" },
-  { title: "Journal", href: "/journal", kind: "Pagina", hint: "Blog over webdevelopment" },
-  { title: "Templates shop", href: "/shop", kind: "Pagina", hint: "Templates en e-books" },
-  { title: "Site builder demo", href: "/builder", kind: "Pagina", hint: "Bouw je eigen pagina" },
-  { title: "Klantportaal", href: "/portail", kind: "Pagina", hint: "Inloggen voor klanten" },
-  { title: "Support tickets", href: "/support", kind: "Pagina", hint: "Open een ticket" },
-  { title: "Status", href: "/status", kind: "Pagina", hint: "Uptime + system status" },
-  { title: "Wat ik nu doe", href: "/now", kind: "Pagina", hint: "Now-page van Vincent" },
-  { title: "Tools die ik gebruik", href: "/uses", kind: "Pagina", hint: "Mijn dagelijkse stack" },
-  { title: "Contact", href: "/#contact", kind: "Pagina", hint: "Stuur een bericht" },
-  { title: "Privacy", href: "/privacy", kind: "Pagina" },
-  { title: "Cookies", href: "/cookies", kind: "Pagina" },
-  { title: "Algemene voorwaarden", href: "/voorwaarden", kind: "Pagina" },
-];
+const pageDefs: Record<
+  Locale,
+  { title: string; path: string; hint?: string }[]
+> = {
+  nl: [
+    { title: "Home", path: "/", hint: "Hero, werk, mogelijkheden, contact" },
+    { title: "Pricing", path: "/pricing", hint: "Pakketten + abonnementen" },
+    { title: "Diensten", path: "/diensten", hint: "Wat ik bouw + werkproces" },
+    { title: "FAQ", path: "/faq", hint: "Veelgestelde vragen" },
+    { title: "Journal", path: "/journal", hint: "Blog over webdevelopment" },
+    { title: "Templates shop", path: "/shop", hint: "Templates en e-books" },
+    { title: "Site builder demo", path: "/builder", hint: "Bouw je eigen pagina" },
+    { title: "Klantportaal", path: "/portail", hint: "Inloggen voor klanten" },
+    { title: "Support tickets", path: "/support", hint: "Open een ticket" },
+    { title: "Status", path: "/status", hint: "Uptime + system status" },
+    { title: "Wat ik nu doe", path: "/now", hint: "Now-page" },
+    { title: "Tools die ik gebruik", path: "/uses", hint: "Mijn stack" },
+    { title: "Privacy", path: "/privacy" },
+    { title: "Cookies", path: "/cookies" },
+    { title: "Algemene voorwaarden", path: "/voorwaarden" },
+  ],
+  fr: [
+    { title: "Accueil", path: "/", hint: "Hero, travaux, capacités, contact" },
+    { title: "Tarifs", path: "/pricing", hint: "Forfaits + abonnements" },
+    { title: "Services", path: "/diensten", hint: "Ce que je construis + processus" },
+    { title: "FAQ", path: "/faq", hint: "Questions fréquentes" },
+    { title: "Journal", path: "/journal", hint: "Blog sur le développement web" },
+    { title: "Boutique templates", path: "/shop", hint: "Templates et e-books" },
+    { title: "Démo site builder", path: "/builder", hint: "Construisez votre page" },
+    { title: "Espace client", path: "/portail", hint: "Connexion clients" },
+    { title: "Tickets support", path: "/support", hint: "Ouvrir un ticket" },
+    { title: "Statut", path: "/status", hint: "Uptime + statut système" },
+    { title: "Ce que je fais", path: "/now", hint: "Now-page" },
+    { title: "Mes outils", path: "/uses", hint: "Ma stack" },
+    { title: "Confidentialité", path: "/privacy" },
+    { title: "Cookies", path: "/cookies" },
+    { title: "Conditions générales", path: "/voorwaarden" },
+  ],
+  en: [
+    { title: "Home", path: "/", hint: "Hero, work, capabilities, contact" },
+    { title: "Pricing", path: "/pricing", hint: "Packages + subscriptions" },
+    { title: "Services", path: "/diensten", hint: "What I build + process" },
+    { title: "FAQ", path: "/faq", hint: "Frequently asked questions" },
+    { title: "Journal", path: "/journal", hint: "Blog about web development" },
+    { title: "Templates shop", path: "/shop", hint: "Templates and e-books" },
+    { title: "Site builder demo", path: "/builder", hint: "Build your own page" },
+    { title: "Client portal", path: "/portail", hint: "Client login" },
+    { title: "Support tickets", path: "/support", hint: "Open a ticket" },
+    { title: "Status", path: "/status", hint: "Uptime + system status" },
+    { title: "What I'm doing now", path: "/now", hint: "Now-page" },
+    { title: "Tools I use", path: "/uses", hint: "My stack" },
+    { title: "Privacy", path: "/privacy" },
+    { title: "Cookies", path: "/cookies" },
+    { title: "Terms", path: "/voorwaarden" },
+  ],
+};
 
-const workEntries: SearchEntry[] = projects.map((p) => ({
-  title: p.name,
-  href: `/werk/${p.slug}`,
-  kind: "Werk",
-  hint: p.tagline,
-}));
+export function getSearchIndex(locale: Locale): SearchEntry[] {
+  const pages: SearchEntry[] = pageDefs[locale].map((p) => ({
+    title: p.title,
+    href: localePath(locale, p.path),
+    kind: "Page",
+    hint: p.hint,
+  }));
+  const work: SearchEntry[] = getProjects(locale).map((p) => ({
+    title: p.name,
+    href: localePath(locale, `/werk/${p.slug}`),
+    kind: "Werk",
+    hint: p.tagline,
+  }));
+  const journal: SearchEntry[] = getPosts(locale).map((p) => ({
+    title: p.title,
+    href: localePath(locale, `/journal/${p.slug}`),
+    kind: "Journal",
+    hint: p.tag,
+  }));
+  return [...pages, ...work, ...journal];
+}
 
-const journalEntries: SearchEntry[] = posts.map((p) => ({
-  title: p.title,
-  href: `/journal/${p.slug}`,
-  kind: "Journal",
-  hint: p.tag,
-}));
-
-export const searchIndex: SearchEntry[] = [
-  ...pages,
-  ...workEntries,
-  ...journalEntries,
-];
-
-export function search(query: string, limit = 8): SearchEntry[] {
+export function search(
+  query: string,
+  locale: Locale,
+  limit = 8,
+): SearchEntry[] {
+  const index = getSearchIndex(locale);
   const q = query.trim().toLowerCase();
-  if (!q) return searchIndex.slice(0, limit);
-  return searchIndex
-    .map((entry) => ({
-      entry,
-      score: scoreEntry(entry, q),
-    }))
+  if (!q) return index.slice(0, limit);
+  return index
+    .map((entry) => ({ entry, score: scoreEntry(entry, q) }))
     .filter((m) => m.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
@@ -68,7 +111,6 @@ function scoreEntry(entry: SearchEntry, q: string): number {
   if (title.startsWith(q)) return 50;
   if (title.includes(q)) return 25;
   if (hint.includes(q)) return 10;
-  // Loose char-by-char match for typos
   let qi = 0;
   for (const c of title) {
     if (c === q[qi]) qi++;

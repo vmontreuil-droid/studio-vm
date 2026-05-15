@@ -2,21 +2,95 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowUpRight, Check, ArrowRight } from "lucide-react";
-import { projects, getProjectBySlug, getOtherProjects } from "@/lib/projects";
+import {
+  projectSlugs,
+  getProjectBySlug,
+  getOtherProjects,
+  type Project,
+} from "@/lib/projects";
+import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
-type Params = { slug: string };
+type Params = { locale: string; slug: string };
 
-export function generateStaticParams(): Params[] {
-  return projects.map((p) => ({ slug: p.slug }));
+export function generateStaticParams() {
+  return LOCALES.flatMap((locale) =>
+    projectSlugs.map((slug) => ({ locale, slug })),
+  );
 }
+
+const ui: Record<
+  Locale,
+  {
+    back: string;
+    visit: string;
+    scope: string;
+    stack: string;
+    year: string;
+    challenge: string;
+    solution: string;
+    result: string;
+    other: string;
+    seeAll: string;
+    ctaEyebrow: string;
+    ctaTitle: string;
+    ctaButton: string;
+  }
+> = {
+  nl: {
+    back: "Terug naar werk",
+    visit: "Bezoek live site",
+    scope: "Scope",
+    stack: "Stack",
+    year: "Jaar",
+    challenge: "De vraag",
+    solution: "De oplossing",
+    result: "Resultaat",
+    other: "Ander werk",
+    seeAll: "Alles bekijken →",
+    ctaEyebrow: "Een soortgelijk project?",
+    ctaTitle: "Laten we eens praten over wat jij wil bouwen.",
+    ctaButton: "Neem contact op",
+  },
+  fr: {
+    back: "Retour aux travaux",
+    visit: "Voir le site en ligne",
+    scope: "Périmètre",
+    stack: "Stack",
+    year: "Année",
+    challenge: "Le besoin",
+    solution: "La solution",
+    result: "Résultat",
+    other: "Autres travaux",
+    seeAll: "Tout voir →",
+    ctaEyebrow: "Un projet similaire ?",
+    ctaTitle: "Parlons de ce que vous voulez construire.",
+    ctaButton: "Prendre contact",
+  },
+  en: {
+    back: "Back to work",
+    visit: "Visit live site",
+    scope: "Scope",
+    stack: "Stack",
+    year: "Year",
+    challenge: "The brief",
+    solution: "The solution",
+    result: "Result",
+    other: "Other work",
+    seeAll: "See all →",
+    ctaEyebrow: "A similar project?",
+    ctaTitle: "Let's talk about what you want to build.",
+    ctaButton: "Get in touch",
+  },
+};
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const { locale, slug } = await params;
+  if (!isValidLocale(locale)) return {};
+  const project = getProjectBySlug(slug, locale);
   if (!project) return {};
   return {
     title: `${project.name} — Studio VM`,
@@ -33,219 +107,194 @@ export default async function WerkDetailPage({
 }: {
   params: Promise<Params>;
 }) {
-  const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const { locale, slug } = await params;
+  if (!isValidLocale(locale)) notFound();
+  const project = getProjectBySlug(slug, locale);
   if (!project) notFound();
-
-  const others = getOtherProjects(slug, 3);
+  const others = getOtherProjects(slug, locale, 3);
+  const t = ui[locale];
 
   return (
     <main>
       <article>
-        <ProjectHero project={project} />
-        <ProjectBody project={project} />
+        <section className="relative overflow-hidden border-b">
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 opacity-20"
+            style={{
+              background: `radial-gradient(60% 60% at 30% 20%, ${project.accent}, transparent)`,
+            }}
+          />
+          <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
+            <Link
+              href={localePath(locale, "/#werk")}
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+              {t.back}
+            </Link>
+            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-accent">
+              {project.tagline} · {project.year}
+            </p>
+            <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
+              {project.name}
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+              {project.description}
+            </p>
+            {project.url && (
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              >
+                {t.visit}
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+              </a>
+            )}
+          </div>
+        </section>
+
+        <section className="border-b">
+          <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
+            <div className="grid gap-12 lg:grid-cols-3">
+              <aside className="lg:col-span-1">
+                <dl className="space-y-8">
+                  <div>
+                    <dt className="font-mono text-xs uppercase tracking-widest text-muted">
+                      {t.scope}
+                    </dt>
+                    <dd className="mt-3 flex flex-wrap gap-2">
+                      {project.scope.map((s) => (
+                        <span
+                          key={s}
+                          className="rounded-full bg-card px-3 py-1 font-mono text-xs text-muted"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-xs uppercase tracking-widest text-muted">
+                      {t.stack}
+                    </dt>
+                    <dd className="mt-3 flex flex-wrap gap-2">
+                      {project.stack.map((s) => (
+                        <span
+                          key={s}
+                          className="rounded-full bg-card px-3 py-1 font-mono text-xs text-muted"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-xs uppercase tracking-widest text-muted">
+                      {t.year}
+                    </dt>
+                    <dd className="mt-2 font-medium">{project.year}</dd>
+                  </div>
+                </dl>
+              </aside>
+
+              <div className="space-y-12 lg:col-span-2">
+                <section>
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+                    {t.challenge}
+                  </h2>
+                  <p className="mt-3 text-lg leading-relaxed">{project.challenge}</p>
+                </section>
+                <section>
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+                    {t.solution}
+                  </h2>
+                  <p className="mt-3 text-lg leading-relaxed">{project.solution}</p>
+                </section>
+                <section>
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+                    {t.result}
+                  </h2>
+                  <ul className="mt-4 space-y-3">
+                    {project.highlights.map((h) => (
+                      <li key={h} className="flex items-start gap-3">
+                        <Check
+                          className="mt-1 h-4 w-4 flex-shrink-0 text-accent"
+                          strokeWidth={2.5}
+                        />
+                        <span className="text-base">{h}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
       </article>
-      <OtherProjects projects={others} />
-      <NextProjectCTA />
+
+      <section className="border-b bg-card">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="mb-10 flex items-end justify-between">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t.other}
+            </h2>
+            <Link
+              href={localePath(locale, "/#werk")}
+              className="font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
+            >
+              {t.seeAll}
+            </Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-3">
+            {others.map((p: Project) => (
+              <Link
+                key={p.slug}
+                href={localePath(locale, `/werk/${p.slug}`)}
+                className="group rounded-2xl border bg-background p-6 transition-colors hover:bg-card-hover"
+              >
+                <div
+                  aria-hidden
+                  className="mb-4 h-20 rounded-lg"
+                  style={{
+                    background: `linear-gradient(135deg, ${p.accent}, ${p.accent}cc)`,
+                  }}
+                />
+                <p className="font-mono text-xs uppercase tracking-widest text-muted">
+                  {p.tagline}
+                </p>
+                <h3 className="mt-1 flex items-center gap-1.5 text-lg font-semibold tracking-tight">
+                  {p.name}
+                  <ArrowUpRight
+                    className="h-4 w-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    strokeWidth={1.5}
+                  />
+                </h3>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b">
+        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            {t.ctaEyebrow}
+          </p>
+          <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+            {t.ctaTitle}
+          </h2>
+          <Link
+            href={localePath(locale, "/#contact")}
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          >
+            {t.ctaButton}
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
-
-function ProjectHero({ project }: { project: ReturnType<typeof getProjectBySlug> & {} }) {
-  return (
-    <section className="relative overflow-hidden border-b">
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 opacity-20"
-        style={{
-          background: `radial-gradient(60% 60% at 30% 20%, ${project.accent}, transparent)`,
-        }}
-      />
-      <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
-        <Link
-          href="/#werk"
-          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
-          Terug naar werk
-        </Link>
-        <p className="mt-8 font-mono text-xs uppercase tracking-widest text-accent">
-          {project.tagline} · {project.year}
-        </p>
-        <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-          {project.name}
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-          {project.description}
-        </p>
-        {project.url && (
-          <a
-            href={project.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            Bezoek live site
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </a>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function ProjectBody({ project }: { project: ReturnType<typeof getProjectBySlug> & {} }) {
-  return (
-    <section className="border-b">
-      <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
-        <div className="grid gap-12 lg:grid-cols-3">
-          <aside className="lg:col-span-1">
-            <dl className="space-y-8">
-              <div>
-                <dt className="font-mono text-xs uppercase tracking-widest text-muted">
-                  Scope
-                </dt>
-                <dd className="mt-3 flex flex-wrap gap-2">
-                  {project.scope.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded-full bg-card px-3 py-1 font-mono text-xs text-muted"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-mono text-xs uppercase tracking-widest text-muted">
-                  Stack
-                </dt>
-                <dd className="mt-3 flex flex-wrap gap-2">
-                  {project.stack.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded-full bg-card px-3 py-1 font-mono text-xs text-muted"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-mono text-xs uppercase tracking-widest text-muted">
-                  Jaar
-                </dt>
-                <dd className="mt-2 font-medium">{project.year}</dd>
-              </div>
-            </dl>
-          </aside>
-
-          <div className="space-y-12 lg:col-span-2">
-            <section>
-              <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
-                De vraag
-              </h2>
-              <p className="mt-3 text-lg leading-relaxed">{project.challenge}</p>
-            </section>
-            <section>
-              <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
-                De oplossing
-              </h2>
-              <p className="mt-3 text-lg leading-relaxed">{project.solution}</p>
-            </section>
-            <section>
-              <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
-                Resultaat
-              </h2>
-              <ul className="mt-4 space-y-3">
-                {project.highlights.map((h) => (
-                  <li key={h} className="flex items-start gap-3">
-                    <Check
-                      className="mt-1 h-4 w-4 flex-shrink-0 text-accent"
-                      strokeWidth={2.5}
-                    />
-                    <span className="text-base">{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function OtherProjects({
-  projects,
-}: {
-  projects: ReturnType<typeof getOtherProjects>;
-}) {
-  return (
-    <section className="border-b bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <div className="mb-10 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Ander werk
-          </h2>
-          <Link
-            href="/#werk"
-            className="font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-foreground"
-          >
-            Alles bekijken →
-          </Link>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-3">
-          {projects.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/werk/${p.slug}`}
-              className="group rounded-2xl border bg-background p-6 transition-colors hover:bg-card-hover"
-            >
-              <div
-                aria-hidden
-                className="mb-4 h-20 rounded-lg"
-                style={{
-                  background: `linear-gradient(135deg, ${p.accent}, ${p.accent}cc)`,
-                }}
-              />
-              <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                {p.tagline}
-              </p>
-              <h3 className="mt-1 flex items-center gap-1.5 text-lg font-semibold tracking-tight">
-                {p.name}
-                <ArrowUpRight
-                  className="h-4 w-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                  strokeWidth={1.5}
-                />
-              </h3>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function NextProjectCTA() {
-  return (
-    <section className="border-b">
-      <div className="mx-auto max-w-4xl px-6 py-20 text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-accent">
-          Een soortgelijk project?
-        </p>
-        <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-          Laten we eens praten over wat jij wil bouwen.
-        </h2>
-        <Link
-          href="/#contact"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-        >
-          Neem contact op
-          <ArrowRight className="h-4 w-4" strokeWidth={2} />
-        </Link>
-      </div>
-    </section>
-  );
-}
-

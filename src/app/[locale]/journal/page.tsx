@@ -1,28 +1,72 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { posts } from "@/lib/posts";
+import { getPosts } from "@/lib/posts";
+import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "Journal — Studio VM",
-  description:
-    "Notities over webdevelopment, lokale ondernemers en de stack achter Studio VM.",
+const copy: Record<
+  Locale,
+  { metaTitle: string; eyebrow: string; title: string; intro: string; localeCode: string }
+> = {
+  nl: {
+    metaTitle: "Journal — Studio VM",
+    eyebrow: "Journal",
+    title: "Notities tussen twee projecten door.",
+    intro:
+      "Korte stukjes over de keuzes die ik maak, de tools die ik gebruik en de zaken die ik leer terwijl ik bouw.",
+    localeCode: "nl-BE",
+  },
+  fr: {
+    metaTitle: "Journal — Studio VM",
+    eyebrow: "Journal",
+    title: "Des notes entre deux projets.",
+    intro:
+      "De courts textes sur les choix que je fais, les outils que j'utilise et ce que j'apprends en construisant.",
+    localeCode: "fr-BE",
+  },
+  en: {
+    metaTitle: "Journal — Studio VM",
+    eyebrow: "Journal",
+    title: "Notes between two projects.",
+    intro:
+      "Short pieces about the choices I make, the tools I use and the things I learn while building.",
+    localeCode: "en-GB",
+  },
 };
 
-export default function JournalPage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  return { title: copy[locale].metaTitle };
+}
+
+export default async function JournalPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) notFound();
+  const c = copy[locale];
+  const posts = getPosts(locale);
+
   return (
     <main>
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
-            Journal
+            {c.eyebrow}
           </p>
           <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-            Notities tussen twee projecten door.
+            {c.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-            Korte stukjes over de keuzes die ik maak, de tools die ik gebruik en de zaken
-            die ik leer terwijl ik bouw.
+            {c.intro}
           </p>
         </div>
       </section>
@@ -33,7 +77,7 @@ export default function JournalPage() {
             {posts.map((post) => (
               <li key={post.slug}>
                 <Link
-                  href={`/journal/${post.slug}`}
+                  href={localePath(locale, `/journal/${post.slug}`)}
                   className="group flex flex-col gap-4 py-8 transition-colors sm:flex-row sm:items-baseline sm:justify-between"
                 >
                   <div className="flex-1">
@@ -42,7 +86,11 @@ export default function JournalPage() {
                         {post.tag}
                       </span>
                       <time className="font-mono text-xs text-muted">
-                        {formatDate(post.date)}
+                        {new Date(post.date).toLocaleDateString(c.localeCode, {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </time>
                       <span className="font-mono text-xs text-muted">
                         · {post.readMin} min
@@ -65,12 +113,4 @@ export default function JournalPage() {
       </section>
     </main>
   );
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-BE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 }
