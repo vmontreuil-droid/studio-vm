@@ -45,7 +45,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               onClick={() => setOpen(false)}
               aria-label="Studio VM"
             >
-              <Logo className="text-2xl" />
+              <Logo className="text-4xl" />
             </Link>
             <button
               type="button"

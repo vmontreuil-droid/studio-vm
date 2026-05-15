@@ -102,8 +102,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
-            <p aria-label="Studio VM">
-              <Logo className="text-2xl" />
+            <p aria-label="Studio VM" className="leading-none">
+              <Logo className="text-4xl" />
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {t.footer.tagline}
