@@ -54,10 +54,13 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       title: t.footer.sections.diensten,
       links: [
         { href: localePath(locale, "/diensten"), label: "Diensten" },
+        { href: localePath(locale, "/aanpak"), label: "Aanpak" },
+        { href: localePath(locale, "/vergelijking"), label: "Vergelijking" },
         { href: localePath(locale, "/offerte"), label: "Offerte-calculator" },
         { href: localePath(locale, "/shop"), label: "Templates shop" },
         { href: localePath(locale, "/builder"), label: "Site builder demo" },
         { href: localePath(locale, "/faq"), label: "FAQ" },
+        { href: localePath(locale, "/woordenboek"), label: "Woordenboek" },
       ],
     },
     {
