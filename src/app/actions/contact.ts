@@ -1,7 +1,9 @@
 "use server";
 
+import { resendFrom } from "@/lib/supabase/config";
+
 const TO = "info@studio-vm.be";
-const FROM = "Studio VM <noreply@studio-vm.be>";
+const FROM = resendFrom;
 
 export type ContactState = {
   ok: boolean;

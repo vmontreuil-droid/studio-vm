@@ -17,6 +17,12 @@ export const supabaseServiceKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 export const monitorConfigured = Boolean(supabaseUrl && supabaseServiceKey);
 export const resendApiKey = process.env.RESEND_API_KEY ?? "";
+// Afzender voor Resend. MOET een geverifieerd domein/zender zijn in het
+// Resend-account dat bij RESEND_API_KEY hoort. Zet RESEND_FROM in Vercel
+// (bv. "Studio VM <noreply@een-geverifieerd-domein>") als studio-vm.be daar
+// nog niet geverifieerd is.
+export const resendFrom =
+  process.env.RESEND_FROM ?? "Studio VM <onboarding@resend.dev>";
 export const cronSecret = process.env.CRON_SECRET ?? "";
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://studio-vm.be";

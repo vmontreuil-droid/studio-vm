@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { resendApiKey, siteUrl } from "@/lib/supabase/config";
+import { resendApiKey, resendFrom, siteUrl } from "@/lib/supabase/config";
 import type { Locale } from "@/lib/i18n/config";
 import type { ScanResult } from "@/app/actions/scan";
 
@@ -246,14 +246,19 @@ export async function sendMail(to: string, mail: Mail): Promise<boolean> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Studio VM <monitor@studio-vm.be>",
+        from: resendFrom,
         to: [to],
         subject: mail.subject,
         html: mail.html,
       }),
     });
+    if (!r.ok) {
+      const detail = await r.text().catch(() => "");
+      console.error("[resend] verzenden mislukt:", r.status, detail);
+    }
     return r.ok;
-  } catch {
+  } catch (e) {
+    console.error("[resend] netwerk-error:", e);
     return false;
   }
 }
