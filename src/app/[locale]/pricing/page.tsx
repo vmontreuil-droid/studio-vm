@@ -202,7 +202,7 @@ export default async function PricingPage({
       />
 
       <section className="border-b">
-        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
           <div className="mx-auto mb-14 max-w-2xl text-center">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {c.modEyebrow}
@@ -315,7 +315,7 @@ function PricingSection({
 }) {
   return (
     <section className={`border-b ${muted ? "bg-card" : ""}`}>
-      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
             {eyebrow}
@@ -369,10 +369,31 @@ function TierCard({
         {tier.tagline}
       </p>
       <h3 className="mt-2 text-xl font-semibold tracking-tight">{tier.name}</h3>
-      <div className="mt-6">
-        <p className="text-3xl font-semibold tracking-tight">{tier.price}</p>
-        <p className="mt-1 font-mono text-xs text-muted">{tier.priceNote}</p>
-      </div>
+      {(() => {
+        const m = tier.price.match(/^(vanaf|dès|from)\s+(.*)$/i);
+        const lead = m ? m[1] : null;
+        const main = m ? m[2] : tier.price;
+        const hasDigits = /\d/.test(main);
+        return (
+          <div className="mt-6">
+            {lead && (
+              <span className="block font-mono text-xs uppercase tracking-widest text-muted">
+                {lead}
+              </span>
+            )}
+            <p
+              className={`whitespace-nowrap font-semibold tracking-tight ${
+                hasDigits ? "text-3xl" : "text-2xl"
+              }`}
+            >
+              {main}
+            </p>
+            <p className="mt-1 font-mono text-xs text-muted">
+              {tier.priceNote}
+            </p>
+          </div>
+        );
+      })()}
       <ul className="mt-6 flex-1 space-y-2.5">
         {tier.features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">

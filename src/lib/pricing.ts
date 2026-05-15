@@ -34,6 +34,7 @@ const data: Record<Locale, Bundle> = {
       { slug: "care", name: "Care", tagline: "Wij houden 't draaiend", price: "€ 49", priceNote: "per maand, excl. btw", features: ["Hosting (Vercel + Supabase)", "SSL + automatische backups", "Security updates", "1u support per maand", "Maandelijkse uptime-rapport"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Meest gekozen", price: "€ 149", priceNote: "per maand, excl. btw", features: ["Alles van Care", "Tot 4u support per maand", "Content-updates door mij", "Performance + SEO rapport", "Reactie binnen 1 werkdag"], highlighted: true, ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Voor wie blijft groeien", price: "€ 399", priceNote: "per maand, excl. btw", features: ["Alles van Plus", "Onbeperkt support", "5u nieuwe features per maand", "Prioriteit reactie binnen 4u", "Strategie-call elke maand"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
+      { slug: "partner", name: "Partner", tagline: "Vaste digitale partner", price: "€ 799", priceNote: "per maand, excl. btw", features: ["Alles van Scale", "Onbeperkte support én ontwikkeling", "Wekelijkse vooruitgang", "Eigen roadmap & prioriteiten", "Ik als vast aanspreekpunt"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
     ],
     addons: [
       { name: "Extra taal", price: "€ 350", desc: "Volledige extra taal, nette switch + hreflang voor SEO." },
@@ -43,6 +44,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Ledenzone", price: "€ 900", desc: "Afgeschermd gedeelte met logins en rollen." },
       { name: "SEO-behoud bij migratie", price: "€ 250", desc: "Volledig 301-plan zodat je Google-posities meeverhuizen." },
       { name: "Fotoshoot", price: "€ 450", desc: "Halve dag professionele shoot, bewerkt en webklaar." },
+      { name: "Cookiebanner & GDPR", price: "€ 150", desc: "Consent-banner die scripts pas na toestemming laadt — boetevrij." },
+      { name: "Teksten / copywriting", price: "€ 300", desc: "Professionele, SEO-bewuste webteksten voor je pagina's." },
     ],
   },
   fr: {
@@ -58,6 +61,7 @@ const data: Record<Locale, Bundle> = {
       { slug: "care", name: "Care", tagline: "On garde tout en marche", price: "€ 49", priceNote: "par mois, HTVA", features: ["Hébergement (Vercel + Supabase)", "SSL + sauvegardes automatiques", "Mises à jour de sécurité", "1h de support par mois", "Rapport uptime mensuel"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Le plus choisi", price: "€ 149", priceNote: "par mois, HTVA", features: ["Tout de Care", "Jusqu'à 4h de support par mois", "Mises à jour de contenu par moi", "Rapport performance + SEO", "Réponse sous 1 jour ouvré"], highlighted: true, ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Pour ceux qui grandissent", price: "€ 399", priceNote: "par mois, HTVA", features: ["Tout de Plus", "Support illimité", "5h de nouvelles fonctions par mois", "Réponse prioritaire sous 4h", "Appel stratégie chaque mois"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
+      { slug: "partner", name: "Partner", tagline: "Partenaire digital fixe", price: "€ 799", priceNote: "par mois, HTVA", features: ["Tout de Scale", "Support et développement illimités", "Avancement hebdomadaire", "Roadmap & priorités propres", "Moi comme interlocuteur fixe"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
     ],
     addons: [
       { name: "Langue supplémentaire", price: "€ 350", desc: "Langue complète en plus, bascule propre + hreflang SEO." },
@@ -67,6 +71,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Espace membres", price: "€ 900", desc: "Zone protégée avec logins et rôles." },
       { name: "Préservation SEO (migration)", price: "€ 250", desc: "Plan 301 complet pour conserver vos positions Google." },
       { name: "Shooting photo", price: "€ 450", desc: "Demi-journée de shooting pro, retouché et prêt web." },
+      { name: "Bannière cookies & RGPD", price: "€ 150", desc: "Bannière de consentement qui ne charge les scripts qu'après accord." },
+      { name: "Textes / rédaction", price: "€ 300", desc: "Textes web professionnels et optimisés SEO pour vos pages." },
     ],
   },
   en: {
@@ -82,6 +88,7 @@ const data: Record<Locale, Bundle> = {
       { slug: "care", name: "Care", tagline: "We keep it running", price: "€ 49", priceNote: "per month, excl. VAT", features: ["Hosting (Vercel + Supabase)", "SSL + automatic backups", "Security updates", "1h support per month", "Monthly uptime report"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Most chosen", price: "€ 149", priceNote: "per month, excl. VAT", features: ["Everything in Care", "Up to 4h support per month", "Content updates by me", "Performance + SEO report", "Reply within 1 working day"], highlighted: true, ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "For those who keep growing", price: "€ 399", priceNote: "per month, excl. VAT", features: ["Everything in Plus", "Unlimited support", "5h new features per month", "Priority reply within 4h", "Strategy call every month"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
+      { slug: "partner", name: "Partner", tagline: "Dedicated digital partner", price: "€ 799", priceNote: "per month, excl. VAT", features: ["Everything in Scale", "Unlimited support and development", "Weekly progress", "Own roadmap & priorities", "Me as fixed point of contact"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
     ],
     addons: [
       { name: "Extra language", price: "€ 350", desc: "Full extra language, clean switch + hreflang for SEO." },
@@ -91,6 +98,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Member area", price: "€ 900", desc: "Gated section with logins and roles." },
       { name: "SEO preservation (migration)", price: "€ 250", desc: "Full 301 plan so your Google rankings move with you." },
       { name: "Photo shoot", price: "€ 450", desc: "Half-day professional shoot, edited and web-ready." },
+      { name: "Cookie banner & GDPR", price: "€ 150", desc: "Consent banner that loads scripts only after approval — fine-free." },
+      { name: "Copywriting / texts", price: "€ 300", desc: "Professional, SEO-aware web copy for your pages." },
     ],
   },
 };
