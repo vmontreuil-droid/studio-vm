@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -41,6 +42,7 @@ export async function deleteQuote(formData: FormData): Promise<void> {
   if (!id) return;
   await getSupabaseAdmin().from("quotes").delete().eq("id", id);
   revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
+  redirect("/admin/aanvragen");
 }
 
 export async function setMonitorActive(formData: FormData): Promise<void> {

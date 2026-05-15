@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -130,7 +131,12 @@ export default async function AdminAanvragen({
           <li key={q.id} className="rounded-2xl border bg-card p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="font-semibold">
-                {q.name}{" "}
+                <Link
+                  href={`/admin/aanvragen/${q.id}`}
+                  className="underline-offset-2 hover:underline"
+                >
+                  {q.name}
+                </Link>{" "}
                 <a
                   href={`mailto:${q.email}`}
                   className="font-normal text-accent underline"
