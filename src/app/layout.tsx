@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Montserrat, Geist_Mono } from "next/font/google";
-import { cookies, headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AmbientBackdrop } from "@/components/ambient-backdrop";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { WebVitals } from "@/components/web-vitals";
-import { isValidLocale, DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import "./globals.css";
 
 const geistSans = Montserrat({
@@ -30,27 +29,20 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Locale komt primair uit de URL (via middleware x-locale header),
-  // valt terug op cookie, dan default. Zo klopt <html lang> altijd.
-  const [h, c] = [await headers(), await cookies()];
-  const headerLocale = h.get("x-locale");
-  const cookieLocale = c.get("locale")?.value;
-  const lang = isValidLocale(headerLocale)
-    ? headerLocale
-    : isValidLocale(cookieLocale)
-      ? cookieLocale
-      : DEFAULT_LOCALE;
-
+  // Geen headers()/cookies() hier: dat zou de héle site per request
+  // dynamisch maken (trage TTFB). De locale zit in de URL; <html lang>
+  // wordt statisch op de default gezet en vóór paint uit het pad
+  // gecorrigeerd door het inline script hieronder (suppressHydrationWarning).
   return (
     <html
-      lang={lang}
+      lang={DEFAULT_LOCALE}
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.classList.add('theme-light');else if(t==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})()`,
+            __html: `(function(){try{var s=location.pathname.split('/')[1];if(s==='nl'||s==='fr'||s==='en')document.documentElement.lang=s;var t=localStorage.getItem('theme');if(t==='light')document.documentElement.classList.add('theme-light');else if(t==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})()`,
           }}
         />
       </head>
