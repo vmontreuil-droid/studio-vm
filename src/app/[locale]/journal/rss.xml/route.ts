@@ -1,9 +1,8 @@
 import { getPosts } from "@/lib/posts";
-import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
+import { dbPosts } from "@/lib/journal-db";
+import { isValidLocale, type Locale } from "@/lib/i18n/config";
 
-export function generateStaticParams() {
-  return LOCALES.map((locale) => ({ locale }));
-}
+export const dynamic = "force-dynamic";
 
 const meta: Record<Locale, { title: string; desc: string }> = {
   nl: {
@@ -39,7 +38,7 @@ export async function GET(
   }
 
   const base = `https://studio-vm.be/${locale}`;
-  const posts = getPosts(locale);
+  const posts = (await dbPosts(locale)) ?? getPosts(locale);
   const m = meta[locale];
 
   const items = posts

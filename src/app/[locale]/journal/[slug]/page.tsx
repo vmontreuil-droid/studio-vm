@@ -2,17 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { postSlugs, getPostBySlug } from "@/lib/posts";
+import { getPostBySlug } from "@/lib/posts";
+import { dbPostBySlug } from "@/lib/journal-db";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
-import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+
+export const dynamic = "force-dynamic";
 
 type Params = { locale: string; slug: string };
-
-export function generateStaticParams() {
-  return LOCALES.flatMap((locale) =>
-    postSlugs.map((slug) => ({ locale, slug })),
-  );
-}
 
 const ui: Record<
   Locale,
@@ -45,7 +42,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
-  const post = getPostBySlug(slug, locale);
+  const post = (await dbPostBySlug(slug, locale)) ?? getPostBySlug(slug, locale);
   if (!post) return {};
   return { title: `${post.title} — Studio VM`, description: post.excerpt };
 }
@@ -57,7 +54,7 @@ export default async function JournalPostPage({
 }) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
-  const post = getPostBySlug(slug, locale);
+  const post = (await dbPostBySlug(slug, locale)) ?? getPostBySlug(slug, locale);
   if (!post) notFound();
   const t = ui[locale];
   const paragraphs = post.body.split("\n\n");

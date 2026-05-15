@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { getPosts } from "@/lib/posts";
+import { dbPosts } from "@/lib/journal-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+
+export const dynamic = "force-dynamic";
 
 const copy: Record<
   Locale,
@@ -60,7 +63,7 @@ export default async function JournalPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
-  const posts = getPosts(locale);
+  const posts = (await dbPosts(locale)) ?? getPosts(locale);
 
   return (
     <main>
