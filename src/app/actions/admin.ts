@@ -23,7 +23,7 @@ export async function setStatus(formData: FormData): Promise<void> {
   const status = String(formData.get("status") ?? "");
   if (!id || !STATUSES.includes(status as (typeof STATUSES)[number])) return;
   await getSupabaseAdmin().from("quotes").update({ status }).eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
 
 export async function setNote(formData: FormData): Promise<void> {
@@ -32,7 +32,7 @@ export async function setNote(formData: FormData): Promise<void> {
   const notes = String(formData.get("notes") ?? "").slice(0, 4000);
   if (!id) return;
   await getSupabaseAdmin().from("quotes").update({ notes }).eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
 
 export async function deleteQuote(formData: FormData): Promise<void> {
@@ -40,7 +40,7 @@ export async function deleteQuote(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   await getSupabaseAdmin().from("quotes").delete().eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
 
 export async function setMonitorActive(formData: FormData): Promise<void> {
@@ -55,7 +55,7 @@ export async function setMonitorActive(formData: FormData): Promise<void> {
       unsubscribed_at: active ? null : new Date().toISOString(),
     })
     .eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
 
 export async function deleteMonitor(formData: FormData): Promise<void> {
@@ -63,5 +63,5 @@ export async function deleteMonitor(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   await getSupabaseAdmin().from("monitors").delete().eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
 }
