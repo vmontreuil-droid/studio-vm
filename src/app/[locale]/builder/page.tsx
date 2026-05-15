@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { submitBuild } from "@/app/actions/build-lead";
 import { useParams } from "next/navigation";
@@ -22,6 +22,9 @@ import {
   ChevronDown,
   MapPin,
   Clock,
+  Monitor,
+  Smartphone,
+  RotateCcw,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -539,6 +542,19 @@ type Preview = (typeof T)[Locale]["preview"];
 let _id = 0;
 const uid = () => `s${++_id}`;
 
+const STORAGE_KEY = "svm-builder-draft-v1";
+
+function syncId(ps: Page[]) {
+  for (const p of ps) {
+    const m = /^s(\d+)$/.exec(p.id);
+    if (m) _id = Math.max(_id, +m[1]);
+    for (const s of p.sections) {
+      const sm = /^s(\d+)$/.exec(s.id);
+      if (sm) _id = Math.max(_id, +sm[1]);
+    }
+  }
+}
+
 function defaults(kind: SectionKind, p: Preview): SectionData {
   switch (kind) {
     case "hero":
@@ -642,6 +658,92 @@ export default function BuilderPage() {
   const [buildEmail, setBuildEmail] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
   const [pending, startSend] = useTransition();
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [hydrated, setHydrated] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+
+  // Concept herstellen bij terugkomst.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const d = JSON.parse(raw) as {
+          businessName?: string;
+          theme?: Theme;
+          font?: FontKey;
+          radius?: RadiusKey;
+          pages?: Page[];
+          activeId?: string;
+        };
+        if (d.businessName) setBusinessName(d.businessName);
+        if (d.theme) setTheme(d.theme);
+        if (d.font) setFont(d.font);
+        if (d.radius) setRadius(d.radius);
+        if (d.pages && d.pages.length) {
+          syncId(d.pages);
+          setPages(d.pages);
+          setActiveId(d.activeId ?? d.pages[0].id);
+        }
+      }
+    } catch {
+      /* corrupt draft → negeren */
+    }
+    setHydrated(true);
+  }, []);
+
+  // Autosave (foto's bewust niet — te groot voor localStorage).
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ businessName, theme, font, radius, pages, activeId }),
+      );
+      setSavedTick(true);
+      const t = setTimeout(() => setSavedTick(false), 1200);
+      return () => clearTimeout(t);
+    } catch {
+      /* quota → stil negeren */
+    }
+  }, [hydrated, businessName, theme, font, radius, pages, activeId]);
+
+  const resetDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* noop */
+    }
+    const id = uid();
+    const home: Page = {
+      id,
+      name: "Home",
+      sections: (["hero", "features", "contact"] as SectionKind[]).map((k) => ({
+        id: uid(),
+        kind: k,
+        data: defaults(k, c.preview),
+      })),
+    };
+    setPages([home]);
+    setActiveId(id);
+    setOpenId(null);
+    setTheme(themes[0]);
+    setFont("sans");
+    setRadius("zacht");
+    setImages([]);
+    setBusinessName(
+      locale === "fr"
+        ? "Mon Affaire"
+        : locale === "en"
+          ? "My Business"
+          : "Mijn Zaak",
+    );
+  };
+  const dLabel =
+    locale === "fr"
+      ? { saved: "Brouillon enregistré", reset: "Recommencer" }
+      : locale === "en"
+        ? { saved: "Draft saved", reset: "Start over" }
+        : { saved: "Concept bewaard", reset: "Begin opnieuw" };
 
   const onFiles = (files: FileList | null) => {
     if (!files) return;
@@ -1119,22 +1221,75 @@ export default function BuilderPage() {
           </aside>
 
           <div className="overflow-hidden rounded-2xl border bg-card">
-            <div className="flex items-center gap-2 border-b bg-background px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-3">
               <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
               <span className="ml-2 font-mono text-xs text-muted">
                 {businessName.toLowerCase().replace(/\s+/g, "-")}.be
               </span>
+              <span className="ml-auto flex items-center gap-2">
+                {savedTick && (
+                  <span className="flex items-center gap-1 font-mono text-[10px] text-accent">
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                    {dLabel.saved}
+                  </span>
+                )}
+                <span className="flex overflow-hidden rounded-full border">
+                  <button
+                    type="button"
+                    onClick={() => setDevice("desktop")}
+                    aria-label="Desktop"
+                    className={`px-2.5 py-1 ${
+                      device === "desktop"
+                        ? "bg-card-hover text-foreground"
+                        : "text-muted"
+                    }`}
+                  >
+                    <Monitor className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDevice("mobile")}
+                    aria-label="Mobiel"
+                    className={`px-2.5 py-1 ${
+                      device === "mobile"
+                        ? "bg-card-hover text-foreground"
+                        : "text-muted"
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
+                </span>
+                <button
+                  type="button"
+                  onClick={resetDraft}
+                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] text-muted transition-colors hover:text-foreground"
+                >
+                  <RotateCcw className="h-3 w-3" strokeWidth={2} />
+                  {dLabel.reset}
+                </button>
+              </span>
             </div>
             <div
-              style={{
-                background: theme.bg,
-                color: theme.fg,
-                fontFamily: fontStacks[font],
-              }}
-              className="bldr-frame min-h-[600px]"
+              className={
+                device === "mobile"
+                  ? "flex justify-center bg-card-hover p-4"
+                  : ""
+              }
             >
+              <div
+                style={{
+                  background: theme.bg,
+                  color: theme.fg,
+                  fontFamily: fontStacks[font],
+                }}
+                className={`bldr-frame min-h-[600px] ${
+                  device === "mobile"
+                    ? "w-full max-w-[390px] overflow-hidden rounded-2xl border shadow-sm"
+                    : ""
+                }`}
+              >
               <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
@@ -1182,6 +1337,7 @@ export default function BuilderPage() {
                   />
                 ))
               )}
+              </div>
             </div>
           </div>
         </div>
