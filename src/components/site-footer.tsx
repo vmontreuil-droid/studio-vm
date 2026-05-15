@@ -155,9 +155,9 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
           {sections.map((section) => (
             <div key={section.title}>
-              <h4 className="font-mono text-xs uppercase tracking-widest text-muted">
+              <h2 className="font-mono text-xs uppercase tracking-widest text-muted">
                 {section.title}
-              </h4>
+              </h2>
               <ul className="mt-4 space-y-3 text-sm">
                 {section.links.map((link) => (
                   <li key={link.href}>
