@@ -55,6 +55,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       links: [
         { href: localePath(locale, "/diensten"), label: "Diensten" },
         { href: localePath(locale, "/scan"), label: "Gratis site-scan" },
+        { href: localePath(locale, "/roi"), label: "ROI-calculator" },
         { href: localePath(locale, "/aanpak"), label: "Aanpak" },
         { href: localePath(locale, "/vergelijking"), label: "Vergelijking" },
         { href: localePath(locale, "/offerte"), label: "Offerte-calculator" },

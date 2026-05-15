@@ -5,6 +5,7 @@ import { getMessages } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
+import { ShortcutsOverlay } from "@/components/shortcuts-overlay";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/json-ld";
 
 export function generateStaticParams() {
@@ -60,6 +61,7 @@ export default async function LocaleLayout({
       </div>
       <SiteFooter locale={typedLocale} />
       <CookieBanner />
+      <ShortcutsOverlay locale={typedLocale} />
     </>
   );
 }

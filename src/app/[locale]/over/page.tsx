@@ -8,6 +8,7 @@ import {
   MapPin,
   Gauge,
 } from "lucide-react";
+import { StackDiagram } from "@/components/stack-diagram";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Value = { title: string; desc: string };
@@ -234,6 +235,12 @@ export default async function OverPage({
               ))}
             </dl>
           </aside>
+        </div>
+      </section>
+
+      <section className="border-b">
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <StackDiagram />
         </div>
       </section>
 

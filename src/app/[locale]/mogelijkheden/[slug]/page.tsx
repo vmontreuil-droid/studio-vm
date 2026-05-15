@@ -13,6 +13,7 @@ import {
   FaqJsonLd,
   ServiceJsonLd,
 } from "@/components/json-ld";
+import { LoadingRace } from "@/components/loading-race";
 import {
   LOCALES,
   isValidLocale,
@@ -227,6 +228,14 @@ export default async function CapabilityDetailPage({
           </div>
         </div>
       </section>
+
+      {slug === "websites" && (
+        <section className="border-b bg-card">
+          <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+            <LoadingRace />
+          </div>
+        </section>
+      )}
 
       <section className="border-b">
         <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
