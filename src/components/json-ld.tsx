@@ -143,6 +143,9 @@ export function OrganizationJsonLd() {
     },
     address: {
       "@type": "PostalAddress",
+      streetAddress: "Nieuwpoortstraat 14-301",
+      postalCode: "8570",
+      addressLocality: "Anzegem",
       addressRegion: "West-Vlaanderen",
       addressCountry: "BE",
     },
@@ -152,6 +155,20 @@ export function OrganizationJsonLd() {
       contactType: "Sales",
       areaServed: "BE",
       availableLanguage: ["nl", "fr", "en"],
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+        opens: "00:00",
+        closes: "23:59",
+      },
     },
     sameAs: ["https://github.com/vmontreuil-droid"],
     knowsAbout: [

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, MapPin, Clock } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Logo } from "@/components/logo";
 import { getMessages } from "@/lib/i18n";
@@ -108,6 +108,22 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {t.footer.tagline}
             </p>
+            <div className="mt-4 space-y-1.5 text-sm text-muted">
+              <p className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
+                <span>Nieuwpoortstraat 14-301, 8570 Anzegem</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Clock className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                <span>
+                  {locale === "fr"
+                    ? "Toujours joignable"
+                    : locale === "en"
+                      ? "Always reachable"
+                      : "Altijd bereikbaar"}
+                </span>
+              </p>
+            </div>
             <div className="mt-6 flex gap-3">
               <a
                 href="mailto:info@studio-vm.be"

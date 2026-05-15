@@ -20,6 +20,8 @@ import {
   Check,
   Pencil,
   ChevronDown,
+  MapPin,
+  Clock,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -37,6 +39,9 @@ type SectionKind =
   | "pricing"
   | "gallery"
   | "faq"
+  | "pricelist"
+  | "hours"
+  | "map"
   | "cta"
   | "contact";
 
@@ -99,6 +104,9 @@ const sectionKinds: SectionKind[] = [
   "pricing",
   "gallery",
   "faq",
+  "pricelist",
+  "hours",
+  "map",
   "cta",
   "contact",
 ];
@@ -180,6 +188,11 @@ const T: Record<
       ctaTitle2: string;
       ctaText2: string;
       ctaBtn2: string;
+      pricelistTitle: string;
+      hoursTitle: string;
+      mapTitle: string;
+      hoursSeed: { day: string; time: string }[];
+      priceSeed: { name: string; price: string; desc: string }[];
     };
   }
 > = {
@@ -192,7 +205,7 @@ const T: Record<
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
     panelSections: "Secties & inhoud",
-    sectionLabels: { hero: "Hero", features: "Features", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", cta: "Oproep", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", cta: "Oproep", contact: "Contact" },
     add: "Voeg toe",
     panelReady: "Klaar?",
     readyText:
@@ -243,6 +256,8 @@ const T: Record<
       emailAddr: "E-mailadres",
       phone: "Telefoon",
       address: "Adres",
+      day: "Dag",
+      time: "Uren",
     },
     preview: {
       welcome: "Welkom bij",
@@ -279,6 +294,18 @@ const T: Record<
       ctaTitle2: "Klaar om te beginnen?",
       ctaText2: "Eén klik en we plannen een vrijblijvend gesprek.",
       ctaBtn2: "Neem contact op",
+      pricelistTitle: "Prijslijst",
+      hoursTitle: "Openingsuren",
+      mapTitle: "Waar je ons vindt",
+      hoursSeed: [
+        { day: "Maandag–Vrijdag", time: "9:00 – 17:00" },
+        { day: "Zaterdag", time: "Op afspraak" },
+        { day: "Zondag", time: "Gesloten" },
+      ],
+      priceSeed: [
+        { name: "Dienst of product", price: "€ 0", desc: "Korte omschrijving." },
+        { name: "Tweede item", price: "€ 0", desc: "Korte omschrijving." },
+      ],
     },
   },
   fr: {
@@ -290,7 +317,7 @@ const T: Record<
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
     panelSections: "Sections & contenu",
-    sectionLabels: { hero: "Hero", features: "Atouts", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", cta: "Appel", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Atouts", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", cta: "Appel", contact: "Contact" },
     add: "Ajouter",
     panelReady: "Prêt ?",
     readyText:
@@ -341,6 +368,8 @@ const T: Record<
       emailAddr: "Adresse e-mail",
       phone: "Téléphone",
       address: "Adresse",
+      day: "Jour",
+      time: "Heures",
     },
     preview: {
       welcome: "Bienvenue chez",
@@ -377,6 +406,18 @@ const T: Record<
       ctaTitle2: "Prêt à commencer ?",
       ctaText2: "Un clic et on planifie un échange sans engagement.",
       ctaBtn2: "Contactez-nous",
+      pricelistTitle: "Tarifs",
+      hoursTitle: "Horaires",
+      mapTitle: "Où nous trouver",
+      hoursSeed: [
+        { day: "Lundi–Vendredi", time: "9:00 – 17:00" },
+        { day: "Samedi", time: "Sur rendez-vous" },
+        { day: "Dimanche", time: "Fermé" },
+      ],
+      priceSeed: [
+        { name: "Service ou produit", price: "€ 0", desc: "Brève description." },
+        { name: "Deuxième élément", price: "€ 0", desc: "Brève description." },
+      ],
     },
   },
   en: {
@@ -388,7 +429,7 @@ const T: Record<
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
     panelSections: "Sections & content",
-    sectionLabels: { hero: "Hero", features: "Features", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", cta: "Call-out", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", cta: "Call-out", contact: "Contact" },
     add: "Add",
     panelReady: "Done?",
     readyText:
@@ -439,6 +480,8 @@ const T: Record<
       emailAddr: "Email address",
       phone: "Phone",
       address: "Address",
+      day: "Day",
+      time: "Hours",
     },
     preview: {
       welcome: "Welcome to",
@@ -475,6 +518,18 @@ const T: Record<
       ctaTitle2: "Ready to start?",
       ctaText2: "One click and we schedule a no-obligation chat.",
       ctaBtn2: "Get in touch",
+      pricelistTitle: "Price list",
+      hoursTitle: "Opening hours",
+      mapTitle: "Where to find us",
+      hoursSeed: [
+        { day: "Monday–Friday", time: "9:00 – 17:00" },
+        { day: "Saturday", time: "By appointment" },
+        { day: "Sunday", time: "Closed" },
+      ],
+      priceSeed: [
+        { name: "Service or product", price: "€ 0", desc: "Short description." },
+        { name: "Second item", price: "€ 0", desc: "Short description." },
+      ],
     },
   },
 };
@@ -520,6 +575,18 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
         title: p.faqTitle,
         items: p.faqs.map((f) => ({ q: f.q, a: f.a })),
       };
+    case "pricelist":
+      return {
+        title: p.pricelistTitle,
+        items: p.priceSeed.map((x) => ({ ...x })),
+      };
+    case "hours":
+      return {
+        title: p.hoursTitle,
+        items: p.hoursSeed.map((x) => ({ ...x })),
+      };
+    case "map":
+      return { title: p.mapTitle, address: "" };
     case "cta":
       return { title: p.ctaTitle2, text: p.ctaText2, button: p.ctaBtn2 };
     case "contact":
@@ -533,6 +600,8 @@ const itemTemplate: Partial<Record<SectionKind, Record<string, string>>> = {
   testimonials: { quote: "", who: "" },
   pricing: { name: "", price: "", per: "" },
   faq: { q: "", a: "" },
+  pricelist: { name: "", price: "", desc: "" },
+  hours: { day: "", time: "" },
 };
 
 export default function BuilderPage() {
@@ -1221,8 +1290,9 @@ function SectionEditor({
     about: ["title", "text"],
     cta: ["title", "text", "button"],
     gallery: ["title"],
+    map: ["title", "address"],
   };
-  const areaKeys = new Set(["text", "sub"]);
+  const areaKeys = new Set(["text", "sub", "address"]);
 
   if (simple[section.kind]) {
     return (
@@ -1267,6 +1337,8 @@ function SectionEditor({
     testimonials: { quote: f.quote, who: f.who },
     pricing: { name: f.name, price: f.price, per: f.per },
     faq: { q: f.q, a: f.a },
+    pricelist: { name: f.name, price: f.price, desc: f.itemDesc },
+    hours: { day: f.day, time: f.time },
   };
   const labels = itemFieldLabel[section.kind] ?? {};
 
@@ -1541,6 +1613,81 @@ function PreviewSection({
           </div>
         </div>
       );
+    case "pricelist":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            {g("title", p.pricelistTitle)}
+          </h3>
+          <div className="mx-auto mt-6 max-w-lg divide-y" style={border}>
+            {(list.length
+              ? list
+              : p.priceSeed
+            ).map((it, i) => (
+              <div
+                key={i}
+                className="flex items-baseline justify-between gap-4 py-2.5"
+              >
+                <div>
+                  <p className="text-sm font-medium">{it.name}</p>
+                  {it.desc && (
+                    <p className="text-xs opacity-60">{it.desc}</p>
+                  )}
+                </div>
+                <p
+                  className="shrink-0 text-sm font-semibold"
+                  style={accentText}
+                >
+                  {it.price}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "hours":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="flex items-center justify-center gap-2 text-center text-xl font-semibold tracking-tight">
+            <Clock className="h-5 w-5" strokeWidth={1.75} style={accentText} />
+            {g("title", p.hoursTitle)}
+          </h3>
+          <div className="mx-auto mt-6 max-w-sm divide-y" style={border}>
+            {(list.length ? list : p.hoursSeed).map((it, i) => (
+              <div key={i} className="flex justify-between py-2 text-sm">
+                <span>{it.day}</span>
+                <span className="opacity-70">{it.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "map": {
+      const addr = g("address");
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            {g("title", p.mapTitle)}
+          </h3>
+          <div
+            className="mx-auto mt-6 flex max-w-2xl flex-col items-center justify-center gap-3 rounded-lg border py-12"
+            style={{
+              ...border,
+              background: `linear-gradient(135deg, ${theme.accent}1f, ${theme.fg}0d)`,
+            }}
+          >
+            <MapPin
+              className="h-8 w-8"
+              strokeWidth={1.5}
+              style={accentText}
+            />
+            <p className="px-6 text-center text-sm font-medium">
+              {addr || "Straat 1, 0000 Gemeente"}
+            </p>
+          </div>
+        </div>
+      );
+    }
     case "cta":
       return (
         <div
