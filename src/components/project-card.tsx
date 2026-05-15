@@ -18,7 +18,7 @@ export function ProjectCard({
     >
       <div
         aria-hidden
-        className="relative mb-6 h-40 overflow-hidden rounded-xl"
+        className="relative mb-6 h-72 overflow-hidden rounded-xl sm:h-80"
         style={{
           background: `linear-gradient(135deg, ${project.accent}, color-mix(in oklab, ${project.accent} 65%, #0c0a09))`,
         }}
@@ -56,9 +56,6 @@ export function ProjectCard({
             />
           </>
         )}
-        <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-white/70">
-          {project.slug}
-        </span>
         <span className="absolute bottom-5 left-5 right-5 text-2xl font-semibold tracking-tight text-white">
           {project.name}
         </span>

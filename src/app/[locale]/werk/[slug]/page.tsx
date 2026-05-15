@@ -10,6 +10,7 @@ import {
 } from "@/lib/projects";
 import { getCaseStudy } from "@/lib/case-studies";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { ProjectCard } from "@/components/project-card";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Params = { locale: string; slug: string };
@@ -349,29 +350,7 @@ export default async function WerkDetailPage({
           </div>
           <div className="grid gap-6 sm:grid-cols-3">
             {others.map((p: Project) => (
-              <Link
-                key={p.slug}
-                href={localePath(locale, `/werk/${p.slug}`)}
-                className="group rounded-2xl border bg-background p-6 transition-colors hover:bg-card-hover"
-              >
-                <div
-                  aria-hidden
-                  className="mb-4 h-20 rounded-lg"
-                  style={{
-                    background: `linear-gradient(135deg, ${p.accent}, ${p.accent}cc)`,
-                  }}
-                />
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                  {p.tagline}
-                </p>
-                <h3 className="mt-1 flex items-center gap-1.5 text-lg font-semibold tracking-tight">
-                  {p.name}
-                  <ArrowUpRight
-                    className="h-4 w-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                    strokeWidth={1.5}
-                  />
-                </h3>
-              </Link>
+              <ProjectCard key={p.slug} project={p} locale={locale} />
             ))}
           </div>
         </div>
