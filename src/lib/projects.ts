@@ -26,10 +26,15 @@ export type Project = Omit<ProjectBase, "content"> &
 // Voeg de slug hier toe zodra je het bestand hebt geplaatst → kaart toont
 // de voorpagina; anders blijft de kleurband (nette fallback).
 const WITH_SHOT = new Set<string>([
-  // "cottage-waregem", "barbotte", "celine-interieur", ...
+  "cottage-waregem",
+  "barbotte",
+  "celine-interieur",
+  "allardphilippe",
+  "jp-montreuil",
+  "mari-lines",
 ]);
 function shot(slug: string): string | undefined {
-  return WITH_SHOT.has(slug) ? `/werk/${slug}.webp` : undefined;
+  return WITH_SHOT.has(slug) ? `/werk/${slug}.jpg` : undefined;
 }
 
 const base: ProjectBase[] = [
