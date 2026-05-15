@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ServiceWorkerRegister } from "@/components/sw-register";
@@ -29,9 +29,16 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const c = await cookies();
+  // Locale komt primair uit de URL (via middleware x-locale header),
+  // valt terug op cookie, dan default. Zo klopt <html lang> altijd.
+  const [h, c] = [await headers(), await cookies()];
+  const headerLocale = h.get("x-locale");
   const cookieLocale = c.get("locale")?.value;
-  const lang = isValidLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+  const lang = isValidLocale(headerLocale)
+    ? headerLocale
+    : isValidLocale(cookieLocale)
+      ? cookieLocale
+      : DEFAULT_LOCALE;
 
   return (
     <html

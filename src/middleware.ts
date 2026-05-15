@@ -38,11 +38,17 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Already locale-prefixed → pass through
+  // Already locale-prefixed → geef de locale door als request-header
+  // zodat de root-layout <html lang> correct kan zetten (niet cookie-gedreven).
   const hasLocale = LOCALE_PATHS.some(
     (lp) => pathname === lp || pathname.startsWith(`${lp}/`),
   );
-  if (hasLocale) return NextResponse.next();
+  if (hasLocale) {
+    const seg = pathname.split("/")[1];
+    const headers = new Headers(req.headers);
+    if (isValidLocale(seg)) headers.set("x-locale", seg);
+    return NextResponse.next({ request: { headers } });
+  }
 
   // No locale → redirect to /{locale}{path}
   const locale = pickLocale(req);

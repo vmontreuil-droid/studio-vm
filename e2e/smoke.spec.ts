@@ -21,7 +21,10 @@ test.describe("Routing & i18n", () => {
 
   test("hoofdnavigatie werkt locale-bewust", async ({ page }) => {
     await page.goto("/nl");
-    await page.getByRole("link", { name: "Pricing", exact: true }).first().click();
+    await page
+      .locator("header")
+      .getByRole("link", { name: "Pricing", exact: true })
+      .click();
     await expect(page).toHaveURL(/\/nl\/pricing/);
     await expect(page.locator("h1")).toBeVisible();
   });
