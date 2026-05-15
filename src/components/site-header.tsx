@@ -14,6 +14,10 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
     { href: localePath(locale, "/pricing"), label: t.nav.pricing },
     {
+      href: localePath(locale, "/scan"),
+      label: locale === "fr" ? "Scan" : "Scan",
+    },
+    {
       href: localePath(locale, "/offerte"),
       label:
         locale === "fr" ? "Devis" : locale === "en" ? "Quote" : "Offerte",
