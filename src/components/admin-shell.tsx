@@ -9,6 +9,7 @@ import {
   Activity,
   Newspaper,
   History,
+  Clock,
   Mail,
   LogOut,
   Menu,
@@ -34,6 +35,7 @@ const items = [
   },
   { href: "/admin/journal", label: "Journal", icon: Newspaper },
   { href: "/admin/changelog", label: "Changelog", icon: History },
+  { href: "/admin/now", label: "/now", icon: Clock },
   { href: "/admin/newsletter", label: "Nieuwsbrief", icon: Mail },
 ] as const;
 

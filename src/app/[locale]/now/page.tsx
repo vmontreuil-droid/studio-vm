@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Clock, Briefcase, Lightbulb, Rocket } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { dbNow } from "@/lib/now-db";
+
+export const dynamic = "force-dynamic";
 
 const lastUpdate = "2026-05-15";
 
@@ -130,11 +133,15 @@ export default async function NowPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
-  const fmtDate = new Date(lastUpdate).toLocaleDateString(c.localeCode, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const ov = await dbNow(locale);
+  const work = ov?.work?.length ? ov.work : c.work;
+  const ideas = ov?.ideas?.length ? ov.ideas : c.ideas;
+  const bandwidthBefore = ov?.bandwidth || c.bandwidthA;
+  const bandwidthAfter = ov?.bandwidth ? " " : c.bandwidthB;
+  const fmtDate = new Date(ov?.updated || lastUpdate).toLocaleDateString(
+    c.localeCode,
+    { day: "numeric", month: "long", year: "numeric" },
+  );
 
   return (
     <main>
@@ -166,7 +173,7 @@ export default async function NowPage({
         <div className="mx-auto max-w-3xl space-y-8 px-6 py-12">
           <Block icon={Briefcase} title={c.workTitle}>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-foreground/90">
-              {c.work.map((w) => (
+              {work.map((w) => (
                 <li key={w}>{w}</li>
               ))}
             </ul>
@@ -174,7 +181,7 @@ export default async function NowPage({
 
           <Block icon={Lightbulb} title={c.ideasTitle}>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-foreground/90">
-              {c.ideas.map((i) => (
+              {ideas.map((i) => (
                 <li key={i}>{i}</li>
               ))}
             </ul>
@@ -214,14 +221,14 @@ export default async function NowPage({
 
           <Block icon={Clock} title={c.bandwidthTitle}>
             <p className="mt-3 text-foreground/90">
-              {c.bandwidthA}
+              {bandwidthBefore}
               <Link
                 href={localePath(locale, "/#contact")}
                 className="text-accent hover:underline"
               >
                 {c.bandwidthLink}
               </Link>
-              {c.bandwidthB}
+              {bandwidthAfter}
             </p>
           </Block>
         </div>
