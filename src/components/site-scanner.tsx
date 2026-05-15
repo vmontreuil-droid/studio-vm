@@ -89,6 +89,15 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     responsiveImg: { title: "Responsieve afbeeldingen", why: "Zonder srcset/<picture> krijgt een gsm dezelfde zware desktopfoto's — onnodig databverbruik en traagheid.", fix: "srcset en moderne formaten (WebP/AVIF) gebruiken." },
     lazyImg: { title: "Lazy-loading", why: "Alle afbeeldingen meteen laden vertraagt de eerste indruk, ook voor beelden die nog niet in beeld zijn.", fix: "loading=\"lazy\" toepassen op afbeeldingen onder de vouw." },
     linkText: { title: "Lege links", why: "Links zonder tekst of label zijn onbruikbaar met een screenreader en geven Google geen context.", fix: "Elke link beschrijvende tekst of een aria-label geven." },
+    spf: { title: "SPF (mail-spoofing)", why: "Zonder SPF-record kan iemand e-mails versturen die lijken te komen van jouw domein — phishing in jouw naam, en je eigen mails belanden vaker in spam.", fix: "Een SPF TXT-record instellen dat enkel je echte mailservers toelaat." },
+    dmarc: { title: "DMARC (mail-spoofing)", why: "Zonder DMARC negeren ontvangers SPF/DKIM-fouten. Je domein is dan vrij te misbruiken voor nepmails aan je klanten.", fix: "Een _dmarc TXT-record toevoegen (start met p=none om te monitoren)." },
+    caaRecord: { title: "CAA-record", why: "Een CAA-record bepaalt wélke certificaatautoriteiten een certificaat voor je domein mogen uitgeven — extra slot op je SSL.", fix: "Een CAA-record toevoegen voor je gebruikte certificaatautoriteit." },
+    mxRecord: { title: "MX-record", why: "Zonder MX kan je domein geen e-mail ontvangen. Soms bewust (alleen website), soms een vergeten configuratie.", fix: "MX-records instellen als je op dit domein mail wil ontvangen." },
+    ipv6: { title: "IPv6-bereikbaarheid", why: "Een groeiend deel van het internet is IPv6. Zonder AAAA-record zijn die bezoekers afhankelijk van vertragende tussenstappen.", fix: "Een AAAA-record toevoegen of een host kiezen die IPv6 ondersteunt." },
+    tlsExpiry: { title: "Certificaat-vervaldatum", why: "Een verlopen SSL-certificaat zet bezoekers voor een grote rode waarschuwing — instant verlies van vertrouwen en omzet.", fix: "Automatische vernieuwing instellen (Let's Encrypt verlengt zichzelf)." },
+    tlsProtocol: { title: "TLS-protocolversie", why: "Oude TLS-versies (1.0/1.1) zijn gebroken en worden door browsers geweigerd. Enkel TLS 1.2/1.3 is nog veilig.", fix: "Server zo configureren dat enkel TLS 1.2 en 1.3 worden aangeboden." },
+    brokenLinks: { title: "Dode links", why: "Links naar onbestaande pagina's frustreren bezoekers en laten Google twijfelen aan de kwaliteit van je hele site.", fix: "De gebroken links herstellen of laten doorverwijzen (301)." },
+    crossPage: { title: "Subpagina's nagekeken", why: "We keken niet enkel naar je homepage: ontbreekt op binnenpagina's een titel of H1, dan lekt SEO-waarde over de hele site weg.", fix: "Elke pagina een unieke titel en één duidelijke H1 geven." },
   },
   fr: {
     https: { title: "Chiffrement HTTPS", why: "Sans HTTPS, tout le monde sur le réseau peut lire. Les navigateurs affichent « Non sécurisé » et Google déclasse.", fix: "Installer un certificat SSL (gratuit via Let's Encrypt) et tout forcer en https." },
@@ -141,6 +150,15 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     responsiveImg: { title: "Images responsives", why: "Sans srcset/<picture>, un mobile reçoit les mêmes photos lourdes que le desktop — données et lenteur inutiles.", fix: "Utiliser srcset et des formats modernes (WebP/AVIF)." },
     lazyImg: { title: "Lazy-loading", why: "Charger toutes les images d'emblée ralentit la première impression, même pour ce qui n'est pas encore visible.", fix: "Appliquer loading=\"lazy\" aux images sous la ligne de flottaison." },
     linkText: { title: "Liens vides", why: "Des liens sans texte ni libellé sont inutilisables au lecteur d'écran et ne donnent aucun contexte à Google.", fix: "Donner à chaque lien un texte descriptif ou un aria-label." },
+    spf: { title: "SPF (usurpation mail)", why: "Sans enregistrement SPF, n'importe qui peut envoyer des e-mails qui semblent venir de votre domaine — phishing en votre nom, et vos propres mails finissent plus souvent en spam.", fix: "Définir un enregistrement TXT SPF n'autorisant que vos vrais serveurs mail." },
+    dmarc: { title: "DMARC (usurpation mail)", why: "Sans DMARC, les destinataires ignorent les erreurs SPF/DKIM. Votre domaine est librement exploitable pour de faux mails à vos clients.", fix: "Ajouter un enregistrement TXT _dmarc (commencez par p=none pour surveiller)." },
+    caaRecord: { title: "Enregistrement CAA", why: "Un enregistrement CAA détermine quelles autorités peuvent émettre un certificat pour votre domaine — un verrou de plus sur votre SSL.", fix: "Ajouter un enregistrement CAA pour l'autorité de certification utilisée." },
+    mxRecord: { title: "Enregistrement MX", why: "Sans MX, votre domaine ne peut pas recevoir d'e-mails. Parfois voulu, parfois une config oubliée.", fix: "Configurer des enregistrements MX si vous voulez recevoir du mail sur ce domaine." },
+    ipv6: { title: "Accessibilité IPv6", why: "Une part croissante d'Internet est en IPv6. Sans AAAA, ces visiteurs dépendent d'étapes intermédiaires plus lentes.", fix: "Ajouter un enregistrement AAAA ou choisir un hébergeur compatible IPv6." },
+    tlsExpiry: { title: "Expiration du certificat", why: "Un certificat SSL expiré place les visiteurs devant un grand avertissement rouge — perte instantanée de confiance et de chiffre.", fix: "Activer le renouvellement automatique (Let's Encrypt se renouvelle seul)." },
+    tlsProtocol: { title: "Version du protocole TLS", why: "Les vieilles versions TLS (1.0/1.1) sont cassées et refusées par les navigateurs. Seul TLS 1.2/1.3 est encore sûr.", fix: "Configurer le serveur pour ne proposer que TLS 1.2 et 1.3." },
+    brokenLinks: { title: "Liens morts", why: "Des liens vers des pages inexistantes frustrent les visiteurs et font douter Google de la qualité de tout le site.", fix: "Réparer les liens cassés ou les rediriger (301)." },
+    crossPage: { title: "Sous-pages vérifiées", why: "Nous n'avons pas regardé que votre page d'accueil : s'il manque un titre ou un H1 sur des pages internes, la valeur SEO fuit sur tout le site.", fix: "Donner à chaque page un titre unique et un seul H1 clair." },
   },
   en: {
     https: { title: "HTTPS encryption", why: "Without HTTPS anyone on the network can eavesdrop. Browsers show 'Not secure' and Google ranks you lower.", fix: "Install an SSL certificate (free via Let's Encrypt) and force everything to https." },
@@ -193,6 +211,15 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     responsiveImg: { title: "Responsive images", why: "Without srcset/<picture> a phone gets the same heavy desktop photos — needless data and slowness.", fix: "Use srcset and modern formats (WebP/AVIF)." },
     lazyImg: { title: "Lazy-loading", why: "Loading all images at once slows the first impression, even for images not yet in view.", fix: "Apply loading=\"lazy\" to below-the-fold images." },
     linkText: { title: "Empty links", why: "Links without text or label are unusable with a screen reader and give Google no context.", fix: "Give every link descriptive text or an aria-label." },
+    spf: { title: "SPF (mail spoofing)", why: "Without an SPF record anyone can send emails that look like they come from your domain — phishing in your name, and your own mail lands in spam more often.", fix: "Set an SPF TXT record allowing only your real mail servers." },
+    dmarc: { title: "DMARC (mail spoofing)", why: "Without DMARC, receivers ignore SPF/DKIM failures. Your domain is then free to abuse for fake mail to your customers.", fix: "Add a _dmarc TXT record (start with p=none to monitor)." },
+    caaRecord: { title: "CAA record", why: "A CAA record controls which certificate authorities may issue a certificate for your domain — an extra lock on your SSL.", fix: "Add a CAA record for the certificate authority you use." },
+    mxRecord: { title: "MX record", why: "Without MX your domain cannot receive email. Sometimes intentional, sometimes a forgotten config.", fix: "Set MX records if you want to receive mail on this domain." },
+    ipv6: { title: "IPv6 reachability", why: "A growing share of the internet is IPv6. Without an AAAA record those visitors depend on slower intermediaries.", fix: "Add an AAAA record or pick a host that supports IPv6." },
+    tlsExpiry: { title: "Certificate expiry", why: "An expired SSL certificate shows visitors a big red warning — instant loss of trust and revenue.", fix: "Enable automatic renewal (Let's Encrypt renews itself)." },
+    tlsProtocol: { title: "TLS protocol version", why: "Old TLS versions (1.0/1.1) are broken and rejected by browsers. Only TLS 1.2/1.3 is still safe.", fix: "Configure the server to offer only TLS 1.2 and 1.3." },
+    brokenLinks: { title: "Dead links", why: "Links to non-existent pages frustrate visitors and make Google doubt the quality of your whole site.", fix: "Fix the broken links or redirect them (301)." },
+    crossPage: { title: "Sub-pages checked", why: "We didn't only look at your homepage: if inner pages miss a title or H1, SEO value leaks across the whole site.", fix: "Give every page a unique title and one clear H1." },
   },
 };
 
@@ -210,6 +237,21 @@ const PRICE: Record<ModuleKey, number> = {
 const UI: Record<
   Locale,
   {
+    domain: {
+      title: string;
+      cert: string;
+      issuer: string;
+      expires: string;
+      protocol: string;
+      mail: string;
+      spf: string;
+      dmarc: string;
+      ipv6: string;
+      yes: string;
+      no: string;
+      na: string;
+      days: string;
+    };
     placeholder: string;
     button: string;
     scanning: string;
@@ -279,6 +321,7 @@ const UI: Record<
   }
 > = {
   nl: {
+    domain: { title: "Domein, mail & certificaat", cert: "SSL-certificaat", issuer: "Uitgever", expires: "Verloopt over", protocol: "TLS-protocol", mail: "Mailbeveiliging", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "ja", no: "nee", na: "n.v.t.", days: "dagen" },
     placeholder: "jouwhuidigesite.be",
     button: "Scan mijn site diepgaand",
     scanning: "Site wordt doorgelicht…",
@@ -316,6 +359,10 @@ const UI: Record<
         lines.push("De site oogt verwaarloosd: oude techniek én een verouderd jaartal. Bezoekers vragen zich af of je nog actief bent — en je betaalt mogelijk voor 'onderhoud' dat duidelijk niet gebeurt.");
       if (f.flags.gdprRisk)
         lines.push("Er worden externe scripts/trackers geladen zonder zichtbare cookie-toestemming. Dat is een concreet GDPR-boeterisico, geen theorie.");
+      if (f.flags.mailSpoofable)
+        lines.push("Je domein heeft geen SPF én geen DMARC: iemand kan vandaag e-mails versturen die lijken te komen van jouw adres — naar je eigen klanten. Dat is een ernstig en vaak over het hoofd gezien lek.");
+      if (f.flags.certExpiring)
+        lines.push("Je SSL-certificaat verloopt binnenkort. Loopt het af, dan krijgen bezoekers een schrikwekkende waarschuwing en is je site de facto onbereikbaar.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("Kortom: wat je nu hebt, levert niet wat een site in 2026 hoort te leveren. Of dat 'oplichting' is hangt af van wat je ervoor betaalt — maar het kan beduidend beter, vaak voor minder dan je nu denkt.");
       if (lines.length === 0)
@@ -379,6 +426,7 @@ const UI: Record<
       `Doorlichting van ${h} (via studio-vm.be/scan)\nRapportcijfer: ${g} — ${s}/100\nPlatform: ${st}\n\nEen Studio VM-build mikt op 100/100. Bespreek: studio-vm.be`,
   },
   fr: {
+    domain: { title: "Domaine, mail & certificat", cert: "Certificat SSL", issuer: "Émetteur", expires: "Expire dans", protocol: "Protocole TLS", mail: "Sécurité mail", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "oui", no: "non", na: "s.o.", days: "jours" },
     placeholder: "votresiteactuel.be",
     button: "Scanner mon site en profondeur",
     scanning: "Analyse approfondie…",
@@ -416,6 +464,10 @@ const UI: Record<
         lines.push("Le site paraît négligé : technique ancienne et année périmée. Les visiteurs doutent que vous soyez encore actif — et vous payez peut-être un « entretien » qui n'a manifestement pas lieu.");
       if (f.flags.gdprRisk)
         lines.push("Des scripts/traceurs externes se chargent sans consentement cookie visible. C'est un risque d'amende RGPD concret, pas théorique.");
+      if (f.flags.mailSpoofable)
+        lines.push("Votre domaine n'a ni SPF ni DMARC : quelqu'un peut aujourd'hui envoyer des e-mails qui semblent venir de votre adresse — à vos propres clients. C'est une faille grave et souvent ignorée.");
+      if (f.flags.certExpiring)
+        lines.push("Votre certificat SSL expire bientôt. À l'expiration, les visiteurs voient un avertissement effrayant et votre site devient de facto inaccessible.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("Bref : ce que vous avez ne livre pas ce qu'un site devrait livrer en 2026. « Arnaque » ou non dépend du prix payé — mais c'est nettement améliorable.");
       if (lines.length === 0)
@@ -479,6 +531,7 @@ const UI: Record<
       `Analyse de ${h} (via studio-vm.be/scan)\nNote : ${g} — ${s}/100\nPlateforme : ${st}\n\nUn build Studio VM vise 100/100. Discutons : studio-vm.be`,
   },
   en: {
+    domain: { title: "Domain, mail & certificate", cert: "SSL certificate", issuer: "Issuer", expires: "Expires in", protocol: "TLS protocol", mail: "Mail security", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "yes", no: "no", na: "n/a", days: "days" },
     placeholder: "yourcurrentsite.com",
     button: "Deep-scan my site",
     scanning: "Running a deep scan…",
@@ -516,6 +569,10 @@ const UI: Record<
         lines.push("The site looks neglected: old tech plus a stale year. Visitors wonder if you're still active — and you may be paying for 'maintenance' that clearly isn't happening.");
       if (f.flags.gdprRisk)
         lines.push("External scripts/trackers load without a visible cookie consent. That's a concrete GDPR fine risk, not theory.");
+      if (f.flags.mailSpoofable)
+        lines.push("Your domain has no SPF and no DMARC: someone can send emails today that look like they come from your address — to your own customers. That's a serious and often overlooked hole.");
+      if (f.flags.certExpiring)
+        lines.push("Your SSL certificate expires soon. Once it lapses, visitors get a scary warning and your site is effectively unreachable.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("In short: what you have doesn't deliver what a site should in 2026. Whether that's a 'rip-off' depends on what you pay — but it can be markedly better.");
       if (lines.length === 0)
@@ -951,6 +1008,92 @@ export function SiteScanner() {
             </div>
           </div>
         </div>
+
+        {/* Domein, mail & certificaat */}
+        {(r.tls || r.dns) && (
+          <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+              <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+              {t.domain.title}
+            </p>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2">
+              {r.tls && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-muted">
+                    {t.domain.cert}
+                  </p>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.issuer}</span>
+                      <strong>{r.tls.issuer || t.domain.na}</strong>
+                    </li>
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.expires}</span>
+                      <strong
+                        className={
+                          r.tls.daysLeft !== null && r.tls.daysLeft < 21
+                            ? "text-red-500"
+                            : ""
+                        }
+                      >
+                        {r.tls.daysLeft !== null
+                          ? `${r.tls.daysLeft} ${t.domain.days}`
+                          : t.domain.na}
+                      </strong>
+                    </li>
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.protocol}</span>
+                      <strong>{r.tls.protocol || t.domain.na}</strong>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {r.dns && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-muted">
+                    {t.domain.mail} / DNS
+                  </p>
+                  <ul className="space-y-1.5 text-sm">
+                    {(
+                      [
+                        ["spf", r.dns.spf],
+                        ["dmarc", r.dns.dmarc],
+                        ["ipv6", r.dns.ipv6],
+                      ] as const
+                    ).map(([k, v]) => (
+                      <li key={k} className="flex justify-between gap-2">
+                        <span className="text-muted">{t.domain[k]}</span>
+                        <strong
+                          className={
+                            v
+                              ? "text-green-600 dark:text-green-400"
+                              : k === "ipv6"
+                                ? ""
+                                : "text-red-500"
+                          }
+                        >
+                          {v ? t.domain.yes : t.domain.no}
+                        </strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            {r.brokenLinks.length > 0 && (
+              <div className="mt-5 border-t pt-4">
+                <p className="mb-2 text-xs font-semibold text-red-500">
+                  {f.brokenLinks.title} ({r.brokenLinks.length})
+                </p>
+                <ul className="space-y-1 font-mono text-xs text-muted">
+                  {r.brokenLinks.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Benchmark */}
         <div className="rounded-2xl border bg-card p-6 print-avoid-break">

@@ -1,7 +1,14 @@
 "use server";
 
-import { lookup } from "node:dns/promises";
+import {
+  lookup,
+  resolveTxt,
+  resolveMx,
+  resolve6,
+  resolveCaa,
+} from "node:dns/promises";
 import { isIP } from "node:net";
+import { connect as tlsConnect } from "node:tls";
 
 export type ScanCat = "speed" | "seo" | "mobile" | "security" | "platform";
 export type Severity = "critical" | "warning" | "good" | "info";
@@ -59,6 +66,22 @@ export type ScanResult =
       categories: CategoryScore[];
       pitfalls: string[];
       cwvRisk: "low" | "medium" | "high";
+      tls: {
+        issuer: string | null;
+        validTo: string | null;
+        daysLeft: number | null;
+        protocol: string | null;
+        valid: boolean;
+      } | null;
+      dns: {
+        spf: boolean;
+        dmarc: boolean;
+        mx: boolean;
+        caa: boolean;
+        ipv6: boolean;
+      } | null;
+      crawledPages: number;
+      brokenLinks: string[];
       flags: {
         diyPlatform: boolean;
         outdated: boolean;
@@ -68,6 +91,8 @@ export type ScanResult =
         modern: boolean;
         abandoned: boolean;
         gdprRisk: boolean;
+        mailSpoofable: boolean;
+        certExpiring: boolean;
       };
     }
   | { ok: false; error: string };
@@ -217,6 +242,104 @@ async function probe(
   } finally {
     clearTimeout(tm);
   }
+}
+
+// DNS- & mailhygiëne: enkel DNS-queries, geen HTTP — SSRF-irrelevant.
+async function dnsAudit(host: string): Promise<{
+  spf: boolean;
+  dmarc: boolean;
+  mx: boolean;
+  caa: boolean;
+  ipv6: boolean;
+} | null> {
+  const apex = host.replace(/^www\./, "");
+  const txt = async (name: string) => {
+    try {
+      return (await resolveTxt(name)).map((r) => r.join(""));
+    } catch {
+      return [] as string[];
+    }
+  };
+  try {
+    const [root, dmarcTxt, mx, caa, aaaa] = await Promise.all([
+      txt(apex),
+      txt(`_dmarc.${apex}`),
+      resolveMx(apex).catch(() => []),
+      resolveCaa(apex).catch(() => []),
+      resolve6(host).catch(() => []),
+    ]);
+    return {
+      spf: root.some((r) => /v=spf1/i.test(r)),
+      dmarc: dmarcTxt.some((r) => /v=DMARC1/i.test(r)),
+      mx: mx.length > 0,
+      caa: caa.length > 0,
+      ipv6: aaaa.length > 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// TLS-certificaat inspecteren (verbinding naar de reeds gevalideerde host:443).
+async function tlsAudit(host: string): Promise<{
+  issuer: string | null;
+  validTo: string | null;
+  daysLeft: number | null;
+  protocol: string | null;
+  valid: boolean;
+} | null> {
+  if (isIP(host)) return null;
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v: Awaited<ReturnType<typeof tlsAudit>>) => {
+      if (done) return;
+      done = true;
+      try {
+        socket.destroy();
+      } catch {}
+      resolve(v);
+    };
+    const socket = tlsConnect(
+      {
+        host,
+        port: 443,
+        servername: host,
+        rejectUnauthorized: false,
+        timeout: 4000,
+      },
+      () => {
+        try {
+          const c = socket.getPeerCertificate();
+          const proto = socket.getProtocol();
+          const validTo = c?.valid_to || null;
+          const daysLeft = validTo
+            ? Math.round(
+                (new Date(validTo).getTime() - Date.now()) / 86_400_000,
+              )
+            : null;
+          const iss = c?.issuer as
+            | Record<string, string | string[]>
+            | undefined;
+          const issRaw = iss?.O || iss?.CN || iss?.OU || null;
+          const issuer = Array.isArray(issRaw)
+            ? issRaw[0] || null
+            : issRaw;
+          finish({
+            issuer,
+            validTo,
+            daysLeft,
+            protocol: proto,
+            valid: socket.authorized,
+          });
+        } catch {
+          finish(null);
+        }
+      },
+    );
+    socket.on("error", () => finish(null));
+    socket.on("timeout", () => finish(null));
+    setTimeout(() => finish(null), 4500);
+  });
 }
 
 const WP_PLUGIN_NAMES: Record<string, string> = {
@@ -873,6 +996,71 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
         : [301, 302, 307, 308].includes(httpP.status) &&
           /^https:/i.test(httpP.location || "");
 
+    // ---- Interne links + DNS/mail + TLS-certificaat (parallel) ----
+    const finalHostName = (() => {
+      try {
+        return new URL(origin).hostname;
+      } catch {
+        return url.hostname;
+      }
+    })();
+    const baseDom = finalHostName.replace(/^www\./, "");
+    const rootPath = (() => {
+      try {
+        return new URL(origin).pathname || "/";
+      } catch {
+        return "/";
+      }
+    })();
+    const internal = new Set<string>();
+    for (const m of html.matchAll(
+      /<a\b[^>]+href=["']([^"'#][^"']*)["']/gi,
+    )) {
+      if (internal.size >= 14) break;
+      const hrefRaw = m[1];
+      if (/^(?:mailto:|tel:|javascript:|data:|#)/i.test(hrefRaw)) continue;
+      let abs: URL;
+      try {
+        abs = new URL(hrefRaw, origin);
+      } catch {
+        continue;
+      }
+      if (abs.protocol !== "https:" && abs.protocol !== "http:") continue;
+      if (abs.hostname.replace(/^www\./, "") !== baseDom) continue;
+      abs.hash = "";
+      if (abs.pathname === rootPath || abs.pathname === "/") continue;
+      internal.add(abs.toString());
+    }
+    const internalList = [...internal];
+    const linkSample = internalList.slice(0, 6);
+    const pageSample = internalList.slice(0, 3);
+
+    const [dns, tls, linkRes, pageRes] = await Promise.all([
+      dnsAudit(finalHostName),
+      isHttps ? tlsAudit(finalHostName) : Promise.resolve(null),
+      Promise.all(linkSample.map((u) => probe(u, ""))),
+      Promise.all(pageSample.map((u) => probe(u, ""))),
+    ]);
+    const brokenLinks: string[] = [];
+    linkSample.forEach((u, i) => {
+      const p = linkRes[i];
+      if (p && p.status >= 400) {
+        try {
+          brokenLinks.push(`${p.status} · ${new URL(u).pathname}`);
+        } catch {
+          brokenLinks.push(`${p.status} · ${u}`);
+        }
+      }
+    });
+    let subpageIssues = 0;
+    for (const p of pageRes) {
+      if (!p || p.status >= 400) continue;
+      const hasT = /<title[^>]*>[^<]*\S[^<]*<\/title>/i.test(p.text);
+      const hasH = /<h1[\s>]/i.test(p.text);
+      if (!hasT || !hasH) subpageIssues++;
+    }
+    const crawledPages = pageSample.length;
+
     const cwvScore =
       (responseMs > 1500 ? 2 : responseMs > 800 ? 1 : 0) +
       (htmlKb > 400 ? 2 : htmlKb > 150 ? 1 : 0) +
@@ -1140,6 +1328,58 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
             : "critical",
         emptyLinks ? `${emptyLinks}` : undefined,
       ),
+      // DNS / mail
+      F("spf", "security", !dns ? "info" : dns.spf ? "good" : "warning"),
+      F("dmarc", "security", !dns ? "info" : dns.dmarc ? "good" : "warning"),
+      F("caaRecord", "security", !dns ? "info" : dns.caa ? "good" : "info"),
+      F("mxRecord", "platform", !dns ? "info" : dns.mx ? "good" : "info"),
+      F("ipv6", "platform", !dns ? "info" : dns.ipv6 ? "good" : "info"),
+      // TLS
+      F(
+        "tlsExpiry",
+        "security",
+        !tls || tls.daysLeft === null
+          ? "info"
+          : tls.daysLeft < 0
+            ? "critical"
+            : tls.daysLeft < 21
+              ? "warning"
+              : "good",
+        tls && tls.daysLeft !== null ? `${tls.daysLeft} d` : undefined,
+      ),
+      F(
+        "tlsProtocol",
+        "security",
+        !tls || !tls.protocol
+          ? "info"
+          : /TLSv1\.[23]/.test(tls.protocol)
+            ? "good"
+            : "warning",
+        tls?.protocol || undefined,
+      ),
+      // Crawl
+      F(
+        "brokenLinks",
+        "seo",
+        linkSample.length === 0
+          ? "info"
+          : brokenLinks.length === 0
+            ? "good"
+            : "critical",
+        brokenLinks.length
+          ? `${brokenLinks.length}/${linkSample.length}`
+          : undefined,
+      ),
+      F(
+        "crossPage",
+        "seo",
+        crawledPages === 0
+          ? "info"
+          : subpageIssues === 0
+            ? "good"
+            : "warning",
+        subpageIssues ? `${subpageIssues}/${crawledPages}` : undefined,
+      ),
     ];
 
     const W: Record<Severity, number> = {
@@ -1197,6 +1437,9 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       abandoned:
         staleCopyright && (det.hasOutdatedLib || heavyCms || score < 55),
       gdprRisk: !consentBanner && (extDomains >= 4 || det.pluginCount > 0),
+      mailSpoofable: !!dns && !dns.spf && !dns.dmarc,
+      certExpiring:
+        !!tls && tls.daysLeft !== null && tls.daysLeft < 21,
     };
 
     let host = url.hostname;
@@ -1229,6 +1472,10 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       categories,
       pitfalls,
       cwvRisk,
+      tls,
+      dns,
+      crawledPages,
+      brokenLinks: brokenLinks.slice(0, 5),
       flags,
     };
   } catch (err) {
