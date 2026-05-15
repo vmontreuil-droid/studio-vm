@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      { source: "/.well-known/security.txt", destination: "/security-txt" },
+    ];
+  },
 };
 
 export default nextConfig;

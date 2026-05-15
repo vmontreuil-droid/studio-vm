@@ -24,6 +24,8 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/auth/") ||
+    pathname === "/security-txt" ||
+    pathname.startsWith("/.well-known/") ||
     pathname === "/icon" ||
     pathname === "/apple-icon" ||
     pathname === "/opengraph-image" ||
