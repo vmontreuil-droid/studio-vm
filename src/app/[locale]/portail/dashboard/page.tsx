@@ -6,6 +6,7 @@ import { LogOut, FolderKanban, Activity } from "lucide-react";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/portail";
+import { PortailLogin } from "@/components/portail-login";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
@@ -89,13 +90,27 @@ export default async function DashboardPage({
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
-  if (!supabaseConfigured) redirect(localePath(locale, "/portail"));
+
+  // Geen redirect (kan stale cachen op CDN) — render gewoon de login.
+  if (!supabaseConfigured) {
+    return (
+      <main>
+        <PortailLogin locale={locale} />
+      </main>
+    );
+  }
 
   const sb = await getSupabaseServer();
   const {
     data: { user },
   } = await sb.auth.getUser();
-  if (!user) redirect(localePath(locale, "/portail"));
+  if (!user) {
+    return (
+      <main>
+        <PortailLogin locale={locale} />
+      </main>
+    );
+  }
 
   const t = T[locale];
 
