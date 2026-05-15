@@ -126,9 +126,29 @@ body {
     box-shadow: none !important;
     break-inside: avoid;
   }
-  @page {
-    margin: 1.6cm;
+  details[open] > summary ~ *,
+  details > summary ~ * {
+    display: block !important;
+    height: auto !important;
   }
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+  @page {
+    margin: 1.4cm;
+  }
+}
+.print-only {
+  display: none;
 }
 
 /* Tailwind v4 opacity-modifier op CSS-var kleuren werkt niet — eigen utility met color-mix() */
