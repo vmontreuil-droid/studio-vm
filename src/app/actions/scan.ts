@@ -368,18 +368,24 @@ function detect(headers: Headers, html: string, finalUrl: string): Detection {
   // ---- Page builders (non-WP-slug detection) ----
   if (h.includes("elementor") && !seen.has("plugin:elementor"))
     add("Elementor", "builder");
-  if (h.includes("et_pb_") || h.includes("divi")) add("Divi", "builder");
-  if (h.includes("vc_row") || h.includes("js_composer"))
+  if (h.includes("et_pb_") || /\/themes\/divi[/-]/.test(h))
+    add("Divi", "builder");
+  if (h.includes("js_composer") || /\bvc_row\b/.test(h))
     add("WPBakery", "builder");
   if (h.includes("fl-builder")) add("Beaver Builder", "builder");
-  if (h.includes("brizy")) add("Brizy", "builder");
-  if (h.includes("oxygen-")) add("Oxygen Builder", "builder");
+  if (h.includes("brizy-")) add("Brizy", "builder");
+  if (h.includes("oxygen-builder")) add("Oxygen Builder", "builder");
 
   // ---- E-commerce ----
   if (h.includes("woocommerce") || h.includes("/wc-ajax/"))
     add("WooCommerce", "ecommerce");
-  if (h.includes("mage/") || h.includes("magento")) add("Magento", "ecommerce");
-  if (h.includes("webshopapp") || h.includes("seoshop"))
+  if (
+    /\bmagento\b/.test(h) ||
+    h.includes("mage-cache") ||
+    h.includes("/static/frontend/")
+  )
+    add("Magento", "ecommerce");
+  if (h.includes("webshopapp.com") || h.includes("seoshop"))
     add("Lightspeed eCom", "ecommerce");
 
   // ---- Analytics ----
@@ -422,7 +428,7 @@ function detect(headers: Headers, html: string, finalUrl: string): Detection {
     }
   }
   const bsVer = html.match(/bootstrap[/-]?v?([0-9]+\.[0-9]+)/i)?.[1];
-  if (h.includes("bootstrap")) {
+  if (/bootstrap(\.min)?\.(css|js)|bootstrapcdn/.test(h)) {
     add("Bootstrap", "library", bsVer);
     if (bsVer && parseInt(bsVer.split(".")[0], 10) < 4) {
       hasOutdatedLib = true;
@@ -628,7 +634,14 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
         ),
     ).size;
     const mixedContent =
-      isHttps && /<(?:script|img|link)[^>]+(?:src|href)=["']http:\/\//i.test(html);
+      isHttps &&
+      (/<(?:script|img|iframe)[^>]+src=["']http:\/\//i.test(html) ||
+        /<link[^>]+rel=["'](?:stylesheet|preload|preconnect)["'][^>]+href=["']http:\/\//i.test(
+          html,
+        ) ||
+        /<link[^>]+href=["']http:\/\/[^"']+["'][^>]+rel=["'](?:stylesheet|preload)["']/i.test(
+          html,
+        ));
 
     // ---- Security headers ----
     const hsts = head.get("strict-transport-security");
