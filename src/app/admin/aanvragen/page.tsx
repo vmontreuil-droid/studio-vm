@@ -20,6 +20,8 @@ type Quote = {
   est_high: number | null;
   monthly: number | null;
   status: string;
+  source: string | null;
+  snapshot: Record<string, unknown> | null;
 };
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -125,6 +127,11 @@ export default async function AdminQuotes({
                   </a>
                 </p>
                 <span className="font-mono text-xs text-muted">
+                  {q.source === "builder" && (
+                    <span className="mr-2 rounded bg-accent/15 px-1.5 py-0.5 text-accent">
+                      BUILDER
+                    </span>
+                  )}
                   {new Date(q.created_at).toLocaleString("nl-BE")} ·{" "}
                   {q.locale.toUpperCase()} · {q.status}
                 </span>

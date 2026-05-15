@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { submitBuild } from "@/app/actions/build-lead";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -14,6 +15,9 @@ import {
   Palette,
   Layers,
   Type,
+  ImagePlus,
+  Loader2,
+  Check,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -99,6 +103,15 @@ const T: Record<
     radiusLabel: string;
     radii: { strak: string; zacht: string; rond: string };
     dup: string;
+    imagesLabel: string;
+    uploadHint: string;
+    aboutTextLabel: string;
+    ctaTextLabel: string;
+    buildEmail: string;
+    buildSend: string;
+    buildSending: string;
+    buildSent: string;
+    buildErr: string;
     preview: {
       welcome: string;
       tagline: string;
@@ -158,6 +171,15 @@ const T: Record<
     radiusLabel: "Hoeken",
     radii: { strak: "Strak", zacht: "Zacht", rond: "Rond" },
     dup: "Dupliceer",
+    imagesLabel: "Afbeeldingen",
+    uploadHint: "Sleep of kies foto's — verschijnen in galerij & 'over ons'.",
+    aboutTextLabel: "Over-ons tekst",
+    ctaTextLabel: "Oproep-tekst",
+    buildEmail: "Je e-mail",
+    buildSend: "Stuur naar Studio VM",
+    buildSending: "Versturen…",
+    buildSent: "Top! Je ontwerp staat in mijn admin — ik werk het voor je uit.",
+    buildErr: "Versturen mislukte. Probeer opnieuw of mail rechtstreeks.",
     preview: {
       welcome: "Welkom bij",
       tagline: "Een tagline die uitlegt wat je doet.",
@@ -224,6 +246,15 @@ const T: Record<
     radiusLabel: "Coins",
     radii: { strak: "Net", zacht: "Doux", rond: "Rond" },
     dup: "Dupliquer",
+    imagesLabel: "Images",
+    uploadHint: "Glissez ou choisissez des photos — visibles dans galerie & à-propos.",
+    aboutTextLabel: "Texte à-propos",
+    ctaTextLabel: "Texte d'appel",
+    buildEmail: "Votre e-mail",
+    buildSend: "Envoyer à Studio VM",
+    buildSending: "Envoi…",
+    buildSent: "Super ! Votre design est dans mon admin — je le finalise.",
+    buildErr: "Échec de l'envoi. Réessayez ou écrivez-moi directement.",
     preview: {
       welcome: "Bienvenue chez",
       tagline: "Une accroche qui explique ce que vous faites.",
@@ -290,6 +321,15 @@ const T: Record<
     radiusLabel: "Corners",
     radii: { strak: "Sharp", zacht: "Soft", rond: "Round" },
     dup: "Duplicate",
+    imagesLabel: "Images",
+    uploadHint: "Drag or pick photos — shown in gallery & about.",
+    aboutTextLabel: "About text",
+    ctaTextLabel: "Call-out text",
+    buildEmail: "Your email",
+    buildSend: "Send to Studio VM",
+    buildSending: "Sending…",
+    buildSent: "Great! Your design is in my admin — I'll build it out.",
+    buildErr: "Sending failed. Try again or email me directly.",
     preview: {
       welcome: "Welcome to",
       tagline: "A tagline that explains what you do.",
@@ -348,6 +388,27 @@ export default function BuilderPage() {
   const [tagline, setTagline] = useState("");
   const [font, setFont] = useState<FontKey>("sans");
   const [radius, setRadius] = useState<RadiusKey>("zacht");
+  const [images, setImages] = useState<string[]>([]);
+  const [aboutText, setAboutText] = useState("");
+  const [ctaText, setCtaText] = useState("");
+  const [buildEmail, setBuildEmail] = useState("");
+  const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
+  const [pending, startSend] = useTransition();
+
+  const onFiles = (files: FileList | null) => {
+    if (!files) return;
+    Array.from(files)
+      .slice(0, 10)
+      .forEach((file) => {
+        if (!file.type.startsWith("image/") || file.size > 3_000_000) return;
+        const reader = new FileReader();
+        reader.onload = () =>
+          setImages((s) =>
+            s.length >= 10 ? s : [...s, String(reader.result)],
+          );
+        reader.readAsDataURL(file);
+      });
+  };
 
   const addSection = (k: SectionKind) => setSections((s) => [...s, k]);
   const removeSection = (idx: number) =>
@@ -468,6 +529,69 @@ export default function BuilderPage() {
                   </button>
                 ))}
               </div>
+
+              <label className="mt-4 block font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.aboutTextLabel}
+              </label>
+              <textarea
+                value={aboutText}
+                onChange={(e) => setAboutText(e.target.value)}
+                placeholder={c.preview.aboutText}
+                rows={3}
+                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+              <label className="mt-3 block font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.ctaTextLabel}
+              </label>
+              <input
+                value={ctaText}
+                onChange={(e) => setCtaText(e.target.value)}
+                placeholder={c.preview.ctaText2}
+                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.imagesLabel}
+              </p>
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-4 text-xs text-muted transition-colors hover:bg-card-hover">
+                <ImagePlus className="h-4 w-4" strokeWidth={2} />
+                {c.uploadHint}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    onFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {images.length > 0 && (
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  {images.map((src, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() =>
+                        setImages((s) => s.filter((_, j) => j !== i))
+                      }
+                      title="x"
+                      className="group relative aspect-square overflow-hidden rounded-md border"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute inset-0 hidden items-center justify-center bg-black/50 text-white group-hover:flex">
+                        <X className="h-4 w-4" strokeWidth={2} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </Panel>
 
             <Panel icon={<Layers className="h-4 w-4" />} title={c.panelSections}>
@@ -540,21 +664,60 @@ export default function BuilderPage() {
 
             <Panel icon={null} title={c.panelReady}>
               <p className="text-xs text-muted">{c.readyText}</p>
-              <a
-                href={`mailto:info@studio-vm.be?subject=${encodeURIComponent(
-                  c.mailSubject(businessName),
-                )}&body=${encodeURIComponent(
-                  c.mailBody(
-                    businessName,
-                    c.themeLabels[theme.slug],
-                    sections.map((s) => c.sectionLabels[s]).join(", "),
-                  ),
-                )}`}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
-              >
-                <Send className="h-4 w-4" strokeWidth={2} />
-                {c.sendPreview}
-              </a>
+              {sent === "ok" ? (
+                <p className="mt-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs font-medium text-accent">
+                  <Check className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
+                  {c.buildSent}
+                </p>
+              ) : (
+                <form
+                  className="mt-3 space-y-2"
+                  action={() =>
+                    startSend(async () => {
+                      const r = await submitBuild({
+                        businessName,
+                        email: buildEmail,
+                        locale,
+                        theme: c.themeLabels[theme.slug],
+                        font: c.fonts[font],
+                        radius: c.radii[radius],
+                        tagline,
+                        aboutText,
+                        ctaText,
+                        sections: sections.map((s) => c.sectionLabels[s]),
+                        imageCount: images.length,
+                      });
+                      if (r.ok) setSent("ok");
+                      else if (r.mailto) window.location.href = r.mailto;
+                      else setSent("err");
+                    })
+                  }
+                >
+                  <input
+                    type="email"
+                    required
+                    value={buildEmail}
+                    onChange={(e) => setBuildEmail(e.target.value)}
+                    placeholder={c.buildEmail}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  />
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+                  >
+                    {pending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+                    ) : (
+                      <Send className="h-4 w-4" strokeWidth={2} />
+                    )}
+                    {pending ? c.buildSending : c.buildSend}
+                  </button>
+                  {sent === "err" && (
+                    <p className="text-xs text-red-500">{c.buildErr}</p>
+                  )}
+                </form>
+              )}
             </Panel>
           </aside>
 
@@ -589,6 +752,9 @@ export default function BuilderPage() {
                     theme={theme}
                     businessName={businessName}
                     tagline={tagline}
+                    aboutText={aboutText}
+                    ctaText={ctaText}
+                    images={images}
                     p={c.preview}
                   />
                 ))
@@ -644,12 +810,18 @@ function PreviewSection({
   theme,
   businessName,
   tagline,
+  aboutText,
+  ctaText,
+  images,
   p,
 }: {
   kind: SectionKind;
   theme: Theme;
   businessName: string;
   tagline: string;
+  aboutText: string;
+  ctaText: string;
+  images: string[];
   p: Preview;
 }) {
   const accentText = { color: theme.accent };
@@ -753,15 +925,25 @@ function PreviewSection({
             {p.galleryTitle}
           </h3>
           <div className="mt-6 grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-md"
-                style={{
-                  background: `linear-gradient(${i * 45}deg, ${theme.accent}33, ${theme.fg}11)`,
-                }}
-              />
-            ))}
+            {images.length > 0
+              ? images.slice(0, 8).map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="aspect-square w-full rounded-md object-cover"
+                  />
+                ))
+              : [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-md"
+                    style={{
+                      background: `linear-gradient(${i * 45}deg, ${theme.accent}33, ${theme.fg}11)`,
+                    }}
+                  />
+                ))}
           </div>
         </div>
       );
@@ -769,17 +951,28 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_1.4fr]">
-            <div
-              className="aspect-[4/3] rounded-lg"
-              style={{
-                background: `linear-gradient(135deg, ${theme.accent}33, ${theme.fg}11)`,
-              }}
-            />
+            {images[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={images[0]}
+                alt=""
+                className="aspect-[4/3] w-full rounded-lg object-cover"
+              />
+            ) : (
+              <div
+                className="aspect-[4/3] rounded-lg"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.accent}33, ${theme.fg}11)`,
+                }}
+              />
+            )}
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
                 {p.aboutTitle}
               </h3>
-              <p className="mt-3 text-sm opacity-70">{p.aboutText}</p>
+              <p className="mt-3 text-sm opacity-70">
+                {aboutText.trim() || p.aboutText}
+              </p>
             </div>
           </div>
         </div>
@@ -831,7 +1024,9 @@ function PreviewSection({
           <h3 className="text-2xl font-semibold tracking-tight">
             {p.ctaTitle2}
           </h3>
-          <p className="mt-2 text-sm opacity-70">{p.ctaText2}</p>
+          <p className="mt-2 text-sm opacity-70">
+            {ctaText.trim() || p.ctaText2}
+          </p>
           <button
             className="mt-5 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
