@@ -42,3 +42,26 @@ export async function deleteQuote(formData: FormData): Promise<void> {
   await getSupabaseAdmin().from("quotes").delete().eq("id", id);
   revalidatePath("/admin");
 }
+
+export async function setMonitorActive(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  const active = String(formData.get("active") ?? "") === "1";
+  if (!id) return;
+  await getSupabaseAdmin()
+    .from("monitors")
+    .update({
+      active,
+      unsubscribed_at: active ? null : new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidatePath("/admin");
+}
+
+export async function deleteMonitor(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin().from("monitors").delete().eq("id", id);
+  revalidatePath("/admin");
+}
