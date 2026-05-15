@@ -1,15 +1,141 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Clock, Briefcase, Lightbulb, Rocket } from "lucide-react";
+import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "Nu — Studio VM",
-  description: "Wat Vincent van Studio VM op dit moment aan het doen is.",
+const lastUpdate = "2026-05-15";
+
+type Copy = {
+  metaTitle: string;
+  title: string;
+  introA: string;
+  introLink: string;
+  introB: string;
+  updated: string;
+  workTitle: string;
+  work: string[];
+  ideasTitle: string;
+  ideas: string[];
+  recentTitle: string;
+  bandwidthTitle: string;
+  bandwidthA: string;
+  bandwidthLink: string;
+  bandwidthB: string;
+  localeCode: string;
 };
 
-const lastUpdate = "2026-05-14";
+const copy: Record<Locale, Copy> = {
+  nl: {
+    metaTitle: "Nu — Studio VM",
+    title: "Wat ik nu doe.",
+    introA: "Dit is een ",
+    introLink: "now-page",
+    introB:
+      ": eerlijk en simpel overzicht van wat me bezighoudt. Bijgewerkt op ",
+    updated: "",
+    workTitle: "Werk in uitvoering",
+    work: [
+      "Webshop voor Allard Philippe (wildlife-fotografie) — gift cards en kortingscodes deze sprint.",
+      "Migratie van JP Montreuil van WordPress naar Next.js + Supabase admin.",
+      "Doorbouwen aan Studio VM zelf (deze site) — volledig drietalig nu.",
+    ],
+    ideasTitle: "Ideeën die rondzweven",
+    ideas: [
+      "Een templates-marktplaats waar lokale ondernemers op een dag kunnen starten.",
+      "Een mini-CRM bovenop Supabase, geoptimaliseerd voor freelancers.",
+      "Een Cal.com-achtige booking-widget voor restaurants, in éigen stack.",
+    ],
+    recentTitle: "Recent gelanceerd",
+    bandwidthTitle: "Bandbreedte",
+    bandwidthA:
+      "Geen ruimte voor nieuwe grote projecten dit kwartaal. Kleine opdrachten (websites tot 5 pagina's, urgent fixes) wel mogelijk. ",
+    bandwidthLink: "Stuur een bericht",
+    bandwidthB: " om te zien of het past.",
+    localeCode: "nl-BE",
+  },
+  fr: {
+    metaTitle: "Maintenant — Studio VM",
+    title: "Ce que je fais maintenant.",
+    introA: "Ceci est une ",
+    introLink: "now-page",
+    introB:
+      " : un aperçu honnête et simple de ce qui m'occupe. Mise à jour le ",
+    updated: "",
+    workTitle: "Travail en cours",
+    work: [
+      "Boutique pour Allard Philippe (photographie animalière) — cartes-cadeaux et codes promo ce sprint.",
+      "Migration de JP Montreuil de WordPress vers Next.js + admin Supabase.",
+      "Développement continu de Studio VM (ce site) — entièrement trilingue maintenant.",
+    ],
+    ideasTitle: "Idées qui flottent",
+    ideas: [
+      "Une marketplace de templates où les entrepreneurs locaux peuvent démarrer en un jour.",
+      "Un mini-CRM au-dessus de Supabase, optimisé pour les freelances.",
+      "Un widget de réservation type Cal.com pour restaurants, dans ma propre stack.",
+    ],
+    recentTitle: "Récemment lancé",
+    bandwidthTitle: "Disponibilité",
+    bandwidthA:
+      "Pas de place pour de nouveaux grands projets ce trimestre. Petites missions (sites jusqu'à 5 pages, corrections urgentes) possibles. ",
+    bandwidthLink: "Envoyez un message",
+    bandwidthB: " pour voir si ça colle.",
+    localeCode: "fr-BE",
+  },
+  en: {
+    metaTitle: "Now — Studio VM",
+    title: "What I'm doing now.",
+    introA: "This is a ",
+    introLink: "now-page",
+    introB:
+      ": an honest, simple overview of what's keeping me busy. Updated on ",
+    updated: "",
+    workTitle: "Work in progress",
+    work: [
+      "Webshop for Allard Philippe (wildlife photography) — gift cards and discount codes this sprint.",
+      "Migration of JP Montreuil from WordPress to Next.js + Supabase admin.",
+      "Continuing to build Studio VM itself (this site) — fully trilingual now.",
+    ],
+    ideasTitle: "Ideas floating around",
+    ideas: [
+      "A templates marketplace where local entrepreneurs can launch in a day.",
+      "A mini-CRM on top of Supabase, optimized for freelancers.",
+      "A Cal.com-style booking widget for restaurants, in my own stack.",
+    ],
+    recentTitle: "Recently launched",
+    bandwidthTitle: "Bandwidth",
+    bandwidthA:
+      "No room for big new projects this quarter. Small jobs (sites up to 5 pages, urgent fixes) are possible. ",
+    bandwidthLink: "Send a message",
+    bandwidthB: " to see if it fits.",
+    localeCode: "en-GB",
+  },
+};
 
-export default function NowPage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  return { title: copy[locale].metaTitle };
+}
+
+export default async function NowPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) notFound();
+  const c = copy[locale];
+  const fmtDate = new Date(lastUpdate).toLocaleDateString(c.localeCode, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <main>
       <section className="border-b">
@@ -18,88 +144,84 @@ export default function NowPage() {
             /now
           </p>
           <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            Wat ik nu doe.
+            {c.title}
           </h1>
           <p className="mt-4 text-muted">
-            Dit is een{" "}
+            {c.introA}
             <a
               href="https://nownownow.com/about"
               target="_blank"
               rel="noopener noreferrer"
               className="text-accent underline"
             >
-              now-page
+              {c.introLink}
             </a>
-            : eerlijk en simpel overzicht van wat me bezighoudt. Bijgewerkt op{" "}
-            {formatDate(lastUpdate)}.
+            {c.introB}
+            {fmtDate}.
           </p>
         </div>
       </section>
 
       <section className="border-b">
         <div className="mx-auto max-w-3xl space-y-8 px-6 py-12">
-          <Block icon={Briefcase} title="Werk in uitvoering">
+          <Block icon={Briefcase} title={c.workTitle}>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-foreground/90">
-              <li>
-                Webshop voor <strong>Allard Philippe</strong> (wildlife-fotografie) —
-                gift cards en kortingscodes deze sprint.
-              </li>
-              <li>
-                Migratie van <strong>JP Montreuil</strong> van WordPress naar Next.js +
-                Supabase admin.
-              </li>
-              <li>
-                Doorbouwen aan <strong>Studio VM</strong> zelf (deze site).
-              </li>
+              {c.work.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
             </ul>
           </Block>
 
-          <Block icon={Lightbulb} title="Ideeën die rondzweven">
+          <Block icon={Lightbulb} title={c.ideasTitle}>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-foreground/90">
-              <li>
-                Een templates-marktplaats waar lokale ondernemers op een dag kunnen
-                starten — half gebouwd in m'n hoofd.
-              </li>
-              <li>
-                Een mini-CRM bovenop Supabase, geoptimaliseerd voor freelancers.
-              </li>
-              <li>
-                Een Cal.com-achtige booking-widget voor restaurants, in éigen stack.
-              </li>
+              {c.ideas.map((i) => (
+                <li key={i}>{i}</li>
+              ))}
             </ul>
           </Block>
 
-          <Block icon={Rocket} title="Recent gelanceerd">
+          <Block icon={Rocket} title={c.recentTitle}>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-foreground/90">
               <li>
-                <Link href="/werk/cottage-waregem" className="text-accent hover:underline">
+                <Link
+                  href={localePath(locale, "/werk/cottage-waregem")}
+                  className="text-accent hover:underline"
+                >
                   cottage-waregem.be
                 </Link>{" "}
-                — migratie van Squarespace naar Next.js.
+                — Squarespace → Next.js.
               </li>
               <li>
-                <Link href="/werk/celine-interieur" className="text-accent hover:underline">
+                <Link
+                  href={localePath(locale, "/werk/celine-interieur")}
+                  className="text-accent hover:underline"
+                >
                   celine-interieur.vercel.app
                 </Link>{" "}
-                — drie installeerbare PWA's.
+                — 3 PWA's.
               </li>
               <li>
-                <Link href="/werk/mari-lines" className="text-accent hover:underline">
+                <Link
+                  href={localePath(locale, "/werk/mari-lines")}
+                  className="text-accent hover:underline"
+                >
                   mari-lines.be
                 </Link>{" "}
-                — schone B2B-positionering.
+                — B2B.
               </li>
             </ul>
           </Block>
 
-          <Block icon={Clock} title="Bandbreedte">
+          <Block icon={Clock} title={c.bandwidthTitle}>
             <p className="mt-3 text-foreground/90">
-              Geen ruimte voor nieuwe grote projecten dit kwartaal. Kleine opdrachten
-              (websites tot 5 pagina's, urgent fixes) wel mogelijk.{" "}
-              <Link href="/#contact" className="text-accent hover:underline">
-                Stuur een bericht
-              </Link>{" "}
-              om te zien of het past.
+              {c.bandwidthA}
+              <Link
+                href={localePath(locale, "/#contact")}
+                className="text-accent hover:underline"
+              >
+                {c.bandwidthLink}
+              </Link>
+              {c.bandwidthB}
             </p>
           </Block>
         </div>
@@ -126,12 +248,4 @@ function Block({
       <div className="mt-1 leading-relaxed">{children}</div>
     </section>
   );
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-BE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 }
