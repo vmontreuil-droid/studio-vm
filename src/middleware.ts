@@ -23,6 +23,7 @@ export function middleware(req: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/auth/") ||
     pathname === "/icon" ||
     pathname === "/apple-icon" ||
     pathname === "/opengraph-image" ||

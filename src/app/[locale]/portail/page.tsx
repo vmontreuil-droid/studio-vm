@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Lock, FileText, Activity, MessageSquare } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import { PortailLogin } from "@/components/portail-login";
 
 type Copy = {
   metaTitle: string;
@@ -132,6 +135,21 @@ export default async function PortailPage({
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
+
+  // Echte auth indien Supabase geconfigureerd; anders de demo hieronder.
+  if (supabaseConfigured) {
+    const sb = await getSupabaseServer();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    if (user) redirect(localePath(locale, "/portail/dashboard"));
+    return (
+      <main>
+        <PortailLogin locale={locale} />
+      </main>
+    );
+  }
+
   const c = copy[locale];
   const featureIcons = [FileText, Activity, MessageSquare];
 
