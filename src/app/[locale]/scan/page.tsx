@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { SiteScanner } from "@/components/site-scanner";
+import { monitorConfigured } from "@/lib/supabase/config";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 const copy: Record<
@@ -107,7 +108,7 @@ export default async function ScanPage({
             {c.lead}
           </p>
           <div className="mt-10">
-            <SiteScanner />
+            <SiteScanner monitorEnabled={monitorConfigured} />
           </div>
         </div>
       </section>

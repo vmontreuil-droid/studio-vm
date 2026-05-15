@@ -714,7 +714,11 @@ function detect(headers: Headers, html: string, finalUrl: string): Detection {
 }
 
 export async function scanSite(formData: FormData): Promise<ScanResult> {
-  const raw = String(formData.get("url") ?? "").trim();
+  return runScan(String(formData.get("url") ?? "").trim());
+}
+
+export async function runScan(rawInput: string): Promise<ScanResult> {
+  const raw = rawInput.trim();
   if (!raw) return { ok: false, error: "Geef een website-adres in." };
 
   let url: URL;

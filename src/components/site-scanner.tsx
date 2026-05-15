@@ -34,6 +34,7 @@ import {
   DEFAULT_LOCALE,
   type Locale,
 } from "@/lib/i18n/config";
+import { MonitorSignup } from "@/components/monitor-signup";
 
 type Txt = { title: string; why: string; fix: string };
 
@@ -687,7 +688,11 @@ const SEV_ICON: Record<Severity, React.ReactNode> = {
   critical: <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" strokeWidth={2.5} />,
 };
 
-export function SiteScanner() {
+export function SiteScanner({
+  monitorEnabled = false,
+}: {
+  monitorEnabled?: boolean;
+}) {
   const params = useParams();
   const raw = Array.isArray(params.locale) ? params.locale[0] : params.locale;
   const locale: Locale = isValidLocale(raw) ? raw : DEFAULT_LOCALE;
@@ -1218,6 +1223,8 @@ export function SiteScanner() {
             </button>
           </div>
         </div>
+
+        {monitorEnabled && <MonitorSignup url={host} locale={locale} />}
 
         <p className="text-center font-mono text-[11px] text-muted">{t.disclaimer}</p>
       </div>
