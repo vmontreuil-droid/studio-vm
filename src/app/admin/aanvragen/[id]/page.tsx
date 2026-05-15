@@ -192,20 +192,6 @@ export default async function QuoteDetail({
         </dl>
       )}
 
-      {/* tijdelijke diagnose: wat zit er in snapshot? */}
-      {isBuilder && (
-        <p className="mt-4 rounded-lg border border-dashed bg-card p-3 font-mono text-[11px] text-muted">
-          diagnose · snapshot:{" "}
-          {snap
-            ? `keys=[${Object.keys(snap as object).join(", ")}] · pages=${
-                Array.isArray((snap as { pages?: unknown[] }).pages)
-                  ? (snap as { pages: unknown[] }).pages.length
-                  : "—"
-              }`
-            : "NULL (geen ontwerp opgeslagen)"}
-        </p>
-      )}
-
       {/* Builder-ontwerp */}
       {snap && (
         <div className="mt-4 rounded-2xl border bg-card p-5">
