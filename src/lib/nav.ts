@@ -16,6 +16,7 @@ export const allNav: NavItem[] = [
   { href: "/diensten", label: "Diensten", group: "Diensten" },
   { href: "/scan", label: "Gratis site-scan", group: "Diensten" },
   { href: "/roi", label: "ROI-calculator", group: "Diensten" },
+  { href: "/kosten", label: "Kostenvergelijking", group: "Diensten" },
   { href: "/aanpak", label: "Aanpak", group: "Diensten" },
   { href: "/vergelijking", label: "Vergelijking", group: "Diensten" },
   { href: "/shop", label: "Templates shop", group: "Diensten" },

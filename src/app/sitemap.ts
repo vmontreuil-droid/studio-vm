@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/changelog",
     "/scan",
     "/roi",
+    "/kosten",
     "/diensten",
     "/aanpak",
     "/vergelijking",

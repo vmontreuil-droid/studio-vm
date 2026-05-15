@@ -3,12 +3,17 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
+export type ScanCat = "speed" | "seo" | "mobile" | "security" | "platform";
+
 export type ScanSignal = {
   key: string;
+  cat: ScanCat;
   ok: boolean | "warn";
   label: string;
   detail: string;
 };
+
+export type CategoryScore = { cat: ScanCat; score: number };
 
 export type ScanResult =
   | {
@@ -20,6 +25,7 @@ export type ScanResult =
       responseMs: number;
       htmlKb: number;
       signals: ScanSignal[];
+      categories: CategoryScore[];
     }
   | { ok: false; error: string };
 
@@ -195,6 +201,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
     const signals: ScanSignal[] = [
       {
         key: "https",
+        cat: "security",
         ok: isHttps,
         label: "HTTPS",
         detail: isHttps
@@ -203,6 +210,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "speed",
+        cat: "speed",
         ok: okSpeed ? true : slow ? false : "warn",
         label: "Reactietijd",
         detail: `${responseMs} ms tot eerste byte${
@@ -211,6 +219,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "weight",
+        cat: "speed",
         ok: htmlKb < 150 ? true : htmlKb < 400 ? "warn" : false,
         label: "HTML-gewicht",
         detail: `${htmlKb} KB HTML${
@@ -219,6 +228,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "compression",
+        cat: "speed",
         ok: compressed,
         label: "Compressie",
         detail: compressed
@@ -227,6 +237,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "viewport",
+        cat: "mobile",
         ok: hasViewport,
         label: "Mobiel-meta",
         detail: hasViewport
@@ -235,12 +246,14 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "title",
+        cat: "seo",
         ok: !!title,
         label: "Titel",
         detail: title ? `"${title.slice(0, 60)}"` : "Geen <title> gevonden.",
       },
       {
         key: "description",
+        cat: "seo",
         ok: hasDesc,
         label: "Meta-omschrijving",
         detail: hasDesc
@@ -249,6 +262,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "og",
+        cat: "seo",
         ok: hasOg,
         label: "Open Graph",
         detail: hasOg
@@ -257,6 +271,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "scripts",
+        cat: "speed",
         ok: scriptCount < 12 ? true : scriptCount < 25 ? "warn" : false,
         label: "Scripts",
         detail: `${scriptCount} <script>-tags${
@@ -265,6 +280,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       },
       {
         key: "stack",
+        cat: "platform",
         ok: heavyCms ? "warn" : true,
         label: "Platform",
         detail: heavyCms
@@ -279,8 +295,22 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
     );
     const score = Math.round((scored / signals.length) * 100);
 
+    const cats: ScanCat[] = ["speed", "seo", "mobile", "security", "platform"];
+    const categories: CategoryScore[] = cats.map((cat) => {
+      const sig = signals.filter((s) => s.cat === cat);
+      const sc = sig.reduce(
+        (s, x) => s + (x.ok === true ? 1 : x.ok === "warn" ? 0.5 : 0),
+        0,
+      );
+      return {
+        cat,
+        score: sig.length ? Math.round((sc / sig.length) * 100) : 100,
+      };
+    });
+
     return {
       ok: true,
+      categories,
       url: url.toString(),
       finalUrl: res.url,
       score,

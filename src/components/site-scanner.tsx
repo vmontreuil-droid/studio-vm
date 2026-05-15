@@ -42,6 +42,8 @@ const T: Record<
     disclaimer: string;
     again: string;
     benchTitle: string;
+    catTitle: string;
+    cats: Record<string, string>;
     benchYou: string;
     benchSvm: string;
     benchNote: string;
@@ -68,6 +70,8 @@ const T: Record<
     disclaimer:
       "Snelle heuristische check, geen volledige audit. Live opgehaald vanaf onze server. Voor een grondige analyse: stuur een bericht.",
     again: "Andere site scannen",
+    catTitle: "Per categorie",
+    cats: { speed: "Snelheid", seo: "SEO", mobile: "Mobiel", security: "Veiligheid", platform: "Platform" },
     benchTitle: "Jouw site vs. een Studio VM-build",
     benchYou: "Jouw site",
     benchSvm: "Studio VM-standaard",
@@ -96,6 +100,8 @@ const T: Record<
     disclaimer:
       "Check heuristique rapide, pas un audit complet. Récupéré en direct depuis notre serveur. Pour une analyse approfondie : envoyez un message.",
     again: "Scanner un autre site",
+    catTitle: "Par catégorie",
+    cats: { speed: "Vitesse", seo: "SEO", mobile: "Mobile", security: "Sécurité", platform: "Plateforme" },
     benchTitle: "Votre site vs. un build Studio VM",
     benchYou: "Votre site",
     benchSvm: "Standard Studio VM",
@@ -124,6 +130,8 @@ const T: Record<
     disclaimer:
       "Quick heuristic check, not a full audit. Fetched live from our server. For a thorough analysis: send a message.",
     again: "Scan another site",
+    catTitle: "By category",
+    cats: { speed: "Speed", seo: "SEO", mobile: "Mobile", security: "Security", platform: "Platform" },
     benchTitle: "Your site vs. a Studio VM build",
     benchYou: "Your site",
     benchSvm: "Studio VM standard",
@@ -274,6 +282,36 @@ export function SiteScanner() {
                 <strong className="text-foreground">{result.htmlKb} KB</strong>
               </span>
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border bg-card p-6">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            {t.catTitle}
+          </p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {result.categories.map((c) => {
+              const col =
+                c.score >= 75 ? "#16a34a" : c.score >= 45 ? "#f59e0b" : "#ef4444";
+              return (
+                <div key={c.cat}>
+                  <div className="mb-1.5 flex items-baseline justify-between">
+                    <span className="text-xs font-medium">
+                      {t.cats[c.cat]}
+                    </span>
+                    <span className="font-mono text-[11px] text-muted">
+                      {c.score}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-border">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${c.score}%`, background: col }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
