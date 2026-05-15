@@ -58,6 +58,7 @@ export type ScanResult =
       findings: Finding[];
       categories: CategoryScore[];
       pitfalls: string[];
+      cwvRisk: "low" | "medium" | "high";
       flags: {
         diyPlatform: boolean;
         outdated: boolean;
@@ -65,6 +66,8 @@ export type ScanResult =
         slow: boolean;
         bloated: boolean;
         modern: boolean;
+        abandoned: boolean;
+        gdprRisk: boolean;
       };
     }
   | { ok: false; error: string };
@@ -129,6 +132,90 @@ async function resolveIp(hostname: string): Promise<string | null> {
     return r[0]?.address ?? null;
   } catch {
     return null;
+  }
+}
+
+const UA =
+  "StudioVM-SiteCheck/1.0 (+https://studio-vm.be; vriendelijke diagnose, geen crawl)";
+
+type Probe = {
+  status: number;
+  ok: boolean;
+  text: string;
+  location: string | null;
+  cache: string;
+} | null;
+
+// Veilige same-origin sub-probe: opnieuw DNS-gevalideerd, korte timeout, kleine cap.
+async function probe(
+  origin: string,
+  path: string,
+  manualRedirect = false,
+): Promise<Probe> {
+  let u: URL;
+  try {
+    u = new URL(path, origin);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+  if (await validateHost(u.hostname)) return null;
+
+  const c = new AbortController();
+  const tm = setTimeout(() => c.abort(), 4500);
+  try {
+    const r = await fetch(u.toString(), {
+      method: "GET",
+      redirect: manualRedirect ? "manual" : "follow",
+      signal: c.signal,
+      headers: { "User-Agent": UA, Accept: "*/*" },
+    });
+    if (!manualRedirect) {
+      try {
+        const fh = new URL(r.url).hostname;
+        if (fh !== u.hostname && (await validateHost(fh))) return null;
+      } catch {}
+    }
+    const cap = 64_000;
+    let got = 0;
+    const parts: Uint8Array[] = [];
+    const rd = r.body?.getReader();
+    if (rd) {
+      while (got < cap) {
+        const { done, value } = await rd.read();
+        if (done) break;
+        if (value) {
+          parts.push(value);
+          got += value.length;
+        }
+      }
+      await rd.cancel().catch(() => {});
+    }
+    const buf = new Uint8Array(Math.min(got, cap));
+    let o = 0;
+    for (const p of parts) {
+      if (o >= cap) break;
+      buf.set(p.subarray(0, cap - o), o);
+      o += p.length;
+    }
+    return {
+      status: r.status,
+      ok: r.ok,
+      text: new TextDecoder().decode(buf),
+      location: r.headers.get("location"),
+      cache: [
+        r.headers.get("cache-control"),
+        r.headers.get("etag"),
+        r.headers.get("last-modified"),
+        r.headers.get("expires"),
+      ]
+        .filter(Boolean)
+        .join(" | "),
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(tm);
   }
 }
 
@@ -665,6 +752,137 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       { key: "permissions", present: !!permpol },
     ];
 
+    // ---- Diepere HTML-kwaliteit ----
+    const headSection = html.split(/<\/head>/i)[0] || html;
+    const renderBlockingCss = (
+      headSection.match(/<link[^>]+rel=["']stylesheet["']/gi) || []
+    ).filter((l) => !/\bmedia=["']print["']/i.test(l)).length;
+    const headingSeq = (html.match(/<h([1-6])[\s>]/gi) || []).map((m) =>
+      parseInt(m.replace(/\D/g, ""), 10),
+    );
+    let headingSkip = false;
+    for (let i = 1; i < headingSeq.length; i++) {
+      if (headingSeq[i] - headingSeq[i - 1] > 1) {
+        headingSkip = true;
+        break;
+      }
+    }
+    const deprecatedHtml =
+      /<(?:center|font|marquee|blink|big|strike|tt)[\s>]/i.test(html) ||
+      /\bbgcolor=|\balign=["'](?:left|right|center)["'][^>]*>\s*<t[dr]/i.test(
+        html,
+      );
+    const inlineHandlers = (
+      html.match(/\son(?:click|load|error|mouseover|submit)\s*=/gi) || []
+    ).length;
+    const imgTagsAll = imgTags;
+    const responsiveImg =
+      /<picture[\s>]/i.test(html) || /<img[^>]+srcset=/i.test(html);
+    const lazyImg = imgCount
+      ? (html.match(/<img[^>]+loading=["']lazy["']/gi) || []).length /
+        imgCount
+      : 1;
+    const consentBanner =
+      /cookiebot|onetrust|cookieyes|complianz|cookie-?consent|axeptio|tarteaucitron|usercentrics|borlabs|iubenda|didomi/i.test(
+        html,
+      );
+    const years = (html.match(/(?:©|&copy;|copyright)[^0-9]{0,16}(20[0-9]{2})/gi) || [])
+      .map((s) => parseInt(s.match(/20[0-9]{2}/)?.[0] || "0", 10))
+      .filter((y) => y > 2000 && y <= new Date().getFullYear() + 1);
+    const copyrightYear = years.length ? Math.max(...years) : 0;
+    const nowYear = new Date().getFullYear();
+    const staleCopyright = copyrightYear > 0 && copyrightYear < nowYear - 1;
+    const textOnly = html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const wordCount = textOnly ? textOnly.split(" ").length : 0;
+    const anchors = html.match(/<a\b[^>]*>[\s\S]*?<\/a>/gi) || [];
+    const emptyLinks = anchors.filter((a) => {
+      const inner = a
+        .replace(/<a\b[^>]*>/i, "")
+        .replace(/<\/a>/i, "")
+        .replace(/<[^>]+>/g, "")
+        .trim();
+      const hasAria = /aria-label=|title=/i.test(a.match(/<a\b[^>]*>/i)?.[0] || "");
+      const hasImgAlt = /<img[^>]+alt=["'][^"']+["']/i.test(a);
+      return !inner && !hasAria && !hasImgAlt;
+    }).length;
+    const docCache = [
+      head.get("cache-control"),
+      head.get("etag"),
+      head.get("last-modified"),
+      head.get("expires"),
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    // ---- Same-origin probes (SSRF-veilig, parallel) ----
+    const origin = (() => {
+      try {
+        return new URL(res.url).origin;
+      } catch {
+        return url.origin;
+      }
+    })();
+    const httpOrigin = `http://${(() => {
+      try {
+        return new URL(origin).hostname;
+      } catch {
+        return url.hostname;
+      }
+    })()}`;
+    const probePath = `/studio-vm-check-${Date.now().toString(36)}`;
+    const [robotsP, securityP, notfoundP, httpP] = await Promise.all([
+      probe(origin, "/robots.txt"),
+      probe(origin, "/.well-known/security.txt"),
+      probe(origin, probePath),
+      isHttps ? probe(httpOrigin, "/", true) : Promise.resolve(null),
+    ]);
+    const robotsTxt = !!(
+      robotsP &&
+      robotsP.status === 200 &&
+      !/^\s*<(?:!doctype|html)/i.test(robotsP.text)
+    );
+    const robotsBlocksAll =
+      robotsTxt && /user-agent:\s*\*[\s\S]*?disallow:\s*\/\s*(?:\n|$)/i.test(robotsP!.text);
+    const sitemapRef = robotsTxt
+      ? robotsP!.text.match(/sitemap:\s*(\S+)/i)?.[1]
+      : undefined;
+    const sitemapP = await probe(origin, sitemapRef || "/sitemap.xml");
+    const sitemapXml = !!(
+      sitemapP &&
+      sitemapP.status === 200 &&
+      /<(?:urlset|sitemapindex)/i.test(sitemapP.text)
+    );
+    const sitemapUrls = sitemapXml
+      ? (sitemapP!.text.match(/<loc>/gi) || []).length
+      : 0;
+    const securityTxt = !!(
+      securityP &&
+      securityP.status === 200 &&
+      /contact:/i.test(securityP.text)
+    );
+    const soft404 = !!(notfoundP && notfoundP.status === 200);
+    const httpsRedirect = !isHttps
+      ? false
+      : !httpP
+        ? null
+        : [301, 302, 307, 308].includes(httpP.status) &&
+          /^https:/i.test(httpP.location || "");
+
+    const cwvScore =
+      (responseMs > 1500 ? 2 : responseMs > 800 ? 1 : 0) +
+      (htmlKb > 400 ? 2 : htmlKb > 150 ? 1 : 0) +
+      (renderBlockingCss > 4 ? 2 : renderBlockingCss > 2 ? 1 : 0) +
+      (scriptCount > 25 ? 2 : scriptCount > 12 ? 1 : 0) +
+      (imgCount > 0 && !responsiveImg ? 1 : 0) +
+      (imgCount > 3 && lazyImg < 0.3 ? 1 : 0);
+    const cwvRisk: "low" | "medium" | "high" =
+      cwvScore >= 6 ? "high" : cwvScore >= 3 ? "medium" : "low";
+
     const slow = responseMs > 1500;
     const okSpeed = responseMs <= 800;
     const heavyCms = ["WordPress", "Drupal", "Joomla", "Wix"].includes(stack);
@@ -825,6 +1043,103 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
         diyPlatform ? "warning" : "good",
         diyPlatform ? stack : undefined,
       ),
+      F("deprecatedHtml", "platform", deprecatedHtml ? "warning" : "good"),
+      F(
+        "staleCopyright",
+        "platform",
+        staleCopyright ? "warning" : copyrightYear ? "good" : "info",
+        copyrightYear ? `© ${copyrightYear}` : undefined,
+      ),
+      // Config / crawlbaarheid
+      F(
+        "httpsRedirect",
+        "security",
+        httpsRedirect === null
+          ? "info"
+          : httpsRedirect
+            ? "good"
+            : isHttps
+              ? "warning"
+              : "critical",
+      ),
+      F(
+        "securityTxt",
+        "security",
+        securityTxt ? "good" : "info",
+      ),
+      F(
+        "inlineHandlers",
+        "security",
+        inlineHandlers === 0
+          ? "good"
+          : inlineHandlers < 5
+            ? "warning"
+            : "critical",
+        inlineHandlers ? `${inlineHandlers}` : undefined,
+      ),
+      F(
+        "consentBanner",
+        "security",
+        consentBanner ? "good" : "warning",
+      ),
+      F(
+        "robotsTxt",
+        "seo",
+        !robotsTxt ? "warning" : robotsBlocksAll ? "critical" : "good",
+      ),
+      F(
+        "sitemapXml",
+        "seo",
+        sitemapXml ? "good" : "warning",
+        sitemapXml ? `${sitemapUrls} URL's` : undefined,
+      ),
+      F("soft404", "seo", soft404 ? "warning" : "good"),
+      F("headingOrder", "seo", headingSkip ? "warning" : "good"),
+      F(
+        "thinContent",
+        "seo",
+        wordCount === 0
+          ? "info"
+          : wordCount < 250
+            ? "warning"
+            : "good",
+        wordCount ? `${wordCount}` : undefined,
+      ),
+      F(
+        "cacheHeaders",
+        "speed",
+        docCache ? "good" : "warning",
+      ),
+      F(
+        "renderBlockingCss",
+        "speed",
+        renderBlockingCss <= 2
+          ? "good"
+          : renderBlockingCss <= 4
+            ? "warning"
+            : "critical",
+        `${renderBlockingCss}`,
+      ),
+      F(
+        "responsiveImg",
+        "speed",
+        imgCount === 0 ? "info" : responsiveImg ? "good" : "warning",
+      ),
+      F(
+        "lazyImg",
+        "speed",
+        imgCount <= 3 ? "info" : lazyImg >= 0.5 ? "good" : "warning",
+      ),
+      F(
+        "linkText",
+        "mobile",
+        emptyLinks === 0
+          ? "good"
+          : emptyLinks < 4
+            ? "warning"
+            : "critical",
+        emptyLinks ? `${emptyLinks}` : undefined,
+      ),
     ];
 
     const W: Record<Severity, number> = {
@@ -879,6 +1194,9 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       modern:
         ["Next.js", "Nuxt", "Astro", "SvelteKit", "Gatsby"].includes(stack) &&
         score >= 75,
+      abandoned:
+        staleCopyright && (det.hasOutdatedLib || heavyCms || score < 55),
+      gdprRisk: !consentBanner && (extDomains >= 4 || det.pluginCount > 0),
     };
 
     let host = url.hostname;
@@ -910,6 +1228,7 @@ export async function scanSite(formData: FormData): Promise<ScanResult> {
       findings,
       categories,
       pitfalls,
+      cwvRisk,
       flags,
     };
   } catch (err) {

@@ -73,6 +73,22 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     pluginBloat: { title: "Plugin-stapeling", why: "Elke plugin is extra code, extra updates en een extra mogelijk lek. Veel plugins = traag en kwetsbaar.", fix: "Plugins drastisch verminderen of functionaliteit native herbouwen." },
     outdatedLib: { title: "Verouderde libraries", why: "Oude bibliotheken (zoals oude jQuery) hebben bekende, publiek gedocumenteerde beveiligingslekken.", fix: "Updaten naar een veilige versie of vervangen door moderne code." },
     builderLockin: { title: "Platform lock-in", why: "Op een gesloten DIY-platform ben je de code, data en prijszetting niet de baas — overstappen is duur.", fix: "Naar een open stack (eigen code, eigen hosting) waar je niets verplicht afneemt." },
+    deprecatedHtml: { title: "Verouderde HTML", why: "Tags als <center>, <font> of layout-tabellen wijzen op code uit een ander tijdperk: slecht voor mobiel, toegankelijkheid en onderhoud.", fix: "Hercoderen naar moderne, semantische HTML met CSS voor opmaak." },
+    staleCopyright: { title: "Verouderd copyright-jaartal", why: "Een jaartal van enkele jaren terug onderaan de site doet bezoekers (en Google) vermoeden dat de zaak niet meer actief is — dat kost vertrouwen en klanten.", fix: "Het jaartal automatisch laten meelopen en de inhoud actueel houden." },
+    httpsRedirect: { title: "HTTP → HTTPS-omleiding", why: "Wie http:// intikt, hoort automatisch naar de veilige https-versie gestuurd te worden. Gebeurt dat niet, dan blijft een onversleutelde versie bereikbaar.", fix: "Een permanente 301-redirect van http naar https instellen." },
+    securityTxt: { title: "security.txt", why: "Een security.txt (RFC 9116) vertelt onderzoekers hoe ze een lek veilig kunnen melden. Professioneel, en steeds vaker verwacht.", fix: "Een /.well-known/security.txt met een contactadres plaatsen." },
+    inlineHandlers: { title: "Inline JavaScript-handlers", why: "onclick=… rechtstreeks in de HTML maakt een strikte CSP onmogelijk en is een klassieke XSS-vergroter.", fix: "Event-handlers in een apart script zetten i.p.v. inline." },
+    consentBanner: { title: "Cookie-/consent-banner", why: "Laad je tracking of externe scripts zonder geldige toestemming, dan overtreed je de GDPR/AVG — met boeterisico.", fix: "Een consent-banner plaatsen die scripts pas na toestemming laadt." },
+    robotsTxt: { title: "robots.txt", why: "Zonder robots.txt mis je sturing voor zoekmachines; een verkeerde 'Disallow: /' houdt je hele site uit Google.", fix: "Een correcte robots.txt plaatsen die naar je sitemap verwijst." },
+    sitemapXml: { title: "XML-sitemap", why: "Een sitemap helpt Google al je pagina's snel en volledig te vinden. Zonder, blijft diepe inhoud soms onontdekt.", fix: "Een sitemap.xml genereren en in robots.txt + Search Console aanmelden." },
+    soft404: { title: "Soft-404", why: "Een onbestaande pagina die toch '200 OK' teruggeeft verwart Google en laat fouten ongemerkt — slecht voor SEO én UX.", fix: "Echte 404-statuscodes teruggeven voor onbestaande pagina's." },
+    headingOrder: { title: "Koppenhiërarchie", why: "Een sprong van H1 naar H3 verwart screenreaders en zwakt je SEO-structuur af.", fix: "Koppen logisch nesten: H1 → H2 → H3, zonder niveaus over te slaan." },
+    thinContent: { title: "Dunne inhoud", why: "Erg weinig tekst geeft Google nauwelijks iets om op te ranken en bezoekers weinig reden om te blijven.", fix: "Substantiële, waardevolle inhoud toevoegen per pagina." },
+    cacheHeaders: { title: "Cache-headers", why: "Zonder Cache-Control/ETag laadt elke bezoeker alles opnieuw — trager en duurder in bandbreedte.", fix: "Verstandige Cache-Control- en validatie-headers instellen." },
+    renderBlockingCss: { title: "Render-blokkerende CSS", why: "Veel stylesheets in de <head> stellen het eerste zichtbare beeld uit — direct voelbaar als 'traag'.", fix: "CSS bundelen, kritieke CSS inline en de rest uitgesteld laden." },
+    responsiveImg: { title: "Responsieve afbeeldingen", why: "Zonder srcset/<picture> krijgt een gsm dezelfde zware desktopfoto's — onnodig databverbruik en traagheid.", fix: "srcset en moderne formaten (WebP/AVIF) gebruiken." },
+    lazyImg: { title: "Lazy-loading", why: "Alle afbeeldingen meteen laden vertraagt de eerste indruk, ook voor beelden die nog niet in beeld zijn.", fix: "loading=\"lazy\" toepassen op afbeeldingen onder de vouw." },
+    linkText: { title: "Lege links", why: "Links zonder tekst of label zijn onbruikbaar met een screenreader en geven Google geen context.", fix: "Elke link beschrijvende tekst of een aria-label geven." },
   },
   fr: {
     https: { title: "Chiffrement HTTPS", why: "Sans HTTPS, tout le monde sur le réseau peut lire. Les navigateurs affichent « Non sécurisé » et Google déclasse.", fix: "Installer un certificat SSL (gratuit via Let's Encrypt) et tout forcer en https." },
@@ -109,6 +125,22 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     pluginBloat: { title: "Empilement de plugins", why: "Chaque plugin = du code, des mises à jour et une faille potentielle en plus. Beaucoup = lent et vulnérable.", fix: "Réduire drastiquement les plugins ou recoder en natif." },
     outdatedLib: { title: "Bibliothèques obsolètes", why: "Les vieilles bibliothèques (vieux jQuery) ont des failles connues et publiquement documentées.", fix: "Mettre à jour vers une version sûre ou remplacer par du code moderne." },
     builderLockin: { title: "Verrouillage plateforme", why: "Sur une plateforme DIY fermée, vous ne maîtrisez ni le code, ni les données, ni le prix.", fix: "Passer à une stack ouverte (votre code, votre hébergement)." },
+    deprecatedHtml: { title: "HTML obsolète", why: "Des balises comme <center>, <font> ou des tableaux de mise en page trahissent du code d'une autre époque : mauvais pour le mobile, l'accessibilité et la maintenance.", fix: "Recoder en HTML moderne et sémantique avec du CSS pour la mise en forme." },
+    staleCopyright: { title: "Année de copyright périmée", why: "Une année de plusieurs ans en pied de page fait croire aux visiteurs (et à Google) que l'activité n'est plus active — cela coûte de la confiance.", fix: "Faire défiler l'année automatiquement et garder le contenu à jour." },
+    httpsRedirect: { title: "Redirection HTTP → HTTPS", why: "Qui tape http:// doit être renvoyé automatiquement vers la version sécurisée https. Sinon, une version non chiffrée reste accessible.", fix: "Mettre une redirection 301 permanente de http vers https." },
+    securityTxt: { title: "security.txt", why: "Un security.txt (RFC 9116) indique aux chercheurs comment signaler une faille en toute sécurité. Professionnel et de plus en plus attendu.", fix: "Placer un /.well-known/security.txt avec une adresse de contact." },
+    inlineHandlers: { title: "Gestionnaires JS inline", why: "onclick=… directement dans le HTML rend une CSP stricte impossible et amplifie le XSS.", fix: "Mettre les gestionnaires d'événements dans un script séparé." },
+    consentBanner: { title: "Bannière de consentement", why: "Charger du tracking ou des scripts externes sans consentement valable enfreint le RGPD — avec risque d'amende.", fix: "Placer une bannière qui ne charge les scripts qu'après consentement." },
+    robotsTxt: { title: "robots.txt", why: "Sans robots.txt, pas de pilotage pour les moteurs ; un mauvais 'Disallow: /' retire tout votre site de Google.", fix: "Placer un robots.txt correct qui pointe vers votre sitemap." },
+    sitemapXml: { title: "Sitemap XML", why: "Un sitemap aide Google à trouver toutes vos pages vite et complètement. Sans, le contenu profond reste parfois invisible.", fix: "Générer un sitemap.xml et le déclarer dans robots.txt + Search Console." },
+    soft404: { title: "Soft-404", why: "Une page inexistante qui renvoie '200 OK' trouble Google et masque les erreurs — mauvais pour le SEO et l'UX.", fix: "Renvoyer un vrai code 404 pour les pages inexistantes." },
+    headingOrder: { title: "Hiérarchie des titres", why: "Un saut de H1 à H3 trouble les lecteurs d'écran et affaiblit votre structure SEO.", fix: "Imbriquer les titres logiquement : H1 → H2 → H3, sans sauter de niveau." },
+    thinContent: { title: "Contenu mince", why: "Très peu de texte donne peu à Google pour classer et peu de raisons de rester aux visiteurs.", fix: "Ajouter un contenu substantiel et utile par page." },
+    cacheHeaders: { title: "En-têtes de cache", why: "Sans Cache-Control/ETag, chaque visiteur recharge tout — plus lent et plus coûteux en bande passante.", fix: "Définir des en-têtes Cache-Control et de validation pertinents." },
+    renderBlockingCss: { title: "CSS bloquant le rendu", why: "Beaucoup de feuilles de style dans le <head> retardent le premier affichage — ressenti comme « lent ».", fix: "Regrouper le CSS, inliner le CSS critique et différer le reste." },
+    responsiveImg: { title: "Images responsives", why: "Sans srcset/<picture>, un mobile reçoit les mêmes photos lourdes que le desktop — données et lenteur inutiles.", fix: "Utiliser srcset et des formats modernes (WebP/AVIF)." },
+    lazyImg: { title: "Lazy-loading", why: "Charger toutes les images d'emblée ralentit la première impression, même pour ce qui n'est pas encore visible.", fix: "Appliquer loading=\"lazy\" aux images sous la ligne de flottaison." },
+    linkText: { title: "Liens vides", why: "Des liens sans texte ni libellé sont inutilisables au lecteur d'écran et ne donnent aucun contexte à Google.", fix: "Donner à chaque lien un texte descriptif ou un aria-label." },
   },
   en: {
     https: { title: "HTTPS encryption", why: "Without HTTPS anyone on the network can eavesdrop. Browsers show 'Not secure' and Google ranks you lower.", fix: "Install an SSL certificate (free via Let's Encrypt) and force everything to https." },
@@ -145,6 +177,22 @@ const FIND: Record<Locale, Record<string, Txt>> = {
     pluginBloat: { title: "Plugin stacking", why: "Every plugin is extra code, updates and a potential exploit. Many plugins = slow and vulnerable.", fix: "Drastically reduce plugins or rebuild functionality natively." },
     outdatedLib: { title: "Outdated libraries", why: "Old libraries (like old jQuery) have known, publicly documented security holes.", fix: "Update to a safe version or replace with modern code." },
     builderLockin: { title: "Platform lock-in", why: "On a closed DIY platform you don't own the code, data or pricing — moving away is costly.", fix: "Move to an open stack (your code, your hosting)." },
+    deprecatedHtml: { title: "Outdated HTML", why: "Tags like <center>, <font> or layout tables signal code from another era: bad for mobile, accessibility and maintenance.", fix: "Recode to modern, semantic HTML with CSS for styling." },
+    staleCopyright: { title: "Stale copyright year", why: "A year several years old in the footer makes visitors (and Google) suspect the business is no longer active — that costs trust.", fix: "Auto-roll the year and keep content current." },
+    httpsRedirect: { title: "HTTP → HTTPS redirect", why: "Anyone typing http:// should be sent automatically to the secure https version. If not, an unencrypted version stays reachable.", fix: "Set a permanent 301 redirect from http to https." },
+    securityTxt: { title: "security.txt", why: "A security.txt (RFC 9116) tells researchers how to report a flaw safely. Professional, and increasingly expected.", fix: "Place a /.well-known/security.txt with a contact address." },
+    inlineHandlers: { title: "Inline JS handlers", why: "onclick=… directly in HTML makes a strict CSP impossible and is a classic XSS amplifier.", fix: "Move event handlers into a separate script instead of inline." },
+    consentBanner: { title: "Cookie/consent banner", why: "Loading tracking or external scripts without valid consent breaches GDPR — with fine risk.", fix: "Add a consent banner that loads scripts only after consent." },
+    robotsTxt: { title: "robots.txt", why: "Without robots.txt there's no search-engine steering; a wrong 'Disallow: /' removes your whole site from Google.", fix: "Place a correct robots.txt that points to your sitemap." },
+    sitemapXml: { title: "XML sitemap", why: "A sitemap helps Google find all your pages fast and fully. Without it, deep content sometimes stays undiscovered.", fix: "Generate a sitemap.xml and declare it in robots.txt + Search Console." },
+    soft404: { title: "Soft 404", why: "A non-existent page that still returns '200 OK' confuses Google and hides errors — bad for SEO and UX.", fix: "Return real 404 status codes for non-existent pages." },
+    headingOrder: { title: "Heading hierarchy", why: "A jump from H1 to H3 confuses screen readers and weakens your SEO structure.", fix: "Nest headings logically: H1 → H2 → H3, without skipping levels." },
+    thinContent: { title: "Thin content", why: "Very little text gives Google little to rank and visitors little reason to stay.", fix: "Add substantial, valuable content per page." },
+    cacheHeaders: { title: "Cache headers", why: "Without Cache-Control/ETag every visitor reloads everything — slower and costlier in bandwidth.", fix: "Set sensible Cache-Control and validation headers." },
+    renderBlockingCss: { title: "Render-blocking CSS", why: "Many stylesheets in the <head> delay the first visible paint — directly felt as 'slow'.", fix: "Bundle CSS, inline critical CSS and defer the rest." },
+    responsiveImg: { title: "Responsive images", why: "Without srcset/<picture> a phone gets the same heavy desktop photos — needless data and slowness.", fix: "Use srcset and modern formats (WebP/AVIF)." },
+    lazyImg: { title: "Lazy-loading", why: "Loading all images at once slows the first impression, even for images not yet in view.", fix: "Apply loading=\"lazy\" to below-the-fold images." },
+    linkText: { title: "Empty links", why: "Links without text or label are unusable with a screen reader and give Google no context.", fix: "Give every link descriptive text or an aria-label." },
   },
 };
 
@@ -184,6 +232,9 @@ const UI: Record<
     honest: (f: ScanResult & { ok: true }) => string;
     catTitle: string;
     cats: Record<string, string>;
+    cwvTitle: string;
+    cwvLabels: Record<"low" | "medium" | "high", string>;
+    cwvNote: string;
     pitfallTitle: string;
     pitfallNone: string;
     findingsTitle: string;
@@ -261,6 +312,10 @@ const UI: Record<
         lines.push("De beveiliging is onvoldoende. Dit is geen detail: het raakt het vertrouwen van je bezoekers en je AVG/GDPR-verplichtingen.");
       if (f.flags.slow)
         lines.push("De site is traag. Trage sites verliezen aantoonbaar bezoekers én Google-positie — dit kost je rechtstreeks geld.");
+      if (f.flags.abandoned)
+        lines.push("De site oogt verwaarloosd: oude techniek én een verouderd jaartal. Bezoekers vragen zich af of je nog actief bent — en je betaalt mogelijk voor 'onderhoud' dat duidelijk niet gebeurt.");
+      if (f.flags.gdprRisk)
+        lines.push("Er worden externe scripts/trackers geladen zonder zichtbare cookie-toestemming. Dat is een concreet GDPR-boeterisico, geen theorie.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("Kortom: wat je nu hebt, levert niet wat een site in 2026 hoort te leveren. Of dat 'oplichting' is hangt af van wat je ervoor betaalt — maar het kan beduidend beter, vaak voor minder dan je nu denkt.");
       if (lines.length === 0)
@@ -269,6 +324,9 @@ const UI: Record<
     },
     catTitle: "Score per categorie",
     cats: { speed: "Snelheid", seo: "SEO", mobile: "Mobiel", security: "Veiligheid", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risico-inschatting",
+    cwvLabels: { low: "Laag risico", medium: "Matig risico", high: "Hoog risico" },
+    cwvNote: "Inschatting op basis van reactietijd, gewicht, render-blokkerende CSS, scripts en beeldaanpak. Google gebruikt Core Web Vitals als rankingfactor; hoog risico = traag aanvoelende site die bezoekers en posities kost.",
     pitfallTitle: "Waar de valkuilen zitten",
     pitfallNone: "Geen grote valkuilen gevonden — netjes.",
     findingsTitle: "Alle bevindingen, met uitleg",
@@ -354,6 +412,10 @@ const UI: Record<
         lines.push("La sécurité est insuffisante. Ce n'est pas un détail : cela touche la confiance des visiteurs et vos obligations RGPD.");
       if (f.flags.slow)
         lines.push("Le site est lent. Les sites lents perdent visiteurs et position Google — cela vous coûte directement de l'argent.");
+      if (f.flags.abandoned)
+        lines.push("Le site paraît négligé : technique ancienne et année périmée. Les visiteurs doutent que vous soyez encore actif — et vous payez peut-être un « entretien » qui n'a manifestement pas lieu.");
+      if (f.flags.gdprRisk)
+        lines.push("Des scripts/traceurs externes se chargent sans consentement cookie visible. C'est un risque d'amende RGPD concret, pas théorique.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("Bref : ce que vous avez ne livre pas ce qu'un site devrait livrer en 2026. « Arnaque » ou non dépend du prix payé — mais c'est nettement améliorable.");
       if (lines.length === 0)
@@ -362,6 +424,9 @@ const UI: Record<
     },
     catTitle: "Score par catégorie",
     cats: { speed: "Vitesse", seo: "SEO", mobile: "Mobile", security: "Sécurité", platform: "Plateforme" },
+    cwvTitle: "Core Web Vitals — estimation du risque",
+    cwvLabels: { low: "Risque faible", medium: "Risque modéré", high: "Risque élevé" },
+    cwvNote: "Estimation basée sur le temps de réponse, le poids, le CSS bloquant, les scripts et la gestion des images. Google utilise les Core Web Vitals comme facteur de classement ; risque élevé = site ressenti comme lent qui coûte visiteurs et positions.",
     pitfallTitle: "Où sont les pièges",
     pitfallNone: "Aucun piège majeur trouvé — propre.",
     findingsTitle: "Toutes les observations, expliquées",
@@ -447,6 +512,10 @@ const UI: Record<
         lines.push("Security is insufficient. Not a detail: it touches visitor trust and your GDPR obligations.");
       if (f.flags.slow)
         lines.push("The site is slow. Slow sites measurably lose visitors and Google ranking — this costs you money directly.");
+      if (f.flags.abandoned)
+        lines.push("The site looks neglected: old tech plus a stale year. Visitors wonder if you're still active — and you may be paying for 'maintenance' that clearly isn't happening.");
+      if (f.flags.gdprRisk)
+        lines.push("External scripts/trackers load without a visible cookie consent. That's a concrete GDPR fine risk, not theory.");
       if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
         lines.push("In short: what you have doesn't deliver what a site should in 2026. Whether that's a 'rip-off' depends on what you pay — but it can be markedly better.");
       if (lines.length === 0)
@@ -455,6 +524,9 @@ const UI: Record<
     },
     catTitle: "Score per category",
     cats: { speed: "Speed", seo: "SEO", mobile: "Mobile", security: "Security", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risk estimate",
+    cwvLabels: { low: "Low risk", medium: "Medium risk", high: "High risk" },
+    cwvNote: "Estimate based on response time, weight, render-blocking CSS, scripts and image approach. Google uses Core Web Vitals as a ranking factor; high risk = a slow-feeling site that costs visitors and rankings.",
     pitfallTitle: "Where the pitfalls are",
     pitfallNone: "No major pitfalls found — clean.",
     findingsTitle: "Every finding, explained",
@@ -683,6 +755,52 @@ export function SiteScanner() {
               );
             })}
           </div>
+        </div>
+
+        {/* Core Web Vitals risico */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <GaugeIcon className="h-4 w-4" strokeWidth={2} />
+            {t.cwvTitle}
+          </p>
+          <div className="mt-5 flex items-center gap-4">
+            <span
+              className="rounded-full px-3 py-1 text-sm font-semibold"
+              style={{
+                background:
+                  r.cwvRisk === "low"
+                    ? "rgba(22,163,74,0.15)"
+                    : r.cwvRisk === "medium"
+                      ? "rgba(245,158,11,0.15)"
+                      : "rgba(239,68,68,0.15)",
+                color:
+                  r.cwvRisk === "low"
+                    ? "#16a34a"
+                    : r.cwvRisk === "medium"
+                      ? "#b45309"
+                      : "#ef4444",
+              }}
+            >
+              {t.cwvLabels[r.cwvRisk]}
+            </span>
+            <div className="flex flex-1 gap-1.5">
+              {(["low", "medium", "high"] as const).map((lvl, i) => {
+                const active =
+                  (r.cwvRisk === "low" && i === 0) ||
+                  (r.cwvRisk === "medium" && i <= 1) ||
+                  r.cwvRisk === "high";
+                const col = i === 0 ? "#16a34a" : i === 1 ? "#f59e0b" : "#ef4444";
+                return (
+                  <div
+                    key={lvl}
+                    className="h-2.5 flex-1 rounded-full"
+                    style={{ background: active ? col : "var(--border)" }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted">{t.cwvNote}</p>
         </div>
 
         {/* Valkuilen */}
