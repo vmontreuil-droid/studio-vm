@@ -18,6 +18,8 @@ import {
   ImagePlus,
   Loader2,
   Check,
+  Pencil,
+  ChevronDown,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -37,6 +39,43 @@ type SectionKind =
   | "faq"
   | "cta"
   | "contact";
+
+type SectionData = Record<string, unknown>;
+type Section = { id: string; kind: SectionKind; data: SectionData };
+type Page = { id: string; name: string; sections: Section[] };
+
+const PG: Record<
+  Locale,
+  {
+    panel: string;
+    add: string;
+    name: string;
+    del: string;
+    menuHint: string;
+  }
+> = {
+  nl: {
+    panel: "Pagina's & menu",
+    add: "Nieuwe pagina",
+    name: "Paginanaam",
+    del: "Verwijder pagina",
+    menuHint: "Dit wordt je navigatiemenu — sleep met de pijltjes.",
+  },
+  fr: {
+    panel: "Pages & menu",
+    add: "Nouvelle page",
+    name: "Nom de la page",
+    del: "Supprimer la page",
+    menuHint: "Ceci devient votre menu de navigation — réordonnez avec les flèches.",
+  },
+  en: {
+    panel: "Pages & menu",
+    add: "New page",
+    name: "Page name",
+    del: "Delete page",
+    menuHint: "This becomes your navigation menu — reorder with the arrows.",
+  },
+};
 
 type Theme = { slug: string; bg: string; fg: string; accent: string };
 
@@ -89,9 +128,6 @@ const T: Record<
     add: string;
     panelReady: string;
     readyText: string;
-    sendPreview: string;
-    mailSubject: (n: string) => string;
-    mailBody: (n: string, theme: string, sections: string) => string;
     emptyPreview: string;
     ctaTitle: string;
     ctaText: string;
@@ -103,19 +139,20 @@ const T: Record<
     radiusLabel: string;
     radii: { strak: string; zacht: string; rond: string };
     dup: string;
+    edit: string;
+    addItem: string;
     colorsLabel: string;
     colorBg: string;
     colorFg: string;
     colorAccent: string;
     imagesLabel: string;
     uploadHint: string;
-    aboutTextLabel: string;
-    ctaTextLabel: string;
     buildEmail: string;
     buildSend: string;
     buildSending: string;
     buildSent: string;
     buildErr: string;
+    fields: Record<string, string>;
     preview: {
       welcome: string;
       tagline: string;
@@ -148,46 +185,65 @@ const T: Record<
 > = {
   nl: {
     eyebrow: "Builder",
-    title: "Bouw je eigen pagina, klik per klik.",
+    title: "Bouw je eigen site, tot in detail.",
     intro:
-      "Probeer eens. Kies een thema, voeg secties toe, herschik ze, en zie je site groeien. Klaar? Stuur je preview door en ik werk hem voor je uit.",
+      "Kies een thema, voeg secties toe en vul je eigen teksten in. Wat je hier maakt, komt volledig in mijn admin — ik geef het de finishing touch en zet 'm live.",
     panelTheme: "Naam + thema",
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
-    panelSections: "Secties",
+    panelSections: "Secties & inhoud",
     sectionLabels: { hero: "Hero", features: "Features", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", cta: "Oproep", contact: "Contact" },
     add: "Voeg toe",
     panelReady: "Klaar?",
-    readyText: "Stuur je preview door en ik bouw 'm voor je uit als echte site, met eigen content en admin.",
-    sendPreview: "Stuur preview door",
-    mailSubject: (n) => `Builder preview voor ${n}`,
-    mailBody: (n, theme, sections) =>
-      `Hoi Vincent,\n\nIk bouwde een preview op studio-vm.be/builder voor "${n}".\nThema: ${theme}\nSecties: ${sections}\n\nKan je een offerte maken?\n\nGroeten`,
+    readyText:
+      "Stuur je volledige ontwerp door — alle teksten en de opbouw komen in mijn admin. Ik werk het uit tot een echte site.",
     emptyPreview: "Begin met een sectie toe te voegen.",
-    ctaTitle: "Liever ineens een echt design?",
+    ctaTitle: "Liever ineens samen ontwerpen?",
     ctaText:
-      "De builder is een speelgoed — leuk om te proberen, niet om je echte zaak op te laten draaien. Voor dat laatste zit je beter bij een Pro-pakket.",
+      "De builder geeft je volledige controle. Wil je sparren over strategie en design? Bekijk de pakketten.",
     ctaButton: "Bekijk pakketten",
-    panelStyle: "Tekst & stijl",
+    panelStyle: "Stijl",
     taglineLabel: "Slogan / tagline",
     fontLabel: "Lettertype",
     fonts: { sans: "Modern", serif: "Klassiek", mono: "Technisch", display: "Karakter" },
     radiusLabel: "Hoeken",
     radii: { strak: "Strak", zacht: "Zacht", rond: "Rond" },
     dup: "Dupliceer",
+    edit: "Bewerk inhoud",
+    addItem: "Item toevoegen",
     colorsLabel: "Eigen kleuren",
     colorBg: "Achtergrond",
     colorFg: "Tekst",
     colorAccent: "Accent",
     imagesLabel: "Afbeeldingen",
     uploadHint: "Sleep of kies foto's — verschijnen in galerij & 'over ons'.",
-    aboutTextLabel: "Over-ons tekst",
-    ctaTextLabel: "Oproep-tekst",
     buildEmail: "Je e-mail",
     buildSend: "Stuur naar Studio VM",
     buildSending: "Versturen…",
-    buildSent: "Top! Je ontwerp staat in mijn admin — ik werk het voor je uit.",
+    buildSent: "Top! Je volledige ontwerp staat in mijn admin — ik werk het voor je uit.",
     buildErr: "Versturen mislukte. Probeer opnieuw of mail rechtstreeks.",
+    fields: {
+      eyebrow: "Boventitel",
+      heading: "Titel",
+      sub: "Ondertekst",
+      button: "Knoptekst",
+      title: "Titel",
+      text: "Tekst",
+      itemTitle: "Titel",
+      itemDesc: "Omschrijving",
+      value: "Cijfer",
+      label: "Label",
+      quote: "Citaat",
+      who: "Wie",
+      name: "Naam",
+      price: "Prijs",
+      per: "Periode",
+      q: "Vraag",
+      a: "Antwoord",
+      emailAddr: "E-mailadres",
+      phone: "Telefoon",
+      address: "Adres",
+    },
     preview: {
       welcome: "Welkom bij",
       tagline: "Een tagline die uitlegt wat je doet.",
@@ -227,46 +283,65 @@ const T: Record<
   },
   fr: {
     eyebrow: "Builder",
-    title: "Construisez votre page, clic par clic.",
+    title: "Construisez votre site, dans le détail.",
     intro:
-      "Essayez. Choisissez un thème, ajoutez des sections, réorganisez-les, et regardez votre site grandir. Prêt ? Envoyez votre preview et je le finalise pour vous.",
+      "Choisissez un thème, ajoutez des sections et saisissez vos propres textes. Tout ce que vous créez ici arrive dans mon admin — je le finalise et le mets en ligne.",
     panelTheme: "Nom + thème",
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
-    panelSections: "Sections",
+    panelSections: "Sections & contenu",
     sectionLabels: { hero: "Hero", features: "Atouts", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", cta: "Appel", contact: "Contact" },
     add: "Ajouter",
     panelReady: "Prêt ?",
-    readyText: "Envoyez votre preview et je le construis en vrai site, avec contenu propre et admin.",
-    sendPreview: "Envoyer la preview",
-    mailSubject: (n) => `Preview builder pour ${n}`,
-    mailBody: (n, theme, sections) =>
-      `Bonjour Vincent,\n\nJ'ai construit une preview sur studio-vm.be/builder pour "${n}".\nThème : ${theme}\nSections : ${sections}\n\nPouvez-vous faire un devis ?\n\nCordialement`,
+    readyText:
+      "Envoyez votre design complet — tous les textes et la structure arrivent dans mon admin. Je le finalise en vrai site.",
     emptyPreview: "Commencez par ajouter une section.",
-    ctaTitle: "Plutôt un vrai design directement ?",
+    ctaTitle: "Plutôt concevoir ensemble ?",
     ctaText:
-      "Le builder est un jouet — sympa à essayer, pas pour faire tourner votre vraie activité. Pour ça, un forfait Pro est plus indiqué.",
+      "Le builder vous donne le contrôle total. Envie d'échanger sur la stratégie et le design ? Voir les forfaits.",
     ctaButton: "Voir les forfaits",
-    panelStyle: "Texte & style",
+    panelStyle: "Style",
     taglineLabel: "Slogan / accroche",
     fontLabel: "Police",
     fonts: { sans: "Moderne", serif: "Classique", mono: "Technique", display: "Caractère" },
     radiusLabel: "Coins",
     radii: { strak: "Net", zacht: "Doux", rond: "Rond" },
     dup: "Dupliquer",
+    edit: "Modifier le contenu",
+    addItem: "Ajouter un élément",
     colorsLabel: "Couleurs perso",
     colorBg: "Fond",
     colorFg: "Texte",
     colorAccent: "Accent",
     imagesLabel: "Images",
     uploadHint: "Glissez ou choisissez des photos — visibles dans galerie & à-propos.",
-    aboutTextLabel: "Texte à-propos",
-    ctaTextLabel: "Texte d'appel",
     buildEmail: "Votre e-mail",
     buildSend: "Envoyer à Studio VM",
     buildSending: "Envoi…",
-    buildSent: "Super ! Votre design est dans mon admin — je le finalise.",
+    buildSent: "Super ! Votre design complet est dans mon admin — je le finalise.",
     buildErr: "Échec de l'envoi. Réessayez ou écrivez-moi directement.",
+    fields: {
+      eyebrow: "Sur-titre",
+      heading: "Titre",
+      sub: "Sous-texte",
+      button: "Texte du bouton",
+      title: "Titre",
+      text: "Texte",
+      itemTitle: "Titre",
+      itemDesc: "Description",
+      value: "Chiffre",
+      label: "Libellé",
+      quote: "Citation",
+      who: "Qui",
+      name: "Nom",
+      price: "Prix",
+      per: "Période",
+      q: "Question",
+      a: "Réponse",
+      emailAddr: "Adresse e-mail",
+      phone: "Téléphone",
+      address: "Adresse",
+    },
     preview: {
       welcome: "Bienvenue chez",
       tagline: "Une accroche qui explique ce que vous faites.",
@@ -306,46 +381,65 @@ const T: Record<
   },
   en: {
     eyebrow: "Builder",
-    title: "Build your own page, click by click.",
+    title: "Build your own site, down to the detail.",
     intro:
-      "Give it a try. Pick a theme, add sections, reorder them, and watch your site grow. Done? Send your preview and I'll finalize it for you.",
+      "Pick a theme, add sections and fill in your own copy. Everything you make here lands in my admin — I give it the finishing touch and put it live.",
     panelTheme: "Name + theme",
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
-    panelSections: "Sections",
+    panelSections: "Sections & content",
     sectionLabels: { hero: "Hero", features: "Features", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", cta: "Call-out", contact: "Contact" },
     add: "Add",
     panelReady: "Done?",
-    readyText: "Send your preview and I'll build it into a real site, with your own content and admin.",
-    sendPreview: "Send preview",
-    mailSubject: (n) => `Builder preview for ${n}`,
-    mailBody: (n, theme, sections) =>
-      `Hi Vincent,\n\nI built a preview on studio-vm.be/builder for "${n}".\nTheme: ${theme}\nSections: ${sections}\n\nCan you make a quote?\n\nBest`,
+    readyText:
+      "Send your full design — all copy and the structure land in my admin. I build it into a real site.",
     emptyPreview: "Start by adding a section.",
-    ctaTitle: "Rather a real design straight away?",
+    ctaTitle: "Rather design together?",
     ctaText:
-      "The builder is a toy — fun to try, not to run your real business on. For that, a Pro package is the better fit.",
+      "The builder gives you full control. Want to spar on strategy and design? See the packages.",
     ctaButton: "See packages",
-    panelStyle: "Text & style",
+    panelStyle: "Style",
     taglineLabel: "Slogan / tagline",
     fontLabel: "Typeface",
     fonts: { sans: "Modern", serif: "Classic", mono: "Technical", display: "Character" },
     radiusLabel: "Corners",
     radii: { strak: "Sharp", zacht: "Soft", rond: "Round" },
     dup: "Duplicate",
+    edit: "Edit content",
+    addItem: "Add item",
     colorsLabel: "Custom colors",
     colorBg: "Background",
     colorFg: "Text",
     colorAccent: "Accent",
     imagesLabel: "Images",
     uploadHint: "Drag or pick photos — shown in gallery & about.",
-    aboutTextLabel: "About text",
-    ctaTextLabel: "Call-out text",
     buildEmail: "Your email",
     buildSend: "Send to Studio VM",
     buildSending: "Sending…",
-    buildSent: "Great! Your design is in my admin — I'll build it out.",
+    buildSent: "Great! Your full design is in my admin — I'll build it out.",
     buildErr: "Sending failed. Try again or email me directly.",
+    fields: {
+      eyebrow: "Eyebrow",
+      heading: "Heading",
+      sub: "Subtext",
+      button: "Button text",
+      title: "Title",
+      text: "Text",
+      itemTitle: "Title",
+      itemDesc: "Description",
+      value: "Figure",
+      label: "Label",
+      quote: "Quote",
+      who: "Who",
+      name: "Name",
+      price: "Price",
+      per: "Period",
+      q: "Question",
+      a: "Answer",
+      emailAddr: "Email address",
+      phone: "Phone",
+      address: "Address",
+    },
     preview: {
       welcome: "Welcome to",
       tagline: "A tagline that explains what you do.",
@@ -385,6 +479,62 @@ const T: Record<
   },
 };
 
+type Preview = (typeof T)[Locale]["preview"];
+
+let _id = 0;
+const uid = () => `s${++_id}`;
+
+function defaults(kind: SectionKind, p: Preview): SectionData {
+  switch (kind) {
+    case "hero":
+      return { eyebrow: p.welcome, heading: "", sub: p.tagline, button: p.discover };
+    case "features":
+      return {
+        title: p.featuresTitle,
+        items: [1, 2, 3].map((i) => ({
+          title: `${p.feature} ${i}`,
+          desc: p.featureDesc,
+        })),
+      };
+    case "about":
+      return { title: p.aboutTitle, text: p.aboutText };
+    case "stats":
+      return {
+        title: p.statsTitle,
+        items: p.statsItems.map((s) => ({ value: s.v, label: s.l })),
+      };
+    case "testimonials":
+      return {
+        title: p.testiTitle,
+        items: p.testi.map((t) => ({ quote: t.q, who: t.w })),
+      };
+    case "pricing":
+      return {
+        title: p.pricingTitle,
+        items: p.tiers.map((t) => ({ name: t.n, price: t.p, per: p.perMonth })),
+      };
+    case "gallery":
+      return { title: p.galleryTitle };
+    case "faq":
+      return {
+        title: p.faqTitle,
+        items: p.faqs.map((f) => ({ q: f.q, a: f.a })),
+      };
+    case "cta":
+      return { title: p.ctaTitle2, text: p.ctaText2, button: p.ctaBtn2 };
+    case "contact":
+      return { title: p.contactTitle, emailAddr: "", phone: "", address: "" };
+  }
+}
+
+const itemTemplate: Partial<Record<SectionKind, Record<string, string>>> = {
+  features: { title: "", desc: "" },
+  stats: { value: "", label: "" },
+  testimonials: { quote: "", who: "" },
+  pricing: { name: "", price: "", per: "" },
+  faq: { q: "", a: "" },
+};
+
 export default function BuilderPage() {
   const params = useParams();
   const raw = Array.isArray(params.locale) ? params.locale[0] : params.locale;
@@ -392,21 +542,34 @@ export default function BuilderPage() {
   const c = T[locale];
 
   const [theme, setTheme] = useState<Theme>(themes[0]);
-  const [sections, setSections] = useState<SectionKind[]>([
-    "hero",
-    "features",
-    "contact",
-  ]);
   const [businessName, setBusinessName] = useState(
     locale === "fr" ? "Mon Affaire" : locale === "en" ? "My Business" : "Mijn Zaak",
   );
-
-  const [tagline, setTagline] = useState("");
   const [font, setFont] = useState<FontKey>("sans");
   const [radius, setRadius] = useState<RadiusKey>("zacht");
   const [images, setImages] = useState<string[]>([]);
-  const [aboutText, setAboutText] = useState("");
-  const [ctaText, setCtaText] = useState("");
+  const pg = PG[locale];
+  const [pages, setPages] = useState<Page[]>(() => [
+    {
+      id: uid(),
+      name: "Home",
+      sections: (["hero", "features", "contact"] as SectionKind[]).map((k) => ({
+        id: uid(),
+        kind: k,
+        data: defaults(k, c.preview),
+      })),
+    },
+  ]);
+  const [activeId, setActiveId] = useState("");
+  const active = pages.find((p) => p.id === activeId) ?? pages[0];
+  const setSections = (fn: (s: Section[]) => Section[]) =>
+    setPages((ps) =>
+      ps.map((p) =>
+        p.id === active.id ? { ...p, sections: fn(p.sections) } : p,
+      ),
+    );
+  const sections = active.sections;
+  const [openId, setOpenId] = useState<string | null>(null);
   const [buildEmail, setBuildEmail] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
   const [pending, startSend] = useTransition();
@@ -419,29 +582,67 @@ export default function BuilderPage() {
         if (!file.type.startsWith("image/") || file.size > 3_000_000) return;
         const reader = new FileReader();
         reader.onload = () =>
-          setImages((s) =>
-            s.length >= 10 ? s : [...s, String(reader.result)],
-          );
+          setImages((s) => (s.length >= 10 ? s : [...s, String(reader.result)]));
         reader.readAsDataURL(file);
       });
   };
 
-  const addSection = (k: SectionKind) => setSections((s) => [...s, k]);
-  const removeSection = (idx: number) =>
-    setSections((s) => s.filter((_, i) => i !== idx));
-  const duplicateSection = (idx: number) =>
+  const addSection = (k: SectionKind) => {
+    const s: Section = { id: uid(), kind: k, data: defaults(k, c.preview) };
+    setSections((arr) => [...arr, s]);
+    setOpenId(s.id);
+  };
+  const removeSection = (id: string) =>
+    setSections((s) => s.filter((x) => x.id !== id));
+  const duplicateSection = (id: string) =>
     setSections((s) => {
+      const i = s.findIndex((x) => x.id === id);
+      if (i < 0) return s;
       const n = [...s];
-      n.splice(idx + 1, 0, s[idx]);
+      n.splice(i + 1, 0, { ...s[i], id: uid(), data: structuredClone(s[i].data) });
       return n;
     });
-  const moveSection = (idx: number, dir: -1 | 1) =>
+  const moveSection = (id: string, dir: -1 | 1) =>
     setSections((s) => {
-      const next = [...s];
-      const tgt = idx + dir;
-      if (tgt < 0 || tgt >= next.length) return s;
-      [next[idx], next[tgt]] = [next[tgt], next[idx]];
+      const i = s.findIndex((x) => x.id === id);
+      const tgt = i + dir;
+      if (i < 0 || tgt < 0 || tgt >= s.length) return s;
+      const n = [...s];
+      [n[i], n[tgt]] = [n[tgt], n[i]];
+      return n;
+    });
+  const patchData = (id: string, patch: SectionData) =>
+    setSections((s) =>
+      s.map((x) => (x.id === id ? { ...x, data: { ...x.data, ...patch } } : x)),
+    );
+
+  const addPage = () => {
+    const np: Page = {
+      id: uid(),
+      name: locale === "fr" ? "Nouvelle" : locale === "en" ? "New" : "Nieuw",
+      sections: [{ id: uid(), kind: "hero", data: defaults("hero", c.preview) }],
+    };
+    setPages((ps) => [...ps, np]);
+    setActiveId(np.id);
+    setOpenId(null);
+  };
+  const renamePage = (id: string, name: string) =>
+    setPages((ps) => ps.map((p) => (p.id === id ? { ...p, name } : p)));
+  const deletePage = (id: string) =>
+    setPages((ps) => {
+      if (ps.length <= 1) return ps;
+      const next = ps.filter((p) => p.id !== id);
+      if (id === active.id) setActiveId(next[0].id);
       return next;
+    });
+  const movePage = (id: string, dir: -1 | 1) =>
+    setPages((ps) => {
+      const i = ps.findIndex((p) => p.id === id);
+      const tgt = i + dir;
+      if (i < 0 || tgt < 0 || tgt >= ps.length) return ps;
+      const n = [...ps];
+      [n[i], n[tgt]] = [n[tgt], n[i]];
+      return n;
     });
 
   return (
@@ -459,7 +660,7 @@ export default function BuilderPage() {
       </section>
 
       <section className="border-b">
-        <div className="mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[320px_1fr]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[340px_1fr]">
           <aside className="space-y-6">
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -493,7 +694,6 @@ export default function BuilderPage() {
                   </button>
                 ))}
               </div>
-
               <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.colorsLabel}
               </p>
@@ -528,16 +728,7 @@ export default function BuilderPage() {
             </Panel>
 
             <Panel icon={<Type className="h-4 w-4" />} title={c.panelStyle}>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
-                {c.taglineLabel}
-              </label>
-              <input
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-                placeholder={c.preview.tagline}
-                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-              />
-              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.fontLabel}
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -577,27 +768,6 @@ export default function BuilderPage() {
                   </button>
                 ))}
               </div>
-
-              <label className="mt-4 block font-mono text-[10px] uppercase tracking-widest text-muted">
-                {c.aboutTextLabel}
-              </label>
-              <textarea
-                value={aboutText}
-                onChange={(e) => setAboutText(e.target.value)}
-                placeholder={c.preview.aboutText}
-                rows={3}
-                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-              />
-              <label className="mt-3 block font-mono text-[10px] uppercase tracking-widest text-muted">
-                {c.ctaTextLabel}
-              </label>
-              <input
-                value={ctaText}
-                onChange={(e) => setCtaText(e.target.value)}
-                placeholder={c.preview.ctaText2}
-                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-              />
-
               <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.imagesLabel}
               </p>
@@ -628,11 +798,7 @@ export default function BuilderPage() {
                       className="group relative aspect-square overflow-hidden rounded-md border"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={src}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={src} alt="" className="h-full w-full object-cover" />
                       <span className="absolute inset-0 hidden items-center justify-center bg-black/50 text-white group-hover:flex">
                         <X className="h-4 w-4" strokeWidth={2} />
                       </span>
@@ -642,51 +808,152 @@ export default function BuilderPage() {
               )}
             </Panel>
 
-            <Panel icon={<Layers className="h-4 w-4" />} title={c.panelSections}>
+            <Panel icon={<Layers className="h-4 w-4" />} title={pg.panel}>
+              <p className="mb-3 text-[11px] text-muted">{pg.menuHint}</p>
               <ul className="space-y-2">
-                {sections.map((kind, i) => (
+                {pages.map((p, i) => (
                   <li
-                    key={`${kind}-${i}`}
-                    className="flex items-center justify-between rounded-lg border bg-background px-3 py-2 text-sm"
+                    key={p.id}
+                    className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 ${
+                      p.id === active.id
+                        ? "border-accent bg-card-hover"
+                        : "bg-background"
+                    }`}
                   >
-                    <span>{c.sectionLabels[kind]}</span>
-                    <div className="flex items-center gap-1 text-muted">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveId(p.id);
+                        setOpenId(null);
+                      }}
+                      aria-label="select"
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{
+                        background:
+                          p.id === active.id
+                            ? "var(--accent)"
+                            : "var(--border)",
+                      }}
+                    />
+                    <input
+                      value={p.name}
+                      onChange={(e) => renamePage(p.id, e.target.value)}
+                      onFocus={() => {
+                        setActiveId(p.id);
+                        setOpenId(null);
+                      }}
+                      className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                    />
+                    <span className="flex items-center gap-0.5 text-muted">
                       <button
                         type="button"
-                        onClick={() => moveSection(i, -1)}
+                        onClick={() => movePage(p.id, -1)}
+                        disabled={i === 0}
                         aria-label="↑"
                         className="rounded p-1 hover:text-foreground disabled:opacity-30"
-                        disabled={i === 0}
                       >
-                        <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
+                        <ArrowUp className="h-3 w-3" strokeWidth={2} />
                       </button>
                       <button
                         type="button"
-                        onClick={() => moveSection(i, 1)}
+                        onClick={() => movePage(p.id, 1)}
+                        disabled={i === pages.length - 1}
                         aria-label="↓"
                         className="rounded p-1 hover:text-foreground disabled:opacity-30"
-                        disabled={i === sections.length - 1}
                       >
-                        <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+                        <ArrowDown className="h-3 w-3" strokeWidth={2} />
                       </button>
+                      {pages.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => deletePage(p.id)}
+                          aria-label={pg.del}
+                          title={pg.del}
+                          className="rounded p-1 hover:text-red-500"
+                        >
+                          <X className="h-3 w-3" strokeWidth={2} />
+                        </button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={addPage}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] text-muted hover:bg-card-hover hover:text-foreground"
+              >
+                <Plus className="h-3 w-3" strokeWidth={2.5} />
+                {pg.add}
+              </button>
+            </Panel>
+
+            <Panel
+              icon={<Layers className="h-4 w-4" />}
+              title={`${c.panelSections} — ${active.name}`}
+            >
+              <ul className="space-y-2">
+                {sections.map((s, i) => (
+                  <li key={s.id} className="rounded-lg border bg-background">
+                    <div className="flex items-center justify-between px-3 py-2 text-sm">
                       <button
                         type="button"
-                        onClick={() => duplicateSection(i)}
-                        aria-label={c.dup}
-                        title={c.dup}
-                        className="rounded p-1 hover:text-foreground"
+                        onClick={() =>
+                          setOpenId((o) => (o === s.id ? null : s.id))
+                        }
+                        className="flex flex-1 items-center gap-1.5 text-left"
                       >
-                        <Copy className="h-3.5 w-3.5" strokeWidth={2} />
+                        <ChevronDown
+                          className={`h-3.5 w-3.5 text-muted transition-transform ${
+                            openId === s.id ? "" : "-rotate-90"
+                          }`}
+                          strokeWidth={2}
+                        />
+                        {c.sectionLabels[s.kind]}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => removeSection(i)}
-                        aria-label="x"
-                        className="rounded p-1 hover:text-foreground"
-                      >
-                        <X className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
+                      <div className="flex items-center gap-1 text-muted">
+                        <button
+                          type="button"
+                          onClick={() => moveSection(s.id, -1)}
+                          aria-label="↑"
+                          className="rounded p-1 hover:text-foreground disabled:opacity-30"
+                          disabled={i === 0}
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveSection(s.id, 1)}
+                          aria-label="↓"
+                          className="rounded p-1 hover:text-foreground disabled:opacity-30"
+                          disabled={i === sections.length - 1}
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => duplicateSection(s.id)}
+                          aria-label={c.dup}
+                          title={c.dup}
+                          className="rounded p-1 hover:text-foreground"
+                        >
+                          <Copy className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeSection(s.id)}
+                          aria-label="x"
+                          className="rounded p-1 hover:text-foreground"
+                        >
+                          <X className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                      </div>
                     </div>
+                    {openId === s.id && (
+                      <div className="border-t p-3">
+                        <SectionEditor section={s} c={c} patch={patchData} />
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -731,10 +998,21 @@ export default function BuilderPage() {
                           `${theme.bg} / ${theme.fg} / ${theme.accent}`,
                         font: c.fonts[font],
                         radius: c.radii[radius],
-                        tagline,
-                        aboutText,
-                        ctaText,
-                        sections: sections.map((s) => c.sectionLabels[s]),
+                        colors: {
+                          bg: theme.bg,
+                          fg: theme.fg,
+                          accent: theme.accent,
+                        },
+                        sections: pages.flatMap((p) =>
+                          p.sections.map((s) => c.sectionLabels[s.kind]),
+                        ),
+                        pages: pages.map((p) => ({
+                          name: p.name,
+                          blocks: p.sections.map((s) => ({
+                            kind: s.kind,
+                            data: s.data,
+                          })),
+                        })),
                         imageCount: images.length,
                       });
                       if (r.ok) setSent("ok");
@@ -789,21 +1067,47 @@ export default function BuilderPage() {
               className="bldr-frame min-h-[600px]"
             >
               <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}`}</style>
+              <nav
+                className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
+                style={{ borderColor: `${theme.fg}1a` }}
+              >
+                <span className="text-sm font-semibold tracking-tight">
+                  {businessName}
+                </span>
+                <span className="ml-auto flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  {pages.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveId(p.id);
+                        setOpenId(null);
+                      }}
+                      className="transition-opacity hover:opacity-100"
+                      style={{
+                        opacity: p.id === active.id ? 1 : 0.55,
+                        color: p.id === active.id ? theme.accent : theme.fg,
+                        fontWeight: p.id === active.id ? 600 : 400,
+                      }}
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </span>
+              </nav>
               {sections.length === 0 ? (
                 <div className="flex h-[600px] flex-col items-center justify-center gap-3 p-8 text-center text-muted">
                   <Layers className="h-12 w-12" strokeWidth={1} />
                   <p>{c.emptyPreview}</p>
                 </div>
               ) : (
-                sections.map((kind, i) => (
+                sections.map((s) => (
                   <PreviewSection
-                    key={`${kind}-${i}`}
-                    kind={kind}
+                    key={s.id}
+                    kind={s.kind}
+                    data={s.data}
                     theme={theme}
                     businessName={businessName}
-                    tagline={tagline}
-                    aboutText={aboutText}
-                    ctaText={ctaText}
                     images={images}
                     p={c.preview}
                   />
@@ -853,29 +1157,192 @@ function Panel({
   );
 }
 
-type Preview = (typeof T)[Locale]["preview"];
+type Loc = (typeof T)[Locale];
+
+const fieldCls =
+  "w-full rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-accent";
+
+function Txt({
+  label,
+  value,
+  onChange,
+  area,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  area?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted">
+        {label}
+      </span>
+      {area ? (
+        <textarea
+          value={value}
+          rows={3}
+          onChange={(e) => onChange(e.target.value)}
+          className={fieldCls}
+        />
+      ) : (
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={fieldCls}
+        />
+      )}
+    </label>
+  );
+}
+
+function SectionEditor({
+  section,
+  c,
+  patch,
+}: {
+  section: Section;
+  c: Loc;
+  patch: (id: string, p: SectionData) => void;
+}) {
+  const f = c.fields;
+  const d = section.data;
+  const set = (k: string, v: unknown) => patch(section.id, { [k]: v });
+  const str = (k: string) => (d[k] == null ? "" : String(d[k]));
+  const items = Array.isArray(d.items)
+    ? (d.items as Record<string, string>[])
+    : [];
+  const setItems = (next: Record<string, string>[]) =>
+    patch(section.id, { items: next });
+  const tmpl = itemTemplate[section.kind];
+
+  const simple: Record<string, string[]> = {
+    hero: ["eyebrow", "heading", "sub", "button"],
+    about: ["title", "text"],
+    cta: ["title", "text", "button"],
+    gallery: ["title"],
+  };
+  const areaKeys = new Set(["text", "sub"]);
+
+  if (simple[section.kind]) {
+    return (
+      <div className="space-y-3">
+        {simple[section.kind].map((k) => (
+          <Txt
+            key={k}
+            label={f[k] ?? k}
+            value={str(k)}
+            area={areaKeys.has(k)}
+            onChange={(v) => set(k, v)}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (section.kind === "contact") {
+    return (
+      <div className="space-y-3">
+        <Txt label={f.title} value={str("title")} onChange={(v) => set("title", v)} />
+        <Txt
+          label={f.emailAddr}
+          value={str("emailAddr")}
+          onChange={(v) => set("emailAddr", v)}
+        />
+        <Txt label={f.phone} value={str("phone")} onChange={(v) => set("phone", v)} />
+        <Txt
+          label={f.address}
+          value={str("address")}
+          onChange={(v) => set("address", v)}
+          area
+        />
+      </div>
+    );
+  }
+
+  // list-based: features, stats, testimonials, pricing, faq
+  const itemFieldLabel: Record<string, Record<string, string>> = {
+    features: { title: f.itemTitle, desc: f.itemDesc },
+    stats: { value: f.value, label: f.label },
+    testimonials: { quote: f.quote, who: f.who },
+    pricing: { name: f.name, price: f.price, per: f.per },
+    faq: { q: f.q, a: f.a },
+  };
+  const labels = itemFieldLabel[section.kind] ?? {};
+
+  return (
+    <div className="space-y-3">
+      <Txt label={f.title} value={str("title")} onChange={(v) => set("title", v)} />
+      {items.map((it, idx) => (
+        <div key={idx} className="rounded-lg border p-2.5">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              #{idx + 1}
+            </span>
+            <button
+              type="button"
+              onClick={() => setItems(items.filter((_, j) => j !== idx))}
+              className="rounded p-0.5 text-muted hover:text-red-500"
+              aria-label="x"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {Object.keys(labels).map((key) => (
+              <Txt
+                key={key}
+                label={labels[key]}
+                value={it[key] ?? ""}
+                area={key === "a" || key === "desc"}
+                onChange={(v) =>
+                  setItems(
+                    items.map((x, j) => (j === idx ? { ...x, [key]: v } : x)),
+                  )
+                }
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+      {items.length < 8 && tmpl && (
+        <button
+          type="button"
+          onClick={() => setItems([...items, { ...tmpl }])}
+          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] text-muted hover:bg-card-hover hover:text-foreground"
+        >
+          <Plus className="h-3 w-3" strokeWidth={2.5} />
+          {c.addItem}
+        </button>
+      )}
+    </div>
+  );
+}
 
 function PreviewSection({
   kind,
+  data,
   theme,
   businessName,
-  tagline,
-  aboutText,
-  ctaText,
   images,
   p,
 }: {
   kind: SectionKind;
+  data: SectionData;
   theme: Theme;
   businessName: string;
-  tagline: string;
-  aboutText: string;
-  ctaText: string;
   images: string[];
   p: Preview;
 }) {
   const accentText = { color: theme.accent };
   const border = { borderColor: `${theme.fg}1a` };
+  const g = (k: string, fb = "") => {
+    const v = data[k];
+    return v == null || v === "" ? fb : String(v);
+  };
+  const list = Array.isArray(data.items)
+    ? (data.items as Record<string, string>[])
+    : [];
 
   switch (kind) {
     case "hero":
@@ -885,19 +1352,17 @@ function PreviewSection({
             className="font-mono text-[10px] uppercase tracking-widest"
             style={accentText}
           >
-            {p.welcome}
+            {g("eyebrow", p.welcome)}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            {businessName}
+            {g("heading", businessName)}
           </h2>
-          <p className="mt-3 text-sm opacity-70" style={{ color: theme.fg }}>
-            {tagline.trim() || p.tagline}
-          </p>
+          <p className="mt-3 text-sm opacity-70">{g("sub", p.tagline)}</p>
           <button
             className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
-            {p.discover}
+            {g("button", p.discover)}
           </button>
         </div>
       );
@@ -905,19 +1370,19 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.featuresTitle}
+            {g("title", p.featuresTitle)}
           </h3>
           <div className="mt-6 grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
+            {(list.length ? list : [{}, {}, {}]).map((it, i) => (
               <div key={i} className="rounded-lg border p-4 text-xs" style={border}>
                 <div
                   className="mb-2 h-6 w-6 rounded-full"
                   style={{ background: theme.accent, opacity: 0.2 }}
                 />
                 <p className="font-semibold">
-                  {p.feature} {i}
+                  {it.title || `${p.feature} ${i + 1}`}
                 </p>
-                <p className="mt-1 opacity-70">{p.featureDesc}</p>
+                <p className="mt-1 opacity-70">{it.desc || p.featureDesc}</p>
               </div>
             ))}
           </div>
@@ -927,21 +1392,23 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.testiTitle}
+            {g("title", p.testiTitle)}
           </h3>
           <div className="mt-6 grid grid-cols-2 gap-4">
-            {p.testi.map((t, i) => (
-              <blockquote
-                key={i}
-                className="rounded-lg border p-4 text-xs"
-                style={border}
-              >
-                <p>"{t.q}"</p>
-                <footer className="mt-2 font-mono text-[10px] opacity-70">
-                  — {t.w}
-                </footer>
-              </blockquote>
-            ))}
+            {(list.length ? list : p.testi.map((t) => ({ quote: t.q, who: t.w }))).map(
+              (t, i) => (
+                <blockquote
+                  key={i}
+                  className="rounded-lg border p-4 text-xs"
+                  style={border}
+                >
+                  <p>&ldquo;{t.quote}&rdquo;</p>
+                  <footer className="mt-2 font-mono text-[10px] opacity-70">
+                    — {t.who}
+                  </footer>
+                </blockquote>
+              ),
+            )}
           </div>
         </div>
       );
@@ -949,20 +1416,23 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.pricingTitle}
+            {g("title", p.pricingTitle)}
           </h3>
           <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-            {p.tiers.map((tier) => (
+            {(list.length
+              ? list
+              : p.tiers.map((t) => ({ name: t.n, price: t.p, per: p.perMonth }))
+            ).map((tier, i) => (
               <div
-                key={tier.n}
+                key={i}
                 className="rounded-lg border p-4 text-center"
                 style={border}
               >
-                <p className="font-semibold">{tier.n}</p>
+                <p className="font-semibold">{tier.name}</p>
                 <p className="mt-1 text-lg" style={accentText}>
-                  {tier.p}
+                  {tier.price}
                 </p>
-                <p className="mt-1 opacity-60">{p.perMonth}</p>
+                <p className="mt-1 opacity-60">{tier.per || p.perMonth}</p>
               </div>
             ))}
           </div>
@@ -972,7 +1442,7 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.galleryTitle}
+            {g("title", p.galleryTitle)}
           </h3>
           <div className="mt-6 grid grid-cols-4 gap-2">
             {images.length > 0
@@ -1018,10 +1488,10 @@ function PreviewSection({
             )}
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
-                {p.aboutTitle}
+                {g("title", p.aboutTitle)}
               </h3>
-              <p className="mt-3 text-sm opacity-70">
-                {aboutText.trim() || p.aboutText}
+              <p className="mt-3 whitespace-pre-wrap text-sm opacity-70">
+                {g("text", p.aboutText)}
               </p>
             </div>
           </div>
@@ -1031,15 +1501,18 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.statsTitle}
+            {g("title", p.statsTitle)}
           </h3>
           <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-            {p.statsItems.map((s, i) => (
+            {(list.length
+              ? list
+              : p.statsItems.map((s) => ({ value: s.v, label: s.l }))
+            ).map((s, i) => (
               <div key={i}>
                 <p className="text-3xl font-bold" style={accentText}>
-                  {s.v}
+                  {s.value}
                 </p>
-                <p className="mt-1 text-xs opacity-70">{s.l}</p>
+                <p className="mt-1 text-xs opacity-70">{s.label}</p>
               </div>
             ))}
           </div>
@@ -1049,17 +1522,20 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.faqTitle}
+            {g("title", p.faqTitle)}
           </h3>
           <div className="mx-auto mt-6 max-w-lg space-y-3">
-            {p.faqs.map((f, i) => (
+            {(list.length
+              ? list
+              : p.faqs.map((x) => ({ q: x.q, a: x.a }))
+            ).map((fitem, i) => (
               <div
                 key={i}
                 className="rounded-lg border p-4 text-xs"
                 style={border}
               >
-                <p className="font-semibold">{f.q}</p>
-                <p className="mt-1 opacity-70">{f.a}</p>
+                <p className="font-semibold">{fitem.q}</p>
+                <p className="mt-1 opacity-70">{fitem.a}</p>
               </div>
             ))}
           </div>
@@ -1072,16 +1548,14 @@ function PreviewSection({
           style={{ ...border, background: `${theme.accent}14` }}
         >
           <h3 className="text-2xl font-semibold tracking-tight">
-            {p.ctaTitle2}
+            {g("title", p.ctaTitle2)}
           </h3>
-          <p className="mt-2 text-sm opacity-70">
-            {ctaText.trim() || p.ctaText2}
-          </p>
+          <p className="mt-2 text-sm opacity-70">{g("text", p.ctaText2)}</p>
           <button
             className="mt-5 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
-            {p.ctaBtn2}
+            {g("button", p.ctaBtn2)}
           </button>
         </div>
       );
@@ -1089,8 +1563,15 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
-            {p.contactTitle}
+            {g("title", p.contactTitle)}
           </h3>
+          {(g("emailAddr") || g("phone") || g("address")) && (
+            <p className="mt-2 text-center text-xs opacity-70">
+              {[g("emailAddr"), g("phone"), g("address")]
+                .filter(Boolean)
+                .join("  ·  ")}
+            </p>
+          )}
           <div className="mx-auto mt-6 max-w-sm space-y-2 text-xs">
             <input
               placeholder={p.name}

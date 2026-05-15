@@ -17,16 +17,36 @@ const STATUS_COLOR: Record<string, string> = {
   archief: "bg-muted/15 text-muted",
 };
 
+type Block = { kind: string; data: Record<string, unknown> };
+type SnapPage = { name: string; blocks: Block[] };
 type Snapshot = {
   theme?: string;
   font?: string;
   radius?: string;
+  colors?: { bg?: string; fg?: string; accent?: string };
   tagline?: string;
   aboutText?: string;
   ctaText?: string;
   sections?: string[];
+  pages?: SnapPage[];
   imageCount?: number;
 };
+
+function fieldVal(v: unknown): string {
+  if (v == null) return "";
+  if (Array.isArray(v))
+    return v
+      .map((x) =>
+        x && typeof x === "object"
+          ? Object.values(x as Record<string, unknown>)
+              .filter(Boolean)
+              .join(" — ")
+          : String(x),
+      )
+      .filter(Boolean)
+      .join("  |  ");
+  return String(v);
+}
 
 type Quote = {
   id: string;
@@ -198,12 +218,69 @@ export default async function QuoteDetail({
               label="Foto's aangeleverd"
               value={snap.imageCount ? String(snap.imageCount) : "0"}
             />
-            <Field label="Slogan" value={snap.tagline} />
-            <Field
-              label="Secties"
-              value={snap.sections?.length ? snap.sections.join(", ") : "—"}
-            />
+            {snap.colors && (
+              <Field
+                label="Kleuren"
+                value={[
+                  snap.colors.bg,
+                  snap.colors.fg,
+                  snap.colors.accent,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+            )}
+            {snap.pages && (
+              <Field
+                label="Menu"
+                value={snap.pages.map((p) => p.name).join(" · ")}
+              />
+            )}
+            {!snap.pages && (
+              <Field
+                label="Secties"
+                value={snap.sections?.length ? snap.sections.join(", ") : "—"}
+              />
+            )}
           </dl>
+
+          {snap.pages && (
+            <div className="mt-5 space-y-5">
+              {snap.pages.map((pageItem, pi) => (
+                <div key={pi} className="rounded-xl border bg-background p-4">
+                  <p className="font-mono text-xs font-semibold uppercase tracking-widest">
+                    {pageItem.name || `Pagina ${pi + 1}`}
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {pageItem.blocks.map((b, bi) => (
+                      <div key={bi} className="border-l-2 border-accent/40 pl-3">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                          {b.kind}
+                        </p>
+                        <dl className="mt-1 space-y-0.5">
+                          {Object.entries(b.data || {}).map(([k, v]) => {
+                            const s = fieldVal(v);
+                            if (!s) return null;
+                            return (
+                              <div
+                                key={k}
+                                className="flex flex-wrap gap-x-2 text-sm"
+                              >
+                                <dt className="font-mono text-[11px] text-muted">
+                                  {k}:
+                                </dt>
+                                <dd className="whitespace-pre-wrap">{s}</dd>
+                              </div>
+                            );
+                          })}
+                        </dl>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {snap.aboutText && (
             <div className="mt-4">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
