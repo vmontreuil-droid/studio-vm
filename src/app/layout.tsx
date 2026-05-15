@@ -3,6 +3,7 @@ import { Montserrat, Geist_Mono } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AmbientBackdrop } from "@/components/ambient-backdrop";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { WebVitals } from "@/components/web-vitals";
 import { isValidLocale, DEFAULT_LOCALE } from "@/lib/i18n/config";
@@ -54,6 +55,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col font-sans antialiased">
+        <AmbientBackdrop />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-background"
