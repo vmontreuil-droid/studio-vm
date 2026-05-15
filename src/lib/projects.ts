@@ -19,7 +19,18 @@ export type ProjectBase = {
   content: Record<Locale, ProjectContent>;
 };
 
-export type Project = Omit<ProjectBase, "content"> & ProjectContent;
+export type Project = Omit<ProjectBase, "content"> &
+  ProjectContent & { image?: string };
+
+// Slugs met een gecureerde screenshot in public/werk/<slug>.webp.
+// Voeg de slug hier toe zodra je het bestand hebt geplaatst → kaart toont
+// de voorpagina; anders blijft de kleurband (nette fallback).
+const WITH_SHOT = new Set<string>([
+  // "cottage-waregem", "barbotte", "celine-interieur", ...
+]);
+function shot(slug: string): string | undefined {
+  return WITH_SHOT.has(slug) ? `/werk/${slug}.webp` : undefined;
+}
 
 const base: ProjectBase[] = [
   {
@@ -355,14 +366,18 @@ const base: ProjectBase[] = [
 ];
 
 export function getProjects(locale: Locale): Project[] {
-  return base.map(({ content, ...rest }) => ({ ...rest, ...content[locale] }));
+  return base.map(({ content, ...rest }) => ({
+    ...rest,
+    ...content[locale],
+    image: shot(rest.slug),
+  }));
 }
 
 export function getProjectBySlug(slug: string, locale: Locale): Project | undefined {
   const p = base.find((x) => x.slug === slug);
   if (!p) return undefined;
   const { content, ...rest } = p;
-  return { ...rest, ...content[locale] };
+  return { ...rest, ...content[locale], image: shot(rest.slug) };
 }
 
 export function getOtherProjects(
