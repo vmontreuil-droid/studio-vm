@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search";
 import { MobileMenu } from "@/components/mobile-menu";
+import { NavLink } from "@/components/nav-link";
 import { LangSwitcher } from "@/components/lang-switcher";
 import { getMessages } from "@/lib/i18n";
 import { localePath, type Locale } from "@/lib/i18n/config";
@@ -39,13 +40,12 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </Link>
         <nav className="hidden items-center gap-6 text-sm md:flex">
           {items.map((item) => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
-              className="text-muted transition-colors hover:text-foreground"
-            >
-              {item.label}
-            </Link>
+              label={item.label}
+              homePath={home.replace(/\/$/, "")}
+            />
           ))}
         </nav>
         <div className="flex items-center gap-1.5 sm:gap-2">

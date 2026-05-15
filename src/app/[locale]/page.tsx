@@ -48,6 +48,7 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
         <div className="hero-grid" />
         <div className="hero-blob hero-blob-a" />
         <div className="hero-blob hero-blob-b" />
+        <div className="hero-sweep" />
       </div>
       <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 sm:py-32 lg:py-40">
         <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
