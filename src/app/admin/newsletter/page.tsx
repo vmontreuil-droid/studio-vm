@@ -51,14 +51,24 @@ export default async function AdminNewsletter() {
             ({active.length} actief · {subs.length} totaal)
           </span>
         </h1>
-        {mailto && (
-          <a
-            href={mailto}
-            className="rounded-full border px-4 py-2 text-sm text-muted hover:text-foreground"
-          >
-            Mail alle actieve abonnees
-          </a>
-        )}
+        <span className="flex flex-wrap items-center gap-2">
+          {subs.length > 0 && (
+            <a
+              href="/admin/newsletter/export"
+              className="rounded-full border px-4 py-2 text-sm text-muted hover:text-foreground"
+            >
+              Exporteer CSV
+            </a>
+          )}
+          {mailto && (
+            <a
+              href={mailto}
+              className="rounded-full border px-4 py-2 text-sm text-muted hover:text-foreground"
+            >
+              Mail alle actieve abonnees
+            </a>
+          )}
+        </span>
       </div>
       <p className="mt-2 text-sm text-muted">
         Inschrijvingen via het formulier in de footer.

@@ -84,10 +84,20 @@ export default async function AdminAanvragen({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Aanvragen{" "}
-        <span className="text-muted">({rows.length})</span>
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Aanvragen{" "}
+          <span className="text-muted">({rows.length})</span>
+        </h1>
+        {rows.length > 0 && (
+          <a
+            href="/admin/aanvragen/export"
+            className="rounded-full border px-4 py-2 text-sm text-muted hover:text-foreground"
+          >
+            Exporteer CSV
+          </a>
+        )}
+      </div>
 
       <form className="mt-6 flex flex-wrap items-center gap-2">
         <input
