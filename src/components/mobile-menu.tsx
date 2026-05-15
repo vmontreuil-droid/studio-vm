@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { allNav } from "@/lib/nav";
@@ -10,6 +11,9 @@ import { localePath, type Locale } from "@/lib/i18n/config";
 
 export function MobileMenu({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -37,8 +41,10 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         <Menu className="h-4 w-4" strokeWidth={2} />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[90] flex flex-col bg-background md:hidden">
+      {open &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[90] flex flex-col bg-background">
           <div className="flex shrink-0 items-center justify-between border-b px-5 py-4">
             <Link
               href={localePath(locale, "/")}
@@ -86,8 +92,9 @@ export function MobileMenu({ locale }: { locale: Locale }) {
             </span>
             <LangSwitcher current={locale} />
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
