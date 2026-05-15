@@ -23,8 +23,25 @@ export async function setStatus(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!id || !STATUSES.includes(status as (typeof STATUSES)[number])) return;
-  await getSupabaseAdmin().from("quotes").update({ status }).eq("id", id);
-  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
+  const db = getSupabaseAdmin();
+  const { data: prev } = await db
+    .from("quotes")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  const from = (prev as { status: string } | null)?.status;
+  await db.from("quotes").update({ status }).eq("id", id);
+  if (from !== status) {
+    try {
+      await db
+        .from("quote_status_log")
+        .insert({ quote_id: id, from_status: from ?? null, to_status: status });
+    } catch (err) {
+      // Logtabel (0007) hoeft niet te bestaan — statuswijziging gaat door.
+      console.error("[status-log] insert failed:", err);
+    }
+  }
+  revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath(`/admin/aanvragen/${id}`); revalidatePath("/admin/monitors");
 }
 
 export async function setNote(formData: FormData): Promise<void> {

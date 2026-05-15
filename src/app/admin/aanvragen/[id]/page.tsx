@@ -79,6 +79,15 @@ export default async function QuoteDetail({
   const snap = q.snapshot;
   const isBuilder = q.source === "builder";
 
+  const { data: logData } = await getSupabaseAdmin()
+    .from("quote_status_log")
+    .select("from_status, to_status, created_at")
+    .eq("quote_id", q.id)
+    .order("created_at", { ascending: false });
+  const history = (logData as
+    | { from_status: string | null; to_status: string; created_at: string }[]
+    | null) ?? [];
+
   const replyMailto = `mailto:${q.email}?subject=${encodeURIComponent(
     "Re: je aanvraag bij Studio VM",
   )}&body=${encodeURIComponent(`Dag ${q.name},\n\n`)}`;
@@ -215,6 +224,39 @@ export default async function QuoteDetail({
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Statushistoriek */}
+      {history.length > 0 && (
+        <div className="mt-4 rounded-2xl border bg-card p-5">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            Statushistoriek
+          </p>
+          <ol className="mt-4 space-y-3">
+            {history.map((h, i) => (
+              <li key={i} className="flex items-center gap-3 text-sm">
+                <span className="font-mono text-[11px] text-muted">
+                  {new Date(h.created_at).toLocaleString("nl-BE")}
+                </span>
+                <span className="text-muted">
+                  {h.from_status ? (
+                    <>
+                      <span className="line-through">{h.from_status}</span>
+                      {" → "}
+                    </>
+                  ) : null}
+                  <span
+                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${
+                      STATUS_COLOR[h.to_status] ?? "bg-muted/15 text-muted"
+                    }`}
+                  >
+                    {h.to_status}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 
