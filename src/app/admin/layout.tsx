@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { ADMIN_COOKIE, isValidAdmin } from "@/lib/admin-auth";
-import { AdminNav } from "@/components/admin-nav";
+import { AdminLogin } from "@/components/admin-login";
+import { AdminShell, type AdminCounts } from "@/components/admin-shell";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -25,48 +27,19 @@ export default async function AdminLayout({
 
   const jar = await cookies();
   if (!isValidAdmin(jar.get(ADMIN_COOKIE)?.value)) {
-    return (
-      <main className="mx-auto max-w-sm px-6 py-24">
-        <h1 className="text-2xl font-semibold tracking-tight">Admin</h1>
-        <form
-          action="/api/admin/login"
-          method="post"
-          className="mt-6 space-y-3"
-        >
-          <input
-            name="password"
-            type="password"
-            required
-            autoFocus
-            placeholder="Wachtwoord"
-            className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
-          />
-          <button className="w-full rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background">
-            Inloggen
-          </button>
-        </form>
-      </main>
-    );
+    return <AdminLogin />;
   }
 
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-7xl">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r p-5 sm:flex">
-        <p className="mb-8 px-2 text-xl font-extrabold lowercase tracking-tighter">
-          vm<span className="text-accent">.</span>
-          <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
-            admin
-          </span>
-        </p>
-        <AdminNav />
-      </aside>
+  const db = getSupabaseAdmin();
+  const head = { count: "exact" as const, head: true };
+  const [nieuwR, monitorsR] = await Promise.all([
+    db.from("quotes").select("id", head).eq("status", "nieuw"),
+    db.from("monitors").select("id", head).eq("active", true),
+  ]);
+  const counts: AdminCounts = {
+    nieuw: nieuwR.count ?? 0,
+    monitorsActief: monitorsR.count ?? 0,
+  };
 
-      <div className="min-w-0 flex-1">
-        <div className="border-b p-4 sm:hidden">
-          <AdminNav />
-        </div>
-        <main className="p-6 sm:p-10">{children}</main>
-      </div>
-    </div>
-  );
+  return <AdminShell counts={counts}>{children}</AdminShell>;
 }
