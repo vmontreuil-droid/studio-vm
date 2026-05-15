@@ -39,7 +39,7 @@ const fr: Messages = {
     plugins: "plugins WordPress",
   },
   werk: {
-    eyebrow: "Travaux",
+    eyebrow: "Réalisations",
     title: "Réalisations récentes",
     intro:
       "Un aperçu des sites et boutiques que j'ai construits ces derniers mois — restaurants, ateliers, photographes et entreprises.",

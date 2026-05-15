@@ -37,8 +37,8 @@ const nl = {
     plugins: "WordPress-plugins",
   },
   werk: {
-    eyebrow: "Werk",
-    title: "Recent werk",
+    eyebrow: "Realisaties",
+    title: "Recente realisaties",
     intro:
       "Een greep uit de sites en webshops die ik de afgelopen maanden bouwde — restaurants, ateliers, fotografen en bedrijven.",
   },
