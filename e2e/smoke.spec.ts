@@ -37,8 +37,10 @@ test.describe("Routing & i18n", () => {
 
 test.describe("Tools", () => {
   test("scanner toont een URL-invoer", async ({ page }) => {
-    await page.goto("/nl/scan");
-    await expect(page.locator('input[name="url"]')).toBeVisible();
+    await page.goto("/nl/scan", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('input[name="url"]')).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("offerte-calculator toont een richtprijs", async ({ page }) => {

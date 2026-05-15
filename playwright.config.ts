@@ -8,7 +8,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // 1 worker op CI: de smoke-suite is klein (~3s) en sommige tool-pagina's
+  // worden dynamisch server-side gerenderd; parallelle workers op een krappe
+  // runner laten die SSR uithongeren → schijnbuizen. Serieel is hier robuuster.
+  workers: 1,
   reporter: process.env.CI ? "github" : "list",
   timeout: 30_000,
   use: {
