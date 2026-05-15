@@ -103,6 +103,10 @@ const T: Record<
     radiusLabel: string;
     radii: { strak: string; zacht: string; rond: string };
     dup: string;
+    colorsLabel: string;
+    colorBg: string;
+    colorFg: string;
+    colorAccent: string;
     imagesLabel: string;
     uploadHint: string;
     aboutTextLabel: string;
@@ -171,6 +175,10 @@ const T: Record<
     radiusLabel: "Hoeken",
     radii: { strak: "Strak", zacht: "Zacht", rond: "Rond" },
     dup: "Dupliceer",
+    colorsLabel: "Eigen kleuren",
+    colorBg: "Achtergrond",
+    colorFg: "Tekst",
+    colorAccent: "Accent",
     imagesLabel: "Afbeeldingen",
     uploadHint: "Sleep of kies foto's — verschijnen in galerij & 'over ons'.",
     aboutTextLabel: "Over-ons tekst",
@@ -246,6 +254,10 @@ const T: Record<
     radiusLabel: "Coins",
     radii: { strak: "Net", zacht: "Doux", rond: "Rond" },
     dup: "Dupliquer",
+    colorsLabel: "Couleurs perso",
+    colorBg: "Fond",
+    colorFg: "Texte",
+    colorAccent: "Accent",
     imagesLabel: "Images",
     uploadHint: "Glissez ou choisissez des photos — visibles dans galerie & à-propos.",
     aboutTextLabel: "Texte à-propos",
@@ -321,6 +333,10 @@ const T: Record<
     radiusLabel: "Corners",
     radii: { strak: "Sharp", zacht: "Soft", rond: "Round" },
     dup: "Duplicate",
+    colorsLabel: "Custom colors",
+    colorBg: "Background",
+    colorFg: "Text",
+    colorAccent: "Accent",
     imagesLabel: "Images",
     uploadHint: "Drag or pick photos — shown in gallery & about.",
     aboutTextLabel: "About text",
@@ -475,6 +491,38 @@ export default function BuilderPage() {
                     />
                     {c.themeLabels[tm.slug]}
                   </button>
+                ))}
+              </div>
+
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.colorsLabel}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ["bg", c.colorBg],
+                    ["fg", c.colorFg],
+                    ["accent", c.colorAccent],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex flex-col items-center gap-1 rounded-lg border p-2 text-[10px] text-muted"
+                  >
+                    <input
+                      type="color"
+                      value={theme[key]}
+                      onChange={(e) =>
+                        setTheme((t) => ({
+                          ...t,
+                          slug: "custom",
+                          [key]: e.target.value,
+                        }))
+                      }
+                      className="h-7 w-full cursor-pointer rounded border-0 bg-transparent p-0"
+                    />
+                    {label}
+                  </label>
                 ))}
               </div>
             </Panel>
@@ -678,7 +726,9 @@ export default function BuilderPage() {
                         businessName,
                         email: buildEmail,
                         locale,
-                        theme: c.themeLabels[theme.slug],
+                        theme:
+                          c.themeLabels[theme.slug] ??
+                          `${theme.bg} / ${theme.fg} / ${theme.accent}`,
                         font: c.fonts[font],
                         radius: c.radii[radius],
                         tagline,
