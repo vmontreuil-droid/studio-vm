@@ -8,6 +8,7 @@ import {
   getOtherProjects,
   type Project,
 } from "@/lib/projects";
+import { getCaseStudy } from "@/lib/case-studies";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -114,6 +115,7 @@ export default async function WerkDetailPage({
   if (!project) notFound();
   const others = getOtherProjects(slug, locale, 3);
   const t = ui[locale];
+  const cs = getCaseStudy(slug, locale);
 
   return (
     <main>
@@ -245,6 +247,92 @@ export default async function WerkDetailPage({
           </div>
         </section>
       </article>
+
+      {cs && (
+        <>
+          <section className="border-b">
+            <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+              <p className="max-w-3xl text-lg leading-relaxed text-foreground/90">
+                {cs.context}
+              </p>
+            </div>
+          </section>
+
+          <section className="border-b bg-card">
+            <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+              <h2 className="mb-8 font-mono text-xs uppercase tracking-widest text-accent">
+                {cs.metricsTitle}
+              </h2>
+              <div className="grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-3">
+                {cs.metrics.map((m) => (
+                  <div key={m.label} className="bg-background p-6">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {m.label}
+                    </p>
+                    <p className="mt-3 flex items-baseline gap-2">
+                      <span className="text-sm text-muted line-through decoration-muted/50">
+                        {m.before}
+                      </span>
+                      <span className="text-2xl font-semibold tracking-tight text-accent">
+                        {m.after}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="border-b">
+            <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+              <h2 className="mb-8 font-mono text-xs uppercase tracking-widest text-accent">
+                {cs.decisionsTitle}
+              </h2>
+              <div className="space-y-6">
+                {cs.decisions.map((d) => (
+                  <div
+                    key={d.title}
+                    className="rounded-2xl border bg-card p-6"
+                  >
+                    <h3 className="font-semibold tracking-tight">{d.title}</h3>
+                    <p className="mt-2 leading-relaxed text-muted">
+                      {d.rationale}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="border-b bg-card">
+            <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+              <h2 className="mb-8 font-mono text-xs uppercase tracking-widest text-accent">
+                {cs.timelineTitle}
+              </h2>
+              <ol className="relative space-y-8 border-l pl-8">
+                {cs.timeline.map((p) => (
+                  <li key={p.phase} className="relative">
+                    <span className="absolute -left-[2.55rem] top-1 h-3 w-3 rounded-full border-2 border-accent bg-background" />
+                    <h3 className="font-semibold tracking-tight">{p.phase}</h3>
+                    <p className="mt-1 text-sm text-muted">{p.detail}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="border-b">
+            <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+              <h2 className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
+                {cs.reflectionTitle}
+              </h2>
+              <p className="max-w-3xl text-lg italic leading-relaxed text-foreground/90">
+                {cs.reflection}
+              </p>
+            </div>
+          </section>
+        </>
+      )}
 
       <section className="border-b bg-card">
         <div className="mx-auto max-w-6xl px-6 py-20">
