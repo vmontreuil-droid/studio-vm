@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Check, ArrowRight, Send, RotateCcw } from "lucide-react";
+import { Check, ArrowRight, Send, RotateCcw, Printer } from "lucide-react";
 import {
   isValidLocale,
   localePath,
@@ -64,6 +64,9 @@ const T: Record<
     oneOff: string;
     monthly: string;
     reset: string;
+    printButton: string;
+    docTitle: string;
+    docDate: string;
     sendTitle: string;
     sendText: string;
     sendButton: string;
@@ -112,6 +115,9 @@ const T: Record<
     oneOff: "eenmalig",
     monthly: "per maand",
     reset: "Opnieuw",
+    printButton: "Download als PDF",
+    docTitle: "Offerte-raming",
+    docDate: "Opgemaakt op",
     sendTitle: "Klaar om dit concreet te maken?",
     sendText:
       "Stuur deze samenvatting door. Ik bekijk 't en kom met een exacte offerte — meestal binnen één werkdag.",
@@ -160,6 +166,9 @@ const T: Record<
     oneOff: "unique",
     monthly: "par mois",
     reset: "Recommencer",
+    printButton: "Télécharger en PDF",
+    docTitle: "Estimation de devis",
+    docDate: "Établi le",
     sendTitle: "Prêt à concrétiser ?",
     sendText:
       "Envoyez ce résumé. Je l'examine et reviens avec un devis exact — généralement sous un jour ouvré.",
@@ -208,6 +217,9 @@ const T: Record<
     oneOff: "one-off",
     monthly: "per month",
     reset: "Start over",
+    printButton: "Download as PDF",
+    docTitle: "Quote estimate",
+    docDate: "Issued on",
     sendTitle: "Ready to make this concrete?",
     sendText:
       "Send this summary. I'll review it and come back with an exact quote — usually within one working day.",
@@ -266,9 +278,72 @@ export default function OffertePage() {
     c.mailSubject,
   )}&body=${encodeURIComponent(mailBody)}`;
 
+  const today = new Date().toLocaleDateString(
+    locale === "fr" ? "fr-BE" : locale === "en" ? "en-GB" : "nl-BE",
+    { day: "numeric", month: "long", year: "numeric" },
+  );
+
   return (
     <main>
-      <section className="border-b">
+      {/* Print-only branded offerte-document */}
+      <div className="hidden px-8 py-6 text-[#111] print:block">
+        <p className="font-mono text-2xl font-bold tracking-tight">
+          <span style={{ color: "#b45309" }}>&lt;</span>vm
+          <span style={{ color: "#b45309" }}>/&gt;</span>
+        </p>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+          {c.docTitle}
+        </h1>
+        <p className="mt-1 font-mono text-xs text-[#666]">
+          {c.docDate} {today} · studio-vm.be
+        </p>
+        <table className="mt-8 w-full text-sm">
+          <tbody>
+            <tr>
+              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
+                {c.mailBase}
+              </td>
+              <td className="py-2 font-medium">{c.bases[base].label}</td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
+                {c.mailModules}
+              </td>
+              <td className="py-2 font-medium">
+                {mods.length
+                  ? mods.map((m) => c.modules[m].label).join(", ")
+                  : "—"}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
+                {c.mailPlan}
+              </td>
+              <td className="py-2 font-medium">
+                {c.plans[plan].label}
+                {monthly ? ` (${fmt(monthly)}/m)` : ""}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
+                {c.mailEstimate}
+              </td>
+              <td className="py-2 text-lg font-semibold">
+                {fmt(lo)} – {fmt(hi)} ({c.excl})
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="mt-8 max-w-xl text-xs leading-relaxed text-[#666]">
+          {c.estimateNote}
+        </p>
+        <p className="mt-10 text-xs text-[#666]">
+          Studio VM · Vincent Montreuil · West-Vlaanderen, België ·
+          info@studio-vm.be · BE 0672.960.066
+        </p>
+      </div>
+
+      <section className="border-b print:hidden">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
@@ -282,7 +357,7 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section className="border-b">
+      <section className="border-b print:hidden">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[1.6fr_1fr]">
           <div className="space-y-12">
             <div>
@@ -421,6 +496,14 @@ export default function OffertePage() {
               </a>
               <button
                 type="button"
+                onClick={() => window.print()}
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-colors hover:bg-card-hover"
+              >
+                <Printer className="h-4 w-4" strokeWidth={2} />
+                {c.printButton}
+              </button>
+              <button
+                type="button"
                 onClick={reset}
                 className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs text-muted transition-colors hover:text-foreground"
               >
@@ -438,7 +521,7 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section className="border-b">
+      <section className="border-b print:hidden">
         <div className="mx-auto max-w-3xl px-6 py-16 text-center">
           <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
             {c.sendTitle}

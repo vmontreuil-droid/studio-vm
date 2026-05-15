@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Studio VM — studio-vm.be
 
-## Getting Started
+Portfolio + lead-engine voor Vincent Montreuil (freelance webdeveloper).
+Next.js 16 · React 19 · Tailwind v4 · TypeScript · Vercel. Volledig drietalig
+(NL/FR/EN), ~50 routes, PWA, server-side site-scanner, dormante Supabase-auth.
 
-First, run the development server:
+## Dev
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000  → redirect naar /nl
+npm run build    # productiebuild (Turbopack) + typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Architectuur
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **i18n via `[locale]` routing.** Alle pagina's leven onder
+  `src/app/[locale]/…`. `src/middleware.ts` detecteert taal
+  (cookie → `Accept-Language` → `nl`) en redirect `/pad` → `/{locale}/pad`.
+  `src/lib/i18n/` bevat `config.ts` (locales, `localePath()`,
+  `isValidLocale`) en `messages/{nl,fr,en}.ts` voor de chrome.
+  Pagina-specifieke copy staat co-located in de page als `Record<Locale, …>`.
+- **Content = data-modules** in `src/lib/`, telkens met een
+  `getX(locale)`-API: `projects`, `case-studies`, `capabilities`,
+  `pricing`, `posts`, `testimonials`, `changelog`. Eén bron, drie talen.
+- **Root layout** (`src/app/layout.tsx`) zet `<html lang>` via cookie,
+  fonts, analytics, web-vitals, service worker. **`[locale]/layout.tsx`**
+  voegt header/footer/cookie-banner/JSON-LD/shortcuts toe.
+- **SEO**: `sitemap.ts` (alle routes × locales), `robots.ts`,
+  per-locale + per-content `opengraph-image.tsx`, JSON-LD
+  (Organization/WebSite/Service/FAQPage/Article/Breadcrumb) in
+  `src/components/json-ld.tsx`.
+- **Server actions** in `src/app/actions/`: `contact`, `newsletter`,
+  `scan` (SSRF-beveiligd), `portail` (Supabase magic-link).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Env vars (optioneel — zet in Vercel)
 
-## Learn More
+| Var | Effect zonder | Effect mét |
+|---|---|---|
+| `RESEND_API_KEY` | contact/newsletter loggen + mailto-fallback | echte mailverzending |
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `/portail` = demo | echte magic-link login + `/portail/dashboard` leest `projects`-tabel |
 
-To learn more about Next.js, take a look at the following resources:
+Zonder env-vars werkt de hele site normaal — niets crasht.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Iets toevoegen
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Nieuw werk-project**: voeg toe aan `src/lib/projects.ts` (kaart/summary,
+  3 talen) + optioneel `src/lib/case-studies.ts` (diepe sectie). Slug komt
+  automatisch in `/werk/[slug]`, sitemap, zoek, OG-image.
+- **Nieuwe mogelijkheid**: `src/lib/capabilities.ts` — hero, whatYouGet,
+  howItWorks, examples (verwijzen naar project-slugs), faq, cta × 3 talen.
+- **Journal-post**: `src/lib/posts.ts` (markdown-lite body). **Changelog**:
+  `src/lib/changelog.ts`.
+- **Nieuwe pagina**: maak `src/app/[locale]/<naam>/page.tsx`, accepteer
+  `params: Promise<{locale}>`, valideer met `isValidLocale`, gebruik
+  `localePath(locale, …)` voor interne links. Voeg toe aan `src/lib/nav.ts`,
+  `src/components/site-footer.tsx`, `src/app/sitemap.ts`,
+  `src/lib/search-index.ts`.
 
-## Deploy on Vercel
+## Conventies
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Interne links **altijd** via `localePath(locale, "/pad")`.
+- Pagina's met auth/per-request gedrag: `export const dynamic = "force-dynamic"`.
+- Brand-iconen (GitHub/LinkedIn) zijn inline SVG — lucide 1.x heeft ze niet.
+- Tailwind v4: geen opacity-modifier op CSS-var-kleuren (gebruik `color-mix()`,
+  zie `.bg-header` in `globals.css`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Eén ontwikkelaar, één stack, code blijft van de klant.
