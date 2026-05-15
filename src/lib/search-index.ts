@@ -1,11 +1,12 @@
 import { getProjects } from "@/lib/projects";
 import { getPosts } from "@/lib/posts";
+import { getCapabilityDetails } from "@/lib/capabilities";
 import { localePath, type Locale } from "@/lib/i18n/config";
 
 export type SearchEntry = {
   title: string;
   href: string;
-  kind: "Page" | "Werk" | "Journal";
+  kind: "Page" | "Werk" | "Journal" | "Module";
   hint?: string;
 };
 
@@ -85,7 +86,13 @@ export function getSearchIndex(locale: Locale): SearchEntry[] {
     kind: "Journal",
     hint: p.tag,
   }));
-  return [...pages, ...work, ...journal];
+  const modules: SearchEntry[] = getCapabilityDetails(locale).map((c) => ({
+    title: c.title,
+    href: localePath(locale, `/mogelijkheden/${c.slug}`),
+    kind: "Module",
+    hint: c.short.slice(0, 60),
+  }));
+  return [...pages, ...work, ...journal, ...modules];
 }
 
 export function search(

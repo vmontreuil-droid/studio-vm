@@ -45,7 +45,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       title: t.footer.sections.studio,
       links: [
         { href: localePath(locale, "/#werk"), label: t.nav.werk },
-        { href: localePath(locale, "/#mogelijkheden"), label: t.nav.mogelijkheden },
+        { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
         { href: localePath(locale, "/pricing"), label: t.nav.pricing },
         { href: localePath(locale, "/journal"), label: "Journal" },
       ],

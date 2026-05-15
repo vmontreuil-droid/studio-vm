@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { projectSlugs } from "@/lib/projects";
 import { postSlugs } from "@/lib/posts";
+import { capabilitySlugs } from "@/lib/capabilities";
 import { LOCALES } from "@/lib/i18n/config";
 
 const BASE = "https://studio-vm.be";
@@ -11,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     "",
     "/diensten",
+    "/mogelijkheden",
     "/pricing",
     "/faq",
     "/journal",
@@ -53,5 +55,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  return [...localePages, ...projectRoutes, ...postRoutes];
+  const capabilityRoutes = capabilitySlugs.flatMap((slug) =>
+    LOCALES.map((locale) => ({
+      url: `${BASE}/${locale}/mogelijkheden/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  );
+
+  return [
+    ...localePages,
+    ...projectRoutes,
+    ...postRoutes,
+    ...capabilityRoutes,
+  ];
 }

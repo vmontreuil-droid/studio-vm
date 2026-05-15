@@ -181,12 +181,37 @@ function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {getCapabilities(locale).map((c) => (
-            <div key={c.title} className="rounded-2xl border bg-background p-6">
+            <Link
+              key={c.slug}
+              href={localePath(locale, `/mogelijkheden/${c.slug}`)}
+              className="group rounded-2xl border bg-background p-6 transition-colors hover:bg-card-hover"
+            >
               <c.icon className="h-6 w-6 text-accent" strokeWidth={1.5} />
-              <h3 className="mt-4 font-semibold tracking-tight">{c.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{c.description}</p>
-            </div>
+              <h3 className="mt-4 flex items-center gap-1.5 font-semibold tracking-tight">
+                {c.title}
+                <ArrowRight
+                  className="h-4 w-4 text-muted opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+                  strokeWidth={2}
+                />
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                {c.description}
+              </p>
+            </Link>
           ))}
+        </div>
+        <div className="mt-12 text-center">
+          <Link
+            href={localePath(locale, "/mogelijkheden")}
+            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
+          >
+            {locale === "fr"
+              ? "Toutes les capacités en détail"
+              : locale === "en"
+                ? "All capabilities in detail"
+                : "Alle mogelijkheden in detail"}
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
         </div>
       </div>
     </section>

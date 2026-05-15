@@ -11,7 +11,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const home = localePath(locale, "/");
   const items = [
     { href: localePath(locale, "/#werk"), label: t.nav.werk },
-    { href: localePath(locale, "/#mogelijkheden"), label: t.nav.mogelijkheden },
+    { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
     { href: localePath(locale, "/pricing"), label: t.nav.pricing },
     { href: localePath(locale, "/#contact"), label: t.nav.contact },
   ];
