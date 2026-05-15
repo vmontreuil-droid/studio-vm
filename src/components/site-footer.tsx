@@ -54,6 +54,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       title: t.footer.sections.diensten,
       links: [
         { href: localePath(locale, "/diensten"), label: "Diensten" },
+        { href: localePath(locale, "/offerte"), label: "Offerte-calculator" },
         { href: localePath(locale, "/shop"), label: "Templates shop" },
         { href: localePath(locale, "/builder"), label: "Site builder demo" },
         { href: localePath(locale, "/faq"), label: "FAQ" },
@@ -71,6 +72,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     {
       title: t.footer.sections.vincent,
       links: [
+        { href: localePath(locale, "/over"), label: t.footer.sections.vincent },
         { href: localePath(locale, "/now"), label: "Wat ik nu doe" },
         { href: localePath(locale, "/uses"), label: "Tools die ik gebruik" },
         { href: localePath(locale, "/journal"), label: "Journal" },

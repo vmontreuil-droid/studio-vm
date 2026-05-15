@@ -16,6 +16,9 @@ const pageDefs: Record<
 > = {
   nl: [
     { title: "Home", path: "/", hint: "Hero, werk, mogelijkheden, contact" },
+    { title: "Over Vincent", path: "/over", hint: "Wie zit er achter Studio VM" },
+    { title: "Offerte-calculator", path: "/offerte", hint: "Reken je project uit" },
+    { title: "Mogelijkheden", path: "/mogelijkheden", hint: "Alle modules in detail" },
     { title: "Pricing", path: "/pricing", hint: "Pakketten + abonnementen" },
     { title: "Diensten", path: "/diensten", hint: "Wat ik bouw + werkproces" },
     { title: "FAQ", path: "/faq", hint: "Veelgestelde vragen" },
@@ -33,6 +36,9 @@ const pageDefs: Record<
   ],
   fr: [
     { title: "Accueil", path: "/", hint: "Hero, travaux, capacités, contact" },
+    { title: "À propos de Vincent", path: "/over", hint: "Qui est derrière Studio VM" },
+    { title: "Calculateur de devis", path: "/offerte", hint: "Estimez votre projet" },
+    { title: "Capacités", path: "/mogelijkheden", hint: "Tous les modules en détail" },
     { title: "Tarifs", path: "/pricing", hint: "Forfaits + abonnements" },
     { title: "Services", path: "/diensten", hint: "Ce que je construis + processus" },
     { title: "FAQ", path: "/faq", hint: "Questions fréquentes" },
@@ -50,6 +56,9 @@ const pageDefs: Record<
   ],
   en: [
     { title: "Home", path: "/", hint: "Hero, work, capabilities, contact" },
+    { title: "About Vincent", path: "/over", hint: "Who is behind Studio VM" },
+    { title: "Quote calculator", path: "/offerte", hint: "Estimate your project" },
+    { title: "Capabilities", path: "/mogelijkheden", hint: "All modules in detail" },
     { title: "Pricing", path: "/pricing", hint: "Packages + subscriptions" },
     { title: "Services", path: "/diensten", hint: "What I build + process" },
     { title: "FAQ", path: "/faq", hint: "Frequently asked questions" },

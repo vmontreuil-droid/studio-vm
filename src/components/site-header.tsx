@@ -13,6 +13,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     { href: localePath(locale, "/#werk"), label: t.nav.werk },
     { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
     { href: localePath(locale, "/pricing"), label: t.nav.pricing },
+    {
+      href: localePath(locale, "/offerte"),
+      label:
+        locale === "fr" ? "Devis" : locale === "en" ? "Quote" : "Offerte",
+    },
     { href: localePath(locale, "/#contact"), label: t.nav.contact },
   ];
 
