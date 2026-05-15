@@ -151,6 +151,8 @@ function Werk({ locale, t }: { locale: Locale; t: T }) {
 }
 
 function Testimonials({ t, locale }: { t: T; locale: Locale }) {
+  const items = getTestimonials(locale);
+  if (items.length === 0) return null;
   return (
     <section className="reveal-on-scroll border-b bg-card">
       <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
@@ -163,7 +165,7 @@ function Testimonials({ t, locale }: { t: T; locale: Locale }) {
           </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          {getTestimonials(locale).map((tm) => (
+          {items.map((tm) => (
             <figure
               key={tm.author}
               className="flex h-full flex-col rounded-2xl border bg-background p-6"

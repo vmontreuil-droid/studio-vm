@@ -80,6 +80,11 @@ const data: Record<Locale, Testimonial[]> = {
   ],
 };
 
+// Zet op true zodra de quotes hierboven ECHTE, met naam bevestigde citaten
+// zijn. Tot dan tonen we geen verzonnen social proof (past bij het eerlijke
+// merk — de scanner rekent anderen hier ook op af).
+const TESTIMONIALS_ARE_REAL = false;
+
 export function getTestimonials(locale: Locale): Testimonial[] {
-  return data[locale];
+  return TESTIMONIALS_ARE_REAL ? data[locale] : [];
 }

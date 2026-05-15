@@ -51,8 +51,8 @@ const base: ProjectBase[] = [
         solution:
           "Volledige rebuild in Next.js met een eigen admin voor menu, vacatures en openingsuren. Alle bestaande content overgezet met permanente redirects om SEO te bewaren. Open Graph cards voor mooie deellinks.",
         highlights: [
-          "PageSpeed-score van 32 → 98",
-          "Menu-update van 30 min → 2 min",
+          "Van traag Squarespace naar near-instant laadtijd",
+          "Menukaart aanpassen: van gedoe naar enkele minuten",
           "Vacatures inclusief NL/FR mailflow",
         ],
       },
@@ -66,8 +66,8 @@ const base: ProjectBase[] = [
         solution:
           "Reconstruction complète en Next.js avec un admin sur mesure pour la carte, les emplois et les heures d'ouverture. Tout le contenu existant transféré avec des redirections permanentes pour préserver le SEO. Cartes Open Graph pour de beaux liens partagés.",
         highlights: [
-          "Score PageSpeed de 32 → 98",
-          "Mise à jour de la carte de 30 min → 2 min",
+          "De Squarespace lent à un chargement quasi instantané",
+          "Modifier la carte : de la corvée à quelques minutes",
           "Emplois avec flux e-mail NL/FR",
         ],
       },
@@ -81,8 +81,8 @@ const base: ProjectBase[] = [
         solution:
           "Full rebuild in Next.js with a custom admin for menu, jobs and opening hours. All existing content migrated with permanent redirects to preserve SEO. Open Graph cards for clean shareable links.",
         highlights: [
-          "PageSpeed score from 32 → 98",
-          "Menu update from 30 min → 2 min",
+          "From slow Squarespace to near-instant load",
+          "Editing the menu: from a chore to a few minutes",
           "Jobs with NL/FR email flow",
         ],
       },
@@ -201,7 +201,9 @@ const base: ProjectBase[] = [
   {
     slug: "allardphilippe",
     name: "Allard Philippe",
-    url: "https://allardphilippe.be",
+    // Domein nog niet live (project draait op Vercel) — externe link uit tot
+    // de juiste URL bekend is, zodat er geen kapotte link op het portfolio staat.
+    url: null,
     stack: ["Next.js 16", "Supabase", "Mollie", "Resend", "i18n"],
     accent: "#3a4a5c",
     year: "2025–2026",
@@ -322,7 +324,7 @@ const base: ProjectBase[] = [
           "Diensten, projectreferenties, offerte-aanvraag. Schoon, technisch, vertrouwen-wekkend voor B2B-klanten.",
         scope: ["Design", "Development", "Offerte-flow"],
         challenge:
-          "Een wegmarkering-bedrijf zonder online aanwezigheid, terwijl 80% van de B2B-leads vandaag eerst online zoekt naar 'wie doet dit'.",
+          "Een wegmarkering-bedrijf zonder online aanwezigheid, terwijl het gros van de B2B-leads vandaag eerst online zoekt naar 'wie doet dit'.",
         solution:
           "Schone, geloofwaardige B2B-site met diensten, projectreferenties en een offerte-aanvraagformulier. Genoeg om leads te genereren, niet meer dan dat.",
         highlights: [
@@ -337,7 +339,7 @@ const base: ProjectBase[] = [
           "Services, références de projets, demande de devis. Propre, technique, rassurant pour les clients B2B.",
         scope: ["Design", "Développement", "Flux de devis"],
         challenge:
-          "Une entreprise de marquage routier sans présence en ligne, alors que 80 % des leads B2B cherchent aujourd'hui d'abord en ligne « qui fait ça ».",
+          "Une entreprise de marquage routier sans présence en ligne, alors que la plupart des leads B2B cherchent aujourd'hui d'abord en ligne « qui fait ça ».",
         solution:
           "Site B2B propre et crédible avec services, références de projets et un formulaire de demande de devis. Assez pour générer des leads, pas plus.",
         highlights: [
@@ -352,7 +354,7 @@ const base: ProjectBase[] = [
           "Services, project references, quote request. Clean, technical, trust-building for B2B clients.",
         scope: ["Design", "Development", "Quote flow"],
         challenge:
-          "A road-marking company with no online presence, while 80% of B2B leads today first search online for 'who does this'.",
+          "A road-marking company with no online presence, while most B2B leads today first search online for 'who does this'.",
         solution:
           "Clean, credible B2B site with services, project references and a quote request form. Enough to generate leads, no more than that.",
         highlights: [

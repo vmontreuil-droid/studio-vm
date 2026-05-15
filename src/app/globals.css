@@ -531,3 +531,19 @@ body {
     animation: none !important;
   }
 }
+/* Mobiel: minder bewegende lagen → betere Core Web Vitals (we verkopen snelheid) */
+@media (max-width: 640px) {
+  .hero-sweep-rev,
+  .hero-sweep-down,
+  .hero-sweep-up,
+  .hero-blob-e {
+    display: none;
+  }
+  .hero-blob,
+  .hero-sweep {
+    animation: none !important;
+  }
+  .page-grid {
+    opacity: 0.4;
+  }
+}

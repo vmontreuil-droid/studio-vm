@@ -41,7 +41,7 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
     return {
       ok: true,
       message:
-        "Bericht ontvangen. Vincent stelt nog Resend in voor automatische verzending — voor zekerheid kan je 't ook rechtstreeks mailen.",
+        "Bedankt! Klik op de knop hieronder om je bericht te versturen — dan komt het gegarandeerd aan.",
       fallbackMailto: mailto,
     };
   }
