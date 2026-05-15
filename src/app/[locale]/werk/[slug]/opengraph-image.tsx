@@ -74,8 +74,7 @@ export default async function OG({
             letterSpacing: -2,
           }}
         >
-          <span style={{ color: "#f59e0b" }}>&lt;</span>vm
-          <span style={{ color: "#f59e0b" }}>/&gt;</span>
+          vm<span style={{ color: "#f59e0b" }}>.</span>
         </div>
         <div
           style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}

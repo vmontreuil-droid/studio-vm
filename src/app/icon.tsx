@@ -14,15 +14,14 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#f59e0b",
-          fontSize: 16,
-          fontFamily:
-            'ui-monospace, SFMono-Regular, Menlo, "Cascadia Code", monospace',
-          fontWeight: 700,
-          letterSpacing: -1,
+          color: "#fafaf9",
+          fontSize: 19,
+          fontFamily: "sans-serif",
+          fontWeight: 800,
+          letterSpacing: -1.5,
         }}
       >
-        &lt;/&gt;
+        vm<span style={{ color: "#f59e0b" }}>.</span>
       </div>
     ),
     size,

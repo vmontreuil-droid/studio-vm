@@ -83,9 +83,8 @@ export default async function NotFound() {
             {m.eyebrow}
           </p>
           <h1 className="mt-4 text-balance text-5xl font-semibold tracking-tight sm:text-7xl">
-            <span className="text-accent">&lt;</span>
             {m.titlePrefix}
-            <span className="text-accent">/&gt;</span>
+            <span className="text-accent">.</span>
             {m.titleSuffix}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-muted">{m.intro}</p>

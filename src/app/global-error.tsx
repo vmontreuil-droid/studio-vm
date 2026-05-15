@@ -41,9 +41,8 @@ export default function GlobalError({
           >
             Fatal error
           </p>
-          <h1 style={{ fontSize: 40, fontWeight: 700, margin: "12px 0 0" }}>
-            <span style={{ color: "#f59e0b" }}>&lt;</span>vm
-            <span style={{ color: "#f59e0b" }}>/&gt;</span> — er ging iets grondig mis.
+          <h1 style={{ fontSize: 40, fontWeight: 800, margin: "12px 0 0" }}>
+            vm<span style={{ color: "#f59e0b" }}>.</span> — er ging iets grondig mis.
           </h1>
           <p style={{ color: "#a8a29e", marginTop: 16 }}>
             Something broke at the root. / Quelque chose a cassé à la racine.

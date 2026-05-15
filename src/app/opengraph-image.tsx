@@ -52,9 +52,8 @@ export default function OG() {
             letterSpacing: -2,
           }}
         >
-          <span style={{ color: "#f59e0b" }}>&lt;</span>
           <span>vm</span>
-          <span style={{ color: "#f59e0b" }}>/&gt;</span>
+          <span style={{ color: "#f59e0b" }}>.</span>
         </div>
         <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
           <h1

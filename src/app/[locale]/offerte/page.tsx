@@ -351,9 +351,8 @@ export default function OffertePage() {
     <main>
       {/* Print-only branded offerte-document */}
       <div className="hidden px-8 py-6 text-[#111] print:block">
-        <p className="font-mono text-2xl font-bold tracking-tight">
-          <span style={{ color: "#b45309" }}>&lt;</span>vm
-          <span style={{ color: "#b45309" }}>/&gt;</span>
+        <p className="text-3xl font-extrabold lowercase tracking-tighter">
+          vm<span style={{ color: "#b45309" }}>.</span>
         </p>
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">
           {c.docTitle}

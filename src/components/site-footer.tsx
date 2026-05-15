@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { Logo } from "@/components/logo";
 import { getMessages } from "@/lib/i18n";
 import { localePath, type Locale } from "@/lib/i18n/config";
 
@@ -101,13 +102,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
-            <p
-              aria-label="Studio VM"
-              className="font-mono text-base font-semibold tracking-tight"
-            >
-              <span className="text-accent">&lt;</span>
-              vm
-              <span className="text-accent">/&gt;</span>
+            <p aria-label="Studio VM">
+              <Logo className="text-2xl" />
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {t.footer.tagline}

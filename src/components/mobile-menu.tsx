@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { allNav } from "@/lib/nav";
 import { LangSwitcher } from "@/components/lang-switcher";
+import { Logo } from "@/components/logo";
 import { localePath, type Locale } from "@/lib/i18n/config";
 
 export function MobileMenu({ locale }: { locale: Locale }) {
@@ -43,11 +44,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               href={localePath(locale, "/")}
               onClick={() => setOpen(false)}
               aria-label="Studio VM"
-              className="font-mono text-lg font-semibold tracking-tight"
             >
-              <span className="text-accent">&lt;</span>
-              vm
-              <span className="text-accent">/&gt;</span>
+              <Logo className="text-2xl" />
             </Link>
             <button
               type="button"
