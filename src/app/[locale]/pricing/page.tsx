@@ -79,10 +79,10 @@ const copy: Record<
     domIntro:
       "Geen probleem — dat regelen wij voor je. Je blijft altijd 100% eigenaar van je domein, geen lock-in.",
     domItems: [
-      { t: "Domein (.be / .com)", price: "€ 15 / jaar", d: "Wij registreren en beheren je domeinnaam. Jij blijft de eigenaar." },
+      { t: "Domein (.be / .com)", price: "€ 39 / jaar", d: "Wij registreren en beheren je domeinnaam. Jij blijft de eigenaar." },
       { t: "Domein + 1 e-mailadres", price: "€ 5 / maand", d: "Professioneel adres (jij@jouwzaak.be), spamfilter, op al je toestellen." },
       { t: "Domein + team-e-mail", price: "vanaf € 6 / gebruiker / maand", d: "Volwaardige mailbox via Google Workspace of Microsoft 365, met agenda & drive." },
-      { t: "Domeinverhuis", price: "€ 49 — gratis bij een nieuw pakket", d: "We halen je domein volledig beheerd weg bij je huidige host (API-gedreven). Jij keurt 1× goed, wij doen de rest — meestal binnen enkele uren (.be), zonder downtime." },
+      { t: "Domeinverhuis", price: "€ 75 vast", d: "We halen je domein volledig beheerd weg bij je huidige host (API-gedreven). Jij keurt 1× goed, wij doen de rest — meestal binnen enkele uren (.be), zonder downtime." },
     ],
     domNote:
       "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Richtprijzen, transparant doorgerekend — exacte prijs hangt af van extensie en provider (we vergelijken o.a. one.com, Combell en Cloudflare).",
@@ -129,10 +129,10 @@ const copy: Record<
     domIntro:
       "Aucun souci — on s'en occupe. Vous restez toujours 100 % propriétaire de votre domaine, sans lock-in.",
     domItems: [
-      { t: "Domaine (.be / .com)", price: "€ 15 / an", d: "Nous enregistrons et gérons votre nom de domaine. Vous en restez propriétaire." },
+      { t: "Domaine (.be / .com)", price: "€ 39 / an", d: "Nous enregistrons et gérons votre nom de domaine. Vous en restez propriétaire." },
       { t: "Domaine + 1 e-mail", price: "€ 5 / mois", d: "Adresse pro (vous@votresociete.be), anti-spam, sur tous vos appareils." },
       { t: "Domaine + e-mail d'équipe", price: "dès € 6 / utilisateur / mois", d: "Boîte complète via Google Workspace ou Microsoft 365, avec agenda & drive." },
-      { t: "Transfert de domaine", price: "€ 49 — offert avec un nouveau forfait", d: "Nous rapatrions votre domaine, entièrement géré (piloté par API). Vous approuvez 1×, on fait le reste — souvent en quelques heures (.be), sans interruption." },
+      { t: "Transfert de domaine", price: "€ 75 forfait", d: "Nous rapatrions votre domaine, entièrement géré (piloté par API). Vous approuvez 1×, on fait le reste — souvent en quelques heures (.be), sans interruption." },
     ],
     domNote:
       "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix indicatifs, calculés en toute transparence — le prix exact dépend de l'extension et du fournisseur (nous comparons one.com, Combell, Cloudflare…).",
@@ -179,10 +179,10 @@ const copy: Record<
     domIntro:
       "No problem — we sort that for you. You always stay 100% owner of your domain, no lock-in.",
     domItems: [
-      { t: "Domain (.be / .com)", price: "€ 15 / year", d: "We register and manage your domain name. You remain the owner." },
+      { t: "Domain (.be / .com)", price: "€ 39 / year", d: "We register and manage your domain name. You remain the owner." },
       { t: "Domain + 1 email", price: "€ 5 / month", d: "Professional address (you@yourbiz.be), spam filter, on all your devices." },
       { t: "Domain + team email", price: "from € 6 / user / month", d: "Full mailbox via Google Workspace or Microsoft 365, with calendar & drive." },
-      { t: "Domain transfer", price: "€ 49 — free with a new package", d: "We move your domain over, fully managed (API-driven). You approve once, we do the rest — usually within hours (.be), zero downtime." },
+      { t: "Domain transfer", price: "€ 75 flat", d: "We move your domain over, fully managed (API-driven). You approve once, we do the rest — usually within hours (.be), zero downtime." },
     ],
     domNote:
       "Already have a domain or email? We connect it free of charge. Indicative prices, transparently passed through — the exact price depends on the extension and provider (we compare one.com, Combell, Cloudflare and others).",
