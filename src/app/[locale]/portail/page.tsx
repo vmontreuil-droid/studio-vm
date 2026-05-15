@@ -7,6 +7,8 @@ import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { PortailLogin } from "@/components/portail-login";
 
+export const dynamic = "force-dynamic";
+
 type Copy = {
   metaTitle: string;
   eyebrow: string;

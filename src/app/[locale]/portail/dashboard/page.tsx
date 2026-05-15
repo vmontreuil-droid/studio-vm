@@ -8,6 +8,8 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/portail";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Dashboard — Studio VM",
   robots: { index: false, follow: false },
