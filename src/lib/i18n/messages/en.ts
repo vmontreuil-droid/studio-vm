@@ -18,7 +18,14 @@ const en: Messages = {
   },
   hero: {
     eyebrow: "Vincent Montreuil — web developer",
-    title: "Websites that work for the people who use them.",
+    titles: [
+      "Websites that work for the people who use them.",
+      "Fast sites for local entrepreneurs.",
+      "No plugin spaghetti. No cost explosion.",
+      "A site that brings clients, not just compliments.",
+      "Your site, your code, your data — for good.",
+      "From slow WordPress to lightning fast.",
+    ],
     subtitle:
       "I build fast, multilingual websites and webshops for local entrepreneurs in Flanders. No plugin spaghetti, no monthly cost explosion, with an admin built for you.",
     ctaWerk: "See work",

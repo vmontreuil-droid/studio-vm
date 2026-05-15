@@ -18,10 +18,17 @@ const fr: Messages = {
   },
   hero: {
     eyebrow: "Vincent Montreuil — développeur web",
-    title: "Des sites qui travaillent pour ceux qui les utilisent.",
+    titles: [
+      "Des sites qui travaillent pour ceux qui les utilisent.",
+      "Des sites rapides pour les entrepreneurs locaux.",
+      "Sans usine à plugins. Sans explosion des coûts.",
+      "Un site qui rapporte des clients, pas que des compliments.",
+      "Votre site, votre code, vos données — pour de bon.",
+      "De WordPress lent à ultra-rapide.",
+    ],
     subtitle:
       "Je construis des sites web rapides et bilingues, et des boutiques en ligne pour les entrepreneurs locaux en Flandre. Sans spaghetti de plugins, sans explosion de coûts mensuels, avec un admin qui travaille pour vous.",
-    ctaWerk: "Voir les travaux",
+    ctaWerk: "Voir les réalisations",
     ctaPricing: "Tarifs",
     ctaContact: "Discutons-en",
   },

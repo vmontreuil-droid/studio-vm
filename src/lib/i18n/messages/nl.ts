@@ -16,10 +16,17 @@ const nl = {
   },
   hero: {
     eyebrow: "Vincent Montreuil — webdeveloper",
-    title: "Websites die werken voor wie ze gebruiken.",
+    titles: [
+      "Websites die werken voor wie ze gebruiken.",
+      "Snelle sites voor lokale ondernemers in Vlaanderen.",
+      "Geen plugin-spaghetti. Geen kostenexplosie.",
+      "Een site die klanten oplevert, niet alleen complimenten.",
+      "Jouw site, jouw code, jouw data — voorgoed.",
+      "Van traag WordPress naar razendsnel.",
+    ],
     subtitle:
       "Ik bouw snelle, tweetalige websites en webshops voor lokale ondernemers in Vlaanderen. Zonder plugin-spaghetti, zonder maandelijkse kostenexplosie, met een admin die voor jou werkt.",
-    ctaWerk: "Bekijk werk",
+    ctaWerk: "Bekijk realisaties",
     ctaPricing: "Pricing",
     ctaContact: "Praat met me",
   },

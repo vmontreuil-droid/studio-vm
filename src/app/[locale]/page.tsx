@@ -6,6 +6,7 @@ import { getCapabilities } from "@/lib/capabilities";
 import { getTestimonials } from "@/lib/testimonials";
 import { ProjectCard } from "@/components/project-card";
 import { ContactForm } from "@/components/contact-form";
+import { RotatingHeadline } from "@/components/rotating-headline";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -39,9 +40,10 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
         <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
           {t.hero.eyebrow}
         </p>
-        <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
-          {t.hero.title}
-        </h1>
+        <RotatingHeadline
+          titles={t.hero.titles}
+          className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
+        />
         <p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
           {t.hero.subtitle}
         </p>
