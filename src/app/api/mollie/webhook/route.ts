@@ -50,13 +50,14 @@ export async function POST(req: NextRequest) {
       const db = getSupabaseAdmin();
       const { data } = await db
         .from("quotes")
-        .select("id, name, email, deposit_status, deposit_cents")
+        .select("id, name, email, locale, deposit_status, deposit_cents")
         .eq("id", quoteId)
         .maybeSingle();
       const q = data as {
         id: string;
         name: string;
         email: string;
+        locale: string | null;
         deposit_status: string;
         deposit_cents: number | null;
       } | null;
@@ -83,9 +84,27 @@ export async function POST(req: NextRequest) {
           subject: `Aanbetaling ontvangen — ${q.name}`,
           html: `<div style="font-family:system-ui,sans-serif;color:#111;line-height:1.6"><p><strong>${q.name}</strong> (${q.email}) heeft de aanbetaling van ${amt} betaald. De scope ligt vast — klaar om op te starten.</p></div>`,
         }).catch(() => {});
+        const loc = q.locale === "fr" || q.locale === "en" ? q.locale : "nl";
+        const cm = {
+          nl: {
+            subject: "Je aanbetaling is ontvangen — we starten op",
+            l1: `Bedankt! We ontvingen je aanbetaling van <strong>${amt}</strong>.`,
+            l2: "Je samenstelling ligt nu vast. Ik neem snel contact op om de planning af te spreken. Vanaf oplevering start je maandfactuur.",
+          },
+          fr: {
+            subject: "Votre acompte est reçu — on démarre",
+            l1: `Merci ! Nous avons reçu votre acompte de <strong>${amt}</strong>.`,
+            l2: "Votre composition est verrouillée. Je vous recontacte vite pour le planning. Dès la livraison, votre facture mensuelle démarre.",
+          },
+          en: {
+            subject: "Your deposit is received — we're starting",
+            l1: `Thanks! We received your deposit of <strong>${amt}</strong>.`,
+            l2: "Your composition is locked in. I'll be in touch shortly about planning. From delivery, your monthly invoice starts.",
+          },
+        }[loc];
         await sendMail(q.email, {
-          subject: "Je aanbetaling is ontvangen — we starten op",
-          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">Bedankt! We ontvingen je aanbetaling van <strong>${amt}</strong>.</p><p style="margin:0 0 8px">Je samenstelling ligt nu vast. Ik neem snel contact op om de planning af te spreken. Vanaf oplevering start je maandfactuur (maanddeel + onderhoud + domein).</p></div>`,
+          subject: cm.subject,
+          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">${cm.l1}</p><p style="margin:0 0 8px">${cm.l2}</p></div>`,
         }).catch(() => {});
       }
     } catch {

@@ -3,7 +3,14 @@ import { notFound } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { eur, dt, badge, PORTAL_T, type Sub } from "@/lib/portal-shared";
+import {
+  eur,
+  dt,
+  badge,
+  statusLabel,
+  PORTAL_T,
+  type Sub,
+} from "@/lib/portal-shared";
 import { subscriptionTiers } from "@/lib/pricing";
 import { upgradeSubscription } from "@/app/actions/portal-client";
 
@@ -132,7 +139,7 @@ export default async function PortalSubscription({
                 s.status,
               )}`}
             >
-              {s.status}
+              {statusLabel(s.status, locale)}
             </span>
           </div>
         ))}

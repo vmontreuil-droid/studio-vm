@@ -22,6 +22,7 @@ const M: Record<
     bad: string;
     fail: string;
     noaccess: string;
+    inactive: string;
   }
 > = {
   nl: {
@@ -36,6 +37,7 @@ const M: Record<
     fail: "Versturen mislukte. Probeer 't opnieuw.",
     noaccess:
       "Geen toegang met dit adres. Doe eerst een gratis site-scan, of vraag Studio VM om je toe te voegen.",
+    inactive: "Het portaal is nog niet geactiveerd op deze omgeving.",
   },
   fr: {
     subject: "Votre lien de connexion au portail client",
@@ -49,6 +51,7 @@ const M: Record<
     fail: "L'envoi a échoué. Réessayez.",
     noaccess:
       "Pas d'accès avec cette adresse. Faites d'abord un scan gratuit, ou demandez à Studio VM de vous ajouter.",
+    inactive: "Le portail n'est pas encore activé sur cet environnement.",
   },
   en: {
     subject: "Your login link for your client portal",
@@ -62,25 +65,23 @@ const M: Record<
     fail: "Sending failed. Please try again.",
     noaccess:
       "No access with this address. Do a free site scan first, or ask Studio VM to add you.",
+    inactive: "The portal is not yet activated on this environment.",
   },
 };
 
 export async function sendMagicLink(
   formData: FormData,
 ): Promise<AuthState> {
+  const rawLocale = String(formData.get("locale") ?? "nl");
+  const locale = ["nl", "fr", "en"].includes(rawLocale) ? rawLocale : "nl";
+  const t = M[locale];
   if (!supabaseConfigured) {
-    return {
-      ok: false,
-      message: "Het portaal is nog niet geactiveerd op deze omgeving.",
-    };
+    return { ok: false, message: t.inactive };
   }
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
   const honeypot = String(formData.get("website") ?? "").trim();
-  const rawLocale = String(formData.get("locale") ?? "nl");
-  const locale = ["nl", "fr", "en"].includes(rawLocale) ? rawLocale : "nl";
-  const t = M[locale];
   if (honeypot) return { ok: true, message: "" };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: t.bad };
@@ -141,7 +142,7 @@ export async function sendMagicLink(
 
     return { ok: true, message: t.ok };
   } catch {
-    return { ok: false, message: M.nl.fail };
+    return { ok: false, message: t.fail };
   }
 }
 

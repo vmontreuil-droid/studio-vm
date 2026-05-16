@@ -6,6 +6,7 @@ import { openTicket, replyTicket } from "@/app/actions/portal-client";
 import {
   dt,
   badge,
+  statusLabel,
   PORTAL_T,
   type Ticket,
   type Msg,
@@ -105,7 +106,7 @@ export default async function PortalTickets({
                   tk.status,
                 )}`}
               >
-                {tk.status}
+                {statusLabel(tk.status, locale)}
               </span>
             </div>
             <div className="mt-4 space-y-2">

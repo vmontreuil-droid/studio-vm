@@ -3,7 +3,14 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { payInvoice } from "@/app/actions/portal-client";
-import { eur, dt, badge, PORTAL_T, type Invoice } from "@/lib/portal-shared";
+import {
+  eur,
+  dt,
+  badge,
+  statusLabel,
+  PORTAL_T,
+  type Invoice,
+} from "@/lib/portal-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -107,7 +114,7 @@ export default async function PortalPayments({
                   i.status,
                 )}`}
               >
-                {i.status}
+                {statusLabel(i.status, locale)}
               </span>
               {i.pdf_url && (
                 <a

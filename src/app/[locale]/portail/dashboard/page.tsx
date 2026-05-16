@@ -16,6 +16,7 @@ import {
   eur,
   dt,
   badge,
+  statusLabel,
   PORTAL_T,
   type ScanRow,
   type Offer,
@@ -354,7 +355,7 @@ export default async function PortalOverview({
                         f.status,
                       )}`}
                     >
-                      {f.status}
+                      {statusLabel(f.status, locale)}
                     </span>
                   )}
                   <span className="font-mono text-xs text-muted">

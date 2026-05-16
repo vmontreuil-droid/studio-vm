@@ -118,6 +118,28 @@ export function badge(status: string): string {
   return m[status] ?? "bg-muted/15 text-muted";
 }
 
+const STATUS_LABEL: Record<string, Record<Locale, string>> = {
+  open: { nl: "open", fr: "ouvert", en: "open" },
+  akkoord: { nl: "akkoord", fr: "accepté", en: "accepted" },
+  afgewezen: { nl: "afgewezen", fr: "refusé", en: "declined" },
+  betaald: { nl: "betaald", fr: "payé", en: "paid" },
+  vervallen: { nl: "vervallen", fr: "échu", en: "overdue" },
+  actief: { nl: "actief", fr: "actif", en: "active" },
+  gepauzeerd: { nl: "gepauzeerd", fr: "en pause", en: "paused" },
+  gestopt: { nl: "gestopt", fr: "arrêté", en: "stopped" },
+  gesloten: { nl: "gesloten", fr: "fermé", en: "closed" },
+  in_behandeling: {
+    nl: "in behandeling",
+    fr: "en traitement",
+    en: "in progress",
+  },
+  vastgelegd: { nl: "vastgelegd", fr: "verrouillé", en: "locked in" },
+};
+
+export function statusLabel(status: string, loc: Locale): string {
+  return STATUS_LABEL[status]?.[loc] ?? status.replace(/_/g, " ");
+}
+
 export type PortalCounts = {
   offers: number;
   invoices: number;

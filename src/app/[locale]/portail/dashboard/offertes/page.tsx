@@ -4,7 +4,14 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { decideOffer } from "@/app/actions/portal-client";
-import { eur, dt, badge, PORTAL_T, type Offer } from "@/lib/portal-shared";
+import {
+  eur,
+  dt,
+  badge,
+  statusLabel,
+  PORTAL_T,
+  type Offer,
+} from "@/lib/portal-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -172,7 +179,7 @@ export default async function PortalOffers({
                   o.status,
                 )}`}
               >
-                {o.status}
+                {statusLabel(o.status, locale)}
               </span>
             </div>
             {o.body && (

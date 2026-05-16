@@ -142,13 +142,12 @@ const copy: Record<Locale, Copy> = {
   },
 };
 
-const colors = [
-  { name: "Accent (licht)", hex: "#b45309" },
-  { name: "Accent (donker)", hex: "#f59e0b" },
-  { name: "Voorgrond", hex: "#1c1917" },
-  { name: "Achtergrond", hex: "#fafaf9" },
-  { name: "Donker", hex: "#0c0a09" },
-];
+const COLOR_NAMES: Record<Locale, string[]> = {
+  nl: ["Accent (licht)", "Accent (donker)", "Voorgrond", "Achtergrond", "Donker"],
+  fr: ["Accent (clair)", "Accent (foncé)", "Premier plan", "Arrière-plan", "Foncé"],
+  en: ["Accent (light)", "Accent (dark)", "Foreground", "Background", "Dark"],
+};
+const COLOR_HEX = ["#b45309", "#f59e0b", "#1c1917", "#fafaf9", "#0c0a09"];
 
 function Wordmark({ dark }: { dark?: boolean }) {
   return (
@@ -230,14 +229,16 @@ export default async function PersPage({
             {c.colorsTitle}
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            {colors.map((col) => (
-              <div key={col.hex} className="rounded-2xl border bg-background p-3">
+            {COLOR_HEX.map((hex, i) => (
+              <div key={hex} className="rounded-2xl border bg-background p-3">
                 <div
                   className="h-16 rounded-lg border"
-                  style={{ background: col.hex }}
+                  style={{ background: hex }}
                 />
-                <p className="mt-3 text-xs font-medium">{col.name}</p>
-                <p className="font-mono text-[11px] text-muted">{col.hex}</p>
+                <p className="mt-3 text-xs font-medium">
+                  {COLOR_NAMES[locale][i]}
+                </p>
+                <p className="font-mono text-[11px] text-muted">{hex}</p>
               </div>
             ))}
           </div>
@@ -277,9 +278,25 @@ export default async function PersPage({
             {c.bioTitle}
           </h2>
           {[
-            { tag: "1 regel", text: c.bioOneLine },
-            { tag: "Kort", text: c.bioShort },
-            { tag: "Lang", text: c.bioLong },
+            {
+              tag:
+                locale === "fr"
+                  ? "1 ligne"
+                  : locale === "en"
+                    ? "1 line"
+                    : "1 regel",
+              text: c.bioOneLine,
+            },
+            {
+              tag:
+                locale === "fr" ? "Court" : locale === "en" ? "Short" : "Kort",
+              text: c.bioShort,
+            },
+            {
+              tag:
+                locale === "fr" ? "Long" : locale === "en" ? "Long" : "Lang",
+              text: c.bioLong,
+            },
           ].map((b) => (
             <div key={b.tag} className="rounded-2xl border bg-background p-6">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">

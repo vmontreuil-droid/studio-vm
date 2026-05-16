@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Lock, MapPin, Clock } from "lucide-react";
+import { Mail, Lock, MapPin, Clock, Phone } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Logo } from "@/components/logo";
 import { getMessages } from "@/lib/i18n";
@@ -38,8 +38,90 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
+const FL: Record<
+  Locale,
+  {
+    diensten: string;
+    scan: string;
+    roi: string;
+    kosten: string;
+    aanpak: string;
+    vergelijking: string;
+    offerte: string;
+    shop: string;
+    builder: string;
+    woordenboek: string;
+    portaal: string;
+    support: string;
+    status: string;
+    now: string;
+    uses: string;
+    pers: string;
+    voorwaarden: string;
+  }
+> = {
+  nl: {
+    diensten: "Diensten",
+    scan: "Gratis site-scan",
+    roi: "ROI-calculator",
+    kosten: "Kostenvergelijking",
+    aanpak: "Aanpak",
+    vergelijking: "Vergelijking",
+    offerte: "Offerte-configurator",
+    shop: "Templates shop",
+    builder: "Site builder demo",
+    woordenboek: "Woordenboek",
+    portaal: "Klantportaal",
+    support: "Support tickets",
+    status: "Status",
+    now: "Wat ik nu doe",
+    uses: "Tools die ik gebruik",
+    pers: "Pers & brand kit",
+    voorwaarden: "Algemene voorwaarden",
+  },
+  fr: {
+    diensten: "Services",
+    scan: "Scan gratuit du site",
+    roi: "Calculateur ROI",
+    kosten: "Comparatif des coûts",
+    aanpak: "Approche",
+    vergelijking: "Comparaison",
+    offerte: "Configurateur de devis",
+    shop: "Boutique de templates",
+    builder: "Démo site builder",
+    woordenboek: "Glossaire",
+    portaal: "Espace client",
+    support: "Tickets support",
+    status: "Statut",
+    now: "Ce que je fais",
+    uses: "Outils que j'utilise",
+    pers: "Presse & brand kit",
+    voorwaarden: "Conditions générales",
+  },
+  en: {
+    diensten: "Services",
+    scan: "Free site scan",
+    roi: "ROI calculator",
+    kosten: "Cost comparison",
+    aanpak: "Approach",
+    vergelijking: "Comparison",
+    offerte: "Quote configurator",
+    shop: "Templates shop",
+    builder: "Site builder demo",
+    woordenboek: "Glossary",
+    portaal: "Client portal",
+    support: "Support tickets",
+    status: "Status",
+    now: "What I'm doing now",
+    uses: "Tools I use",
+    pers: "Press & brand kit",
+    voorwaarden: "Terms & conditions",
+  },
+};
+
 export function SiteFooter({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
+  const fl = FL[locale];
 
   const sections = [
     {
@@ -54,25 +136,25 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     {
       title: t.footer.sections.diensten,
       links: [
-        { href: localePath(locale, "/diensten"), label: "Diensten" },
-        { href: localePath(locale, "/scan"), label: "Gratis site-scan" },
-        { href: localePath(locale, "/roi"), label: "ROI-calculator" },
-        { href: localePath(locale, "/kosten"), label: "Kostenvergelijking" },
-        { href: localePath(locale, "/aanpak"), label: "Aanpak" },
-        { href: localePath(locale, "/vergelijking"), label: "Vergelijking" },
-        { href: localePath(locale, "/offerte"), label: "Offerte-calculator" },
-        { href: localePath(locale, "/shop"), label: "Templates shop" },
-        { href: localePath(locale, "/builder"), label: "Site builder demo" },
+        { href: localePath(locale, "/diensten"), label: fl.diensten },
+        { href: localePath(locale, "/scan"), label: fl.scan },
+        { href: localePath(locale, "/roi"), label: fl.roi },
+        { href: localePath(locale, "/kosten"), label: fl.kosten },
+        { href: localePath(locale, "/aanpak"), label: fl.aanpak },
+        { href: localePath(locale, "/vergelijking"), label: fl.vergelijking },
+        { href: localePath(locale, "/offerte"), label: fl.offerte },
+        { href: localePath(locale, "/shop"), label: fl.shop },
+        { href: localePath(locale, "/builder"), label: fl.builder },
         { href: localePath(locale, "/faq"), label: "FAQ" },
-        { href: localePath(locale, "/woordenboek"), label: "Woordenboek" },
+        { href: localePath(locale, "/woordenboek"), label: fl.woordenboek },
       ],
     },
     {
       title: t.footer.sections.klanten,
       links: [
-        { href: localePath(locale, "/portail"), label: "Klantportaal" },
-        { href: localePath(locale, "/support"), label: "Support tickets" },
-        { href: localePath(locale, "/status"), label: "Status" },
+        { href: localePath(locale, "/portail"), label: fl.portaal },
+        { href: localePath(locale, "/support"), label: fl.support },
+        { href: localePath(locale, "/status"), label: fl.status },
         { href: localePath(locale, "/#contact"), label: t.nav.contact },
       ],
     },
@@ -80,9 +162,9 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       title: t.footer.sections.vincent,
       links: [
         { href: localePath(locale, "/over"), label: t.footer.sections.vincent },
-        { href: localePath(locale, "/now"), label: "Wat ik nu doe" },
-        { href: localePath(locale, "/uses"), label: "Tools die ik gebruik" },
-        { href: localePath(locale, "/pers"), label: "Pers & brand kit" },
+        { href: localePath(locale, "/now"), label: fl.now },
+        { href: localePath(locale, "/uses"), label: fl.uses },
+        { href: localePath(locale, "/pers"), label: fl.pers },
         { href: localePath(locale, "/changelog"), label: "Changelog" },
         { href: localePath(locale, "/journal"), label: "Journal" },
       ],
@@ -92,7 +174,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       links: [
         { href: localePath(locale, "/privacy"), label: "Privacy" },
         { href: localePath(locale, "/cookies"), label: "Cookies" },
-        { href: localePath(locale, "/voorwaarden"), label: "Algemene voorwaarden" },
+        { href: localePath(locale, "/voorwaarden"), label: fl.voorwaarden },
       ],
     },
   ];
@@ -116,6 +198,24 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                   <br />
                   <span className="whitespace-nowrap">8570 Anzegem</span>
                 </span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                <a
+                  href="tel:+32477995651"
+                  className="transition-colors hover:text-foreground"
+                >
+                  +32 477 99 56 51
+                </a>
+              </p>
+              <p className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                <a
+                  href="mailto:info@studio-vm.be"
+                  className="transition-colors hover:text-foreground"
+                >
+                  info@studio-vm.be
+                </a>
               </p>
               <p className="flex items-center gap-2">
                 <Clock className="h-4 w-4 shrink-0" strokeWidth={1.5} />
