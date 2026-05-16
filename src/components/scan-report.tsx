@@ -1186,50 +1186,26 @@ export function ScanReport({
               {pl.buildTitle}
             </p>
             <ul className="mt-4 space-y-2">
-              <li className="flex items-start justify-between gap-3 border-b pb-2">
-                <div>
-                  <p className="text-sm font-semibold">
-                    {pl.base}: {pl.mod[baseKey].name}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    {pl.mod[baseKey].desc}
-                  </p>
-                </div>
-                <span className="whitespace-nowrap font-mono text-sm font-semibold">
-                  {fmt(basePrice, locale)}
-                </span>
+              <li className="border-b pb-2">
+                <p className="text-sm font-semibold">
+                  {pl.base}: {pl.mod[baseKey].name}
+                </p>
+                <p className="mt-0.5 text-xs text-muted">
+                  {pl.mod[baseKey].desc}
+                </p>
               </li>
               {addons.map((a) => (
-                <li
-                  key={a.key}
-                  className="flex items-start justify-between gap-3 border-b pb-2 last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {pl.mod[a.key].name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {pl.mod[a.key].desc}
-                    </p>
-                  </div>
-                  <span className="whitespace-nowrap font-mono text-sm font-semibold">
-                    {fmt(a.price, locale)}
-                  </span>
+                <li key={a.key} className="border-b pb-2 last:border-0">
+                  <p className="text-sm font-semibold">
+                    {pl.mod[a.key].name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {pl.mod[a.key].desc}
+                  </p>
                 </li>
               ))}
             </ul>
-            <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t pt-4">
-              <div>
-                <p className="text-sm font-semibold">{pl.total}</p>
-                <p className="font-mono text-[11px] text-muted">
-                  {pl.approx} · {t.excl}
-                </p>
-              </div>
-              <span className="font-mono text-xl font-bold">
-                {fmt(oneOffLow, locale)} – {fmt(oneOffHigh, locale)}
-              </span>
-            </div>
-            <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
+            <div className="mt-4 flex items-center justify-between border-t pt-4 text-sm">
               <span className="font-semibold">{pl.timeline}</span>
               <span className="font-mono">
                 {pl.weeks(weeksRange[0], weeksRange[1])}
@@ -1238,48 +1214,26 @@ export function ScanReport({
             <p className="mt-1 text-[11px] text-muted">{pl.timelineNote}</p>
           </div>
 
-          <div className="mt-3 rounded-xl border border-dashed bg-card p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold">{pl.optTitle}</p>
-                <p className="mt-0.5 text-xs text-muted">
-                  {pl.mod.photoshoot.name} — {pl.mod.photoshoot.desc}
-                </p>
-              </div>
-              <span className="whitespace-nowrap font-mono text-sm font-semibold">
-                {fmt(450, locale)}
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-muted">{pl.optNote}</p>
-          </div>
-
-          <div className="mt-3 rounded-xl border bg-card p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">{pl.careTitle}</p>
-              <span className="whitespace-nowrap font-mono text-sm font-bold">
-                {fmt(PRICE.care, locale)}
-                <span className="text-xs font-normal text-muted">
-                  {" "}
-                  / {t.perMonth}
-                </span>
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-muted">{pl.careNote}</p>
-          </div>
-
-          <p className="mt-4 rounded-xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
-            {pl.own}
-          </p>
-
-          <div className="mt-6">
+          <div className="mt-3 rounded-xl border border-accent/40 bg-accent/5 p-5">
+            <p className="text-sm font-medium leading-relaxed">
+              {locale === "fr"
+                ? "Votre prix fixe exact — forfait, maintenance obligatoire, domaine et e-mail — se compose dans le configurateur, où vous verrouillez tout (acompte de 30 %)."
+                : locale === "en"
+                  ? "Your exact fixed price — package, required maintenance, domain and email — is built in the configurator, where you lock everything in (30% deposit)."
+                  : "Je exacte vaste prijs — pakket, verplicht onderhoud, domein en e-mail — stel je samen in de configurator, waar je alles vastlegt (30% aanbetaling)."}
+            </p>
             <Link
               href={localePath(locale, "/offerte")}
-              className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
               {pl.cta}
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </Link>
           </div>
+
+          <p className="mt-4 rounded-xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
+            {pl.own}
+          </p>
         </div>
 
         <p className="text-center font-mono text-[11px] text-muted">
