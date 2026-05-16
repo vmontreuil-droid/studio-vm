@@ -87,6 +87,8 @@ const T: Record<
     formName: string;
     formEmail: string;
     formMsg: string;
+    formSite: string;
+    formSiteNote: string;
     formSending: string;
     formSent: string;
     formErr: string;
@@ -153,6 +155,9 @@ const T: Record<
     formName: "Je naam",
     formEmail: "Je e-mail",
     formMsg: "Iets toevoegen? (optioneel)",
+    formSite: "Je huidige website (optioneel)",
+    formSiteNote:
+      "Vul je dit in, dan voeren we automatisch een snelle scan van je huidige site uit zodat we je beter van dienst kunnen zijn.",
     formSending: "Versturen…",
     formSent: "Bedankt! Je aanvraag is binnen — ik reageer meestal binnen één werkdag.",
     formErr: "Er ging iets mis. Probeer opnieuw of mail me rechtstreeks.",
@@ -218,6 +223,9 @@ const T: Record<
     formName: "Votre nom",
     formEmail: "Votre e-mail",
     formMsg: "Ajouter un mot ? (facultatif)",
+    formSite: "Votre site actuel (facultatif)",
+    formSiteNote:
+      "Si vous le renseignez, nous effectuons automatiquement un scan rapide de votre site actuel pour mieux vous servir.",
     formSending: "Envoi…",
     formSent: "Merci ! Votre demande est bien reçue — je réponds généralement sous un jour ouvré.",
     formErr: "Une erreur est survenue. Réessayez ou écrivez-moi directement.",
@@ -283,6 +291,9 @@ const T: Record<
     formName: "Your name",
     formEmail: "Your email",
     formMsg: "Add something? (optional)",
+    formSite: "Your current website (optional)",
+    formSiteNote:
+      "If you fill this in, we automatically run a quick scan of your current site so we can serve you better.",
     formSending: "Sending…",
     formSent: "Thanks! Your request is in — I usually reply within one working day.",
     formErr: "Something went wrong. Try again or email me directly.",
@@ -639,6 +650,17 @@ export default function OffertePage() {
                 placeholder={c.formMsg}
                 className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
               />
+              <div>
+                <input
+                  name="currentSite"
+                  type="url"
+                  placeholder={c.formSite}
+                  className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                />
+                <p className="mt-1.5 px-1 text-xs text-muted">
+                  {c.formSiteNote}
+                </p>
+              </div>
               {sent === "err" && (
                 <p className="text-sm text-red-500">{c.formErr}</p>
               )}

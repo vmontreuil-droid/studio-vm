@@ -49,6 +49,19 @@ export function ContactForm() {
         placeholder="Restaurantsite voor Bistro X"
       />
 
+      <div>
+        <Field
+          name="currentSite"
+          label="Je huidige website (optioneel)"
+          type="url"
+          placeholder="https://jouwsite.be"
+        />
+        <p className="mt-1.5 text-xs text-muted">
+          Vul je dit in, dan voeren we automatisch een snelle scan van je
+          huidige site uit zodat we je beter van dienst kunnen zijn.
+        </p>
+      </div>
+
       <Field
         name="body"
         label="Bericht"

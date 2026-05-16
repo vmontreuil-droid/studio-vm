@@ -159,6 +159,8 @@ const T: Record<
     imagesLabel: string;
     uploadHint: string;
     buildEmail: string;
+    buildSite: string;
+    buildSiteNote: string;
     buildSend: string;
     buildSending: string;
     buildSent: string;
@@ -234,6 +236,9 @@ const T: Record<
     imagesLabel: "Afbeeldingen",
     uploadHint: "Sleep of kies foto's — verschijnen in galerij & 'over ons'.",
     buildEmail: "Je e-mail",
+    buildSite: "Je huidige website (optioneel)",
+    buildSiteNote:
+      "Vul je dit in, dan scannen we je huidige site automatisch zodat we je beter van dienst kunnen zijn.",
     buildSend: "Stuur naar Studio VM",
     buildSending: "Versturen…",
     buildSent: "Top! Je volledige ontwerp staat in mijn admin — ik werk het voor je uit.",
@@ -346,6 +351,9 @@ const T: Record<
     imagesLabel: "Images",
     uploadHint: "Glissez ou choisissez des photos — visibles dans galerie & à-propos.",
     buildEmail: "Votre e-mail",
+    buildSite: "Votre site actuel (facultatif)",
+    buildSiteNote:
+      "Si vous le renseignez, nous scannons automatiquement votre site actuel pour mieux vous servir.",
     buildSend: "Envoyer à Studio VM",
     buildSending: "Envoi…",
     buildSent: "Super ! Votre design complet est dans mon admin — je le finalise.",
@@ -458,6 +466,9 @@ const T: Record<
     imagesLabel: "Images",
     uploadHint: "Drag or pick photos — shown in gallery & about.",
     buildEmail: "Your email",
+    buildSite: "Your current website (optional)",
+    buildSiteNote:
+      "If you fill this in, we automatically scan your current site so we can serve you better.",
     buildSend: "Send to Studio VM",
     buildSending: "Sending…",
     buildSent: "Great! Your full design is in my admin — I'll build it out.",
@@ -656,6 +667,7 @@ export default function BuilderPage() {
   const sections = active.sections;
   const [openId, setOpenId] = useState<string | null>(null);
   const [buildEmail, setBuildEmail] = useState("");
+  const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
   const [pending, startSend] = useTransition();
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -1185,6 +1197,7 @@ export default function BuilderPage() {
                           })),
                         })),
                         imageCount: images.length,
+                        currentSite,
                       });
                       if (r.ok) setSent("ok");
                       else if (r.mailto) window.location.href = r.mailto;
@@ -1200,6 +1213,14 @@ export default function BuilderPage() {
                     placeholder={c.buildEmail}
                     className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
                   />
+                  <input
+                    type="url"
+                    value={currentSite}
+                    onChange={(e) => setCurrentSite(e.target.value)}
+                    placeholder={c.buildSite}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  />
+                  <p className="text-[11px] text-muted">{c.buildSiteNote}</p>
                   <button
                     type="submit"
                     disabled={pending}

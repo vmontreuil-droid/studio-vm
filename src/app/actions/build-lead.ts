@@ -3,6 +3,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
+import { after } from "next/server";
+import { scanAndMail } from "@/lib/scan-report";
 
 export type BuildState =
   | { ok: true; stored: boolean }
@@ -22,6 +24,7 @@ type Cfg = {
   sections: string[];
   pages: PageSnap[];
   imageCount: number;
+  currentSite?: string;
 };
 
 function val(v: unknown): string {
@@ -83,6 +86,13 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
   const businessName = cfg.businessName.trim().slice(0, 120) || "Naamloos";
   const email = cfg.email.trim().toLowerCase().slice(0, 160);
   if (!isEmail(email)) return { ok: false, error: "email" };
+
+  const currentSite = (cfg.currentSite ?? "").trim();
+  if (currentSite) {
+    after(() =>
+      scanAndMail(currentSite, { source: "builder", name: businessName, email }),
+    );
+  }
 
   const clean: Cfg = {
     ...cfg,

@@ -3,6 +3,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
+import { after } from "next/server";
+import { scanAndMail } from "@/lib/scan-report";
 
 export type QuoteState = { ok: true } | { ok: false; error: string };
 
@@ -28,6 +30,14 @@ export async function submitQuote(
 
   if (!name) return { ok: false, error: "name" };
   if (!isEmail(email)) return { ok: false, error: "email" };
+
+  // Optioneel meegegeven huidige site → scan + rapport naar mij, ná de
+  // response. De bezoeker ziet hier niets van.
+  const currentSite = s("currentSite");
+  if (currentSite) {
+    after(() => scanAndMail(currentSite, { source: "offerte", name, email }));
+  }
+
   if (!leadsConfigured) return { ok: false, error: "not_configured" };
 
   const db = getSupabaseAdmin();

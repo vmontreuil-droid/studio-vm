@@ -1,6 +1,8 @@
 "use server";
 
+import { after } from "next/server";
 import { resendFrom } from "@/lib/supabase/config";
+import { scanAndMail } from "@/lib/scan-report";
 
 const TO = "info@studio-vm.be";
 const FROM = resendFrom;
@@ -28,6 +30,13 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Dat e-mailadres lijkt niet te kloppen." };
+  }
+
+  // Optioneel: bezoeker gaf z'n huidige site → scan + rapport naar mij,
+  // ná de response zodat hun formulier niet wacht. Zij zien hier niets van.
+  const currentSite = String(formData.get("currentSite") ?? "").trim();
+  if (currentSite) {
+    after(() => scanAndMail(currentSite, { source: "contact", name, email }));
   }
 
   const apiKey = process.env.RESEND_API_KEY;
