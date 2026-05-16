@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Check, Send, Loader2 } from "lucide-react";
-import { submitQuote } from "@/app/actions/quote";
+import { submitQuote, startOffer } from "@/app/actions/quote";
 import {
   offerCatalog,
   OFFER_INCLUDED,
@@ -94,6 +94,20 @@ const T: Record<
     siteNote: string;
     pricingLink: string;
     sumHead: string;
+    company: string;
+    address: string;
+    vat: string;
+    depositBtn: string;
+    quoteBtn2: string;
+    payNote: string;
+    depRow: string;
+    restRow: string;
+    restRowSpread: string;
+    monthRow: string;
+    monthFromNote: string;
+    nonpay: string;
+    redirect: string;
+    intakeOk: string;
   }
 > = {
   nl: {
@@ -162,6 +176,23 @@ const T: Record<
       "Vul je dit in, dan voeren we automatisch een snelle scan uit zodat we je beter kunnen helpen.",
     pricingLink: "Of bekijk de vaste pakketten",
     sumHead: "Samenstelling",
+    company: "Bedrijf (optioneel)",
+    address: "Facturatieadres (optioneel)",
+    vat: "BTW-nummer (optioneel)",
+    depositBtn: "Leg vast & betaal 30% aanbetaling",
+    quoteBtn2: "Of vraag eerst een vrijblijvende offerte aan",
+    payNote:
+      "Je betaalt nu 30% om je samenstelling vast te leggen. Vanaf oplevering wordt je maandfactuur opgemaakt: het maanddeel (indien gespreid) + je onderhoudsabonnement + je domein, herrekend per maand.",
+    depRow: "Aanbetaling 30% — nu",
+    restRow: "Saldo bij oplevering",
+    restRowSpread: "Saldo gespreid",
+    monthRow: "Maandfactuur vanaf oplevering",
+    monthFromNote: "incl. abonnement + domein per maand",
+    nonpay:
+      "Bij een onbetaalde factuur wordt de website tijdelijk afgesloten tot de openstaande schuld vereffend is.",
+    redirect: "Je wordt doorgestuurd naar de beveiligde betaalpagina…",
+    intakeOk:
+      "Je aanvraag is vastgelegd. Je ontvangt de betaallink voor de aanbetaling per e-mail.",
   },
   fr: {
     eyebrow: "Devis sur mesure",
@@ -230,6 +261,23 @@ const T: Record<
       "Si vous le renseignez, on lance un scan rapide pour mieux vous aider.",
     pricingLink: "Ou voir les forfaits fixes",
     sumHead: "Composition",
+    company: "Société (facultatif)",
+    address: "Adresse de facturation (facultatif)",
+    vat: "Numéro de TVA (facultatif)",
+    depositBtn: "Verrouiller & payer l'acompte de 30 %",
+    quoteBtn2: "Ou demandez d'abord un devis sans engagement",
+    payNote:
+      "Vous payez 30 % maintenant pour verrouiller votre composition. Dès la livraison, votre facture mensuelle est établie : la part mensuelle (si échelonnée) + votre abonnement de maintenance + votre domaine, recalculé par mois.",
+    depRow: "Acompte 30 % — maintenant",
+    restRow: "Solde à la livraison",
+    restRowSpread: "Solde échelonné",
+    monthRow: "Facture mensuelle dès la livraison",
+    monthFromNote: "incl. abonnement + domaine par mois",
+    nonpay:
+      "En cas de facture impayée, le site est temporairement suspendu jusqu'au règlement de la dette.",
+    redirect: "Vous êtes redirigé vers la page de paiement sécurisée…",
+    intakeOk:
+      "Votre demande est enregistrée. Vous recevez le lien de paiement de l'acompte par e-mail.",
   },
   en: {
     eyebrow: "Tailored quote",
@@ -298,6 +346,23 @@ const T: Record<
       "If you fill this in, we run a quick scan so we can help you better.",
     pricingLink: "Or see the fixed packages",
     sumHead: "Composition",
+    company: "Company (optional)",
+    address: "Billing address (optional)",
+    vat: "VAT number (optional)",
+    depositBtn: "Lock in & pay 30% deposit",
+    quoteBtn2: "Or request a no-obligation quote first",
+    payNote:
+      "You pay 30% now to lock your composition. From delivery, your monthly invoice is issued: the monthly part (if split) + your maintenance subscription + your domain, recalculated per month.",
+    depRow: "Deposit 30% — now",
+    restRow: "Balance at delivery",
+    restRowSpread: "Balance split",
+    monthRow: "Monthly invoice from delivery",
+    monthFromNote: "incl. subscription + domain per month",
+    nonpay:
+      "If an invoice is left unpaid, the website is temporarily suspended until the outstanding debt is settled.",
+    redirect: "You are being redirected to the secure payment page…",
+    intakeOk:
+      "Your request is registered. You'll receive the deposit payment link by email.",
   },
 };
 
@@ -318,7 +383,9 @@ export default function OffertePage() {
   const [users, setUsers] = useState(3);
   const [term, setTerm] = useState<number>(0);
   const [lockin, setLockin] = useState(false);
-  const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
+  const [sent, setSent] = useState<"idle" | "ok" | "err" | "intake">(
+    "idle",
+  );
   const [pending, startSend] = useTransition();
 
   const base = bases.find((b) => b.slug === baseSlug);
@@ -356,7 +423,8 @@ export default function OffertePage() {
         : 0;
 
   const monthlyRecurring = (subTier?.cents ?? 0) + mailMonthly;
-  const domainYearly = domain === "register" ? REGISTER_CENTS : 0;
+  const domainMonthly =
+    domain === "register" ? Math.round(REGISTER_CENTS / 12) : 0;
 
   const pct = Math.round(LOCKIN_DISCOUNT * 100);
   const discount = lockin ? Math.round(eenmalig * LOCKIN_DISCOUNT) : 0;
@@ -372,6 +440,10 @@ export default function OffertePage() {
   };
   const spreadPossible = payable >= MIN_SPREAD;
   const plan = planFor(term);
+  const monthlyAfter =
+    (term > 0 && plan.eligible ? plan.monthly : 0) +
+    monthlyRecurring +
+    domainMonthly;
 
   const domLabel =
     domain === "connect"
@@ -400,7 +472,21 @@ export default function OffertePage() {
       setSent("ok");
       return;
     }
+    const intent = String(fd.get("intent") ?? "quote");
     startSend(async () => {
+      if (intent === "deposit") {
+        const r = await startOffer(fd);
+        if (r.ok && r.pay) {
+          window.location.href = r.url;
+          return;
+        }
+        if (r.ok) {
+          setSent("intake");
+          return;
+        }
+        setSent("err");
+        return;
+      }
       const sumLines = [
         `Pakket: ${base ? base.name : "—"} (${eur(base?.cents ?? 0)})`,
         inc
@@ -422,7 +508,10 @@ export default function OffertePage() {
           ? `Betaling: ineens`
           : `Betaling: ${eur(plan.deposit)} bij opstart, daarna ${term}× ${eur(plan.monthly)}/maand`,
         `Maandelijks abonnement: ${eur(monthlyRecurring)}/maand${mailMonthly ? ` (incl. e-mail)` : ""}`,
-        domainYearly ? `Domein: ${eur(domainYearly)}/jaar` : "",
+        domainMonthly
+          ? `Domein: ${eur(domainMonthly)}/maand (herrekend)`
+          : "",
+        `Maandfactuur vanaf oplevering: ${eur(monthlyAfter)}/maand`,
       ].filter(Boolean);
 
       const userMsg = String(fd.get("message") ?? "").trim();
@@ -615,9 +704,15 @@ export default function OffertePage() {
                         {eur(s.cents)}
                         <span className="text-muted">{c.perMonthShort}</span>
                       </p>
-                      <ul className="mt-3 flex-1 space-y-1 text-xs leading-snug text-muted">
+                      <ul className="mt-3 flex-1 space-y-1.5 text-xs leading-snug text-muted">
                         {s.features.slice(0, 4).map((f) => (
-                          <li key={f}>· {f}</li>
+                          <li key={f} className="flex items-start gap-1.5">
+                            <Check
+                              className="mt-0.5 h-3 w-3 shrink-0 text-accent"
+                              strokeWidth={3}
+                            />
+                            <span>{f}</span>
+                          </li>
                         ))}
                       </ul>
                     </button>
@@ -838,24 +933,38 @@ export default function OffertePage() {
                 </p>
               </div>
 
-              {/* Maandelijks */}
+              {/* Betaalplan */}
               <div className="mt-4 border-t pt-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted">{c.monthlySub}</span>
+                  <span className="text-muted">{c.depRow}</span>
+                  <strong>{eur(deposit)}</strong>
+                </div>
+                <div className="mt-1.5 flex items-center justify-between">
+                  <span className="text-muted">
+                    {term > 0 && plan.eligible ? c.restRowSpread : c.restRow}
+                  </span>
                   <strong>
-                    {subTier ? eur(monthlyRecurring) : "—"}
+                    {term > 0 && plan.eligible
+                      ? `${term}× ${eur(plan.monthly)}`
+                      : eur(rest)}
+                  </strong>
+                </div>
+                <div className="mt-2 flex items-center justify-between border-t pt-2">
+                  <span className="text-muted">{c.monthRow}</span>
+                  <strong>
+                    {subTier ? eur(monthlyAfter) : "—"}
                     {subTier ? c.perMonthShort : ""}
                   </strong>
                 </div>
-                {domainYearly > 0 && (
-                  <div className="mt-1.5 flex items-center justify-between">
-                    <span className="text-muted">{c.domainYear}</span>
-                    <strong>
-                      {eur(domainYearly)}
-                      {c.perYear}
-                    </strong>
-                  </div>
-                )}
+                <p className="mt-1 font-mono text-[10px] text-muted">
+                  {c.monthFromNote}
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  {c.payNote}
+                </p>
+                <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                  {c.nonpay}
+                </p>
               </div>
 
               {!base && (
@@ -879,7 +988,7 @@ export default function OffertePage() {
                 }`}
               >
                 <Send className="h-4 w-4" strokeWidth={2} />
-                {c.sendButton}
+                {c.depositBtn}
               </a>
               <Link
                 href={localePath(locale, "/pricing")}
@@ -899,9 +1008,9 @@ export default function OffertePage() {
           </h2>
           <p className="mt-3 text-muted">{c.sendText}</p>
 
-          {sent === "ok" ? (
+          {sent === "ok" || sent === "intake" ? (
             <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
-              {c.sent}
+              {sent === "intake" ? c.intakeOk : c.sent}
             </p>
           ) : (
             <form action={submit} className="mt-8 space-y-3 text-left">
@@ -913,6 +1022,22 @@ export default function OffertePage() {
                 aria-hidden="true"
                 className="hidden"
               />
+              <input type="hidden" name="locale" value={locale} />
+              <input
+                type="hidden"
+                name="baseSlug"
+                value={base?.slug ?? ""}
+              />
+              <input type="hidden" name="subSlug" value={subSlug} />
+              <input
+                type="hidden"
+                name="extras"
+                value={Array.from(extras).join(",")}
+              />
+              <input type="hidden" name="domain" value={domain} />
+              <input type="hidden" name="mail" value={mail} />
+              <input type="hidden" name="users" value={users} />
+              <input type="hidden" name="term" value={term} />
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   name="name"
@@ -928,6 +1053,23 @@ export default function OffertePage() {
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
               </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  name="company"
+                  placeholder={c.company}
+                  className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                />
+                <input
+                  name="vat_number"
+                  placeholder={c.vat}
+                  className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                />
+              </div>
+              <input
+                name="address"
+                placeholder={c.address}
+                className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              />
               <textarea
                 name="message"
                 rows={3}
@@ -950,6 +1092,8 @@ export default function OffertePage() {
               )}
               <button
                 type="submit"
+                name="intent"
+                value="deposit"
                 disabled={pending || !canSend}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
               >
@@ -958,8 +1102,20 @@ export default function OffertePage() {
                 ) : (
                   <Send className="h-4 w-4" strokeWidth={2} />
                 )}
-                {pending ? c.sending : c.sendButton}
+                {pending ? c.redirect : c.depositBtn}
               </button>
+              <button
+                type="submit"
+                name="intent"
+                value="quote"
+                disabled={pending || !canSend}
+                className="block w-full text-center font-mono text-xs text-muted transition-colors hover:text-foreground disabled:opacity-60"
+              >
+                {c.quoteBtn2}
+              </button>
+              <p className="px-1 text-center text-xs leading-relaxed text-muted">
+                {c.nonpay}
+              </p>
             </form>
           )}
         </div>
