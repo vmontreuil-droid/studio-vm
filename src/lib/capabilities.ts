@@ -365,7 +365,7 @@ const data: Record<Slug, Record<Locale, Content>> = {
   },
   meertalig: {
     nl: {
-      title: "Tweetalig (NL / FR / EN)",
+      title: "Drietalig (NL / FR / EN)",
       short: "Volledig vertaalde sites met taalkeuze, SEO per taal, en een admin om vertalingen te beheren.",
       heroTitle: "Bereik ook de helft die je nu mist.",
       heroIntro:
@@ -391,13 +391,13 @@ const data: Record<Slug, Record<Locale, Content>> = {
         { q: "Is dit Google Translate?", a: "Nee. Echte, beheerbare vertalingen — geen robotaal die je merk schaadt." },
         { q: "Helpt dit echt voor SEO?", a: "Ja. Met correcte hreflang indexeert Google elke taal apart. Je verschijnt in zoekresultaten in beide talen." },
         { q: "Kan ik later een taal toevoegen?", a: "Ja. De architectuur is erop gebouwd — een vierde taal is uitbreiding, geen herbouw." },
-        { q: "Zit dit in een pakket?", a: "Tweetalig zit in het Pro-pakket. Deze site bewijst het: ze draait in 3 talen." },
+        { q: "Zit dit in een pakket?", a: "Meertaligheid zit in het Pro-pakket. Deze site bewijst het: ze draait in 3 talen." },
       ],
       ctaTitle: "Klaar om je hele markt te bereiken?",
       ctaText: "Vertel me waar je klanten zitten — ik laat zien hoe een meertalige aanpak loont.",
     },
     fr: {
-      title: "Bilingue (NL / FR / EN)",
+      title: "Trilingue (NL / FR / EN)",
       short: "Sites entièrement traduits avec choix de langue, SEO par langue, et un admin pour gérer les traductions.",
       heroTitle: "Atteignez aussi la moitié que vous ratez.",
       heroIntro:
@@ -423,7 +423,7 @@ const data: Record<Slug, Record<Locale, Content>> = {
         { q: "Est-ce du Google Translate ?", a: "Non. De vraies traductions gérables — pas une langue robotique qui nuit à votre marque." },
         { q: "Ça aide vraiment pour le SEO ?", a: "Oui. Avec un hreflang correct, Google indexe chaque langue séparément." },
         { q: "Puis-je ajouter une langue plus tard ?", a: "Oui. L'architecture est faite pour — une 4e langue est une extension, pas une refonte." },
-        { q: "Est-ce dans un forfait ?", a: "Le bilingue est dans le forfait Pro. Ce site le prouve : il tourne en 3 langues." },
+        { q: "Est-ce dans un forfait ?", a: "Le multilingue est dans le forfait Pro. Ce site le prouve : il tourne en 3 langues." },
       ],
       ctaTitle: "Prêt à atteindre tout votre marché ?",
       ctaText: "Dites-moi où sont vos clients — je montre comment une approche multilingue est rentable.",
