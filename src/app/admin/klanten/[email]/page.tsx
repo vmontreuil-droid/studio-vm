@@ -142,7 +142,9 @@ export default async function AdminKlantDetail({
     amount_cents: number | null;
     status: string;
     valid_until: string | null;
-    items: { label: string; desc?: string; cents: number }[] | null;
+    items:
+      | { label: string; desc?: string; cents: number; kind?: string }[]
+      | null;
     vat_number: string | null;
     vat_valid: boolean | null;
     vat_reverse: boolean | null;
@@ -476,7 +478,11 @@ export default async function AdminKlantDetail({
                     {o.items.map((it, i) => (
                       <li key={i}>
                         <span className="text-foreground">{it.label}</span> —{" "}
-                        {it.cents > 0 ? cEur(it.cents) : "inbegrepen"}
+                        {it.kind === "sub"
+                          ? "maandelijks (verplicht)"
+                          : it.cents > 0
+                            ? cEur(it.cents)
+                            : "inbegrepen"}
                         {it.desc ? (
                           <span className="block text-[11px] opacity-80">
                             {it.desc}

@@ -33,8 +33,13 @@ export function OfferBuilder({
   const incNames = useMemo(() => inc?.addons ?? [], [inc]);
 
   const lines = useMemo(() => {
-    const out: { label: string; desc: string; cents: number; incl: boolean }[] =
-      [];
+    const out: {
+      label: string;
+      desc: string;
+      cents: number;
+      incl: boolean;
+      sub?: boolean;
+    }[] = [];
     if (base)
       out.push({
         label: base.name,
@@ -56,10 +61,11 @@ export function OfferBuilder({
       const s = subs.find((x) => x.slug === inc.sub);
       if (s)
         out.push({
-          label: s.name,
+          label: `${s.name} — verplicht, vanaf maand 1`,
           desc: s.desc ?? "",
           cents: 0,
-          incl: true,
+          incl: false,
+          sub: true,
         });
     }
     for (const k of checked) {
@@ -191,10 +197,18 @@ export function OfferBuilder({
                 </span>
                 <span
                   className={`shrink-0 font-mono text-xs ${
-                    l.incl ? "text-accent" : ""
+                    l.sub
+                      ? "text-amber-600 dark:text-amber-400"
+                      : l.incl
+                        ? "text-accent"
+                        : ""
                   }`}
                 >
-                  {l.incl ? "inbegrepen" : eur(l.cents)}
+                  {l.sub
+                    ? "maandelijks"
+                    : l.incl
+                      ? "inbegrepen"
+                      : eur(l.cents)}
                 </span>
               </li>
             ))}

@@ -155,7 +155,12 @@ export async function createOffer(formData: FormData): Promise<void> {
 
   const db = getSupabaseAdmin();
   const { bases, addons, subs } = offerCatalog();
-  const picked: { label: string; desc: string; cents: number }[] = [];
+  const picked: {
+    label: string;
+    desc: string;
+    cents: number;
+    kind?: "incl" | "sub";
+  }[] = [];
   const baseKey = String(formData.get("base") ?? "");
   const base = bases.find((b) => b.key === baseKey);
   const inc = base?.slug ? OFFER_INCLUDED[base.slug] : undefined;
@@ -173,14 +178,16 @@ export async function createOffer(formData: FormData): Promise<void> {
           label: `${a.name} (inbegrepen)`,
           desc: a.desc ?? "",
           cents: 0,
+          kind: "incl",
         });
     }
     const s = subs.find((x) => x.slug === inc.sub);
     if (s)
       picked.push({
-        label: `${s.name} (inbegrepen)`,
+        label: `${s.name} — verplicht, vanaf maand 1`,
         desc: s.desc ?? "",
         cents: 0,
+        kind: "sub",
       });
   }
   // Extra aangevinkte opties die NIET al inbegrepen zijn → betalend.

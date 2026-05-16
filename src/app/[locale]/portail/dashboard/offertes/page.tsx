@@ -137,10 +137,18 @@ export default async function PortalOffers({
                         </span>
                         <span
                           className={`shrink-0 font-mono ${
-                            it.cents > 0 ? "text-muted" : "text-accent"
+                            it.kind === "sub"
+                              ? "text-amber-600 dark:text-amber-400"
+                              : it.cents > 0
+                                ? "text-muted"
+                                : "text-accent"
                           }`}
                         >
-                          {it.cents > 0 ? eur(it.cents) : "inbegrepen"}
+                          {it.kind === "sub"
+                            ? "maandelijks"
+                            : it.cents > 0
+                              ? eur(it.cents)
+                              : "inbegrepen"}
                         </span>
                       </li>
                     ))}
