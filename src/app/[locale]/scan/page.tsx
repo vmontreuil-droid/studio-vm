@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { SiteScanner } from "@/components/site-scanner";
+import { PortalLinkResend } from "@/components/portal-link-resend";
 import { monitorConfigured } from "@/lib/supabase/config";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -153,6 +154,12 @@ export default async function ScanPage({
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="border-b bg-card">
+        <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+          <PortalLinkResend locale={locale} />
         </div>
       </section>
 

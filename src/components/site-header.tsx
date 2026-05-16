@@ -25,6 +25,15 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         locale === "fr" ? "Devis" : locale === "en" ? "Quote" : "Offerte",
     },
     { href: localePath(locale, "/#contact"), label: t.nav.contact },
+    {
+      href: localePath(locale, "/portail"),
+      label:
+        locale === "fr"
+          ? "Portail"
+          : locale === "en"
+            ? "Portal"
+            : "Portaal",
+    },
   ];
 
   return (

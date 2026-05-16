@@ -10,6 +10,8 @@ export type ScanLeadState =
   | { ok: true; url: string }
   | { ok: false; error: string };
 
+export type ResendState = { ok: true } | { ok: false; error: string };
+
 const T: Record<
   string,
   { subject: (h: string) => string; pre: string; cta: string; foot: string }
@@ -54,7 +56,6 @@ export async function submitScanLead(input: {
   const locale = ["nl", "fr", "en"].includes(input.locale)
     ? input.locale
     : "nl";
-  const t = T[locale];
   const token = randomBytes(24).toString("base64url");
   const host = input.scan.host;
   const portalUrl = `${siteUrl}/${locale}/portail/${token}`;
@@ -74,6 +75,20 @@ export async function submitScanLead(input: {
     return { ok: false, error: "store" };
   }
 
+  await sendPortalMail(email, locale, host, input.scan.grade, input.scan.score, portalUrl);
+
+  return { ok: true, url: portalUrl };
+}
+
+async function sendPortalMail(
+  email: string,
+  locale: string,
+  host: string,
+  grade: string,
+  score: number,
+  portalUrl: string,
+): Promise<void> {
+  const t = T[locale] ?? T.nl;
   const accent = "#b45309";
   await sendMail(email, {
     subject: t.subject(host),
@@ -82,8 +97,8 @@ export async function submitScanLead(input: {
   <p style="margin:0 0 24px;font:600 13px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:${accent}">studio&nbsp;vm<span style="color:${accent}">.</span></p>
   <div style="background:#1c1917;border:1px solid #292524;border-radius:20px;overflow:hidden">
     <div style="background:linear-gradient(135deg,${accent},#7c3a2e);padding:36px 28px;text-align:center">
-      <div style="font:800 56px/1 -apple-system,sans-serif;color:#fff">${input.scan.grade}</div>
-      <div style="margin-top:8px;font:600 14px/1 ui-monospace,monospace;letter-spacing:.1em;color:rgba(255,255,255,.85)">${input.scan.score}/100 · ${host}</div>
+      <div style="font:800 56px/1 -apple-system,sans-serif;color:#fff">${grade}</div>
+      <div style="margin-top:8px;font:600 14px/1 ui-monospace,monospace;letter-spacing:.1em;color:rgba(255,255,255,.85)">${score}/100 · ${host}</div>
     </div>
     <div style="padding:28px">
       <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#d6d3d1">${t.pre}</p>
@@ -95,6 +110,51 @@ export async function submitScanLead(input: {
 </div>
 </div>`,
   });
+}
 
-  return { ok: true, url: portalUrl };
+export async function resendPortalLink(input: {
+  email: string;
+  locale: string;
+}): Promise<ResendState> {
+  const email = input.email.trim().toLowerCase().slice(0, 160);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { ok: false, error: "email" };
+  }
+  if (!leadsConfigured) {
+    return { ok: false, error: "not_configured" };
+  }
+
+  try {
+    const { data } = await getSupabaseAdmin()
+      .from("scan_requests")
+      .select("token, locale, scan")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const row = data as
+      | { token: string; locale: string; scan: ScanResult }
+      | null;
+
+    // Altijd dezelfde generieke uitkomst: lekt niet of een adres bestaat.
+    if (row && row.scan && row.scan.ok) {
+      const loc = ["nl", "fr", "en"].includes(row.locale)
+        ? row.locale
+        : "nl";
+      const portalUrl = `${siteUrl}/${loc}/portail/${row.token}`;
+      await sendPortalMail(
+        email,
+        loc,
+        row.scan.host,
+        row.scan.grade,
+        row.scan.score,
+        portalUrl,
+      );
+    }
+  } catch {
+    // Stil: we tonen sowieso de generieke bevestiging.
+  }
+
+  return { ok: true };
 }
