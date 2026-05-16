@@ -23,6 +23,7 @@ const TERMS = [0, 3, 6, 12, 24] as const;
 const DEPOSIT = 0.3;
 const MIN_SPREAD = 75000; // eenmalig ≥ € 750
 const MIN_MONTHLY = 7500; // afbetaling ≥ € 75/maand
+const LOCKIN_DISCOUNT = 0.07; // transparante directe-vastlegkorting op het eenmalig bedrag
 
 const TRANSFER_CENTS = 7500; // domeinverhuis, eenmalig
 const REGISTER_CENTS = 3900; // nieuw domein, per jaar
@@ -63,6 +64,10 @@ const T: Record<
     total: string;
     oneOff: string;
     excl: string;
+    lockin: string;
+    lockinWhy: string;
+    lockinSave: string;
+    was: string;
     spread: string;
     spreadNote: string;
     spreadLocked: string;
@@ -122,6 +127,11 @@ const T: Record<
     total: "Jouw totaal",
     oneOff: "eenmalig",
     excl: "excl. btw",
+    lockin: "Leg de scope nu vast",
+    lockinWhy:
+      "Je legt je samenstelling meteen vast — geen heen-en-weer. Ik werk daardoor efficiënter en geef dat voordeel door: {pct} % korting op het eenmalig bedrag.",
+    lockinSave: "Je bespaart",
+    was: "was",
     spread: "Spreiding",
     spreadNote:
       "0 % toeslag — je betaalt nooit méér dan de prijs zelf. 30 % bij opstart, de rest in gelijke maanddelen.",
@@ -185,6 +195,11 @@ const T: Record<
     total: "Votre total",
     oneOff: "unique",
     excl: "HTVA",
+    lockin: "Verrouiller le scope maintenant",
+    lockinWhy:
+      "Vous figez votre composition tout de suite — sans allers-retours. Je travaille donc plus efficacement et je vous transmets cet avantage : {pct} % de réduction sur le montant unique.",
+    lockinSave: "Vous économisez",
+    was: "avant",
     spread: "Échelonnement",
     spreadNote:
       "0 % de supplément — vous ne payez jamais plus que le prix. 30 % au démarrage, le reste en parts mensuelles égales.",
@@ -248,6 +263,11 @@ const T: Record<
     total: "Your total",
     oneOff: "one-off",
     excl: "excl. VAT",
+    lockin: "Lock the scope now",
+    lockinWhy:
+      "You lock your composition right away — no back-and-forth. I work more efficiently and pass that benefit on: {pct}% off the one-off amount.",
+    lockinSave: "You save",
+    was: "was",
     spread: "Instalments",
     spreadNote:
       "0 % surcharge — you never pay more than the price itself. 30 % at start, the rest in equal monthly parts.",
@@ -297,6 +317,7 @@ export default function OffertePage() {
   const [mail, setMail] = useState<Mail>("none");
   const [users, setUsers] = useState(3);
   const [term, setTerm] = useState<number>(0);
+  const [lockin, setLockin] = useState(false);
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
   const [pending, startSend] = useTransition();
 
@@ -337,15 +358,19 @@ export default function OffertePage() {
   const monthlyRecurring = (subTier?.cents ?? 0) + mailMonthly;
   const domainYearly = domain === "register" ? REGISTER_CENTS : 0;
 
-  const deposit = Math.round(eenmalig * DEPOSIT);
-  const rest = eenmalig - deposit;
+  const pct = Math.round(LOCKIN_DISCOUNT * 100);
+  const discount = lockin ? Math.round(eenmalig * LOCKIN_DISCOUNT) : 0;
+  const payable = eenmalig - discount;
+
+  const deposit = Math.round(payable * DEPOSIT);
+  const rest = payable - deposit;
   const planFor = (n: number) => {
     if (n === 0) return { eligible: true, monthly: 0, deposit: 0 };
     const m = Math.ceil(rest / n);
-    const eligible = eenmalig >= MIN_SPREAD && m >= MIN_MONTHLY;
+    const eligible = payable >= MIN_SPREAD && m >= MIN_MONTHLY;
     return { eligible, monthly: m, deposit };
   };
-  const spreadPossible = eenmalig >= MIN_SPREAD;
+  const spreadPossible = payable >= MIN_SPREAD;
   const plan = planFor(term);
 
   const domLabel =
@@ -390,7 +415,9 @@ export default function OffertePage() {
         `Domein: ${domLabel}`,
         `E-mail: ${mailLabel}`,
         "",
-        `Eenmalig: ${eur(eenmalig)} (${c.excl})`,
+        discount > 0
+          ? `Eenmalig: ${eur(payable)} (${c.excl}) — directe-vastlegkorting ${pct} % toegepast (was ${eur(eenmalig)}, bespaart ${eur(discount)})`
+          : `Eenmalig: ${eur(eenmalig)} (${c.excl})`,
         term === 0
           ? `Betaling: ineens`
           : `Betaling: ${eur(plan.deposit)} bij opstart, daarna ${term}× ${eur(plan.monthly)}/maand`,
@@ -413,10 +440,11 @@ export default function OffertePage() {
           domLabel,
           mailLabel,
           termLabel,
+          ...(discount > 0 ? [`Scope vastgelegd −${pct}%`] : []),
         ].join(", "),
       );
-      fd.set("estLow", String(Math.round(eenmalig / 100)));
-      fd.set("estHigh", String(Math.round(eenmalig / 100)));
+      fd.set("estLow", String(Math.round(payable / 100)));
+      fd.set("estHigh", String(Math.round(payable / 100)));
       fd.set("monthly", String(Math.round(monthlyRecurring / 100)));
       fd.set("message", message);
 
@@ -724,11 +752,41 @@ export default function OffertePage() {
               </p>
 
               <p className="mt-3 text-3xl font-semibold tracking-tight">
-                {eur(eenmalig)}
+                {eur(payable)}
+                {discount > 0 && (
+                  <span className="ml-2 align-middle font-mono text-sm font-normal text-muted line-through">
+                    {eur(eenmalig)}
+                  </span>
+                )}
               </p>
               <p className="mt-1 font-mono text-xs text-muted">
                 {c.oneOff} · {c.excl}
               </p>
+              {discount > 0 && (
+                <p className="mt-1 font-mono text-xs text-accent">
+                  {c.lockinSave} {eur(discount)} ({pct} %)
+                </p>
+              )}
+
+              {/* Directe-vastlegkorting — transparant */}
+              {eenmalig > 0 && (
+                <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl border border-accent/30 bg-accent/5 p-3">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={lockin}
+                    onChange={(e) => setLockin(e.target.checked)}
+                  />
+                  <span className="min-w-0 text-sm">
+                    <span className="font-medium">
+                      {c.lockin} · −{pct} %
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+                      {c.lockinWhy.replace("{pct}", String(pct))}
+                    </span>
+                  </span>
+                </label>
+              )}
 
               {/* Aflossingstabel */}
               <div className="mt-5 border-t pt-4">
