@@ -88,7 +88,7 @@ export function BrowserFrame({
         className="group block w-full overflow-hidden rounded-2xl border bg-card text-left shadow-sm transition-shadow hover:shadow-md disabled:cursor-default"
       >
         <Chrome host={host} accent={accent} />
-        <div className="relative h-[460px] overflow-hidden sm:h-[620px]">
+        <div className="relative aspect-[16/10] overflow-hidden">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

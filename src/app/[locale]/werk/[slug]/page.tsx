@@ -165,7 +165,7 @@ export default async function WerkDetailPage({
         </section>
 
         <section className="border-b">
-          <div className="w-full px-3 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
             <BrowserFrame
               url={project.url}
               image={project.image}
