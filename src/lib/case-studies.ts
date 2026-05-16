@@ -100,7 +100,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
   barbotte: {
     nl: {
       context:
-        "Bar'Botte is de kleinere zus-zaak van Cottage, in Brussel. Het buurtpubliek is grondig tweetalig — een NL-only site liet letterlijk de helft van de potentiële gasten links liggen. Tegelijk mocht het geen dubbel beheer worden: dezelfde keuken, andere identiteit.",
+        "Bar'Botte is de kleinere zus-zaak van Cottage, in Waregem. Door de ligging dicht bij de taalgrens komt er ook Franstalig publiek over de vloer — een NL-only site liet letterlijk een deel van de potentiële gasten links liggen. Tegelijk mocht het geen dubbel beheer worden: dezelfde keuken, andere identiteit.",
       metricsTitle: "In cijfers",
       metrics: [
         { label: "Talen", before: "1 (NL)", after: "2 (NL/FR)" },
@@ -126,7 +126,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
     },
     fr: {
       context:
-        "Bar'Botte est la petite sœur de Cottage, à Bruxelles. Le public du quartier est profondément bilingue — un site uniquement NL laissait littéralement la moitié des clients potentiels de côté. En même temps, pas question de double gestion : même cuisine, identité différente.",
+        "Bar'Botte est la petite sœur de Cottage, à Waregem. Sa situation tout près de la frontière linguistique attire aussi un public francophone — un site uniquement NL laissait littéralement une partie des clients potentiels de côté. En même temps, pas question de double gestion : même cuisine, identité différente.",
       metricsTitle: "En chiffres",
       metrics: [
         { label: "Langues", before: "1 (NL)", after: "2 (NL/FR)" },
@@ -152,7 +152,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
     },
     en: {
       context:
-        "Bar'Botte is Cottage's smaller sister venue, in Brussels. The neighbourhood audience is thoroughly bilingual — an NL-only site literally left half the potential guests aside. At the same time it couldn't become double management: same kitchen, different identity.",
+        "Bar'Botte is Cottage's smaller sister venue, in Waregem. Its location close to the language border also brings in French-speaking guests — an NL-only site literally left part of the potential guests aside. At the same time it couldn't become double management: same kitchen, different identity.",
       metricsTitle: "In numbers",
       metrics: [
         { label: "Languages", before: "1 (NL)", after: "2 (NL/FR)" },
