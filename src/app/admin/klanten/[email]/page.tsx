@@ -3,7 +3,11 @@ import { ArrowLeft, Mail, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
-import { offerCatalog, OFFER_INCLUDED } from "@/lib/pricing";
+import {
+  offerCatalog,
+  OFFER_INCLUDED,
+  subscriptionTiers,
+} from "@/lib/pricing";
 import { OfferBuilder } from "@/components/offer-builder";
 import type { ScanResult } from "@/app/actions/scan";
 import {
@@ -23,6 +27,7 @@ import {
   deleteDocument,
   setDomain,
   deleteClient,
+  activateWebsiteClient,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -230,6 +235,8 @@ export default async function AdminKlantDetail({
     "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
   const catalog = offerCatalog();
   const cEur = (c: number) => `€ ${(c / 100).toFixed(2)}`;
+  const tiers = subscriptionTiers();
+  const activeSub = subs.find((s) => s.status === "actief") ?? subs[0];
 
   const gradeColor = (s: number) =>
     s >= 75
@@ -309,6 +316,42 @@ export default async function AdminKlantDetail({
         <div className="min-w-0 flex-1">
       {tab === "overzicht" && (
         <>
+        <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/5 p-5">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            Website-klant
+          </p>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            {activeSub
+              ? `Actief als klant — abonnement ${activeSub.plan} (${activeSub.status}). Portaaltoegang staat klaar.`
+              : "Nog geen abonnement. Steek deze persoon achteraf in als website-klant: portaaltoegang + het gekozen abonnement worden meteen aangemaakt en verschijnen in zijn portaal."}
+          </p>
+          <form
+            action={activateWebsiteClient}
+            className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"
+          >
+            <input type="hidden" name="client_email" value={email} />
+            <select
+              name="plan"
+              defaultValue={
+                tiers.find((tr) => tr.name === activeSub?.plan)?.slug ??
+                tiers[0]?.slug
+              }
+              className={field}
+            >
+              {tiers.map((tr) => (
+                <option key={tr.slug} value={tr.slug}>
+                  {tr.name} — {cEur(tr.cents)}/maand
+                </option>
+              ))}
+            </select>
+            <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+              {activeSub
+                ? "Abonnement bijwerken"
+                : "Activeer als website-klant"}
+            </button>
+          </form>
+        </div>
+
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[
             { k: "Scans", v: String(rows.length) },

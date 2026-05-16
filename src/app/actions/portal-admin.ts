@@ -7,7 +7,11 @@ import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
 import { ensurePortalUser, deletePortalUser } from "@/lib/portal-access";
-import { offerCatalog, OFFER_INCLUDED } from "@/lib/pricing";
+import {
+  offerCatalog,
+  OFFER_INCLUDED,
+  subscriptionTiers,
+} from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
 
 async function guard(): Promise<boolean> {
@@ -311,6 +315,52 @@ export async function setInvoiceStatus(
     .update({ status })
     .eq("id", id);
   if (error) return;
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+// Eén klik: bestaande klant 'insteken' als website-klant — portaal-
+// toegang + het gekozen abonnement (prijs uit pricing.ts), zodat het
+// meteen in zijn portaal staat.
+export async function activateWebsiteClient(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const slug = String(formData.get("plan") ?? "").trim();
+  if (!email) return;
+  const tier = subscriptionTiers().find((s) => s.slug === slug);
+  if (!tier) return;
+
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("subscriptions")
+    .select("id")
+    .eq("client_email", email)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const row = data as { id: string } | null;
+  const payload = {
+    client_email: email,
+    plan: tier.name,
+    price_cents: tier.cents,
+    status: "actief",
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = row
+    ? await db.from("subscriptions").update(payload).eq("id", row.id)
+    : await db.from("subscriptions").insert(payload);
+  if (error) return;
+
+  await ensurePortalUser(email);
+  await notifyClient(email, "subscription", [
+    `Je bent geactiveerd als klant van Studio VM met het abonnement <strong>${tier.name}</strong> — € ${(
+      tier.cents / 100
+    ).toFixed(2)} / maand. Je portaal staat klaar.`,
+  ]);
   revalidatePath("/admin/klanten", "layout");
   return;
 }
