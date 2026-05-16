@@ -11,6 +11,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
 import { createMolliePayment } from "@/lib/mollie";
+import { subscriptionTiers } from "@/lib/pricing";
 
 const STUDIO_INBOX = "hallo@studio-vm.be";
 
@@ -247,6 +248,49 @@ export async function toggleChecklistItem(
     .update({ done })
     .eq("id", id)
     .eq("client_email", email);
+  revalidatePath("/[locale]/portail/dashboard", "page");
+  return;
+}
+
+export async function upgradeSubscription(slug: string): Promise<void> {
+  const email = await authedEmail();
+  if (!email) return;
+  const tier = subscriptionTiers().find((s) => s.slug === slug);
+  if (!tier) return;
+
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("subscriptions")
+    .select("id")
+    .eq("client_email", email)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const row = data as { id: string } | null;
+
+  const payload = {
+    client_email: email,
+    plan: tier.name,
+    price_cents: tier.cents,
+    status: "actief",
+    updated_at: new Date().toISOString(),
+  };
+  if (row) await db.from("subscriptions").update(payload).eq("id", row.id);
+  else await db.from("subscriptions").insert(payload);
+
+  await notifyStudio(`Abonnement-upgrade — ${email}`, [
+    `<strong>${email}</strong> wijzigde zijn onderhoudsabonnement naar <strong>${tier.name}</strong> (€ ${(
+      tier.cents / 100
+    ).toFixed(2)}/maand).`,
+    "De maandfactuur wordt vanaf nu op dit bedrag aangepast.",
+  ]);
+  await sendMail(email, {
+    subject: `Je abonnement is nu ${tier.name}`,
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">Je onderhoudsabonnement is gewijzigd naar <strong>${tier.name}</strong> — € ${(
+      tier.cents / 100
+    ).toFixed(2)}/maand, meteen actief.</p><p style="margin:0 0 8px">Je maandelijkse factuur wordt vanaf de volgende periode op dit bedrag aangepast.</p></div>`,
+  }).catch(() => {});
+
   revalidatePath("/[locale]/portail/dashboard", "page");
   return;
 }

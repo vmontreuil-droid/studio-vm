@@ -175,6 +175,29 @@ export function offerCatalog(): {
   return { bases, addons, subs };
 }
 
+export type SubTier = {
+  slug: string;
+  name: string;
+  cents: number;
+  tagline: string;
+  features: string[];
+};
+
+// Onderhoudsabonnementen met maandprijs in centen (NL = bron).
+export function subscriptionTiers(): SubTier[] {
+  return data.nl.subscription.map((t) => ({
+    slug: t.slug,
+    name: t.name,
+    cents: priceToCents(t.price),
+    tagline: t.tagline,
+    features: t.features,
+  }));
+}
+
+export function subscriptionCents(slug: string): number {
+  return subscriptionTiers().find((s) => s.slug === slug)?.cents ?? 0;
+}
+
 // Wat zit standaard in welk pakket (inbegrepen → € 0 op de offerte).
 // addons: exacte namen uit data.nl.addons. sub: bijhorend abonnement.
 export const OFFER_INCLUDED: Record<
