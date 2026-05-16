@@ -914,14 +914,14 @@ export function SiteScanner({
               : "xl";
     const contentPrice =
       pages == null
-        ? 200
+        ? 100
         : pages <= 10
-          ? 200
+          ? 100
           : pages <= 30
-            ? 500
+            ? 250
             : pages <= 80
-              ? 1000
-              : 1600;
+              ? 450
+              : 700;
     const baseKey: "base_webshop" | "base_pro" | "base_starter" = inv.shop
       ? "base_webshop"
       : inv.members || bucket === "xl" || (inv.multilingual && bucket === "large")
