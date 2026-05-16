@@ -140,11 +140,11 @@ const T: Record<
     atOnce: "Ineens",
     deposit: "Aanbetaling bij opstart",
     thenPay: "daarna",
-    perMonth: "/ maand",
+    perMonth: " / maand",
     monthlySub: "Maandelijks (verplicht abonnement)",
-    perMonthShort: "/ maand",
+    perMonthShort: " / maand",
     domainYear: "Domein",
-    perYear: "/ jaar",
+    perYear: " / jaar",
     pickBase: "Kies eerst een pakket.",
     pickSub: "Kies een onderhoudsabonnement.",
     sendTitle: "Alles juist? Vraag je offerte aan.",
@@ -208,11 +208,11 @@ const T: Record<
     atOnce: "En une fois",
     deposit: "Acompte au démarrage",
     thenPay: "ensuite",
-    perMonth: "/ mois",
+    perMonth: " / mois",
     monthlySub: "Mensuel (abonnement obligatoire)",
-    perMonthShort: "/ mois",
+    perMonthShort: " / mois",
     domainYear: "Domaine",
-    perYear: "/ an",
+    perYear: " / an",
     pickBase: "Choisissez d'abord un forfait.",
     pickSub: "Choisissez un abonnement de maintenance.",
     sendTitle: "Tout est bon ? Demandez votre devis.",
@@ -276,11 +276,11 @@ const T: Record<
     atOnce: "At once",
     deposit: "Deposit at start",
     thenPay: "then",
-    perMonth: "/ month",
+    perMonth: " / month",
     monthlySub: "Monthly (required subscription)",
-    perMonthShort: "/ month",
+    perMonthShort: " / month",
     domainYear: "Domain",
-    perYear: "/ year",
+    perYear: " / year",
     pickBase: "Pick a package first.",
     pickSub: "Pick a maintenance subscription.",
     sendTitle: "All correct? Request your quote.",
@@ -608,12 +608,14 @@ export default function OffertePage() {
                           />
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-muted">{s.tagline}</p>
-                      <p className="mt-3 font-mono text-sm">
+                      <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
+                        {s.tagline}
+                      </p>
+                      <p className="mt-2 font-mono text-sm">
                         {eur(s.cents)}
                         <span className="text-muted">{c.perMonthShort}</span>
                       </p>
-                      <ul className="mt-3 flex-1 space-y-1 text-xs text-muted">
+                      <ul className="mt-3 flex-1 space-y-1 text-xs leading-snug text-muted">
                         {s.features.slice(0, 4).map((f) => (
                           <li key={f}>· {f}</li>
                         ))}
@@ -666,8 +668,10 @@ export default function OffertePage() {
                       <span className="font-semibold tracking-tight">
                         {label}
                       </span>
-                      <p className="mt-1 text-xs text-muted">{d}</p>
-                      <p className="mt-2 font-mono text-xs text-accent">
+                      <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
+                        {d}
+                      </p>
+                      <p className="mt-1 font-mono text-xs text-accent">
                         {price}
                       </p>
                     </button>
@@ -692,7 +696,7 @@ export default function OffertePage() {
                       "team",
                       c.mailTeam,
                       c.mailTeamD,
-                      `${eur(MAIL_USER_CENTS)}${c.perMonth}/gebr.`,
+                      `${eur(MAIL_USER_CENTS)}${c.perMonth}`,
                     ],
                   ] as [Mail, string, string, string][]
                 ).map(([k, label, d, price]) => {
@@ -711,8 +715,10 @@ export default function OffertePage() {
                       <span className="font-semibold tracking-tight">
                         {label}
                       </span>
-                      <p className="mt-1 text-xs text-muted">{d}</p>
-                      <p className="mt-2 font-mono text-xs text-accent">
+                      <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
+                        {d}
+                      </p>
+                      <p className="mt-1 font-mono text-xs text-accent">
                         {price}
                       </p>
                     </button>
