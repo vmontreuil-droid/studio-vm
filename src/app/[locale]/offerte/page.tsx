@@ -1007,7 +1007,7 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section id="aanvraag" className="border-b">
+      <section id="aanvraag" className="scroll-mt-28 border-b">
         <div className="mx-auto max-w-xl px-6 py-16 text-center">
           <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
             {c.sendTitle}
