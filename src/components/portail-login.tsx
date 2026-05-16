@@ -11,6 +11,7 @@ import {
   Gauge,
   FileText,
   CreditCard,
+  RefreshCcw,
   Globe,
   LifeBuoy,
 } from "lucide-react";
@@ -51,6 +52,7 @@ const T: Record<
       { t: "Je site-analyse", d: "Score, valkuilen en het volledige rapport." },
       { t: "Offertes", d: "Bekijk en aanvaard met één klik." },
       { t: "Facturen & betalingen", d: "Overzicht van wat betaald is en openstaat." },
+      { t: "Abonnement", d: "Je lopende formule en status, altijd inzichtelijk." },
       { t: "Je website", d: "Live status en link, beheerd door Studio VM." },
       { t: "Support", d: "Open een ticket en volg de opvolging." },
     ],
@@ -72,6 +74,7 @@ const T: Record<
       { t: "Votre analyse", d: "Score, pièges et le rapport complet." },
       { t: "Devis", d: "Consultez et acceptez en un clic." },
       { t: "Factures & paiements", d: "Vue de ce qui est payé et à payer." },
+      { t: "Abonnement", d: "Votre formule en cours et son statut, toujours visibles." },
       { t: "Votre site", d: "Statut en direct et lien, géré par Studio VM." },
       { t: "Support", d: "Ouvrez un ticket et suivez le suivi." },
     ],
@@ -92,13 +95,14 @@ const T: Record<
       { t: "Your site analysis", d: "Score, pitfalls and the full report." },
       { t: "Quotes", d: "Review and accept in one click." },
       { t: "Invoices & payments", d: "Overview of paid and outstanding." },
+      { t: "Subscription", d: "Your current plan and status, always visible." },
       { t: "Your website", d: "Live status and link, managed by Studio VM." },
       { t: "Support", d: "Open a ticket and follow up." },
     ],
   },
 };
 
-const ICONS = [Gauge, FileText, CreditCard, Globe, LifeBuoy];
+const ICONS = [Gauge, FileText, CreditCard, RefreshCcw, Globe, LifeBuoy];
 const initial: AuthState = { ok: false, message: "" };
 
 export function PortailLogin({ locale }: { locale: Locale }) {
@@ -110,9 +114,9 @@ export function PortailLogin({ locale }: { locale: Locale }) {
     <div className="flex min-h-dvh">
       {/* Linkerpaneel — wat het portaal kan */}
       <div className="hidden w-1/2 flex-col justify-between border-r bg-card p-12 lg:flex">
-        <p className="text-xl font-extrabold lowercase tracking-tighter">
+        <p className="text-4xl font-extrabold lowercase tracking-tighter sm:text-5xl">
           vm<span className="text-accent">.</span>
-          <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
+          <span className="ml-3 align-middle font-mono text-xs font-normal uppercase tracking-widest text-muted">
             {t.panelEyebrow}
           </span>
         </p>

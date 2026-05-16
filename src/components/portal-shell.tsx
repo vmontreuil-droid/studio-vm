@@ -81,8 +81,8 @@ export function PortalShell({
 
   const Inner = (
     <div className="flex h-full flex-col">
-      <div className="px-5 py-5">
-        <p className="text-xl font-extrabold lowercase tracking-tighter">
+      <div className="px-5 py-6">
+        <p className="text-3xl font-extrabold lowercase tracking-tighter">
           vm<span className="text-accent">.</span>
           <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
             {t.portal}
