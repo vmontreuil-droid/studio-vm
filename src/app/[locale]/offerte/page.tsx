@@ -29,6 +29,7 @@ const TRANSFER_CENTS = 7500; // domeinverhuis, eenmalig
 const REGISTER_CENTS = 3900; // nieuw domein, per jaar
 const MAIL_ONE_CENTS = 500; // 1 mailbox, per maand
 const MAIL_USER_CENTS = 600; // team, per gebruiker per maand
+const VAT_RATE = 0.21; // prijzen excl. btw; bij afrekenen komt 21% erbij
 
 type Domain = "connect" | "register" | "transfer";
 type Mail = "none" | "one" | "team";
@@ -998,6 +999,18 @@ export default function OffertePage() {
                     {c.domainPrepaid}
                   </p>
                 )}
+                <div className="mt-1.5 flex items-center justify-between rounded-lg bg-accent/10 px-3 py-2">
+                  <span className="text-xs font-medium text-accent">
+                    {locale === "fr"
+                      ? "À payer maintenant (TVA 21 % incl.)"
+                      : locale === "en"
+                        ? "To pay now (incl. 21% VAT)"
+                        : "Nu te betalen (incl. 21% btw)"}
+                  </span>
+                  <strong className="text-accent">
+                    {eur(Math.round(depositTotal * (1 + VAT_RATE)))}
+                  </strong>
+                </div>
                 <div className="mt-1.5 flex items-center justify-between">
                   <span className="text-muted">
                     {term > 0 && plan.eligible ? c.restRowSpread : c.restRow}

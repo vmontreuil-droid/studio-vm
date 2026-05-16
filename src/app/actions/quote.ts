@@ -139,6 +139,7 @@ const LOCKIN_DISCOUNT = 0.07;
 const MIN_SPREAD = 75000;
 const MIN_MONTHLY = 7500;
 const TERMS = [0, 3, 6, 12, 24];
+const VAT_RATE = 0.21; // Belgische btw; prijzen worden excl. btw geoffreerd
 
 const cents = (c: number) => "€ " + (c / 100).toLocaleString("nl-BE");
 
@@ -316,7 +317,8 @@ export async function startOffer(
       ? `Extra: ${paidExtras.map((a) => `${a.name} (${cents(a.cents)})`).join(", ")}`
       : "Extra: —",
     `Eenmalig: ${cents(eenmalig)} − vastlegkorting ${cents(discount)} = ${cents(payable)} (excl. btw)`,
-    `Aanbetaling: ${cents(deposit)} — nu te betalen (30% project ${cents(projectDeposit)}${domainYear ? ` + domein 1 jaar ${cents(domainYear)}` : ""})`,
+    `Aanbetaling: ${cents(deposit)} excl. btw (30% project ${cents(projectDeposit)}${domainYear ? ` + domein 1 jaar ${cents(domainYear)}` : ""})`,
+    `Nu te betalen incl. 21% btw: ${cents(Math.round(deposit * (1 + VAT_RATE)))}`,
     term === 0
       ? `Saldo: ${cents(rest)} bij oplevering`
       : `Saldo: ${term}× ${cents(monthlyInstall)}/maand vanaf oplevering`,
@@ -404,9 +406,10 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
     return { ok: true, pay: false };
   }
 
+  const depositInclVat = Math.round(deposit * (1 + VAT_RATE));
   const pay = await createMolliePayment({
-    amountCents: deposit,
-    description: `Aanbetaling 30% — Studio VM (${base.name})`,
+    amountCents: depositInclVat,
+    description: `Aanbetaling 30% incl. 21% btw — Studio VM (${base.name})`,
     redirectUrl: `${siteUrl}/${locale}/offerte?betaald=1`,
     webhookUrl: `${siteUrl}/api/mollie/webhook`,
     metadata: { quote_id: quoteId },

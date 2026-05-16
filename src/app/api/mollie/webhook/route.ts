@@ -72,8 +72,13 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", quoteId);
 
+        // deposit_cents staat excl. btw opgeslagen; betaald werd incl. 21%.
         const amt =
-          "€ " + ((q.deposit_cents ?? 0) / 100).toLocaleString("nl-BE");
+          "€ " +
+          (Math.round((q.deposit_cents ?? 0) * 1.21) / 100).toLocaleString(
+            "nl-BE",
+          ) +
+          " incl. btw";
         await sendMail("info@studio-vm.be", {
           subject: `Aanbetaling ontvangen — ${q.name}`,
           html: `<div style="font-family:system-ui,sans-serif;color:#111;line-height:1.6"><p><strong>${q.name}</strong> (${q.email}) heeft de aanbetaling van ${amt} betaald. De scope ligt vast — klaar om op te starten.</p></div>`,
