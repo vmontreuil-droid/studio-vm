@@ -102,10 +102,17 @@ export async function sendMagicLink(
         options: { redirectTo },
       });
     }
-    const link = gen.data?.properties?.action_link;
-    if (gen.error || !link) {
+    const hashed = gen.data?.properties?.hashed_token;
+    if (gen.error || !hashed) {
       return { ok: false, message: t.fail };
     }
+    // Eigen callback met token_hash → server-side verifyOtp (zet de
+    // cookie-sessie betrouwbaar, los van Supabase's eigen redirect).
+    const link = `${origin}/auth/callback?token_hash=${encodeURIComponent(
+      hashed,
+    )}&type=magiclink&next=${encodeURIComponent(
+      `/${locale}/portail/dashboard`,
+    )}`;
 
     const accent = "#e08214";
     const font =
