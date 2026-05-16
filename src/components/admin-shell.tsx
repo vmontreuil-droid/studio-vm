@@ -20,6 +20,7 @@ import {
   PanelLeft,
   ExternalLink,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export type AdminCounts = {
   nieuw: number;
@@ -131,18 +132,29 @@ function Sidebar({
             Bekijk website
           </a>
         )}
-        <form action="/api/admin/logout" method="post">
-          <button
-            type="submit"
-            title={collapsed ? "Uitloggen" : undefined}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
-              collapsed ? "justify-center" : ""
-            }`}
+        <div
+          className={`flex items-center gap-2 ${
+            collapsed ? "flex-col" : ""
+          }`}
+        >
+          <ThemeToggle />
+          <form
+            action="/api/admin/logout"
+            method="post"
+            className={collapsed ? "" : "flex-1"}
           >
-            <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-            {!collapsed && "Uitloggen"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              title={collapsed ? "Uitloggen" : undefined}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
+                collapsed ? "justify-center" : ""
+              }`}
+            >
+              <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+              {!collapsed && "Uitloggen"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

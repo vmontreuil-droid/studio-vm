@@ -34,14 +34,36 @@ type Row = {
   created_at: string;
 };
 
+const TABS = [
+  { k: "overzicht", l: "Overzicht" },
+  { k: "scans", l: "Scans" },
+  { k: "offertes", l: "Offertes" },
+  { k: "facturen", l: "Facturen" },
+  { k: "abonnement", l: "Abonnement" },
+  { k: "voortgang", l: "Voortgang" },
+  { k: "checklist", l: "Checklist" },
+  { k: "documenten", l: "Documenten" },
+  { k: "website", l: "Website" },
+  { k: "domein", l: "Domein" },
+  { k: "tickets", l: "Tickets" },
+] as const;
+
 export default async function AdminKlantDetail({
   params,
+  searchParams,
 }: {
   params: Promise<{ email: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const { email: raw } = await params;
   const email = decodeURIComponent(raw).toLowerCase().trim();
+  const { tab: tabRaw } = await searchParams;
+  const tab = TABS.some((x) => x.k === tabRaw)
+    ? (tabRaw as string)
+    : "overzicht";
+  const tabHref = (k: string) =>
+    `/admin/klanten/${encodeURIComponent(email)}?tab=${k}`;
 
   const { data } = await getSupabaseAdmin()
     .from("scan_requests")
@@ -238,7 +260,72 @@ export default async function AdminKlantDetail({
         </div>
       </div>
 
-      <h2 className="mt-10 font-mono text-xs uppercase tracking-widest text-accent">
+      {/* Tab-navigatie */}
+      <div className="mt-8 flex flex-wrap gap-1 border-b pb-px">
+        {TABS.map((x) => (
+          <Link
+            key={x.k}
+            href={tabHref(x.k)}
+            className={`rounded-t-lg px-3.5 py-2 text-sm transition-colors ${
+              tab === x.k
+                ? "bg-card font-medium text-foreground"
+                : "text-muted hover:bg-card-hover hover:text-foreground"
+            }`}
+          >
+            {x.l}
+          </Link>
+        ))}
+      </div>
+
+      {tab === "overzicht" && (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {[
+            { k: "Scans", v: String(rows.length) },
+            {
+              k: "Open offertes",
+              v: String(offers.filter((o) => o.status === "open").length),
+            },
+            {
+              k: "Openstaand",
+              v: eur(
+                invoices
+                  .filter((i) => i.status === "open")
+                  .reduce((s, i) => s + i.amount_cents, 0),
+              ),
+            },
+            {
+              k: "Abonnement",
+              v:
+                subs.find((s) => s.status === "actief")?.plan ??
+                subs[0]?.plan ??
+                "—",
+            },
+            { k: "Projectfase", v: progress?.step ?? "—" },
+            {
+              k: "Checklist",
+              v: `${checklist.filter((c) => c.done).length}/${checklist.length}`,
+            },
+            { k: "Documenten", v: String(documents.length) },
+            {
+              k: "Open tickets",
+              v: String(
+                tickets.filter((tk) => tk.status !== "gesloten").length,
+              ),
+            },
+          ].map((c) => (
+            <div key={c.k} className="rounded-2xl border bg-card p-5">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.k}
+              </p>
+              <p className="mt-1 truncate text-2xl font-semibold">{c.v}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "scans" && (
+        <>
+      <h2 className="mt-6 font-mono text-xs uppercase tracking-widest text-accent">
         Alle scans
       </h2>
       <div className="mt-4 space-y-3">
@@ -298,6 +385,11 @@ export default async function AdminKlantDetail({
         })}
       </div>
 
+      </>
+      )}
+
+      {tab === "offertes" && (
+        <>
       {/* OFFERTES */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Offertes
@@ -363,6 +455,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "facturen" && (
+        <>
       {/* FACTUREN */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Facturen
@@ -411,6 +508,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "abonnement" && (
+        <>
       {/* ABONNEMENT */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Abonnement
@@ -451,6 +553,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "tickets" && (
+        <>
       {/* TICKETS */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Tickets
@@ -520,6 +627,11 @@ export default async function AdminKlantDetail({
         ))}
       </div>
 
+      </>
+      )}
+
+      {tab === "website" && (
+        <>
       {/* WEBSITE */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Website
@@ -606,6 +718,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "voortgang" && (
+        <>
       {/* PROJECTVOORTGANG */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Projectvoortgang
@@ -640,6 +757,11 @@ export default async function AdminKlantDetail({
         />
       </form>
 
+      </>
+      )}
+
+      {tab === "checklist" && (
+        <>
       {/* CHECKLIST */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Onboarding-checklist
@@ -678,6 +800,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "documenten" && (
+        <>
       {/* DOCUMENTEN */}
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Documenten
@@ -729,6 +856,11 @@ export default async function AdminKlantDetail({
         </form>
       </div>
 
+      </>
+      )}
+
+      {tab === "domein" && (
+        <>
       {/* DOMEIN & HOSTING */}
       {sites.length > 0 && (
         <>
@@ -782,6 +914,8 @@ export default async function AdminKlantDetail({
               </form>
             ))}
           </div>
+        </>
+      )}
         </>
       )}
     </>
