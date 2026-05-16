@@ -3,7 +3,8 @@ import { ArrowLeft, Mail, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
-import { offerCatalog } from "@/lib/pricing";
+import { offerCatalog, OFFER_INCLUDED } from "@/lib/pricing";
+import { OfferBuilder } from "@/components/offer-builder";
 import type { ScanResult } from "@/app/actions/scan";
 import {
   createOffer,
@@ -141,7 +142,7 @@ export default async function AdminKlantDetail({
     amount_cents: number | null;
     status: string;
     valid_until: string | null;
-    items: { label: string; cents: number }[] | null;
+    items: { label: string; desc?: string; cents: number }[] | null;
     vat_number: string | null;
     vat_valid: boolean | null;
     vat_reverse: boolean | null;
@@ -471,10 +472,16 @@ export default async function AdminKlantDetail({
                   {o.viewed_at ? " · bekeken" : " · niet bekeken"}
                 </p>
                 {o.items && o.items.length > 0 && (
-                  <ul className="mt-2 space-y-0.5 text-xs text-muted">
+                  <ul className="mt-2 space-y-1 text-xs text-muted">
                     {o.items.map((it, i) => (
                       <li key={i}>
-                        {it.label} — {cEur(it.cents)}
+                        <span className="text-foreground">{it.label}</span> —{" "}
+                        {it.cents > 0 ? cEur(it.cents) : "inbegrepen"}
+                        {it.desc ? (
+                          <span className="block text-[11px] opacity-80">
+                            {it.desc}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
@@ -503,109 +510,14 @@ export default async function AdminKlantDetail({
           </div>
         ))}
 
-        <form
+        <OfferBuilder
+          email={email}
+          bases={catalog.bases}
+          addons={catalog.addons}
+          subs={catalog.subs}
+          included={OFFER_INCLUDED}
           action={createOffer}
-          className="space-y-4 rounded-2xl border border-dashed bg-card/50 p-5"
-        >
-          <input type="hidden" name="client_email" value={email} />
-
-          <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Klantgegevens
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <input
-                name="client_name"
-                placeholder="Naam contactpersoon"
-                className={field}
-              />
-              <input
-                name="client_company"
-                placeholder="Bedrijf"
-                className={field}
-              />
-            </div>
-            <input
-              name="client_address"
-              placeholder="Adres"
-              className={`mt-2 ${field}`}
-            />
-            <input
-              name="vat_number"
-              placeholder="BTW-nummer (bv. BE0123456789) — wordt gecontroleerd via VIES"
-              className={`mt-2 ${field}`}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Pakket
-            </p>
-            <select name="base" defaultValue="" className={field}>
-              <option value="">— Geen basispakket —</option>
-              {catalog.bases.map((b) => (
-                <option key={b.key} value={b.key}>
-                  {b.name} · {cEur(b.cents)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Opties
-            </p>
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {catalog.addons.map((a) => (
-                <label
-                  key={a.key}
-                  className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
-                >
-                  <input type="checkbox" name="addon" value={a.key} />
-                  <span className="flex-1">{a.name}</span>
-                  <span className="font-mono text-xs text-muted">
-                    {a.cents ? cEur(a.cents) : "—"}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-3">
-            <select name="valid_days" defaultValue="7" className={field}>
-              <option value="7">Bedenktijd: 1 week</option>
-              <option value="14">Bedenktijd: 14 dagen</option>
-              <option value="30">Bedenktijd: 30 dagen</option>
-            </select>
-            <input
-              name="title"
-              placeholder="Titel (optioneel)"
-              className={field}
-            />
-            <input
-              name="amount"
-              placeholder="Totaal override € (optioneel)"
-              className={field}
-            />
-          </div>
-
-          <textarea
-            name="body"
-            rows={2}
-            placeholder="Omschrijving voor de klant (optioneel)"
-            className={field}
-          />
-          <textarea
-            name="internal_note"
-            rows={2}
-            placeholder="Interne notitie (enkel voor jou — niet zichtbaar voor de klant)"
-            className={field}
-          />
-
-          <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
-            Offerte aanmaken &amp; versturen
-          </button>
-        </form>
+        />
       </div>
 
       </>

@@ -15,7 +15,7 @@ export type Offer = {
   amount_cents: number | null;
   status: string;
   valid_until: string | null;
-  items: { label: string; cents: number }[] | null;
+  items: { label: string; desc?: string; cents: number }[] | null;
   vat_reverse: boolean | null;
   created_at: string;
 };

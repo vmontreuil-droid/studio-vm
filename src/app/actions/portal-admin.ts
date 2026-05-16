@@ -7,7 +7,7 @@ import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
 import { ensurePortalUser, deletePortalUser } from "@/lib/portal-access";
-import { offerCatalog } from "@/lib/pricing";
+import { offerCatalog, OFFER_INCLUDED } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
 
 async function guard(): Promise<boolean> {
@@ -154,18 +154,45 @@ export async function createOffer(formData: FormData): Promise<void> {
   if (!email) return;
 
   const db = getSupabaseAdmin();
-  const { bases, addons } = offerCatalog();
-  const picked: { label: string; cents: number }[] = [];
+  const { bases, addons, subs } = offerCatalog();
+  const picked: { label: string; desc: string; cents: number }[] = [];
   const baseKey = String(formData.get("base") ?? "");
   const base = bases.find((b) => b.key === baseKey);
-  if (base) picked.push({ label: base.name, cents: base.cents });
+  const inc = base?.slug ? OFFER_INCLUDED[base.slug] : undefined;
+  let paid = 0;
+  if (base) {
+    picked.push({ label: base.name, desc: "Basispakket", cents: base.cents });
+    paid += base.cents;
+  }
+  // Inbegrepen opties + bijhorend abonnement → € 0-lijnen.
+  if (inc) {
+    for (const name of inc.addons) {
+      const a = addons.find((x) => x.name === name);
+      if (a)
+        picked.push({
+          label: `${a.name} (inbegrepen)`,
+          desc: a.desc ?? "",
+          cents: 0,
+        });
+    }
+    const s = subs.find((x) => x.slug === inc.sub);
+    if (s)
+      picked.push({
+        label: `${s.name} (inbegrepen)`,
+        desc: s.desc ?? "",
+        cents: 0,
+      });
+  }
+  // Extra aangevinkte opties die NIET al inbegrepen zijn → betalend.
   for (const k of formData.getAll("addon").map(String)) {
     const a = addons.find((x) => x.key === k);
-    if (a) picked.push({ label: a.name, cents: a.cents });
+    if (!a) continue;
+    if (inc && inc.addons.includes(a.name)) continue;
+    picked.push({ label: a.name, desc: a.desc ?? "", cents: a.cents });
+    paid += a.cents;
   }
-  const computed = picked.reduce((s, p) => s + p.cents, 0);
   const override = cents(formData.get("amount"));
-  const amount = override > 0 ? override : computed;
+  const amount = override > 0 ? override : paid;
 
   // BTW-controle via VIES (faalt nooit de opslag).
   let vatValid: boolean | null = null;

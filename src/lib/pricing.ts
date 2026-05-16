@@ -30,7 +30,6 @@ const data: Record<Locale, Bundle> = {
       { slug: "custom", name: "Custom", tagline: "Op maat", price: "op aanvraag", priceNote: "scope-afhankelijk", features: ["Multi-app systemen", "Integraties (boekhouding, CRM, ERP)", "Migratie van WordPress/Squarespace", "Custom admin workflows", "Booking-systemen, ticketing, ...", "Wat je ook nodig hebt"], ctaLabel: "Praat met me", ctaHref: "/#contact" },
     ],
     subscription: [
-      { slug: "basis", name: "Basis", tagline: "Veilig & online", price: "€ 19", priceNote: "per maand, excl. btw", features: ["Hosting (Vercel + Supabase)", "SSL-certificaat", "Automatische backups", "Uptime-monitoring"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "care", name: "Care", tagline: "Wij houden 't draaiend", price: "€ 49", priceNote: "per maand, excl. btw", features: ["Hosting (Vercel + Supabase)", "SSL + automatische backups", "Security updates", "1u support per maand", "Maandelijkse uptime-rapport"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Meest gekozen", price: "€ 149", priceNote: "per maand, excl. btw", features: ["Alles van Care", "Tot 4u support per maand", "Content-updates door mij", "Performance + SEO rapport", "Reactie binnen 1 werkdag"], highlighted: true, ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Voor wie blijft groeien", price: "€ 399", priceNote: "per maand, excl. btw", features: ["Alles van Plus", "Onbeperkt support", "5u nieuwe features per maand", "Prioriteit reactie binnen 4u", "Strategie-call elke maand"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
@@ -46,6 +45,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Fotoshoot", price: "€ 450", desc: "Halve dag professionele shoot, bewerkt en webklaar." },
       { name: "Cookiebanner & GDPR", price: "€ 65", desc: "Consent-banner die scripts pas na toestemming laadt — boetevrij." },
       { name: "Teksten / copywriting", price: "€ 145", desc: "Professionele, SEO-bewuste webteksten voor je pagina's." },
+      { name: "Contactformulier", price: "€ 0", desc: "Contactformulier met spamfilter — standaard inbegrepen in elk pakket." },
+      { name: "Admin / CMS", price: "€ 800", desc: "Eigen beheeromgeving om teksten, beelden en pagina's zelf te wijzigen — geen factuur per aanpassing." },
     ],
   },
   fr: {
@@ -57,7 +58,6 @@ const data: Record<Locale, Bundle> = {
       { slug: "custom", name: "Sur mesure", tagline: "Personnalisé", price: "sur demande", priceNote: "selon le scope", features: ["Systèmes multi-apps", "Intégrations (compta, CRM, ERP)", "Migration WordPress/Squarespace", "Workflows admin personnalisés", "Systèmes de réservation, ticketing, ...", "Tout ce dont vous avez besoin"], ctaLabel: "Discutons-en", ctaHref: "/#contact" },
     ],
     subscription: [
-      { slug: "basis", name: "Basis", tagline: "Sûr & en ligne", price: "€ 19", priceNote: "par mois, HTVA", features: ["Hébergement (Vercel + Supabase)", "Certificat SSL", "Sauvegardes automatiques", "Surveillance uptime"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "care", name: "Care", tagline: "On garde tout en marche", price: "€ 49", priceNote: "par mois, HTVA", features: ["Hébergement (Vercel + Supabase)", "SSL + sauvegardes automatiques", "Mises à jour de sécurité", "1h de support par mois", "Rapport uptime mensuel"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Le plus choisi", price: "€ 149", priceNote: "par mois, HTVA", features: ["Tout de Care", "Jusqu'à 4h de support par mois", "Mises à jour de contenu par moi", "Rapport performance + SEO", "Réponse sous 1 jour ouvré"], highlighted: true, ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Pour ceux qui grandissent", price: "€ 399", priceNote: "par mois, HTVA", features: ["Tout de Plus", "Support illimité", "5h de nouvelles fonctions par mois", "Réponse prioritaire sous 4h", "Appel stratégie chaque mois"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
@@ -73,6 +73,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Shooting photo", price: "€ 450", desc: "Demi-journée de shooting pro, retouché et prêt web." },
       { name: "Bannière cookies & RGPD", price: "€ 65", desc: "Bannière de consentement qui ne charge les scripts qu'après accord." },
       { name: "Textes / rédaction", price: "€ 145", desc: "Textes web professionnels et optimisés SEO pour vos pages." },
+      { name: "Formulaire de contact", price: "€ 0", desc: "Formulaire de contact anti-spam — inclus dans chaque forfait." },
+      { name: "Admin / CMS", price: "€ 800", desc: "Votre espace de gestion pour modifier textes, images et pages vous-même." },
     ],
   },
   en: {
@@ -84,7 +86,6 @@ const data: Record<Locale, Bundle> = {
       { slug: "custom", name: "Custom", tagline: "Tailor-made", price: "on request", priceNote: "scope-dependent", features: ["Multi-app systems", "Integrations (accounting, CRM, ERP)", "WordPress/Squarespace migration", "Custom admin workflows", "Booking systems, ticketing, ...", "Whatever you need"], ctaLabel: "Let's talk", ctaHref: "/#contact" },
     ],
     subscription: [
-      { slug: "basis", name: "Basis", tagline: "Safe & online", price: "€ 19", priceNote: "per month, excl. VAT", features: ["Hosting (Vercel + Supabase)", "SSL certificate", "Automatic backups", "Uptime monitoring"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "care", name: "Care", tagline: "We keep it running", price: "€ 49", priceNote: "per month, excl. VAT", features: ["Hosting (Vercel + Supabase)", "SSL + automatic backups", "Security updates", "1h support per month", "Monthly uptime report"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "plus", name: "Plus", tagline: "Most chosen", price: "€ 149", priceNote: "per month, excl. VAT", features: ["Everything in Care", "Up to 4h support per month", "Content updates by me", "Performance + SEO report", "Reply within 1 working day"], highlighted: true, ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "For those who keep growing", price: "€ 399", priceNote: "per month, excl. VAT", features: ["Everything in Plus", "Unlimited support", "5h new features per month", "Priority reply within 4h", "Strategy call every month"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
@@ -100,6 +101,8 @@ const data: Record<Locale, Bundle> = {
       { name: "Photo shoot", price: "€ 450", desc: "Half-day professional shoot, edited and web-ready." },
       { name: "Cookie banner & GDPR", price: "€ 65", desc: "Consent banner that loads scripts only after approval — fine-free." },
       { name: "Copywriting / texts", price: "€ 145", desc: "Professional, SEO-aware web copy for your pages." },
+      { name: "Contact form", price: "€ 0", desc: "Anti-spam contact form — included in every package." },
+      { name: "Admin / CMS", price: "€ 800", desc: "Your own admin to edit texts, images and pages yourself." },
     ],
   },
 };
@@ -116,21 +119,34 @@ export function priceToCents(s: string): number {
   return parseInt(m.join(""), 10) * 100;
 }
 
-export type CatalogItem = { key: string; name: string; cents: number; desc?: string };
+export type CatalogItem = {
+  key: string;
+  slug?: string;
+  name: string;
+  cents: number;
+  desc?: string;
+};
 
-export function offerCatalog(): { bases: CatalogItem[]; addons: CatalogItem[] } {
+export function offerCatalog(): {
+  bases: CatalogItem[];
+  addons: CatalogItem[];
+  subs: CatalogItem[];
+} {
   const nl = data.nl;
   const bases = nl.oneShot
     .filter((t) => t.slug !== "custom")
     .map((t) => ({
       key: `base:${t.slug}`,
+      slug: t.slug,
       name: `${t.name} — ${t.tagline}`,
       cents: priceToCents(t.price),
     }));
   const subs = nl.subscription.map((t) => ({
     key: `sub:${t.slug}`,
+    slug: t.slug,
     name: `Abonnement ${t.name} (${t.price}/maand)`,
     cents: 0,
+    desc: t.features.join(" · "),
   }));
   const addons = nl.addons.map((a, i) => ({
     key: `addon:${i}`,
@@ -138,5 +154,69 @@ export function offerCatalog(): { bases: CatalogItem[]; addons: CatalogItem[] } 
     cents: priceToCents(a.price),
     desc: a.desc,
   }));
-  return { bases, addons: [...addons, ...subs] };
+  return { bases, addons, subs };
 }
+
+// Wat zit standaard in welk pakket (inbegrepen → € 0 op de offerte).
+// addons: exacte namen uit data.nl.addons. sub: bijhorend abonnement.
+export const OFFER_INCLUDED: Record<
+  string,
+  { addons: string[]; sub: "care" | "plus"; lang: string }
+> = {
+  onepager: {
+    addons: [
+      "Teksten / copywriting",
+      "Cookiebanner & GDPR",
+      "Contactformulier",
+      "Extra taal",
+    ],
+    sub: "care",
+    lang: "incl. 1 extra taal",
+  },
+  starter: {
+    addons: [
+      "Teksten / copywriting",
+      "Cookiebanner & GDPR",
+      "Contactformulier",
+      "Extra taal",
+      "Admin / CMS",
+      "Blog / nieuws-CMS",
+      "SEO-behoud bij migratie",
+    ],
+    sub: "care",
+    lang: "incl. 2 extra talen",
+  },
+  pro: {
+    addons: [
+      "Teksten / copywriting",
+      "Cookiebanner & GDPR",
+      "Contactformulier",
+      "Extra taal",
+      "Admin / CMS",
+      "Blog / nieuws-CMS",
+      "SEO-behoud bij migratie",
+      "Reservatie / afspraken",
+      "Ledenzone",
+      "Formulieren + opvolging",
+    ],
+    sub: "plus",
+    lang: "meertalig inbegrepen",
+  },
+  webshop: {
+    addons: [
+      "Teksten / copywriting",
+      "Cookiebanner & GDPR",
+      "Contactformulier",
+      "Extra taal",
+      "Admin / CMS",
+      "Blog / nieuws-CMS",
+      "SEO-behoud bij migratie",
+      "Reservatie / afspraken",
+      "Ledenzone",
+      "Formulieren + opvolging",
+      "Fotoshoot",
+    ],
+    sub: "plus",
+    lang: "alles inbegrepen",
+  },
+};

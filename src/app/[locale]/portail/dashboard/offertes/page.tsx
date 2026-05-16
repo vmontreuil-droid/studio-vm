@@ -121,10 +121,27 @@ export default async function PortalOffers({
                   </p>
                 )}
                 {o.items && o.items.length > 0 && (
-                  <ul className="mt-2 space-y-0.5 text-xs text-muted">
+                  <ul className="mt-3 space-y-1.5 text-xs">
                     {o.items.map((it, i) => (
-                      <li key={i}>
-                        {it.label} — {eur(it.cents)}
+                      <li
+                        key={i}
+                        className="flex items-start justify-between gap-3 border-b pb-1.5 last:border-0"
+                      >
+                        <span className="min-w-0">
+                          <span className="font-medium">{it.label}</span>
+                          {it.desc ? (
+                            <span className="mt-0.5 block text-muted">
+                              {it.desc}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span
+                          className={`shrink-0 font-mono ${
+                            it.cents > 0 ? "text-muted" : "text-accent"
+                          }`}
+                        >
+                          {it.cents > 0 ? eur(it.cents) : "inbegrepen"}
+                        </span>
                       </li>
                     ))}
                   </ul>
