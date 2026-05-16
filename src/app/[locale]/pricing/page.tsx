@@ -62,17 +62,17 @@ const copy: Record<
     subEyebrow: "Maandelijks",
     subTitle: "Onderhoud en doorgroei",
     subIntro:
-      "Een nieuwe site is mooi, maar een levende site is beter. Kies wat past bij hoe actief je bent.",
+      "Eén onderhoudsabonnement is verplicht vanaf maand 1 — je kiest vrij welk niveau, en je kan later in je klantenportaal zelf opgraden.",
     modEyebrow: "À la carte",
     modTitle: "Losse modules bij te bestellen",
     modIntro:
       "Bij elk pakket. Enkel wat je nodig hebt — je betaalt nooit voor functies die je niet gebruikt.",
     payEyebrow: "Betaalwijze",
-    payTitle: "Betalen op jouw tempo",
+    payTitle: "Vast bedrag, betalen op jouw tempo",
     payItems: [
-      { t: "Eenmalig", d: "Klassiek: 30% voorschot bij start, saldo bij oplevering." },
-      { t: "In 3 schijven", d: "Gespreid over de looptijd van het project, zonder extra kosten." },
-      { t: "Formule", d: "Lagere startprijs + maandelijks (site + Care samen). Ideaal om klein te starten." },
+      { t: "30% bij vastleggen", d: "Je stelt alles samen in de configurator en betaalt 30% aanbetaling om je scope vast te leggen." },
+      { t: "Spreiding 0% toeslag", d: "Het saldo ineens of gespreid in 3×, 6×, 12× of 24× — zonder enige toeslag." },
+      { t: "Directe-vastlegkorting", d: "Leg je meteen vast, dan 7% korting op het eenmalige bedrag. Geen sterretjes." },
     ],
     domEyebrow: "Domein & e-mail",
     domTitle: "Nog geen domein of e-mailadres?",
@@ -85,20 +85,20 @@ const copy: Record<
       { t: "Domeinverhuis", price: "€ 75 vast", d: "We halen je domein volledig beheerd weg bij je huidige host (API-gedreven). Jij keurt 1× goed, wij doen de rest — meestal binnen enkele uren (.be), zonder downtime." },
     ],
     domNote:
-      "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Richtprijzen, transparant doorgerekend — exacte prijs hangt af van extensie en provider (we vergelijken o.a. one.com, Combell en Cloudflare).",
+      "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Vaste prijzen, transparant — je kiest domein en e-mail mee in de configurator en het zit meteen in je totaal.",
     faqEyebrow: "Vragen die vaak terugkomen",
     faqTitle: "Goed om te weten",
     faqs: [
-      { q: "Kan ik later upgraden van Starter naar Pro?", a: "Ja. Je betaalt enkel het verschil + tijd voor de extra functies. Niets wordt opnieuw gefactureerd." },
-      { q: "Wat als ik geen abonnement neem?", a: "Dan staat je site rustig op Vercel + Supabase free tier. Je betaalt zelf voor je domein. Wil je later support of updates? Dan factureer ik per uur (€95/u)." },
-      { q: "Zit een logo of fotografie in de prijs?", a: "Werk je met je eigen foto's? Perfect, dan zit dat inbegrepen. Heb je niets bruikbaars? Dan boek je de module Fotoshoot (€450) — een halve dag pro shoot, webklaar. Een logo/huisstijl maak ik niet zelf, daarvoor werk ik met vaste partners." },
+      { q: "Kan ik later upgraden van Starter naar Pro?", a: "Ja. Je betaalt enkel het verschil + tijd voor de extra functies. Je onderhoudsabonnement kan je zelf opgraden in je klantenportaal." },
+      { q: "Is een onderhoudsabonnement verplicht?", a: "Ja, één abonnement is verplicht vanaf maand 1 — zo blijft je site veilig, up-to-date en gehost. Je kiest vrij welk niveau (Care/Plus/Scale/Partner), niet gekoppeld aan je pakket, en je kan later zelf opgraden." },
+      { q: "Zit een logo of fotografie in de prijs?", a: "Werk je met je eigen foto's? Perfect, dan zit dat inbegrepen. Heb je niets bruikbaars? Dan vink je in de configurator de optie Fotoshoot (€450) aan — een halve dag pro shoot, webklaar. Een logo/huisstijl maak ik niet zelf, daarvoor werk ik met vaste partners." },
       { q: "Hoe lang duurt een project?", a: "Uitvoering is 1 à 2 weken — alles wordt strak herschreven in Next.js + Supabase, ongeacht de scope. Wat de timing bepaalt is de vrijgave van je domein en of er fotomateriaal klaar is." },
-      { q: "Eerst gratis kennismaken?", a: "Altijd. Een eerste gesprek (digitaal of bij jou) is vrijblijvend en kost niets. Pas wanneer we beslissen om door te gaan, factureer ik 30% voorschot." },
+      { q: "Hoe leg ik alles vast?", a: "Via de configurator: je kiest pakket, onderhoud, domein en e-mail, ziet meteen je exacte vaste prijs, en betaalt 30% aanbetaling om je scope vast te leggen. Geen vrijblijvende offertes met sterretjes — wat je samenstelt, dat is de prijs." },
     ],
-    ctaTitle: "Niet zeker welk pakket bij jou past?",
+    ctaTitle: "Klaar om je prijs vast te zetten?",
     ctaIntro:
-      "Stuur me een mailtje met wat je in gedachten hebt. Ik bereken kosteloos welke formule het meest steekhoudend is voor jouw zaak.",
-    ctaButton: "Praat met me",
+      "Stel in de configurator je pakket, onderhoud en domein samen. Je ziet meteen je exacte vaste prijs — geen offerte met sterretjes.",
+    ctaButton: "Naar de configurator",
   },
   fr: {
     metaTitle: "Tarifs — Studio VM",
@@ -112,17 +112,17 @@ const copy: Record<
     subEyebrow: "Mensuel",
     subTitle: "Maintenance et croissance",
     subIntro:
-      "Un nouveau site, c'est bien, mais un site vivant, c'est mieux. Choisissez selon votre niveau d'activité.",
+      "Un abonnement de maintenance est obligatoire dès le 1er mois — vous choisissez librement le niveau et pouvez évoluer plus tard depuis votre espace client.",
     modEyebrow: "À la carte",
     modTitle: "Modules à ajouter",
     modIntro:
       "Avec chaque forfait. Uniquement ce dont vous avez besoin — jamais de fonctions inutilisées.",
     payEyebrow: "Paiement",
-    payTitle: "Payer à votre rythme",
+    payTitle: "Prix fixe, payé à votre rythme",
     payItems: [
-      { t: "Unique", d: "Classique : 30 % d'acompte au départ, solde à la livraison." },
-      { t: "En 3 fois", d: "Étalé sur la durée du projet, sans frais supplémentaires." },
-      { t: "Formule", d: "Prix de départ réduit + mensuel (site + Care ensemble). Idéal pour démarrer petit." },
+      { t: "30 % au verrouillage", d: "Vous composez tout dans le configurateur et payez 30 % d'acompte pour verrouiller votre scope." },
+      { t: "Échelonnement 0 %", d: "Le solde en une fois ou en 3×, 6×, 12× ou 24× — sans aucun supplément." },
+      { t: "Remise verrouillage", d: "Vous verrouillez tout de suite ? 7 % de remise sur le montant unique. Sans astérisques." },
     ],
     domEyebrow: "Domaine & e-mail",
     domTitle: "Pas encore de domaine ou d'e-mail ?",
@@ -135,20 +135,20 @@ const copy: Record<
       { t: "Transfert de domaine", price: "€ 75 forfait", d: "Nous rapatrions votre domaine, entièrement géré (piloté par API). Vous approuvez 1×, on fait le reste — souvent en quelques heures (.be), sans interruption." },
     ],
     domNote:
-      "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix indicatifs, calculés en toute transparence — le prix exact dépend de l'extension et du fournisseur (nous comparons one.com, Combell, Cloudflare…).",
+      "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix fixes, transparents — vous choisissez domaine et e-mail dans le configurateur et c'est directement dans votre total.",
     faqEyebrow: "Questions fréquentes",
     faqTitle: "Bon à savoir",
     faqs: [
-      { q: "Puis-je passer plus tard de Starter à Pro ?", a: "Oui. Vous payez seulement la différence + le temps des fonctions supplémentaires. Rien n'est refacturé." },
-      { q: "Et si je ne prends pas d'abonnement ?", a: "Votre site reste tranquillement sur Vercel + Supabase free tier. Vous payez votre domaine vous-même. Besoin de support ou de mises à jour plus tard ? Je facture à l'heure (€95/h)." },
-      { q: "Un logo ou de la photographie sont-ils inclus ?", a: "Vous avez vos propres photos ? Parfait, c'est inclus. Rien d'exploitable ? Réservez le module Shooting photo (€450) — une demi-journée pro, prête pour le web. Je ne crée pas le logo/identité moi-même : je travaille avec des partenaires fixes." },
+      { q: "Puis-je passer plus tard de Starter à Pro ?", a: "Oui. Vous payez seulement la différence + le temps des fonctions supplémentaires. Votre abonnement de maintenance, vous le faites évoluer vous-même depuis votre espace client." },
+      { q: "Un abonnement de maintenance est-il obligatoire ?", a: "Oui, un abonnement est obligatoire dès le 1er mois — votre site reste ainsi sûr, à jour et hébergé. Vous choisissez librement le niveau (Care/Plus/Scale/Partner), non lié au forfait, et pouvez évoluer plus tard." },
+      { q: "Un logo ou de la photographie sont-ils inclus ?", a: "Vous avez vos propres photos ? Parfait, c'est inclus. Rien d'exploitable ? Cochez l'option Shooting photo (€450) dans le configurateur — une demi-journée pro, prête pour le web. Je ne crée pas le logo/identité moi-même : je travaille avec des partenaires fixes." },
       { q: "Combien de temps dure un projet ?", a: "Réalisation en 1 à 2 semaines — tout est réécrit proprement en Next.js + Supabase, quelle que soit la portée. Ce qui détermine le timing : la libération de votre domaine et la disponibilité du matériel photo." },
-      { q: "Une première rencontre gratuite ?", a: "Toujours. Un premier entretien (en ligne ou chez vous) est sans engagement et gratuit. Ce n'est que si on décide de continuer que je facture 30 % d'acompte." },
+      { q: "Comment est-ce que je verrouille tout ?", a: "Via le configurateur : vous choisissez forfait, maintenance, domaine et e-mail, voyez votre prix fixe exact et payez 30 % d'acompte pour verrouiller votre scope. Pas de devis avec astérisques — ce que vous composez, c'est le prix." },
     ],
-    ctaTitle: "Pas sûr du forfait qui vous convient ?",
+    ctaTitle: "Prêt à fixer votre prix ?",
     ctaIntro:
-      "Envoyez-moi un e-mail avec ce que vous avez en tête. Je calcule gratuitement la formule la plus pertinente pour votre activité.",
-    ctaButton: "Discutons-en",
+      "Composez dans le configurateur votre forfait, maintenance et domaine. Vous voyez immédiatement votre prix fixe exact — sans astérisques.",
+    ctaButton: "Vers le configurateur",
   },
   en: {
     metaTitle: "Pricing — Studio VM",
@@ -162,17 +162,17 @@ const copy: Record<
     subEyebrow: "Monthly",
     subTitle: "Maintenance and growth",
     subIntro:
-      "A new site is nice, but a living site is better. Pick what fits how active you are.",
+      "One maintenance subscription is required from month 1 — you freely pick the level and can upgrade yourself later from your client portal.",
     modEyebrow: "À la carte",
     modTitle: "Add-on modules",
     modIntro:
       "With every package. Only what you need — you never pay for features you don't use.",
     payEyebrow: "Payment",
-    payTitle: "Pay at your own pace",
+    payTitle: "Fixed price, paid at your pace",
     payItems: [
-      { t: "One-off", d: "Classic: 30% deposit at start, balance on delivery." },
-      { t: "In 3 instalments", d: "Spread over the project duration, at no extra cost." },
-      { t: "Formula", d: "Lower start price + monthly (site + Care together). Ideal to start small." },
+      { t: "30% to lock in", d: "You compose everything in the configurator and pay a 30% deposit to lock your scope." },
+      { t: "0% surcharge split", d: "The balance at once or in 3×, 6×, 12× or 24× — without any surcharge." },
+      { t: "Lock-in discount", d: "Lock in straight away? 7% off the one-off amount. No asterisks." },
     ],
     domEyebrow: "Domain & email",
     domTitle: "No domain or email address yet?",
@@ -185,20 +185,20 @@ const copy: Record<
       { t: "Domain transfer", price: "€ 75 flat", d: "We move your domain over, fully managed (API-driven). You approve once, we do the rest — usually within hours (.be), zero downtime." },
     ],
     domNote:
-      "Already have a domain or email? We connect it free of charge. Indicative prices, transparently passed through — the exact price depends on the extension and provider (we compare one.com, Combell, Cloudflare and others).",
+      "Already have a domain or email? We connect it free of charge. Fixed prices, transparent — you pick domain and email in the configurator and it's in your total right away.",
     faqEyebrow: "Questions that keep coming up",
     faqTitle: "Good to know",
     faqs: [
-      { q: "Can I upgrade from Starter to Pro later?", a: "Yes. You only pay the difference + time for the extra features. Nothing is re-invoiced." },
-      { q: "What if I don't take a subscription?", a: "Your site sits quietly on Vercel + Supabase free tier. You pay for your own domain. Want support or updates later? I bill by the hour (€95/h)." },
-      { q: "Is a logo or photography included?", a: "Working with your own photos? Perfect, that's included. Nothing usable? Book the Photo shoot module (€450) — a half-day pro shoot, web-ready. I don't create the logo/brand identity myself; I work with fixed partners for that." },
+      { q: "Can I upgrade from Starter to Pro later?", a: "Yes. You only pay the difference + time for the extra features. Your maintenance subscription you upgrade yourself from your client portal." },
+      { q: "Is a maintenance subscription required?", a: "Yes, one subscription is required from month 1 — that keeps your site secure, up to date and hosted. You freely pick the level (Care/Plus/Scale/Partner), not tied to your package, and can upgrade later." },
+      { q: "Is a logo or photography included?", a: "Working with your own photos? Perfect, that's included. Nothing usable? Tick the Photo shoot option (€450) in the configurator — a half-day pro shoot, web-ready. I don't create the logo/brand identity myself; I work with fixed partners for that." },
       { q: "How long does a project take?", a: "Build is 1 to 2 weeks — everything is cleanly rewritten in Next.js + Supabase, regardless of scope. Timing only depends on your domain release and whether photo material is ready." },
-      { q: "A free first meeting?", a: "Always. A first chat (online or at your place) is non-binding and free. Only when we decide to go ahead do I invoice a 30% deposit." },
+      { q: "How do I lock everything in?", a: "Via the configurator: you pick package, maintenance, domain and email, see your exact fixed price and pay a 30% deposit to lock your scope. No quotes with asterisks — what you compose is the price." },
     ],
-    ctaTitle: "Not sure which package fits you?",
+    ctaTitle: "Ready to lock in your price?",
     ctaIntro:
-      "Send me an email with what you have in mind. I'll work out — at no cost — which formula makes the most sense for your business.",
-    ctaButton: "Let's talk",
+      "Compose your package, maintenance and domain in the configurator. You see your exact fixed price right away — no quote with asterisks.",
+    ctaButton: "To the configurator",
   },
 };
 
@@ -225,6 +225,17 @@ export default async function PricingPage({
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted">
             {c.heroIntro}
           </p>
+          <Link
+            href={localePath(locale, "/offerte")}
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          >
+            {locale === "fr"
+              ? "Composez votre prix exact"
+              : locale === "en"
+                ? "Build your exact price"
+                : "Stel je exacte prijs samen"}
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
         </div>
       </section>
 
@@ -336,7 +347,7 @@ export default async function PricingPage({
           </h2>
           <p className="mt-4 text-muted">{c.ctaIntro}</p>
           <Link
-            href={localePath(locale, "/#contact")}
+            href={localePath(locale, "/offerte")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             {c.ctaButton}
@@ -449,14 +460,18 @@ function TierCard({
         ))}
       </ul>
       <Link
-        href={localePath(locale, tier.ctaHref)}
+        href={localePath(locale, "/offerte")}
         className={`mt-6 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
           tier.highlighted
             ? "bg-foreground text-background hover:opacity-90"
             : "border hover:bg-card-hover"
         }`}
       >
-        {tier.ctaLabel}
+        {locale === "fr"
+          ? "Composer & verrouiller"
+          : locale === "en"
+            ? "Compose & lock in"
+            : "Stel samen & leg vast"}
         <ArrowRight className="h-4 w-4" strokeWidth={2} />
       </Link>
     </div>
