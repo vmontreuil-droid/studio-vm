@@ -44,7 +44,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           aria-label="Studio VM"
           className="shrink-0 leading-none"
         >
-          <Logo className="text-4xl sm:text-5xl" />
+          <Logo className="text-5xl sm:text-6xl" />
         </Link>
         <nav className="hidden items-center gap-6 text-sm md:flex">
           {items.map((item) => (
