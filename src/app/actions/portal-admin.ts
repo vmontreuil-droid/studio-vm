@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
-import { ensurePortalUser } from "@/lib/portal-access";
+import { ensurePortalUser, deletePortalUser } from "@/lib/portal-access";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
@@ -473,4 +473,50 @@ export async function setDomain(formData: FormData): Promise<void> {
   if (error) return;
   revalidatePath("/admin/klanten", "layout");
   return;
+}
+
+export async function deleteClient(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const confirm = String(formData.get("confirm") ?? "")
+    .trim()
+    .toLowerCase();
+  // Bevestiging: getypt adres moet exact kloppen.
+  if (!email || confirm !== email) {
+    redirect(`/admin/klanten/${encodeURIComponent(email)}?tab=overzicht`);
+  }
+
+  const db = getSupabaseAdmin();
+  // Tabellen met client_email
+  for (const table of [
+    "offers",
+    "invoices",
+    "subscriptions",
+    "tickets",
+    "sites",
+    "documents",
+    "checklist_items",
+    "project_progress",
+  ]) {
+    try {
+      await db.from(table).delete().eq("client_email", email);
+    } catch {
+      // doorgaan: best effort
+    }
+  }
+  // Tabellen met kolom 'email'
+  for (const table of ["scan_requests", "newsletter_subscribers"]) {
+    try {
+      await db.from(table).delete().eq("email", email);
+    } catch {
+      // doorgaan
+    }
+  }
+  // Portaaltoegang intrekken
+  await deletePortalUser(email);
+
+  revalidatePath("/admin/klanten", "layout");
+  redirect("/admin/klanten");
 }

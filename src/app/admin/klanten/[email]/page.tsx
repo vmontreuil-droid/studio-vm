@@ -20,6 +20,7 @@ import {
   addDocument,
   deleteDocument,
   setDomain,
+  deleteClient,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -293,6 +294,7 @@ export default async function AdminKlantDetail({
 
         <div className="min-w-0 flex-1">
       {tab === "overzicht" && (
+        <>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[
             { k: "Scans", v: String(rows.length) },
@@ -336,6 +338,38 @@ export default async function AdminKlantDetail({
             </div>
           ))}
         </div>
+
+        <div className="mt-8 rounded-2xl border border-red-500/40 bg-red-500/5 p-6">
+          <p className="font-mono text-xs uppercase tracking-widest text-red-500">
+            Gevarenzone
+          </p>
+          <p className="mt-2 max-w-xl text-sm text-muted">
+            Verwijdert deze klant definitief: alle scans, offertes,
+            facturen, abonnement, tickets, documenten, website-info én de
+            portaaltoegang. Dit kan niet ongedaan gemaakt worden. Typ ter
+            bevestiging het e-mailadres.
+          </p>
+          <form
+            action={deleteClient}
+            className="mt-4 flex flex-col gap-2 sm:flex-row"
+          >
+            <input type="hidden" name="client_email" value={email} />
+            <input
+              name="confirm"
+              required
+              autoComplete="off"
+              placeholder={email}
+              className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-red-500"
+            />
+            <button
+              type="submit"
+              className="whitespace-nowrap rounded-full bg-red-600 px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              Klant definitief verwijderen
+            </button>
+          </form>
+        </div>
+        </>
       )}
 
       {tab === "scans" && (
