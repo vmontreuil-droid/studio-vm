@@ -32,6 +32,7 @@ const WITH_SHOT = new Set<string>([
   "allardphilippe",
   "jp-montreuil",
   "mari-lines",
+  "favesan",
 ]);
 function shot(slug: string): string | undefined {
   return WITH_SHOT.has(slug) ? `/werk/${slug}.jpg` : undefined;
@@ -365,6 +366,61 @@ const base: ProjectBase[] = [
           "Fast, trust-building B2B positioning",
           "Quote form to email",
           "Mobile-first design",
+        ],
+      },
+    },
+  },
+  {
+    slug: "favesan",
+    name: "Favesan",
+    url: "https://favesan.be",
+    stack: ["Next.js 16", "Tailwind v4", "Supabase", "Resend"],
+    accent: "#1f5fae",
+    year: "2026",
+    content: {
+      nl: {
+        tagline: "Sanitair & verwarming — installateur",
+        description:
+          "Migratie van een duur, traag WordPress (one.com) naar Next.js + Supabase. Drietalig, eigen admin voor diensten en blog, contactformulier met fotoupload — sneller, betrouwbaar en zelf te beheren.",
+        scope: ["Strategie", "Design", "Development", "Migratie", "SEO"],
+        challenge:
+          "De WordPress-site op one.com was traag en duur en ging zelfs offline door een onbetaalde hostingfactuur. Elke wijziging aan de diensten moest via een externe partij.",
+        solution:
+          "Volledige herbouw in Next.js + Supabase met een eigen admin voor diensten (sanitair, verwarming, airco, ventilatie) en blog. Drietalig (NL/FR/EN), contactformulier met fotoupload en verplicht telefoonnummer, alle content en foto's overgezet.",
+        highlights: [
+          "Van traag/onbetrouwbaar WordPress naar een snelle eigen stack",
+          "Diensten & blog zelf aanpassen via een eigen admin",
+          "Drietalig (NL/FR/EN) met contact + fotoupload",
+        ],
+      },
+      fr: {
+        tagline: "Sanitaire & chauffage — installateur",
+        description:
+          "Migration d'un WordPress lent et coûteux (one.com) vers Next.js + Supabase. Trilingue, admin propre pour les services et le blog, formulaire de contact avec upload photo — plus rapide, fiable et gérable soi-même.",
+        scope: ["Stratégie", "Design", "Développement", "Migration", "SEO"],
+        challenge:
+          "Le site WordPress sur one.com était lent et cher et s'est même retrouvé hors ligne suite à une facture d'hébergement impayée. Chaque modification des services passait par un tiers.",
+        solution:
+          "Reconstruction complète en Next.js + Supabase avec un admin propre pour les services (sanitaire, chauffage, climatisation, ventilation) et le blog. Trilingue (NL/FR/EN), formulaire de contact avec upload photo et téléphone obligatoire, tout le contenu et les photos transférés.",
+        highlights: [
+          "D'un WordPress lent/peu fiable à une stack propre et rapide",
+          "Services & blog modifiables soi-même via un admin",
+          "Trilingue (NL/FR/EN) avec contact + upload photo",
+        ],
+      },
+      en: {
+        tagline: "Plumbing & heating — installer",
+        description:
+          "Migration from a slow, expensive WordPress (one.com) to Next.js + Supabase. Trilingual, own admin for services and blog, contact form with photo upload — faster, reliable and self-managed.",
+        scope: ["Strategy", "Design", "Development", "Migration", "SEO"],
+        challenge:
+          "The WordPress site on one.com was slow and expensive and even went offline over an unpaid hosting invoice. Every change to the services had to go through a third party.",
+        solution:
+          "Full rebuild in Next.js + Supabase with an own admin for services (plumbing, heating, AC, ventilation) and blog. Trilingual (NL/FR/EN), contact form with photo upload and required phone number, all content and photos migrated.",
+        highlights: [
+          "From slow/unreliable WordPress to a fast own stack",
+          "Services & blog editable yourself via an own admin",
+          "Trilingual (NL/FR/EN) with contact + photo upload",
         ],
       },
     },

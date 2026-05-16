@@ -497,6 +497,83 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
         "This project re-proved: for B2B, less is often more. The temptation to add 'more' was there, but every extra section weakened the single path to the quote. Next time I hold that discipline from the first sketch rather than pruning later.",
     },
   },
+  favesan: {
+    nl: {
+      context:
+        "Favesan (sanitair, verwarming, airco, ventilatie) had een WordPress-site op one.com die traag en duur was — en die zelfs offline ging door een onbetaalde hostingfactuur. Een installateur kan z'n vindbaarheid niet laten afhangen van zo'n setup.",
+      metricsTitle: "In cijfers",
+      metrics: [
+        { label: "Talen", before: "1 (NL)", after: "3 (NL/FR/EN)" },
+        { label: "Diensten aanpassen", before: "via webdev", after: "zelf, in min" },
+        { label: "Beschikbaarheid", before: "offline bij onbetaalde factuur", after: "betrouwbaar" },
+      ],
+      decisionsTitle: "Belangrijkste keuzes",
+      decisions: [
+        { title: "Weg van WordPress + one.com", rationale: "Niet patchen maar volledig herbouwen in Next.js + Supabase. Code en data van de zaak, hosting zonder verrassingsfacturen." },
+        { title: "Eigen admin voor diensten & blog", rationale: "Sanitair, verwarming, airco en ventilatie plus artikels zelf beheren — geen factuur per tekstwijziging." },
+        { title: "Drietalig met echt SEO", rationale: "NL/FR/EN als volwaardige routes met eigen metadata, niet als vertaalknop achteraf." },
+      ],
+      timelineTitle: "Tijdlijn",
+      timeline: [
+        { phase: "Dag 1 — Inventaris", detail: "Pagina's, diensten en foto's van de oude site vastgelegd; domeintransfer opgestart." },
+        { phase: "Week 1 — Bouw", detail: "Site + eigen admin (diensten, blog), drietalige content, contactformulier met fotoupload." },
+        { phase: "Week 1–2 — Live", detail: "Content en foto's overgezet, redirects, live op favesan.be." },
+      ],
+      reflectionTitle: "Wat ik zou herdoen",
+      reflection:
+        "De bouw zelf zat snel goed; de échte vertraging zat in het losweken van het domein bij one.com. Les: start de domeintransfer op dag één, parallel met de bouw — niet als laatste stap.",
+    },
+    fr: {
+      context:
+        "Favesan (sanitaire, chauffage, climatisation, ventilation) avait un site WordPress sur one.com lent et coûteux — et même hors ligne suite à une facture d'hébergement impayée. Un installateur ne peut pas faire dépendre sa visibilité d'un tel montage.",
+      metricsTitle: "En chiffres",
+      metrics: [
+        { label: "Langues", before: "1 (NL)", after: "3 (NL/FR/EN)" },
+        { label: "Modifier les services", before: "via webdev", after: "soi-même, en min" },
+        { label: "Disponibilité", before: "hors ligne si facture impayée", after: "fiable" },
+      ],
+      decisionsTitle: "Choix clés",
+      decisions: [
+        { title: "Quitter WordPress + one.com", rationale: "Pas de rustine mais une refonte complète en Next.js + Supabase. Code et données à l'entreprise, hébergement sans factures surprises." },
+        { title: "Admin propre pour services & blog", rationale: "Sanitaire, chauffage, clim et ventilation plus les articles, gérés soi-même — pas de facture par modification." },
+        { title: "Trilingue avec vrai SEO", rationale: "NL/FR/EN comme routes à part entière avec leurs metadata, pas un bouton de traduction après coup." },
+      ],
+      timelineTitle: "Calendrier",
+      timeline: [
+        { phase: "Jour 1 — Inventaire", detail: "Pages, services et photos de l'ancien site recensés ; transfert du domaine lancé." },
+        { phase: "Semaine 1 — Build", detail: "Site + admin propre (services, blog), contenu trilingue, formulaire avec upload photo." },
+        { phase: "Semaine 1–2 — En ligne", detail: "Contenu et photos transférés, redirections, en ligne sur favesan.be." },
+      ],
+      reflectionTitle: "Ce que je referais",
+      reflection:
+        "Le build a été rapide ; le vrai retard venait de la libération du domaine chez one.com. Leçon : lancer le transfert du domaine dès le jour un, en parallèle du build — pas en dernière étape.",
+    },
+    en: {
+      context:
+        "Favesan (plumbing, heating, AC, ventilation) had a WordPress site on one.com that was slow and expensive — and even went offline over an unpaid hosting invoice. An installer can't have their visibility hang on a setup like that.",
+      metricsTitle: "By the numbers",
+      metrics: [
+        { label: "Languages", before: "1 (NL)", after: "3 (NL/FR/EN)" },
+        { label: "Edit services", before: "via webdev", after: "self, in min" },
+        { label: "Availability", before: "offline on unpaid invoice", after: "reliable" },
+      ],
+      decisionsTitle: "Key decisions",
+      decisions: [
+        { title: "Off WordPress + one.com", rationale: "Not a patch but a full rebuild in Next.js + Supabase. Code and data with the business, hosting without surprise invoices." },
+        { title: "Own admin for services & blog", rationale: "Plumbing, heating, AC and ventilation plus articles, managed in-house — no invoice per text change." },
+        { title: "Trilingual with real SEO", rationale: "NL/FR/EN as full routes with their own metadata, not an afterthought translate button." },
+      ],
+      timelineTitle: "Timeline",
+      timeline: [
+        { phase: "Day 1 — Inventory", detail: "Pages, services and photos of the old site captured; domain transfer started." },
+        { phase: "Week 1 — Build", detail: "Site + own admin (services, blog), trilingual content, contact form with photo upload." },
+        { phase: "Week 1–2 — Live", detail: "Content and photos migrated, redirects, live on favesan.be." },
+      ],
+      reflectionTitle: "What I'd redo",
+      reflection:
+        "The build came together fast; the real delay was prying the domain loose at one.com. Lesson: start the domain transfer on day one, parallel to the build — not as the final step.",
+    },
+  },
 };
 
 export function getCaseStudy(
