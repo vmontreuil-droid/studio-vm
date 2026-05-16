@@ -110,7 +110,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       decisionsTitle: "Belangrijkste keuzes",
       decisions: [
         { title: "Gedeeld backend, aparte huid", rationale: "Cottage en Bar'Botte delen één admin maar tonen elk hun eigen identiteit. Eén keer beheren, twee zaken bediend." },
-        { title: "FR niet als bijzaak", rationale: "De Franse versie is geen knop-in-de-hoek maar een volwaardige route met eigen SEO. Brussel zoekt in beide talen." },
+        { title: "FR niet als bijzaak", rationale: "De Franse versie is geen knop-in-de-hoek maar een volwaardige route met eigen SEO. Aan de taalgrens wordt in beide talen gezocht." },
         { title: "Reservatie zonder platform", rationale: "Geen externe boekingstool met commissie en account-muur — een eigen formulier dat rechtstreeks naar de zaak mailt." },
       ],
       timelineTitle: "Tijdlijn",
@@ -122,7 +122,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       ],
       reflectionTitle: "Wat ik zou herdoen",
       reflection:
-        "Ik onderschatte eerst hoeveel content écht tweetalig moest zijn versus louter vertaald. Sommige Brusselse uitdrukkingen werken niet 1-op-1. Volgende keer plan ik vanaf dag één een korte copy-ronde per taal in, niet als nabewerking.",
+        "Ik onderschatte eerst hoeveel content écht tweetalig moest zijn versus louter vertaald. Sommige uitdrukkingen lopen niet 1-op-1 tussen NL en FR. Volgende keer plan ik vanaf dag één een korte copy-ronde per taal in, niet als nabewerking.",
     },
     fr: {
       context:
@@ -136,7 +136,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       decisionsTitle: "Choix clés",
       decisions: [
         { title: "Backend partagé, peau séparée", rationale: "Cottage et Bar'Botte partagent un admin mais montrent chacun leur identité. Gérer une fois, servir deux établissements." },
-        { title: "Le FR pas en accessoire", rationale: "La version française n'est pas un bouton dans un coin mais une route à part entière avec son SEO. Bruxelles cherche dans les deux langues." },
+        { title: "Le FR pas en accessoire", rationale: "La version française n'est pas un bouton dans un coin mais une route à part entière avec son SEO. Près de la frontière linguistique, on cherche dans les deux langues." },
         { title: "Réservation sans plateforme", rationale: "Pas d'outil de réservation externe avec commission et mur de compte — un formulaire propre qui écrit directement à l'établissement." },
       ],
       timelineTitle: "Calendrier",
@@ -148,7 +148,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       ],
       reflectionTitle: "Ce que je referais",
       reflection:
-        "J'ai d'abord sous-estimé la part de contenu qui devait être vraiment bilingue versus simplement traduit. Certaines expressions bruxelloises ne marchent pas en 1-pour-1. La prochaine fois je planifie dès le jour un une courte passe de copy par langue, pas en post-traitement.",
+        "J'ai d'abord sous-estimé la part de contenu qui devait être vraiment bilingue versus simplement traduit. Certaines tournures ne passent pas en 1-pour-1 entre le NL et le FR. La prochaine fois je planifie dès le jour un une courte passe de copy par langue, pas en post-traitement.",
     },
     en: {
       context:
@@ -162,7 +162,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       decisionsTitle: "Key decisions",
       decisions: [
         { title: "Shared backend, separate skin", rationale: "Cottage and Bar'Botte share one admin but each show their own identity. Manage once, serve two venues." },
-        { title: "FR not as an afterthought", rationale: "The French version isn't a button in a corner but a full route with its own SEO. Brussels searches in both languages." },
+        { title: "FR not as an afterthought", rationale: "The French version isn't a button in a corner but a full route with its own SEO. Near the language border people search in both languages." },
         { title: "Reservations without a platform", rationale: "No external booking tool with commission and account wall — an own form that emails the venue directly." },
       ],
       timelineTitle: "Timeline",
@@ -174,7 +174,7 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       ],
       reflectionTitle: "What I'd redo",
       reflection:
-        "I first underestimated how much content truly had to be bilingual versus merely translated. Some Brussels phrases don't work 1-to-1. Next time I'll plan a short copy pass per language from day one, not as post-processing.",
+        "I first underestimated how much content truly had to be bilingual versus merely translated. Some phrasings don't carry over 1-to-1 between NL and FR. Next time I'll plan a short copy pass per language from day one, not as post-processing.",
     },
   },
   "celine-interieur": {
