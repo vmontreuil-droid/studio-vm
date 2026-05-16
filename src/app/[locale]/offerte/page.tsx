@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Check, Send, RotateCcw, Printer, Loader2 } from "lucide-react";
+import { Check, Send, Loader2 } from "lucide-react";
 import { submitQuote } from "@/app/actions/quote";
+import {
+  offerCatalog,
+  OFFER_INCLUDED,
+  subscriptionTiers,
+} from "@/lib/pricing";
 import {
   isValidLocale,
   localePath,
@@ -12,54 +17,20 @@ import {
   type Locale,
 } from "@/lib/i18n/config";
 
-type BaseKind = "onepager" | "starter" | "pro" | "webshop" | "custom";
+const eur = (c: number) => "€ " + (c / 100).toLocaleString("nl-BE");
 
-const basePrice: Record<BaseKind, number> = {
-  onepager: 750,
-  starter: 1250,
-  pro: 1900,
-  webshop: 3900,
-  custom: 4500,
-};
+const TERMS = [0, 3, 6, 12, 24] as const;
+const DEPOSIT = 0.3;
+const MIN_SPREAD = 75000; // eenmalig ≥ € 750
+const MIN_MONTHLY = 7500; // afbetaling ≥ € 75/maand
 
-const moduleKeys = [
-  "meertalig",
-  "copywriting",
-  "fotoshoot",
-  "formulieren",
-  "reservatie",
-  "blog",
-  "ledenzone",
-  "seoMigratie",
-  "cookies",
-  "pwa",
-  "koppeling",
-] as const;
-type ModuleKey = (typeof moduleKeys)[number];
+const TRANSFER_CENTS = 7500; // domeinverhuis, eenmalig
+const REGISTER_CENTS = 3900; // nieuw domein, per jaar
+const MAIL_ONE_CENTS = 500; // 1 mailbox, per maand
+const MAIL_USER_CENTS = 600; // team, per gebruiker per maand
 
-const modulePrice: Record<ModuleKey, number> = {
-  meertalig: 75,
-  copywriting: 145,
-  fotoshoot: 450,
-  formulieren: 100,
-  reservatie: 200,
-  blog: 125,
-  ledenzone: 175,
-  seoMigratie: 95,
-  cookies: 65,
-  pwa: 300,
-  koppeling: 450,
-};
-
-type PlanKey = "geen" | "basis" | "care" | "plus" | "scale" | "partner";
-const planMonthly: Record<PlanKey, number> = {
-  geen: 0,
-  basis: 19,
-  care: 49,
-  plus: 149,
-  scale: 399,
-  partner: 799,
-};
+type Domain = "connect" | "register" | "transfer";
+type Mail = "none" | "one" | "team";
 
 const T: Record<
   Locale,
@@ -67,245 +38,246 @@ const T: Record<
     eyebrow: string;
     title: string;
     intro: string;
-    step1: string;
-    step2: string;
-    step3: string;
-    bases: Record<BaseKind, { label: string; desc: string }>;
-    modules: Record<ModuleKey, { label: string; desc: string }>;
-    plans: Record<PlanKey, { label: string; desc: string }>;
-    estimate: string;
-    estimateNote: string;
+    l1: string;
+    l1note: string;
+    incl: string;
+    extra: string;
+    l2: string;
+    l2note: string;
+    l3: string;
+    domain: string;
+    domConnect: string;
+    domConnectD: string;
+    domRegister: string;
+    domRegisterD: string;
+    domTransfer: string;
+    domTransferD: string;
+    email: string;
+    mailNone: string;
+    mailNoneD: string;
+    mailOne: string;
+    mailOneD: string;
+    mailTeam: string;
+    mailTeamD: string;
+    users: string;
+    total: string;
     oneOff: string;
-    monthly: string;
-    reset: string;
-    printButton: string;
-    docTitle: string;
-    docDate: string;
+    excl: string;
+    spread: string;
+    spreadNote: string;
+    spreadLocked: string;
+    atOnce: string;
+    deposit: string;
+    thenPay: string;
+    perMonth: string;
+    monthlySub: string;
+    perMonthShort: string;
+    domainYear: string;
+    perYear: string;
+    pickBase: string;
+    pickSub: string;
     sendTitle: string;
     sendText: string;
     sendButton: string;
-    formName: string;
-    formEmail: string;
-    formMsg: string;
-    formSite: string;
-    formSiteNote: string;
-    formSending: string;
-    formSent: string;
-    formErr: string;
-    mailSubject: string;
-    mailIntro: string;
-    mailBase: string;
-    mailModules: string;
-    mailPlan: string;
-    mailEstimate: string;
-    mailOutro: string;
+    sending: string;
+    sent: string;
+    err: string;
+    name: string;
+    email2: string;
+    msg: string;
+    site: string;
+    siteNote: string;
     pricingLink: string;
-    excl: string;
+    sumHead: string;
   }
 > = {
   nl: {
-    eyebrow: "Offerte-calculator",
-    title: "Reken je project even uit.",
+    eyebrow: "Offerte op maat",
+    title: "Stel je project samen.",
     intro:
-      "Kies wat je nodig hebt en zie meteen een richtprijs. Geen verplichting — een exacte offerte volgt na een gesprek. Dit geeft je alvast een eerlijk idee.",
-    step1: "1 · Wat heb je nodig?",
-    step2: "2 · Extra modules",
-    step3: "3 · Onderhoud achteraf",
-    bases: {
-      onepager: { label: "One-pager", desc: "1 sterke pagina, alles op één scroll" },
-      starter: { label: "Starter", desc: "Tot ~5 pagina's, eigen design" },
-      pro: { label: "Pro", desc: "Tot ~15 pagina's + eigen admin" },
-      webshop: { label: "Webshop", desc: "Verkoop online, Mollie/Stripe" },
-      custom: { label: "Custom", desc: "Multi-app, integraties, op maat" },
-    },
-    modules: {
-      meertalig: { label: "Extra taal", desc: "Volledige extra taal + hreflang SEO" },
-      copywriting: { label: "Teksten / copywriting", desc: "Professionele, SEO-bewuste webteksten" },
-      fotoshoot: { label: "Fotoshoot", desc: "Halve dag pro shoot, webklaar" },
-      formulieren: { label: "Formulieren + opvolging", desc: "Contact/offerte met spamfilter" },
-      reservatie: { label: "Reservatie / afspraken", desc: "Boekingsmodule + bevestigingen" },
-      blog: { label: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving" },
-      ledenzone: { label: "Ledenzone", desc: "Afgeschermd deel met logins" },
-      seoMigratie: { label: "SEO-behoud bij migratie", desc: "Volledig 301-plan, posities blijven" },
-      cookies: { label: "Cookiebanner & GDPR", desc: "Consent vóór scripts — boetevrij" },
-      pwa: { label: "Progressive Web App", desc: "Installeerbaar, offline" },
-      koppeling: { label: "Koppeling / integratie", desc: "Boekhouding, CRM, nieuwsbrief…" },
-    },
-    plans: {
-      geen: { label: "Geen", desc: "Free tier, support per uur" },
-      basis: { label: "Basis", desc: "Hosting + SSL + backups" },
-      care: { label: "Care", desc: "+ updates + 1u support/m" },
-      plus: { label: "Plus", desc: "+ content-updates + 4u/m" },
-      scale: { label: "Scale", desc: "+ features + onbeperkt support" },
-      partner: { label: "Partner", desc: "Vaste partner, onbeperkt + dev" },
-    },
-    estimate: "Richtprijs",
-    estimateNote:
-      "Indicatief, excl. btw. De exacte prijs hangt af van de scope — die bepalen we samen in een vrijblijvend gesprek.",
+      "Kies je pakket, je onderhoud en je domein. Je ziet meteen je exacte prijs — eenmalig of gespreid, mét je vaste maandbedrag. Geen sterretjes, geen verrassingen.",
+    l1: "1 · Kies je pakket",
+    l1note: "Inbegrepen opties verschijnen automatisch. Extra opties kies je zelf.",
+    incl: "Inbegrepen in dit pakket",
+    extra: "Extra opties",
+    l2: "2 · Onderhoud & doorgroei",
+    l2note:
+      "Eén onderhoudsabonnement is verplicht, vanaf maand 1. Je kiest vrij — niet gekoppeld aan je pakket — en je kan later in je klantenportaal zelf opgraden.",
+    l3: "3 · Domein & e-mail",
+    domain: "Domein",
+    domConnect: "Eigen domein koppelen",
+    domConnectD: "Je hebt al een domein — wij koppelen het. Gratis.",
+    domRegister: "Nieuw domein registreren",
+    domRegisterD: "Wij registreren en beheren je nieuwe domein.",
+    domTransfer: "Domeinverhuis",
+    domTransferD: "Je domein volledig naar ons verhuizen. Eenmalig.",
+    email: "E-mail",
+    mailNone: "Geen e-mail",
+    mailNoneD: "Je regelt e-mail zelf of hebt het al.",
+    mailOne: "1 mailbox",
+    mailOneD: "Eén professioneel adres op je domein.",
+    mailTeam: "Team e-mail",
+    mailTeamD: "Eén adres per medewerker.",
+    users: "Aantal gebruikers",
+    total: "Jouw totaal",
     oneOff: "eenmalig",
-    monthly: "per maand",
-    reset: "Opnieuw",
-    printButton: "Download als PDF",
-    docTitle: "Offerte-raming",
-    docDate: "Opgemaakt op",
-    sendTitle: "Klaar om dit concreet te maken?",
-    sendText:
-      "Stuur deze samenvatting door. Ik bekijk 't en kom met een exacte offerte — meestal binnen één werkdag.",
-    sendButton: "Stuur naar Studio VM",
-    formName: "Je naam",
-    formEmail: "Je e-mail",
-    formMsg: "Iets toevoegen? (optioneel)",
-    formSite: "Je huidige website (optioneel)",
-    formSiteNote:
-      "Vul je dit in, dan voeren we automatisch een snelle scan van je huidige site uit zodat we je beter van dienst kunnen zijn.",
-    formSending: "Versturen…",
-    formSent: "Bedankt! Je aanvraag is binnen — ik reageer meestal binnen één werkdag.",
-    formErr: "Er ging iets mis. Probeer opnieuw of mail me rechtstreeks.",
-    mailSubject: "Offerte-aanvraag via de calculator",
-    mailIntro: "Hoi Vincent,\n\nIk rekende een project uit op studio-vm.be/offerte:",
-    mailBase: "Type",
-    mailModules: "Modules",
-    mailPlan: "Onderhoud",
-    mailEstimate: "Richtprijs",
-    mailOutro: "Kan je hier een exacte offerte van maken?\n\nGroeten",
-    pricingLink: "Of bekijk de vaste pakketten",
     excl: "excl. btw",
+    spread: "Spreiding",
+    spreadNote:
+      "0 % toeslag — je betaalt nooit méér dan de prijs zelf. 30 % bij opstart, de rest in gelijke maanddelen.",
+    spreadLocked:
+      "Spreiden kan vanaf € 750 eenmalig en min. € 75/maand. Kies (meer) opties of betaal ineens.",
+    atOnce: "Ineens",
+    deposit: "Aanbetaling bij opstart",
+    thenPay: "daarna",
+    perMonth: "/ maand",
+    monthlySub: "Maandelijks (verplicht abonnement)",
+    perMonthShort: "/ maand",
+    domainYear: "Domein",
+    perYear: "/ jaar",
+    pickBase: "Kies eerst een pakket.",
+    pickSub: "Kies een onderhoudsabonnement.",
+    sendTitle: "Alles juist? Vraag je offerte aan.",
+    sendText:
+      "Je krijgt deze samenstelling als nette offerte terug — meestal binnen één werkdag. Niets verandert tot je akkoord geeft.",
+    sendButton: "Vraag deze offerte aan",
+    sending: "Versturen…",
+    sent: "Bedankt! Je aanvraag is binnen — ik reageer meestal binnen één werkdag.",
+    err: "Er ging iets mis. Probeer opnieuw of mail info@studio-vm.be.",
+    name: "Je naam",
+    email2: "Je e-mail",
+    msg: "Iets toevoegen? (optioneel)",
+    site: "Je huidige website (optioneel)",
+    siteNote:
+      "Vul je dit in, dan voeren we automatisch een snelle scan uit zodat we je beter kunnen helpen.",
+    pricingLink: "Of bekijk de vaste pakketten",
+    sumHead: "Samenstelling",
   },
   fr: {
-    eyebrow: "Calculateur de devis",
-    title: "Estimez votre projet.",
+    eyebrow: "Devis sur mesure",
+    title: "Composez votre projet.",
     intro:
-      "Choisissez ce dont vous avez besoin et voyez un prix indicatif immédiat. Sans engagement — un devis exact suit après un entretien. Cela vous donne déjà une idée honnête.",
-    step1: "1 · De quoi avez-vous besoin ?",
-    step2: "2 · Modules supplémentaires",
-    step3: "3 · Maintenance ensuite",
-    bases: {
-      onepager: { label: "One-pager", desc: "1 page forte, tout en un scroll" },
-      starter: { label: "Starter", desc: "Jusqu'à ~5 pages, design propre" },
-      pro: { label: "Pro", desc: "Jusqu'à ~15 pages + admin propre" },
-      webshop: { label: "Boutique", desc: "Vente en ligne, Mollie/Stripe" },
-      custom: { label: "Sur mesure", desc: "Multi-app, intégrations" },
-    },
-    modules: {
-      meertalig: { label: "Langue supplémentaire", desc: "Langue complète + hreflang SEO" },
-      copywriting: { label: "Textes / rédaction", desc: "Textes web pro, optimisés SEO" },
-      fotoshoot: { label: "Shooting photo", desc: "Demi-journée pro, prêt web" },
-      formulieren: { label: "Formulaires + suivi", desc: "Contact/devis avec anti-spam" },
-      reservatie: { label: "Réservation / RDV", desc: "Module de réservation + confirmations" },
-      blog: { label: "CMS blog / actus", desc: "Environnement de rédaction propre" },
-      ledenzone: { label: "Espace membres", desc: "Zone protégée avec logins" },
-      seoMigratie: { label: "Préservation SEO (migration)", desc: "Plan 301 complet, positions gardées" },
-      cookies: { label: "Bannière cookies & RGPD", desc: "Consentement avant scripts" },
-      pwa: { label: "Progressive Web App", desc: "Installable, hors ligne" },
-      koppeling: { label: "Intégration / connexion", desc: "Compta, CRM, newsletter…" },
-    },
-    plans: {
-      geen: { label: "Aucun", desc: "Free tier, support à l'heure" },
-      basis: { label: "Basis", desc: "Hébergement + SSL + backups" },
-      care: { label: "Care", desc: "+ mises à jour + 1h support/m" },
-      plus: { label: "Plus", desc: "+ mises à jour contenu + 4h/m" },
-      scale: { label: "Scale", desc: "+ fonctions + support illimité" },
-      partner: { label: "Partner", desc: "Partenaire fixe, illimité + dev" },
-    },
-    estimate: "Prix indicatif",
-    estimateNote:
-      "Indicatif, HTVA. Le prix exact dépend du scope — on le définit ensemble lors d'un entretien sans engagement.",
+      "Choisissez votre forfait, votre maintenance et votre domaine. Vous voyez votre prix exact — en une fois ou échelonné, avec votre montant mensuel fixe. Sans astérisques.",
+    l1: "1 · Choisissez votre forfait",
+    l1note:
+      "Les options incluses apparaissent automatiquement. Les options en plus, vous les choisissez.",
+    incl: "Inclus dans ce forfait",
+    extra: "Options supplémentaires",
+    l2: "2 · Maintenance & évolution",
+    l2note:
+      "Un abonnement de maintenance est obligatoire dès le 1er mois. Choix libre — non lié au forfait — et évolutif depuis votre espace client.",
+    l3: "3 · Domaine & e-mail",
+    domain: "Domaine",
+    domConnect: "Connecter mon domaine",
+    domConnectD: "Vous avez déjà un domaine — on le connecte. Gratuit.",
+    domRegister: "Enregistrer un nouveau domaine",
+    domRegisterD: "On enregistre et gère votre nouveau domaine.",
+    domTransfer: "Transfert de domaine",
+    domTransferD: "Transférer entièrement votre domaine. Une fois.",
+    email: "E-mail",
+    mailNone: "Pas d'e-mail",
+    mailNoneD: "Vous gérez l'e-mail vous-même ou l'avez déjà.",
+    mailOne: "1 boîte mail",
+    mailOneD: "Une adresse pro sur votre domaine.",
+    mailTeam: "E-mail équipe",
+    mailTeamD: "Une adresse par collaborateur.",
+    users: "Nombre d'utilisateurs",
+    total: "Votre total",
     oneOff: "unique",
-    monthly: "par mois",
-    reset: "Recommencer",
-    printButton: "Télécharger en PDF",
-    docTitle: "Estimation de devis",
-    docDate: "Établi le",
-    sendTitle: "Prêt à concrétiser ?",
-    sendText:
-      "Envoyez ce résumé. Je l'examine et reviens avec un devis exact — généralement sous un jour ouvré.",
-    sendButton: "Envoyer à Studio VM",
-    formName: "Votre nom",
-    formEmail: "Votre e-mail",
-    formMsg: "Ajouter un mot ? (facultatif)",
-    formSite: "Votre site actuel (facultatif)",
-    formSiteNote:
-      "Si vous le renseignez, nous effectuons automatiquement un scan rapide de votre site actuel pour mieux vous servir.",
-    formSending: "Envoi…",
-    formSent: "Merci ! Votre demande est bien reçue — je réponds généralement sous un jour ouvré.",
-    formErr: "Une erreur est survenue. Réessayez ou écrivez-moi directement.",
-    mailSubject: "Demande de devis via le calculateur",
-    mailIntro: "Bonjour Vincent,\n\nJ'ai estimé un projet sur studio-vm.be/offerte :",
-    mailBase: "Type",
-    mailModules: "Modules",
-    mailPlan: "Maintenance",
-    mailEstimate: "Prix indicatif",
-    mailOutro: "Pouvez-vous en faire un devis exact ?\n\nCordialement",
-    pricingLink: "Ou voir les forfaits fixes",
     excl: "HTVA",
+    spread: "Échelonnement",
+    spreadNote:
+      "0 % de supplément — vous ne payez jamais plus que le prix. 30 % au démarrage, le reste en parts mensuelles égales.",
+    spreadLocked:
+      "Échelonnement dès € 750 unique et min. € 75/mois. Ajoutez des options ou payez en une fois.",
+    atOnce: "En une fois",
+    deposit: "Acompte au démarrage",
+    thenPay: "ensuite",
+    perMonth: "/ mois",
+    monthlySub: "Mensuel (abonnement obligatoire)",
+    perMonthShort: "/ mois",
+    domainYear: "Domaine",
+    perYear: "/ an",
+    pickBase: "Choisissez d'abord un forfait.",
+    pickSub: "Choisissez un abonnement de maintenance.",
+    sendTitle: "Tout est bon ? Demandez votre devis.",
+    sendText:
+      "Vous recevez cette composition en devis soigné — généralement sous un jour ouvré. Rien ne change avant votre accord.",
+    sendButton: "Demander ce devis",
+    sending: "Envoi…",
+    sent: "Merci ! Votre demande est reçue — je réponds généralement sous un jour ouvré.",
+    err: "Une erreur est survenue. Réessayez ou écrivez à info@studio-vm.be.",
+    name: "Votre nom",
+    email2: "Votre e-mail",
+    msg: "Ajouter un mot ? (facultatif)",
+    site: "Votre site actuel (facultatif)",
+    siteNote:
+      "Si vous le renseignez, on lance un scan rapide pour mieux vous aider.",
+    pricingLink: "Ou voir les forfaits fixes",
+    sumHead: "Composition",
   },
   en: {
-    eyebrow: "Quote calculator",
-    title: "Estimate your project.",
+    eyebrow: "Tailored quote",
+    title: "Build your project.",
     intro:
-      "Pick what you need and see an indicative price right away. No obligation — an exact quote follows after a chat. This gives you an honest idea up front.",
-    step1: "1 · What do you need?",
-    step2: "2 · Extra modules",
-    step3: "3 · Maintenance afterwards",
-    bases: {
-      onepager: { label: "One-pager", desc: "1 strong page, all on one scroll" },
-      starter: { label: "Starter", desc: "Up to ~5 pages, custom design" },
-      pro: { label: "Pro", desc: "Up to ~15 pages + own admin" },
-      webshop: { label: "Webshop", desc: "Sell online, Mollie/Stripe" },
-      custom: { label: "Custom", desc: "Multi-app, integrations" },
-    },
-    modules: {
-      meertalig: { label: "Extra language", desc: "Full extra language + hreflang SEO" },
-      copywriting: { label: "Copywriting / texts", desc: "Professional, SEO-aware web copy" },
-      fotoshoot: { label: "Photo shoot", desc: "Half-day pro shoot, web-ready" },
-      formulieren: { label: "Forms + follow-up", desc: "Contact/quote with spam filter" },
-      reservatie: { label: "Booking / appointments", desc: "Booking module + confirmations" },
-      blog: { label: "Blog / news CMS", desc: "Own editorial environment" },
-      ledenzone: { label: "Member area", desc: "Gated section with logins" },
-      seoMigratie: { label: "SEO preservation (migration)", desc: "Full 301 plan, rankings kept" },
-      cookies: { label: "Cookie banner & GDPR", desc: "Consent before scripts — fine-free" },
-      pwa: { label: "Progressive Web App", desc: "Installable, offline" },
-      koppeling: { label: "Integration / connection", desc: "Accounting, CRM, newsletter…" },
-    },
-    plans: {
-      geen: { label: "None", desc: "Free tier, hourly support" },
-      basis: { label: "Basis", desc: "Hosting + SSL + backups" },
-      care: { label: "Care", desc: "+ updates + 1h support/m" },
-      plus: { label: "Plus", desc: "+ content updates + 4h/m" },
-      scale: { label: "Scale", desc: "+ features + unlimited support" },
-      partner: { label: "Partner", desc: "Dedicated partner, unlimited + dev" },
-    },
-    estimate: "Indicative price",
-    estimateNote:
-      "Indicative, excl. VAT. The exact price depends on scope — we define that together in a no-obligation chat.",
+      "Pick your package, your maintenance and your domain. You see your exact price — one-off or split, with your fixed monthly amount. No asterisks.",
+    l1: "1 · Pick your package",
+    l1note:
+      "Included options appear automatically. Extra options you choose yourself.",
+    incl: "Included in this package",
+    extra: "Extra options",
+    l2: "2 · Maintenance & growth",
+    l2note:
+      "One maintenance subscription is required from month 1. Free choice — not tied to your package — and upgradable later from your client portal.",
+    l3: "3 · Domain & email",
+    domain: "Domain",
+    domConnect: "Connect my domain",
+    domConnectD: "You already have a domain — we connect it. Free.",
+    domRegister: "Register a new domain",
+    domRegisterD: "We register and manage your new domain.",
+    domTransfer: "Domain transfer",
+    domTransferD: "Move your domain to us entirely. One-off.",
+    email: "Email",
+    mailNone: "No email",
+    mailNoneD: "You handle email yourself or already have it.",
+    mailOne: "1 mailbox",
+    mailOneD: "One professional address on your domain.",
+    mailTeam: "Team email",
+    mailTeamD: "One address per team member.",
+    users: "Number of users",
+    total: "Your total",
     oneOff: "one-off",
-    monthly: "per month",
-    reset: "Start over",
-    printButton: "Download as PDF",
-    docTitle: "Quote estimate",
-    docDate: "Issued on",
-    sendTitle: "Ready to make this concrete?",
-    sendText:
-      "Send this summary. I'll review it and come back with an exact quote — usually within one working day.",
-    sendButton: "Send to Studio VM",
-    formName: "Your name",
-    formEmail: "Your email",
-    formMsg: "Add something? (optional)",
-    formSite: "Your current website (optional)",
-    formSiteNote:
-      "If you fill this in, we automatically run a quick scan of your current site so we can serve you better.",
-    formSending: "Sending…",
-    formSent: "Thanks! Your request is in — I usually reply within one working day.",
-    formErr: "Something went wrong. Try again or email me directly.",
-    mailSubject: "Quote request via the calculator",
-    mailIntro: "Hi Vincent,\n\nI estimated a project on studio-vm.be/offerte:",
-    mailBase: "Type",
-    mailModules: "Modules",
-    mailPlan: "Maintenance",
-    mailEstimate: "Indicative price",
-    mailOutro: "Can you turn this into an exact quote?\n\nBest",
-    pricingLink: "Or see the fixed packages",
     excl: "excl. VAT",
+    spread: "Instalments",
+    spreadNote:
+      "0 % surcharge — you never pay more than the price itself. 30 % at start, the rest in equal monthly parts.",
+    spreadLocked:
+      "Instalments from € 750 one-off and min. € 75/month. Add options or pay at once.",
+    atOnce: "At once",
+    deposit: "Deposit at start",
+    thenPay: "then",
+    perMonth: "/ month",
+    monthlySub: "Monthly (required subscription)",
+    perMonthShort: "/ month",
+    domainYear: "Domain",
+    perYear: "/ year",
+    pickBase: "Pick a package first.",
+    pickSub: "Pick a maintenance subscription.",
+    sendTitle: "All correct? Request your quote.",
+    sendText:
+      "You get this composition back as a clean quote — usually within one working day. Nothing changes until you agree.",
+    sendButton: "Request this quote",
+    sending: "Sending…",
+    sent: "Thanks! Your request is in — I usually reply within one working day.",
+    err: "Something went wrong. Try again or email info@studio-vm.be.",
+    name: "Your name",
+    email2: "Your email",
+    msg: "Add something? (optional)",
+    site: "Your current website (optional)",
+    siteNote:
+      "If you fill this in, we run a quick scan so we can help you better.",
+    pricingLink: "Or see the fixed packages",
+    sumHead: "Composition",
   },
 };
 
@@ -315,109 +287,150 @@ export default function OffertePage() {
   const locale: Locale = isValidLocale(raw) ? raw : DEFAULT_LOCALE;
   const c = T[locale];
 
-  const [base, setBase] = useState<BaseKind>("starter");
-  const [mods, setMods] = useState<ModuleKey[]>([]);
-  const [plan, setPlan] = useState<PlanKey>("care");
+  const { bases, addons } = useMemo(() => offerCatalog(), []);
+  const subs = useMemo(() => subscriptionTiers(), []);
+
+  const [baseSlug, setBaseSlug] = useState("");
+  const [extras, setExtras] = useState<Set<string>>(new Set());
+  const [subSlug, setSubSlug] = useState("");
+  const [domain, setDomain] = useState<Domain>("connect");
+  const [mail, setMail] = useState<Mail>("none");
+  const [users, setUsers] = useState(3);
+  const [term, setTerm] = useState<number>(0);
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
   const [pending, startSend] = useTransition();
 
-  const toggleMod = (m: ModuleKey) =>
-    setMods((s) => (s.includes(m) ? s.filter((x) => x !== m) : [...s, m]));
+  const base = bases.find((b) => b.slug === baseSlug);
+  const inc = baseSlug ? OFFER_INCLUDED[baseSlug] : undefined;
+  const incNames = useMemo(() => inc?.addons ?? [], [inc]);
+  const subTier = subs.find((s) => s.slug === subSlug);
 
-  const oneOff =
-    basePrice[base] + mods.reduce((sum, m) => sum + modulePrice[m], 0);
-  const lo = Math.round((oneOff * 0.9) / 100) * 100;
-  const hi = Math.round((oneOff * 1.15) / 100) * 100;
-  const monthly = planMonthly[plan];
+  const toggleExtra = (key: string) =>
+    setExtras((prev) => {
+      const n = new Set(prev);
+      if (n.has(key)) n.delete(key);
+      else n.add(key);
+      return n;
+    });
 
-  const fmt = (n: number) => "€ " + n.toLocaleString("nl-BE");
-
-  const reset = () => {
-    setBase("starter");
-    setMods([]);
-    setPlan("care");
-  };
-
-  const mailBody = [
-    c.mailIntro,
-    "",
-    `${c.mailBase}: ${c.bases[base].label}`,
-    `${c.mailModules}: ${mods.length ? mods.map((m) => c.modules[m].label).join(", ") : "—"}`,
-    `${c.mailPlan}: ${c.plans[plan].label}${monthly ? ` (${fmt(monthly)}/m)` : ""}`,
-    `${c.mailEstimate}: ${fmt(lo)} – ${fmt(hi)} (${c.excl})`,
-    "",
-    c.mailOutro,
-  ].join("\n");
-
-  const mailto = `mailto:info@studio-vm.be?subject=${encodeURIComponent(
-    c.mailSubject,
-  )}&body=${encodeURIComponent(mailBody)}`;
-
-  const today = new Date().toLocaleDateString(
-    locale === "fr" ? "fr-BE" : locale === "en" ? "en-GB" : "nl-BE",
-    { day: "numeric", month: "long", year: "numeric" },
+  // Eenmalige lijnen
+  const paidExtras = useMemo(
+    () =>
+      addons.filter(
+        (a) => extras.has(a.key) && !incNames.includes(a.name),
+      ),
+    [addons, extras, incNames],
   );
+
+  const eenmalig =
+    (base?.cents ?? 0) +
+    paidExtras.reduce((s, a) => s + a.cents, 0) +
+    (domain === "transfer" ? TRANSFER_CENTS : 0);
+
+  const mailMonthly =
+    mail === "one"
+      ? MAIL_ONE_CENTS
+      : mail === "team"
+        ? MAIL_USER_CENTS * Math.max(1, users)
+        : 0;
+
+  const monthlyRecurring = (subTier?.cents ?? 0) + mailMonthly;
+  const domainYearly = domain === "register" ? REGISTER_CENTS : 0;
+
+  const deposit = Math.round(eenmalig * DEPOSIT);
+  const rest = eenmalig - deposit;
+  const planFor = (n: number) => {
+    if (n === 0) return { eligible: true, monthly: 0, deposit: 0 };
+    const m = Math.ceil(rest / n);
+    const eligible = eenmalig >= MIN_SPREAD && m >= MIN_MONTHLY;
+    return { eligible, monthly: m, deposit };
+  };
+  const spreadPossible = eenmalig >= MIN_SPREAD;
+  const plan = planFor(term);
+
+  const domLabel =
+    domain === "connect"
+      ? `${c.domConnect} (gratis)`
+      : domain === "register"
+        ? `${c.domRegister} (${eur(REGISTER_CENTS)}${c.perYear})`
+        : `${c.domTransfer} (${eur(TRANSFER_CENTS)} ${c.oneOff})`;
+  const mailLabel =
+    mail === "none"
+      ? c.mailNone
+      : mail === "one"
+        ? `${c.mailOne} (${eur(MAIL_ONE_CENTS)}${c.perMonth})`
+        : `${c.mailTeam} — ${Math.max(1, users)}× (${eur(
+            MAIL_USER_CENTS,
+          )}${c.perMonth})`;
+  const termLabel =
+    term === 0
+      ? c.atOnce
+      : `${c.spread}: ${term}× ${eur(plan.monthly)}${c.perMonth}`;
+
+  const fld =
+    "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
+
+  function submit(fd: FormData) {
+    if (String(fd.get("website") ?? "")) {
+      setSent("ok");
+      return;
+    }
+    startSend(async () => {
+      const sumLines = [
+        `Pakket: ${base ? base.name : "—"} (${eur(base?.cents ?? 0)})`,
+        inc
+          ? `Inbegrepen: ${incNames.join(", ")} · ${subs.find((s) => s.slug === inc.sub)?.name ?? inc.sub} · ${inc.lang}`
+          : "",
+        paidExtras.length
+          ? `Extra opties: ${paidExtras
+              .map((a) => `${a.name} (${eur(a.cents)})`)
+              .join(", ")}`
+          : "Extra opties: —",
+        `Onderhoud (verplicht): ${subTier ? `${subTier.name} — ${eur(subTier.cents)}/maand` : "—"}`,
+        `Domein: ${domLabel}`,
+        `E-mail: ${mailLabel}`,
+        "",
+        `Eenmalig: ${eur(eenmalig)} (${c.excl})`,
+        term === 0
+          ? `Betaling: ineens`
+          : `Betaling: ${eur(plan.deposit)} bij opstart, daarna ${term}× ${eur(plan.monthly)}/maand`,
+        `Maandelijks abonnement: ${eur(monthlyRecurring)}/maand${mailMonthly ? ` (incl. e-mail)` : ""}`,
+        domainYearly ? `Domein: ${eur(domainYearly)}/jaar` : "",
+      ].filter(Boolean);
+
+      const userMsg = String(fd.get("message") ?? "").trim();
+      const message =
+        `— Samenstelling via configurator —\n${sumLines.join("\n")}` +
+        (userMsg ? `\n\n— Bericht van de klant —\n${userMsg}` : "");
+
+      fd.set("locale", locale);
+      fd.set("base", base?.slug ?? "");
+      fd.set("plan", subSlug);
+      fd.set(
+        "modules",
+        [
+          ...paidExtras.map((a) => a.name),
+          domLabel,
+          mailLabel,
+          termLabel,
+        ].join(", "),
+      );
+      fd.set("estLow", String(Math.round(eenmalig / 100)));
+      fd.set("estHigh", String(Math.round(eenmalig / 100)));
+      fd.set("monthly", String(Math.round(monthlyRecurring / 100)));
+      fd.set("message", message);
+
+      const r = await submitQuote(fd);
+      if (r.ok) setSent("ok");
+      else setSent("err");
+    });
+  }
+
+  const canSend = !!base && !!subSlug;
 
   return (
     <main>
-      {/* Print-only branded offerte-document */}
-      <div className="hidden px-8 py-6 text-[#111] print:block">
-        <p className="text-3xl font-extrabold lowercase tracking-tighter">
-          vm<span style={{ color: "#b45309" }}>.</span>
-        </p>
-        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
-          {c.docTitle}
-        </h1>
-        <p className="mt-1 font-mono text-xs text-[#666]">
-          {c.docDate} {today} · studio-vm.be
-        </p>
-        <table className="mt-8 w-full text-sm">
-          <tbody>
-            <tr>
-              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
-                {c.mailBase}
-              </td>
-              <td className="py-2 font-medium">{c.bases[base].label}</td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
-                {c.mailModules}
-              </td>
-              <td className="py-2 font-medium">
-                {mods.length
-                  ? mods.map((m) => c.modules[m].label).join(", ")
-                  : "—"}
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
-                {c.mailPlan}
-              </td>
-              <td className="py-2 font-medium">
-                {c.plans[plan].label}
-                {monthly ? ` (${fmt(monthly)}/m)` : ""}
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-6 font-mono text-xs uppercase tracking-widest text-[#666]">
-                {c.mailEstimate}
-              </td>
-              <td className="py-2 text-lg font-semibold">
-                {fmt(lo)} – {fmt(hi)} ({c.excl})
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="mt-8 max-w-xl text-xs leading-relaxed text-[#666]">
-          {c.estimateNote}
-        </p>
-        <p className="mt-10 text-xs text-[#666]">
-          Studio VM · Vincent Montreuil · West-Vlaanderen, België ·
-          info@studio-vm.be · BE 0672.960.066
-        </p>
-      </div>
-
-      <section className="border-b print:hidden">
+      <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
@@ -431,55 +444,23 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section className="border-b print:hidden">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1.6fr_1fr]">
-          <div className="space-y-12">
+      <section className="border-b">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1.7fr_1fr]">
+          <div className="space-y-14">
+            {/* Luik 1 — pakket */}
             <div>
-              <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">
-                {c.step1}
+              <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+                {c.l1}
               </h2>
+              <p className="mb-5 mt-1 text-sm text-muted">{c.l1note}</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                {(Object.keys(basePrice) as BaseKind[]).map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setBase(b)}
-                    className={`rounded-2xl border p-5 text-left transition-colors ${
-                      base === b
-                        ? "border-accent bg-card-hover"
-                        : "border-border bg-card hover:bg-card-hover"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold tracking-tight">
-                        {c.bases[b].label}
-                      </span>
-                      {base === b && (
-                        <Check className="h-4 w-4 text-accent" strokeWidth={2.5} />
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-muted">{c.bases[b].desc}</p>
-                    <p className="mt-3 font-mono text-xs text-muted">
-                      {b === "custom" ? "vanaf " : ""}
-                      {fmt(basePrice[b])}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">
-                {c.step2}
-              </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {moduleKeys.map((m) => {
-                  const on = mods.includes(m);
+                {bases.map((b) => {
+                  const on = baseSlug === b.slug;
                   return (
                     <button
-                      key={m}
+                      key={b.key}
                       type="button"
-                      onClick={() => toggleMod(m)}
+                      onClick={() => setBaseSlug(b.slug ?? "")}
                       className={`rounded-2xl border p-5 text-left transition-colors ${
                         on
                           ? "border-accent bg-card-hover"
@@ -488,102 +469,354 @@ export default function OffertePage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold tracking-tight">
-                          {c.modules[m].label}
+                          {b.name}
                         </span>
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-md border ${
-                            on
-                              ? "border-accent bg-accent text-white"
-                              : "border-border"
-                          }`}
-                        >
-                          {on && <Check className="h-3 w-3" strokeWidth={3} />}
-                        </span>
+                        {on && (
+                          <Check
+                            className="h-4 w-4 shrink-0 text-accent"
+                            strokeWidth={2.5}
+                          />
+                        )}
                       </div>
-                      <p className="mt-1 text-sm text-muted">
-                        {c.modules[m].desc}
-                      </p>
                       <p className="mt-3 font-mono text-xs text-muted">
-                        + {fmt(modulePrice[m])}
+                        {eur(b.cents)} {c.oneOff}
                       </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {inc && (
+                <div className="mt-5 rounded-2xl border border-accent/30 bg-accent/5 p-5">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                    {c.incl} · {inc.lang}
+                  </p>
+                  <ul className="mt-3 grid gap-1.5 text-sm text-muted sm:grid-cols-2">
+                    {incNames.map((n) => (
+                      <li key={n} className="flex items-center gap-2">
+                        <Check
+                          className="h-3.5 w-3.5 shrink-0 text-accent"
+                          strokeWidth={2.5}
+                        />
+                        {n}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {base && (
+                <div className="mt-5">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                    {c.extra}
+                  </p>
+                  <div className="grid gap-1.5 sm:grid-cols-2">
+                    {addons
+                      .filter((a) => !incNames.includes(a.name))
+                      .map((a) => {
+                        const on = extras.has(a.key);
+                        return (
+                          <label
+                            key={a.key}
+                            className={`flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                              on
+                                ? "border-accent bg-accent/5"
+                                : "bg-background hover:bg-card-hover"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="mt-0.5"
+                              checked={on}
+                              onChange={() => toggleExtra(a.key)}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="font-medium">{a.name}</span>
+                              {a.desc && (
+                                <span className="mt-0.5 block text-xs text-muted">
+                                  {a.desc}
+                                </span>
+                              )}
+                            </span>
+                            <span className="shrink-0 font-mono text-xs text-muted">
+                              {eur(a.cents)}
+                            </span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Luik 2 — onderhoud */}
+            <div>
+              <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+                {c.l2}
+              </h2>
+              <p className="mb-5 mt-1 text-sm text-muted">{c.l2note}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {subs.map((s) => {
+                  const on = subSlug === s.slug;
+                  return (
+                    <button
+                      key={s.slug}
+                      type="button"
+                      onClick={() => setSubSlug(s.slug)}
+                      className={`flex flex-col rounded-2xl border p-5 text-left transition-colors ${
+                        on
+                          ? "border-accent bg-card-hover"
+                          : "border-border bg-card hover:bg-card-hover"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold tracking-tight">
+                          {s.name}
+                        </span>
+                        {on && (
+                          <Check
+                            className="h-4 w-4 shrink-0 text-accent"
+                            strokeWidth={2.5}
+                          />
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted">{s.tagline}</p>
+                      <p className="mt-3 font-mono text-sm">
+                        {eur(s.cents)}
+                        <span className="text-muted">{c.perMonthShort}</span>
+                      </p>
+                      <ul className="mt-3 flex-1 space-y-1 text-xs text-muted">
+                        {s.features.slice(0, 4).map((f) => (
+                          <li key={f}>· {f}</li>
+                        ))}
+                      </ul>
                     </button>
                   );
                 })}
               </div>
             </div>
 
+            {/* Luik 3 — domein & e-mail */}
             <div>
               <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">
-                {c.step3}
+                {c.l3}
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {(Object.keys(planMonthly) as PlanKey[]).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPlan(p)}
-                    className={`rounded-2xl border p-4 text-left transition-colors ${
-                      plan === p
-                        ? "border-accent bg-card-hover"
-                        : "border-border bg-card hover:bg-card-hover"
-                    }`}
-                  >
-                    <span className="font-semibold tracking-tight">
-                      {c.plans[p].label}
-                    </span>
-                    <p className="mt-1 text-xs text-muted">{c.plans[p].desc}</p>
-                    <p className="mt-2 font-mono text-xs text-muted">
-                      {planMonthly[p] ? `${fmt(planMonthly[p])}/m` : "—"}
-                    </p>
-                  </button>
-                ))}
+
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.domain}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {(
+                  [
+                    ["connect", c.domConnect, c.domConnectD, "gratis"],
+                    [
+                      "register",
+                      c.domRegister,
+                      c.domRegisterD,
+                      `${eur(REGISTER_CENTS)}${c.perYear}`,
+                    ],
+                    [
+                      "transfer",
+                      c.domTransfer,
+                      c.domTransferD,
+                      `${eur(TRANSFER_CENTS)} ${c.oneOff}`,
+                    ],
+                  ] as [Domain, string, string, string][]
+                ).map(([k, label, d, price]) => {
+                  const on = domain === k;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setDomain(k)}
+                      className={`rounded-2xl border p-4 text-left transition-colors ${
+                        on
+                          ? "border-accent bg-card-hover"
+                          : "border-border bg-card hover:bg-card-hover"
+                      }`}
+                    >
+                      <span className="font-semibold tracking-tight">
+                        {label}
+                      </span>
+                      <p className="mt-1 text-xs text-muted">{d}</p>
+                      <p className="mt-2 font-mono text-xs text-accent">
+                        {price}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
+
+              <p className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.email}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {(
+                  [
+                    ["none", c.mailNone, c.mailNoneD, "—"],
+                    [
+                      "one",
+                      c.mailOne,
+                      c.mailOneD,
+                      `${eur(MAIL_ONE_CENTS)}${c.perMonth}`,
+                    ],
+                    [
+                      "team",
+                      c.mailTeam,
+                      c.mailTeamD,
+                      `${eur(MAIL_USER_CENTS)}${c.perMonth}/gebr.`,
+                    ],
+                  ] as [Mail, string, string, string][]
+                ).map(([k, label, d, price]) => {
+                  const on = mail === k;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setMail(k)}
+                      className={`rounded-2xl border p-4 text-left transition-colors ${
+                        on
+                          ? "border-accent bg-card-hover"
+                          : "border-border bg-card hover:bg-card-hover"
+                      }`}
+                    >
+                      <span className="font-semibold tracking-tight">
+                        {label}
+                      </span>
+                      <p className="mt-1 text-xs text-muted">{d}</p>
+                      <p className="mt-2 font-mono text-xs text-accent">
+                        {price}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+              {mail === "team" && (
+                <div className="mt-3 flex items-center gap-3">
+                  <label className="font-mono text-xs text-muted">
+                    {c.users}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={users}
+                    onChange={(e) =>
+                      setUsers(
+                        Math.min(
+                          50,
+                          Math.max(1, Number(e.target.value) || 1),
+                        ),
+                      )
+                    }
+                    className={`w-24 ${fld}`}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Sticky eindtotaal */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border bg-card p-6">
               <p className="font-mono text-xs uppercase tracking-widest text-muted">
-                {c.estimate}
+                {c.total}
               </p>
+
               <p className="mt-3 text-3xl font-semibold tracking-tight">
-                {fmt(lo)} <span className="text-muted">–</span> {fmt(hi)}
+                {eur(eenmalig)}
               </p>
               <p className="mt-1 font-mono text-xs text-muted">
                 {c.oneOff} · {c.excl}
               </p>
-              {monthly > 0 && (
-                <p className="mt-4 border-t pt-4 text-sm">
-                  + <strong>{fmt(monthly)}</strong> {c.monthly}{" "}
-                  <span className="text-muted">({c.plans[plan].label})</span>
+
+              {/* Aflossingstabel */}
+              <div className="mt-5 border-t pt-4">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {c.spread}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {TERMS.map((n) => {
+                    const p = planFor(n);
+                    const sel = term === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        disabled={!p.eligible}
+                        onClick={() => setTerm(n)}
+                        className={`rounded-full border px-3 py-1.5 font-mono text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                          sel
+                            ? "border-accent bg-accent text-white"
+                            : "border-border hover:bg-card-hover"
+                        }`}
+                      >
+                        {n === 0 ? c.atOnce : `${n}×`}
+                      </button>
+                    );
+                  })}
+                </div>
+                {term > 0 && plan.eligible ? (
+                  <div className="mt-3 text-sm">
+                    <p>
+                      {c.deposit}:{" "}
+                      <strong>{eur(plan.deposit)}</strong>
+                    </p>
+                    <p className="mt-0.5">
+                      {c.thenPay} {term}×{" "}
+                      <strong>{eur(plan.monthly)}</strong>
+                      {c.perMonth}
+                    </p>
+                  </div>
+                ) : null}
+                <p className="mt-2 text-xs leading-relaxed text-muted">
+                  {spreadPossible ? c.spreadNote : c.spreadLocked}
+                </p>
+              </div>
+
+              {/* Maandelijks */}
+              <div className="mt-4 border-t pt-4 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted">{c.monthlySub}</span>
+                  <strong>
+                    {subTier ? eur(monthlyRecurring) : "—"}
+                    {subTier ? c.perMonthShort : ""}
+                  </strong>
+                </div>
+                {domainYearly > 0 && (
+                  <div className="mt-1.5 flex items-center justify-between">
+                    <span className="text-muted">{c.domainYear}</span>
+                    <strong>
+                      {eur(domainYearly)}
+                      {c.perYear}
+                    </strong>
+                  </div>
+                )}
+              </div>
+
+              {!base && (
+                <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">
+                  {c.pickBase}
                 </p>
               )}
-              <p className="mt-4 text-xs leading-relaxed text-muted">
-                {c.estimateNote}
-              </p>
+              {base && !subSlug && (
+                <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">
+                  {c.pickSub}
+                </p>
+              )}
+
               <a
                 href="#aanvraag"
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                aria-disabled={!canSend}
+                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-opacity ${
+                  canSend
+                    ? "bg-foreground text-background hover:opacity-90"
+                    : "pointer-events-none bg-border text-muted"
+                }`}
               >
                 <Send className="h-4 w-4" strokeWidth={2} />
                 {c.sendButton}
               </a>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-colors hover:bg-card-hover"
-              >
-                <Printer className="h-4 w-4" strokeWidth={2} />
-                {c.printButton}
-              </button>
-              <button
-                type="button"
-                onClick={reset}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs text-muted transition-colors hover:text-foreground"
-              >
-                <RotateCcw className="h-3 w-3" strokeWidth={2} />
-                {c.reset}
-              </button>
               <Link
                 href={localePath(locale, "/pricing")}
                 className="mt-4 block text-center font-mono text-xs text-accent hover:underline"
@@ -595,7 +828,7 @@ export default function OffertePage() {
         </div>
       </section>
 
-      <section id="aanvraag" className="border-b print:hidden">
+      <section id="aanvraag" className="border-b">
         <div className="mx-auto max-w-xl px-6 py-16 text-center">
           <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
             {c.sendTitle}
@@ -604,50 +837,37 @@ export default function OffertePage() {
 
           {sent === "ok" ? (
             <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
-              {c.formSent}
+              {c.sent}
             </p>
           ) : (
-            <form
-              action={(fd) =>
-                startSend(async () => {
-                  fd.set("locale", locale);
-                  fd.set("base", base);
-                  fd.set("modules", mods.join(","));
-                  fd.set("plan", plan);
-                  fd.set("estLow", String(lo));
-                  fd.set("estHigh", String(hi));
-                  fd.set("monthly", String(monthly));
-                  const r = await submitQuote(fd);
-                  if (r.ok) {
-                    setSent("ok");
-                  } else if (r.error === "not_configured") {
-                    window.location.href = mailto;
-                  } else {
-                    setSent("err");
-                  }
-                })
-              }
-              className="mt-8 space-y-3 text-left"
-            >
+            <form action={submit} className="mt-8 space-y-3 text-left">
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+              />
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   name="name"
                   required
-                  placeholder={c.formName}
+                  placeholder={c.name}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
                 <input
                   name="email"
                   type="email"
                   required
-                  placeholder={c.formEmail}
+                  placeholder={c.email2}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
               </div>
               <textarea
                 name="message"
                 rows={3}
-                placeholder={c.formMsg}
+                placeholder={c.msg}
                 className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
               />
               <div>
@@ -656,19 +876,17 @@ export default function OffertePage() {
                   type="text"
                   inputMode="url"
                   autoComplete="off"
-                  placeholder={c.formSite}
+                  placeholder={c.site}
                   className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
-                <p className="mt-1.5 px-1 text-xs text-muted">
-                  {c.formSiteNote}
-                </p>
+                <p className="mt-1.5 px-1 text-xs text-muted">{c.siteNote}</p>
               </div>
               {sent === "err" && (
-                <p className="text-sm text-red-500">{c.formErr}</p>
+                <p className="text-sm text-red-500">{c.err}</p>
               )}
               <button
                 type="submit"
-                disabled={pending}
+                disabled={pending || !canSend}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {pending ? (
@@ -676,7 +894,7 @@ export default function OffertePage() {
                 ) : (
                   <Send className="h-4 w-4" strokeWidth={2} />
                 )}
-                {pending ? c.formSending : c.sendButton}
+                {pending ? c.sending : c.sendButton}
               </button>
             </form>
           )}
