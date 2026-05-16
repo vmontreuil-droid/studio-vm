@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Globe,
   Gauge,
   FileText,
   Receipt,
+  CreditCard,
   RefreshCcw,
   LifeBuoy,
   UserRound,
@@ -39,6 +41,7 @@ export function PortalShell({
   const base = `/${locale}/portail/dashboard`;
   const items = [
     { href: base, label: t.overview, icon: LayoutDashboard, exact: true },
+    { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
     { href: `${base}/scans`, label: t.scans, icon: Gauge },
     {
       href: `${base}/offertes`,
@@ -51,6 +54,11 @@ export function PortalShell({
       label: t.invoices,
       icon: Receipt,
       badge: counts.invoices,
+    },
+    {
+      href: `${base}/betalingen`,
+      label: t.payments,
+      icon: CreditCard,
     },
     { href: `${base}/abonnement`, label: t.subscription, icon: RefreshCcw },
     {

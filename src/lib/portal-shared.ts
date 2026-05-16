@@ -47,6 +47,16 @@ export type Msg = {
   body: string;
   created_at: string;
 };
+export type Site = {
+  id: string;
+  name: string;
+  url: string | null;
+  status: string;
+  last_deploy: string | null;
+  repo_url: string | null;
+  notes: string | null;
+  created_at: string;
+};
 
 export const eur = (c: number | null | undefined) =>
   c == null ? "—" : `€ ${(c / 100).toFixed(2)}`;
@@ -87,6 +97,8 @@ export const PORTAL_T: Record<
     offers: string;
     invoices: string;
     subscription: string;
+    payments: string;
+    mywebsite: string;
     tickets: string;
     account: string;
     signout: string;
@@ -100,6 +112,8 @@ export const PORTAL_T: Record<
     offers: "Offertes",
     invoices: "Facturen",
     subscription: "Abonnement",
+    payments: "Betalingen",
+    mywebsite: "Mijn website",
     tickets: "Support",
     account: "Account",
     signout: "Uitloggen",
@@ -112,6 +126,8 @@ export const PORTAL_T: Record<
     offers: "Devis",
     invoices: "Factures",
     subscription: "Abonnement",
+    payments: "Paiements",
+    mywebsite: "Mon site",
     tickets: "Support",
     account: "Compte",
     signout: "Déconnexion",
@@ -124,6 +140,8 @@ export const PORTAL_T: Record<
     offers: "Quotes",
     invoices: "Invoices",
     subscription: "Subscription",
+    payments: "Payments",
+    mywebsite: "My website",
     tickets: "Support",
     account: "Account",
     signout: "Sign out",

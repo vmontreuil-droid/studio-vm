@@ -13,6 +13,8 @@ import {
   setSubscription,
   replyTicketStudio,
   setTicketStatus,
+  addSite,
+  setSiteStatus,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +51,8 @@ export default async function AdminKlantDetail({
   const first = rows[rows.length - 1];
 
   const db = getSupabaseAdmin();
-  const [offersR, invoicesR, subsR, ticketsR, msgsR] = await Promise.all([
+  const [offersR, invoicesR, subsR, ticketsR, msgsR, sitesR] =
+    await Promise.all([
     db
       .from("offers")
       .select("*")
@@ -74,6 +77,11 @@ export default async function AdminKlantDetail({
       .from("ticket_messages")
       .select("*")
       .order("created_at", { ascending: true }),
+    db
+      .from("sites")
+      .select("*")
+      .eq("client_email", email)
+      .order("created_at", { ascending: false }),
   ]);
   type Offer = {
     id: string;
@@ -103,10 +111,18 @@ export default async function AdminKlantDetail({
     body: string;
     created_at: string;
   };
+  type SiteRow = {
+    id: string;
+    name: string;
+    url: string | null;
+    status: string;
+    last_deploy: string | null;
+  };
   const offers = (offersR.data as Offer[]) ?? [];
   const invoices = (invoicesR.data as Invoice[]) ?? [];
   const subs = (subsR.data as Sub[]) ?? [];
   const tickets = (ticketsR.data as Ticket[]) ?? [];
+  const sites = (sitesR.data as SiteRow[]) ?? [];
   const allMsgs = (msgsR.data as Msg[]) ?? [];
   const ticketIds = new Set(tickets.map((tk) => tk.id));
   const msgsByTicket = new Map<string, Msg[]>();
@@ -451,6 +467,92 @@ export default async function AdminKlantDetail({
             )}
           </div>
         ))}
+      </div>
+
+      {/* WEBSITE */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Website
+      </h2>
+      <div className="mt-4 space-y-3">
+        {sites.map((s) => (
+          <div
+            key={s.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+          >
+            <div className="min-w-0">
+              <p className="font-medium">{s.name}</p>
+              {s.url && (
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-xs text-accent hover:underline"
+                >
+                  {s.url}
+                </a>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                  s.status === "online"
+                    ? "actief"
+                    : s.status === "offline"
+                      ? "gestopt"
+                      : s.status === "onderhoud"
+                        ? "in_behandeling"
+                        : "open",
+                )}`}
+              >
+                {s.status}
+              </span>
+              {(
+                ["in_aanbouw", "online", "onderhoud", "offline"] as const
+              ).map((st) => (
+                <form key={st} action={setSiteStatus.bind(null, s.id, st)}>
+                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                    {st}
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        ))}
+        <form
+          action={addSite}
+          className="rounded-2xl border border-dashed bg-card/50 p-4"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input name="name" required placeholder="Naam" className={field} />
+            <input
+              name="url"
+              placeholder="https://… (live URL)"
+              className={field}
+            />
+          </div>
+          <textarea
+            name="notes"
+            rows={2}
+            placeholder="Notities voor de klant (optioneel)"
+            className={`mt-2 ${field}`}
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <select
+              name="status"
+              defaultValue="in_aanbouw"
+              className={field}
+            >
+              <option value="in_aanbouw">in aanbouw</option>
+              <option value="online">online</option>
+              <option value="onderhoud">onderhoud</option>
+              <option value="offline">offline</option>
+            </select>
+            <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+              Website toevoegen
+            </button>
+          </div>
+        </form>
       </div>
     </>
   );

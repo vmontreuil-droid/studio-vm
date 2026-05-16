@@ -47,6 +47,11 @@ const SUBJECT: Record<string, Record<string, string>> = {
     fr: "Réponse à votre ticket",
     en: "Reply to your ticket",
   },
+  site: {
+    nl: "Update over je website",
+    fr: "Mise à jour de votre site",
+    en: "Update on your website",
+  },
 };
 
 const CTA: Record<string, string> = {
@@ -57,7 +62,7 @@ const CTA: Record<string, string> = {
 
 async function notifyClient(
   email: string,
-  kind: "offer" | "invoice" | "subscription" | "ticket",
+  kind: "offer" | "invoice" | "subscription" | "ticket" | "site",
   bodyLines: string[],
 ) {
   const locale = await clientLocale(email);
@@ -258,6 +263,73 @@ export async function setTicketStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return;
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function addSite(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const name = String(formData.get("name") ?? "").trim().slice(0, 160);
+  const urlRaw = String(formData.get("url") ?? "").trim().slice(0, 300);
+  const url = urlRaw
+    ? /^https?:\/\//i.test(urlRaw)
+      ? urlRaw
+      : `https://${urlRaw}`
+    : null;
+  const status = String(formData.get("status") ?? "in_aanbouw");
+  const st = ["in_aanbouw", "online", "onderhoud", "offline"].includes(status)
+    ? status
+    : "in_aanbouw";
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000);
+  if (!email || !name) return;
+
+  const { error } = await getSupabaseAdmin().from("sites").insert({
+    client_email: email,
+    name,
+    url,
+    status: st,
+    notes: notes || null,
+    last_deploy: new Date().toISOString().slice(0, 10),
+  });
+  if (error) return;
+  await notifyClient(email, "site", [
+    `Je website <strong>${name}</strong> staat in je portaal${
+      url ? ` — ${url}` : ""
+    }.`,
+  ]);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function setSiteStatus(
+  id: string,
+  status: "in_aanbouw" | "online" | "onderhoud" | "offline",
+): Promise<void> {
+  if (!(await guard())) return;
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("sites")
+    .select("client_email, name")
+    .eq("id", id)
+    .maybeSingle();
+  const { error } = await db
+    .from("sites")
+    .update({
+      status,
+      last_deploy: new Date().toISOString().slice(0, 10),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return;
+  const row = data as { client_email?: string; name?: string } | null;
+  if (row?.client_email) {
+    await notifyClient(row.client_email, "site", [
+      `Status van je website <strong>${row.name ?? ""}</strong>: <strong>${status}</strong>.`,
+    ]);
+  }
   revalidatePath("/admin/klanten", "layout");
   return;
 }
