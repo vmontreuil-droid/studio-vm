@@ -54,31 +54,43 @@ export async function submitQuote(
   if (!leadsConfigured) return { ok: false, error: "not_configured" };
 
   const db = getSupabaseAdmin();
-  const { data, error } = await db
+  const baseRow = {
+    locale,
+    name,
+    email,
+    message: message || null,
+    base,
+    modules,
+    plan,
+    est_low: estLow,
+    est_high: estHigh,
+    monthly,
+  };
+  let ins = await db
     .from("quotes")
     .insert({
-      locale,
-      name,
-      email,
+      ...baseRow,
       phone,
       company,
       address,
       vat_number: vatNumber,
-      message: message || null,
-      base,
-      modules,
-      plan,
-      est_low: estLow,
-      est_high: estHigh,
-      monthly,
     })
     .select("id")
     .maybeSingle();
-  if (error) return { ok: false, error: "store" };
+  if (ins.error) {
+    // Migratiekolommen (0018–0020) nog niet gedraaid? Val terug op de
+    // basisvelden zodat de aanvraag nooit verloren gaat.
+    ins = await db
+      .from("quotes")
+      .insert(baseRow)
+      .select("id")
+      .maybeSingle();
+  }
+  if (ins.error) return { ok: false, error: "store" };
 
   // Gaf de bezoeker een huidige site mee → scan ná de response en het
   // resultaat bij déze aanvraag bewaren (geen mail).
-  const quoteId = (data as { id?: string } | null)?.id;
+  const quoteId = (ins.data as { id?: string } | null)?.id;
   if (quoteId && currentSite) {
     after(() => scanAndStore(currentSite, quoteId));
   }
@@ -241,23 +253,28 @@ export async function startOffer(
   ];
 
   const db = getSupabaseAdmin();
-  const { data, error } = await db
+  const baseRow = {
+    locale,
+    name,
+    email,
+    message: userMsg || null,
+    base: baseSlug,
+    modules,
+    plan: subSlug,
+    est_low: Math.round(payable / 100),
+    est_high: Math.round(payable / 100),
+    monthly: Math.round(monthlyTotal / 100),
+    status: "nieuw",
+    source: "offerte-configurator",
+  };
+  let ins = await db
     .from("quotes")
     .insert({
-      locale,
-      name,
-      email,
+      ...baseRow,
       phone,
       company,
       address,
       vat_number: vatNumber,
-      message: userMsg || null,
-      base: baseSlug,
-      modules,
-      plan: subSlug,
-      est_low: Math.round(payable / 100),
-      est_high: Math.round(payable / 100),
-      monthly: Math.round(monthlyTotal / 100),
       one_off_cents: eenmalig,
       discount_cents: discount,
       deposit_cents: deposit,
@@ -273,13 +290,20 @@ export async function startOffer(
       monthly_total_cents: monthlyTotal,
       lockin: true,
       deposit_status: "open",
-      status: "nieuw",
-      source: "offerte-configurator",
     })
     .select("id")
     .maybeSingle();
-  if (error) return { ok: false, error: "store" };
-  const quoteId = (data as { id?: string } | null)?.id;
+  if (ins.error) {
+    // Migratiekolommen (0018–0020) nog niet gedraaid? Val terug op de
+    // basisvelden zodat de aanvraag nooit verloren gaat.
+    ins = await db
+      .from("quotes")
+      .insert(baseRow)
+      .select("id")
+      .maybeSingle();
+  }
+  if (ins.error) return { ok: false, error: "store" };
+  const quoteId = (ins.data as { id?: string } | null)?.id;
   if (!quoteId) return { ok: false, error: "store" };
 
   if (quoteId && currentSite) {
@@ -320,7 +344,13 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
   // Direct in het klantportaal + als klant in de admin: portaaltoegang,
   // het gekozen abonnement en een offerte met de volledige samenstelling.
   try {
-    await ensurePortalUser(email);
+    await ensurePortalUser(email, {
+      name,
+      phone,
+      company,
+      vat_number: vatNumber,
+      address,
+    });
 
     const { data: subRow } = await db
       .from("subscriptions")
@@ -343,7 +373,7 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
         .eq("id", (subRow as { id: string }).id);
     else await db.from("subscriptions").insert(subPayload);
 
-    await db.from("offers").insert({
+    const offerBase = {
       client_email: email,
       title: `Configurator — ${base.name}`,
       body: `Samenstelling via de online configurator:\n\n${breakdown.join("\n")}${userMsg ? `\n\nBericht van de klant:\n${userMsg}` : ""}`,
@@ -352,7 +382,17 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
       valid_until: new Date(Date.now() + 14 * 86400000)
         .toISOString()
         .slice(0, 10),
+    };
+    const offerIns = await db.from("offers").insert({
+      ...offerBase,
+      client_name: name,
+      client_company: company,
+      client_address: address,
+      vat_number: vatNumber,
     });
+    // Kolommen van 0016 nog niet gedraaid? Val terug op de basisvelden
+    // zodat de offerte sowieso in het portaal verschijnt.
+    if (offerIns.error) await db.from("offers").insert(offerBase);
   } catch {
     // Niet-kritisch voor de aanvraag zelf — de quote staat sowieso
     // bewaard en is zichtbaar in /admin/aanvragen.

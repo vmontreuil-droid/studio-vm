@@ -5,16 +5,45 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 // bestaat de gebruiker al, dan gebeurt er niets. Wordt aangeroepen bij
 // een scan-met-e-mail en bij admin-acties (offerte/factuur/site/abo),
 // zodat login zelf invite-only kan blijven.
-export async function ensurePortalUser(email: string): Promise<void> {
+export type PortalProfile = {
+  name?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  vat_number?: string | null;
+  address?: string | null;
+};
+
+export async function ensurePortalUser(
+  email: string,
+  profile?: PortalProfile,
+): Promise<void> {
   const clean = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return;
+  const meta = profile
+    ? Object.fromEntries(
+        Object.entries(profile).filter(([, v]) => v != null && v !== ""),
+      )
+    : undefined;
+  const admin = getSupabaseAdmin();
   try {
-    await getSupabaseAdmin().auth.admin.createUser({
+    const { error } = await admin.auth.admin.createUser({
       email: clean,
       email_confirm: true,
+      user_metadata: meta,
     });
+    // Bestaat de gebruiker al? Werk dan de gegevens bij op het account.
+    if (error && meta) {
+      const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const u = data?.users?.find(
+        (x) => (x.email ?? "").toLowerCase() === clean,
+      );
+      if (u)
+        await admin.auth.admin.updateUserById(u.id, {
+          user_metadata: { ...(u.user_metadata ?? {}), ...meta },
+        });
+    }
   } catch {
-    // Bestaat al of niet-kritisch — login werkt sowieso.
+    // Niet-kritisch — login werkt sowieso.
   }
 }
 

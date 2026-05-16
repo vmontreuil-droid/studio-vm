@@ -102,6 +102,7 @@ const T: Record<
     viesOk: string;
     viesBad: string;
     noWeb: string;
+    reqHint: string;
     depositBtn: string;
     quoteBtn2: string;
     payNote: string;
@@ -190,6 +191,7 @@ const T: Record<
     viesOk: "BTW gevonden — gegevens automatisch ingevuld",
     viesBad: "BTW niet gevonden — vul gegevens handmatig in",
     noWeb: "Ik heb (nog) geen website",
+    reqHint: "Velden met * zijn verplicht",
     depositBtn: "Leg vast & betaal 30% aanbetaling",
     quoteBtn2: "Of vraag eerst een vrijblijvende offerte aan",
     payNote:
@@ -281,6 +283,7 @@ const T: Record<
     viesOk: "TVA trouvée — données remplies automatiquement",
     viesBad: "TVA introuvable — remplissez manuellement",
     noWeb: "Je n'ai pas (encore) de site",
+    reqHint: "Les champs avec * sont obligatoires",
     depositBtn: "Verrouiller & payer l'acompte de 30 %",
     quoteBtn2: "Ou demandez d'abord un devis sans engagement",
     payNote:
@@ -372,6 +375,7 @@ const T: Record<
     viesOk: "VAT found — details filled automatically",
     viesBad: "VAT not found — fill in manually",
     noWeb: "I don't have a website (yet)",
+    reqHint: "Fields marked * are required",
     depositBtn: "Lock in & pay 30% deposit",
     quoteBtn2: "Or request a no-obligation quote first",
     payNote:
@@ -1099,18 +1103,21 @@ export default function OffertePage() {
               <input type="hidden" name="mail" value={mail} />
               <input type="hidden" name="users" value={users} />
               <input type="hidden" name="term" value={term} />
+              <p className="px-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.reqHint}
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   name="name"
                   required
-                  placeholder={c.name}
+                  placeholder={`${c.name} *`}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
                 <input
                   name="email"
                   type="email"
                   required
-                  placeholder={c.email2}
+                  placeholder={`${c.email2} *`}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
               </div>
@@ -1119,7 +1126,7 @@ export default function OffertePage() {
                   name="phone"
                   type="tel"
                   required
-                  placeholder={c.phone}
+                  placeholder={`${c.phone} *`}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
                 <input
@@ -1188,7 +1195,7 @@ export default function OffertePage() {
                   disabled={noWeb}
                   value={noWeb ? "" : website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  placeholder={c.site}
+                  placeholder={noWeb ? c.site : `${c.site} *`}
                   className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent disabled:opacity-50"
                 />
                 <label className="mt-2 flex cursor-pointer items-center gap-2 px-1 text-xs text-muted">
