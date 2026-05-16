@@ -12,6 +12,10 @@ type Quote = {
   locale: string;
   name: string;
   email: string;
+  phone: string | null;
+  company: string | null;
+  vat_number: string | null;
+  address: string | null;
   message: string | null;
   notes: string | null;
   base: string;
@@ -19,9 +23,16 @@ type Quote = {
   plan: string;
   est_low: number | null;
   est_high: number | null;
+  monthly: number | null;
+  deposit_cents: number | null;
+  deposit_status: string | null;
+  monthly_total_cents: number | null;
   status: string;
   source: string | null;
 };
+
+const eurc = (x: number | null | undefined) =>
+  x == null ? "—" : "€ " + (x / 100).toLocaleString("nl-BE");
 
 const STATUSES = ["nieuw", "in behandeling", "gewonnen", "verloren", "archief"];
 const STATUS_COLOR: Record<string, string> = {
@@ -116,6 +127,7 @@ export default async function AdminAanvragen({
       <div className="mt-3 flex flex-wrap gap-2">
         {chip("Alles", {})}
         {STATUSES.map((s) => chip(s, { status: s }))}
+        {chip("· configurator", { src: "offerte-configurator" })}
         {chip("· builder", { src: "builder" })}
         {chip("· offerte", { src: "offerte-calculator" })}
         {chip("· contact", { src: "contact" })}
@@ -178,6 +190,36 @@ export default async function AdminAanvragen({
                     {q.modules.join(", ")}
                   </span>
                 )}
+                {(q.phone || q.company || q.vat_number || q.address) && (
+                  <span className="sm:col-span-2">
+                    <span className="text-muted">Klant:</span>{" "}
+                    {[q.company, q.phone, q.vat_number, q.address]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                )}
+                {q.deposit_cents != null && (
+                  <span className="sm:col-span-2">
+                    <span className="text-muted">Aanbetaling:</span>{" "}
+                    <strong>{eurc(q.deposit_cents)}</strong>{" "}
+                    <span
+                      className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${
+                        q.deposit_status === "betaald"
+                          ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                          : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                      }`}
+                    >
+                      {q.deposit_status ?? "open"}
+                    </span>
+                    {q.monthly_total_cents != null && (
+                      <>
+                        {" "}
+                        · <span className="text-muted">daarna</span>{" "}
+                        {eurc(q.monthly_total_cents)}/maand
+                      </>
+                    )}
+                  </span>
+                )}
               </div>
             )}
 
@@ -188,6 +230,12 @@ export default async function AdminAanvragen({
             )}
 
             <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
+              <Link
+                href={`/admin/aanvragen/${q.id}`}
+                className="rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
+              >
+                Volledig detail →
+              </Link>
               <form action={setStatus} className="flex items-center gap-2">
                 <input type="hidden" name="id" value={q.id} />
                 <select
