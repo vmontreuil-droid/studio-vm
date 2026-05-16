@@ -11,6 +11,7 @@ import {
 import { getCaseStudy } from "@/lib/case-studies";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { ProjectCard } from "@/components/project-card";
+import { BrowserFrame } from "@/components/browser-frame";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 type Params = { locale: string; slug: string };
@@ -26,6 +27,7 @@ const ui: Record<
   {
     back: string;
     visit: string;
+    frameNote: string;
     scope: string;
     stack: string;
     year: string;
@@ -42,6 +44,7 @@ const ui: Record<
   nl: {
     back: "Terug naar werk",
     visit: "Bezoek live site",
+    frameNote: "De échte live site — beweeg erover om mee te scrollen. Blijf gerust hier rondkijken.",
     scope: "Scope",
     stack: "Stack",
     year: "Jaar",
@@ -57,6 +60,7 @@ const ui: Record<
   fr: {
     back: "Retour aux travaux",
     visit: "Voir le site en ligne",
+    frameNote: "Le vrai site en ligne — survolez pour faire défiler. Restez ici tranquillement.",
     scope: "Périmètre",
     stack: "Stack",
     year: "Année",
@@ -72,6 +76,7 @@ const ui: Record<
   en: {
     back: "Back to work",
     visit: "Visit live site",
+    frameNote: "The real live site — hover to scroll along. Feel free to keep browsing here.",
     scope: "Scope",
     stack: "Stack",
     year: "Year",
@@ -167,6 +172,20 @@ export default async function WerkDetailPage({
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </a>
             )}
+          </div>
+        </section>
+
+        <section className="border-b">
+          <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+            <BrowserFrame
+              url={project.url}
+              image={project.image}
+              name={project.name}
+              accent={project.accent}
+            />
+            <p className="mt-3 text-center font-mono text-xs text-muted">
+              {t.frameNote}
+            </p>
           </div>
         </section>
 
