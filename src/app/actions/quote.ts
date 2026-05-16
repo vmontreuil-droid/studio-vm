@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
 import { after } from "next/server";
-import { scanAndMail } from "@/lib/scan-report";
+import { scanAndStore } from "@/lib/scan-report";
 
 export type QuoteState = { ok: true } | { ok: false; error: string };
 
@@ -31,29 +31,35 @@ export async function submitQuote(
   if (!name) return { ok: false, error: "name" };
   if (!isEmail(email)) return { ok: false, error: "email" };
 
-  // Optioneel meegegeven huidige site → scan + rapport naar mij, ná de
-  // response. De bezoeker ziet hier niets van.
   const currentSite = s("currentSite");
-  if (currentSite) {
-    after(() => scanAndMail(currentSite, { source: "offerte", name, email }));
-  }
 
   if (!leadsConfigured) return { ok: false, error: "not_configured" };
 
   const db = getSupabaseAdmin();
-  const { error } = await db.from("quotes").insert({
-    locale,
-    name,
-    email,
-    message: message || null,
-    base,
-    modules,
-    plan,
-    est_low: estLow,
-    est_high: estHigh,
-    monthly,
-  });
+  const { data, error } = await db
+    .from("quotes")
+    .insert({
+      locale,
+      name,
+      email,
+      message: message || null,
+      base,
+      modules,
+      plan,
+      est_low: estLow,
+      est_high: estHigh,
+      monthly,
+    })
+    .select("id")
+    .maybeSingle();
   if (error) return { ok: false, error: "store" };
+
+  // Gaf de bezoeker een huidige site mee → scan ná de response en het
+  // resultaat bij déze aanvraag bewaren (geen mail).
+  const quoteId = (data as { id?: string } | null)?.id;
+  if (quoteId && currentSite) {
+    after(() => scanAndStore(currentSite, quoteId));
+  }
 
   const fmt = (n: number | null) =>
     n == null ? "—" : "€ " + n.toLocaleString("nl-BE");

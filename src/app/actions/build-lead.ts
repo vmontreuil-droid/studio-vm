@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
 import { after } from "next/server";
-import { scanAndMail } from "@/lib/scan-report";
+import { scanAndStore } from "@/lib/scan-report";
 
 export type BuildState =
   | { ok: true; stored: boolean }
@@ -88,11 +88,6 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
   if (!isEmail(email)) return { ok: false, error: "email" };
 
   const currentSite = (cfg.currentSite ?? "").trim();
-  if (currentSite) {
-    after(() =>
-      scanAndMail(currentSite, { source: "builder", name: businessName, email }),
-    );
-  }
 
   const clean: Cfg = {
     ...cfg,
@@ -109,18 +104,29 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
     return { ok: false, error: "not_configured", mailto: mailtoFor(clean) };
 
   const db = getSupabaseAdmin();
-  const { error } = await db.from("quotes").insert({
-    locale: clean.locale,
-    name: businessName,
-    email,
-    message: summarize(clean).slice(0, 8000),
-    base: "builder",
-    modules: clean.sections,
-    plan: clean.theme,
-    source: "builder",
-    snapshot: clean,
-  });
+  const { data, error } = await db
+    .from("quotes")
+    .insert({
+      locale: clean.locale,
+      name: businessName,
+      email,
+      message: summarize(clean).slice(0, 8000),
+      base: "builder",
+      modules: clean.sections,
+      plan: clean.theme,
+      source: "builder",
+      snapshot: clean,
+    })
+    .select("id")
+    .maybeSingle();
   if (error) return { ok: false, error: "store", mailto: mailtoFor(clean) };
+
+  // Gaf de bezoeker een huidige site mee → scan ná de response, resultaat
+  // bij déze aanvraag bewaren (geen mail).
+  const quoteId = (data as { id?: string } | null)?.id;
+  if (quoteId && currentSite) {
+    after(() => scanAndStore(currentSite, quoteId));
+  }
 
   await sendMail("info@studio-vm.be", {
     subject: `Nieuw builder-ontwerp — ${businessName}`,

@@ -3,7 +3,7 @@
 import { after } from "next/server";
 import { resendFrom, leadsConfigured } from "@/lib/supabase/config";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { scanAndMail } from "@/lib/scan-report";
+import { scanAndStore } from "@/lib/scan-report";
 
 const TO = "info@studio-vm.be";
 const FROM = resendFrom;
@@ -34,18 +34,14 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
     return { ok: false, message: "Dat e-mailadres lijkt niet te kloppen." };
   }
 
-  // Optioneel: bezoeker gaf z'n huidige site → scan + rapport naar mij,
-  // ná de response zodat hun formulier niet wacht. Zij zien hier niets van.
   const currentSite = String(formData.get("currentSite") ?? "").trim();
-  if (currentSite) {
-    after(() => scanAndMail(currentSite, { source: "contact", name, email }));
-  }
 
-  // Ook opslaan als lead zodat het in Admin → Aanvragen (filter "contact")
-  // verschijnt. Fail-safe: een DB-fout mag de mail/flow niet breken.
+  // Opslaan als lead zodat het in Admin → Aanvragen (filter "contact")
+  // verschijnt. Gaf de bezoeker een site mee → scan draaien ná de
+  // response en het resultaat bij déze aanvraag bewaren (geen mail).
   if (leadsConfigured) {
     try {
-      await getSupabaseAdmin()
+      const { data } = await getSupabaseAdmin()
         .from("quotes")
         .insert({
           locale: String(formData.get("locale") ?? "nl").slice(0, 5),
@@ -62,7 +58,13 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
           base: "contact",
           plan: "—",
           source: "contact",
-        });
+        })
+        .select("id")
+        .maybeSingle();
+      const id = (data as { id?: string } | null)?.id;
+      if (id && currentSite) {
+        after(() => scanAndStore(currentSite, id));
+      }
     } catch (e) {
       console.error("[contact] opslaan als lead mislukt:", e);
     }

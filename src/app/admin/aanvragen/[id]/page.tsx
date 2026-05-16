@@ -4,6 +4,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import type { StoredScan } from "@/lib/scan-report";
 import { setStatus, setNote, deleteQuote } from "@/app/actions/admin";
 import { BuilderRender } from "@/components/builder-render";
 
@@ -50,6 +51,7 @@ type Quote = {
   status: string;
   source: string | null;
   snapshot: Snapshot | null;
+  scan: StoredScan | null;
 };
 
 const eur = (x: number | null) =>
@@ -252,6 +254,79 @@ export default async function QuoteDetail({
                 {snap.ctaText}
               </p>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Scan van hun huidige site */}
+      {q.scan && (
+        <div className="mt-4 rounded-2xl border bg-card p-5">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            Scan van hun huidige site
+          </p>
+          {q.scan.ok === false ? (
+            <p className="mt-3 text-sm text-muted">
+              Scan van{" "}
+              <span className="font-mono">{q.scan.url}</span> mislukte:{" "}
+              {q.scan.error}
+            </p>
+          ) : (
+            <>
+              <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                <Field
+                  label="Site"
+                  value={
+                    <a
+                      href={q.scan.finalUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-accent underline"
+                    >
+                      {q.scan.finalUrl}
+                    </a>
+                  }
+                />
+                <Field
+                  label="Score"
+                  value={`${q.scan.grade} — ${q.scan.score}/100`}
+                />
+                <Field label="Stack" value={q.scan.stack} />
+                <Field label="Hosting" value={q.scan.hosting ?? "—"} />
+                <Field label="Gemaakt door" value={q.scan.builtBy ?? "—"} />
+                <Field
+                  label="Reactietijd"
+                  value={`${q.scan.responseMs} ms · ${q.scan.htmlKb} KB · CWV-risico ${q.scan.cwvRisk}`}
+                />
+                <Field
+                  label="Per categorie"
+                  value={q.scan.categories
+                    .map((c) => `${c.cat} ${c.score}`)
+                    .join(" · ")}
+                />
+                <Field
+                  label="Gescand op"
+                  value={new Date(q.scan.at).toLocaleString("nl-BE", {
+                    timeZone: "Europe/Brussels",
+                  })}
+                />
+              </dl>
+              <div className="mt-4">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Valkuilen
+                </p>
+                {q.scan.pitfalls.length > 0 ? (
+                  <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                    {q.scan.pitfalls.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                    Geen grote valkuilen.
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}
