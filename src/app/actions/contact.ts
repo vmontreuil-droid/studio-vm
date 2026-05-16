@@ -1,7 +1,8 @@
 "use server";
 
 import { after } from "next/server";
-import { resendFrom } from "@/lib/supabase/config";
+import { resendFrom, leadsConfigured } from "@/lib/supabase/config";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { scanAndMail } from "@/lib/scan-report";
 
 const TO = "info@studio-vm.be";
@@ -38,6 +39,33 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
   const currentSite = String(formData.get("currentSite") ?? "").trim();
   if (currentSite) {
     after(() => scanAndMail(currentSite, { source: "contact", name, email }));
+  }
+
+  // Ook opslaan als lead zodat het in Admin → Aanvragen (filter "contact")
+  // verschijnt. Fail-safe: een DB-fout mag de mail/flow niet breken.
+  if (leadsConfigured) {
+    try {
+      await getSupabaseAdmin()
+        .from("quotes")
+        .insert({
+          locale: String(formData.get("locale") ?? "nl").slice(0, 5),
+          name,
+          email,
+          message: [
+            subject && `Onderwerp: ${subject}`,
+            body,
+            currentSite && `Huidige site: ${currentSite}`,
+          ]
+            .filter(Boolean)
+            .join("\n\n")
+            .slice(0, 4000),
+          base: "contact",
+          plan: "—",
+          source: "contact",
+        });
+    } catch (e) {
+      console.error("[contact] opslaan als lead mislukt:", e);
+    }
   }
 
   const apiKey = process.env.RESEND_API_KEY;
