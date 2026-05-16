@@ -38,7 +38,7 @@ const copy: Record<Locale, Copy> = {
     lead: "Schrijf je over Studio VM, of werk je met me samen? Hier vind je het logo, de kleuren, de typografie en een bio — klaar voor gebruik, geen toestemming nodig.",
     logoTitle: "Logo",
     logoNote:
-      "Het woordmerk is <vm/> — een zelfsluitende tag. Hou de accent-kleur op de punthaken. Niet uitrekken, herkleuren of in een kader stoppen.",
+      "Het woordmerk is vm. — kleine letters, vette schreefloze letter met een accent-punt. Hou de punt in de accent-kleur. Niet uitrekken, herkleuren of in een kader stoppen.",
     download: "Download SVG",
     colorsTitle: "Kleuren",
     typoTitle: "Typografie",
@@ -75,7 +75,7 @@ const copy: Record<Locale, Copy> = {
     lead: "Vous écrivez sur Studio VM, ou vous collaborez avec moi ? Voici le logo, les couleurs, la typographie et une bio — prêts à l'emploi, sans autorisation.",
     logoTitle: "Logo",
     logoNote:
-      "Le logotype est <vm/> — une balise auto-fermante. Gardez la couleur accent sur les chevrons. Ne pas étirer, recolorer ou encadrer.",
+      "Le logotype est vm. — minuscules, sans-serif gras avec un point d'accent. Gardez le point dans la couleur accent. Ne pas étirer, recolorer ou encadrer.",
     download: "Télécharger le SVG",
     colorsTitle: "Couleurs",
     typoTitle: "Typographie",
@@ -112,7 +112,7 @@ const copy: Record<Locale, Copy> = {
     lead: "Writing about Studio VM, or working with me? Here's the logo, colours, typography and a bio — ready to use, no permission needed.",
     logoTitle: "Logo",
     logoNote:
-      "The wordmark is <vm/> — a self-closing tag. Keep the accent colour on the brackets. Don't stretch, recolour or box it.",
+      "The wordmark is vm. — lowercase, bold sans-serif with an accent dot. Keep the dot in the accent colour. Don't stretch, recolour or box it.",
     download: "Download SVG",
     colorsTitle: "Colours",
     typoTitle: "Typography",
@@ -153,15 +153,14 @@ const colors = [
 function Wordmark({ dark }: { dark?: boolean }) {
   return (
     <div
-      className="flex h-28 items-center justify-center rounded-2xl border font-mono text-3xl font-semibold tracking-tight"
+      className="flex h-28 items-center justify-center rounded-2xl border text-5xl font-extrabold lowercase tracking-tighter"
       style={{
         background: dark ? "#0c0a09" : "#fafaf9",
         color: dark ? "#fafaf9" : "#1c1917",
         borderColor: dark ? "#292524" : "#e7e5e4",
       }}
     >
-      <span style={{ color: dark ? "#f59e0b" : "#b45309" }}>&lt;</span>vm
-      <span style={{ color: dark ? "#f59e0b" : "#b45309" }}>/&gt;</span>
+      vm<span style={{ color: dark ? "#f59e0b" : "#b45309" }}>.</span>
     </div>
   );
 }
