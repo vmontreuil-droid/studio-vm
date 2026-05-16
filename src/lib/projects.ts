@@ -33,6 +33,7 @@ const WITH_SHOT = new Set<string>([
   "jp-montreuil",
   "mari-lines",
   "favesan",
+  "studio-vm",
 ]);
 function shot(slug: string): string | undefined {
   return WITH_SHOT.has(slug) ? `/werk/${slug}.jpg` : undefined;
@@ -421,6 +422,61 @@ const base: ProjectBase[] = [
           "From slow/unreliable WordPress to a fast own stack",
           "Services & blog editable yourself via an own admin",
           "Trilingual (NL/FR/EN) with contact + photo upload",
+        ],
+      },
+    },
+  },
+  {
+    slug: "studio-vm",
+    name: "Studio VM",
+    url: "https://studio-vm.be",
+    stack: ["Next.js 16", "Tailwind v4", "Supabase", "Resend"],
+    accent: "#b45309",
+    year: "2026",
+    content: {
+      nl: {
+        tagline: "Deze site — eigen lead-engine",
+        description:
+          "Mijn eigen site: drietalig, een gratis site-scanner, een multi-page site-builder en een volledige admin (aanvragen, journal, changelog, nieuwsbrief). De tools die ik verkoop, draaien hier zelf.",
+        scope: ["Strategie", "Design", "Development", "SEO", "Admin"],
+        challenge:
+          "Een portfolio dat niet alleen toont wát ik bouw, maar het bewíjst — snel, drietalig, met werkende tools in plaats van screenshots.",
+        solution:
+          "Volledig in Next.js + Supabase: live site-scanner met SSRF-beveiliging, multi-page builder, env-gated admin met scan-bij-aanvraag, en CMS voor journal/changelog/now. Eigen stack, geen plugins, security headers + CSP.",
+        highlights: [
+          "Gratis scanner + offerte zonder e-mailmuur",
+          "Bezoeker bouwt z'n site zelf → komt in mijn admin",
+          "Volledige eigen admin: aanvragen, CMS, nieuwsbrief",
+        ],
+      },
+      fr: {
+        tagline: "Ce site — mon moteur de leads",
+        description:
+          "Mon propre site : trilingue, un scan de site gratuit, un builder multi-pages et un admin complet (demandes, journal, changelog, newsletter). Les outils que je vends tournent ici même.",
+        scope: ["Stratégie", "Design", "Développement", "SEO", "Admin"],
+        challenge:
+          "Un portfolio qui ne montre pas seulement ce que je construis, mais le prouve — rapide, trilingue, avec des outils qui marchent plutôt que des captures.",
+        solution:
+          "Entièrement en Next.js + Supabase : scanner en direct avec protection SSRF, builder multi-pages, admin env-gated avec scan-à-la-demande, et CMS pour journal/changelog/now. Stack propre, pas de plugins, headers de sécurité + CSP.",
+        highlights: [
+          "Scanner + devis gratuits, sans mur e-mail",
+          "Le visiteur construit son site → arrive dans mon admin",
+          "Admin complet : demandes, CMS, newsletter",
+        ],
+      },
+      en: {
+        tagline: "This site — own lead engine",
+        description:
+          "My own site: trilingual, a free site scanner, a multi-page site builder and a full admin (requests, journal, changelog, newsletter). The tools I sell run here themselves.",
+        scope: ["Strategy", "Design", "Development", "SEO", "Admin"],
+        challenge:
+          "A portfolio that doesn't just show what I build, but proves it — fast, trilingual, with working tools instead of screenshots.",
+        solution:
+          "Fully in Next.js + Supabase: live scanner with SSRF protection, multi-page builder, env-gated admin with scan-on-request, and a CMS for journal/changelog/now. Own stack, no plugins, security headers + CSP.",
+        highlights: [
+          "Free scanner + quote, no email wall",
+          "Visitor builds their own site → lands in my admin",
+          "Full own admin: requests, CMS, newsletter",
         ],
       },
     },

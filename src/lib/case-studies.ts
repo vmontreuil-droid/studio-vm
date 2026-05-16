@@ -574,6 +574,83 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
         "The build came together fast; the real delay was prying the domain loose at one.com. Lesson: start the domain transfer on day one, parallel to the build — not as the final step.",
     },
   },
+  "studio-vm": {
+    nl: {
+      context:
+        "Mijn eigen site moest geen brochure zijn maar het bewijs zelf: de scanner, de builder en de admin die ik aan klanten lever, draaien hier live. Een portfolio dat je kan uitproberen weegt zwaarder dan een lijst superlatieven.",
+      metricsTitle: "In cijfers",
+      metrics: [
+        { label: "Talen", before: "—", after: "3 (NL/FR/EN)" },
+        { label: "Lead-tools", before: "extern/screenshots", after: "live op de site" },
+        { label: "Onderhoud", before: "per wijziging", after: "zelf via admin" },
+      ],
+      decisionsTitle: "Belangrijkste keuzes",
+      decisions: [
+        { title: "Dogfooding", rationale: "Wat ik verkoop, draait op m'n eigen site: scanner, multi-page builder, env-gated admin met scan-bij-aanvraag, CMS. Als het hier niet goed genoeg is, verkoop ik het niet." },
+        { title: "Geloofwaardigheid boven hype", rationale: "Geen verzonnen reviews of vage cijfers. Echte, live realisaties in een browser-frame — bewijs in plaats van marketingtaal." },
+        { title: "Env-gated & fail-safe", rationale: "Elke feature valt netjes terug zonder DB/keys. Niets breekt live; migraties voegen enkel toe." },
+      ],
+      timelineTitle: "Tijdlijn",
+      timeline: [
+        { phase: "Start — Fundament", detail: "Next.js + Supabase, drietalig, security headers + CSP, SEO/PWA." },
+        { phase: "Bouw — Tools", detail: "Scanner met SSRF-beveiliging, multi-page builder, volledige admin + CMS." },
+        { phase: "Doorlopend", detail: "Een levende site — zie de publieke /changelog voor wat er bijkomt." },
+      ],
+      reflectionTitle: "Wat ik zou herdoen",
+      reflection:
+        "De verleiding was groot om steeds 'meer' te tonen. Elke keer dat ik geloofwaardigheid boven effect koos — fake metrics weg, echte cases tonen — werd de site sterker. Die discipline hou ik vast vanaf de eerste schets.",
+    },
+    fr: {
+      context:
+        "Mon propre site ne devait pas être une brochure mais la preuve elle-même : le scanner, le builder et l'admin que je livre aux clients tournent ici en direct. Un portfolio qu'on peut essayer pèse plus qu'une liste de superlatifs.",
+      metricsTitle: "En chiffres",
+      metrics: [
+        { label: "Langues", before: "—", after: "3 (NL/FR/EN)" },
+        { label: "Outils de leads", before: "externes/captures", after: "en direct sur le site" },
+        { label: "Entretien", before: "par modification", after: "soi-même via l'admin" },
+      ],
+      decisionsTitle: "Choix clés",
+      decisions: [
+        { title: "Dogfooding", rationale: "Ce que je vends tourne sur mon propre site : scanner, builder multi-pages, admin env-gated avec scan-à-la-demande, CMS. Si ce n'est pas assez bon ici, je ne le vends pas." },
+        { title: "Crédibilité avant le hype", rationale: "Pas de faux avis ni de chiffres vagues. De vraies réalisations en direct dans un browser-frame — la preuve plutôt que le marketing." },
+        { title: "Env-gated & fail-safe", rationale: "Chaque fonction retombe proprement sans DB/clés. Rien ne casse en ligne ; les migrations ne font qu'ajouter." },
+      ],
+      timelineTitle: "Calendrier",
+      timeline: [
+        { phase: "Début — Fondations", detail: "Next.js + Supabase, trilingue, headers de sécurité + CSP, SEO/PWA." },
+        { phase: "Build — Outils", detail: "Scanner avec protection SSRF, builder multi-pages, admin complet + CMS." },
+        { phase: "En continu", detail: "Un site vivant — voir le /changelog public pour les ajouts." },
+      ],
+      reflectionTitle: "Ce que je referais",
+      reflection:
+        "La tentation de toujours montrer « plus » était forte. Chaque fois que j'ai choisi la crédibilité plutôt que l'effet — retirer les faux chiffres, montrer de vrais cas — le site est devenu plus fort. Je garde cette discipline dès le premier croquis.",
+    },
+    en: {
+      context:
+        "My own site shouldn't be a brochure but the proof itself: the scanner, the builder and the admin I deliver to clients run here live. A portfolio you can try beats a list of superlatives.",
+      metricsTitle: "By the numbers",
+      metrics: [
+        { label: "Languages", before: "—", after: "3 (NL/FR/EN)" },
+        { label: "Lead tools", before: "external/screenshots", after: "live on the site" },
+        { label: "Maintenance", before: "per change", after: "self via admin" },
+      ],
+      decisionsTitle: "Key decisions",
+      decisions: [
+        { title: "Dogfooding", rationale: "What I sell runs on my own site: scanner, multi-page builder, env-gated admin with scan-on-request, CMS. If it's not good enough here, I don't sell it." },
+        { title: "Credibility over hype", rationale: "No invented reviews or vague numbers. Real, live work in a browser frame — proof instead of marketing." },
+        { title: "Env-gated & fail-safe", rationale: "Every feature degrades cleanly without DB/keys. Nothing breaks live; migrations only add." },
+      ],
+      timelineTitle: "Timeline",
+      timeline: [
+        { phase: "Start — Foundation", detail: "Next.js + Supabase, trilingual, security headers + CSP, SEO/PWA." },
+        { phase: "Build — Tools", detail: "Scanner with SSRF protection, multi-page builder, full admin + CMS." },
+        { phase: "Ongoing", detail: "A living site — see the public /changelog for what's added." },
+      ],
+      reflectionTitle: "What I'd redo",
+      reflection:
+        "The pull to keep showing 'more' was strong. Every time I chose credibility over effect — drop fake metrics, show real cases — the site got stronger. I keep that discipline from the first sketch.",
+    },
+  },
 };
 
 export function getCaseStudy(
