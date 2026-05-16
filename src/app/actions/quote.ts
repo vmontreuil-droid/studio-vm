@@ -177,8 +177,12 @@ export async function startOffer(
   const discount = Math.round(eenmalig * LOCKIN_DISCOUNT);
   const payable = eenmalig - discount;
 
-  const deposit = Math.round(payable * DEPOSIT_RATE);
-  const rest = payable - deposit;
+  const projectDeposit = Math.round(payable * DEPOSIT_RATE);
+  const domainYear = domain === "register" ? REGISTER_CENTS : 0;
+  // Domein-jaar gaat mee in de aanbetaling (niet voorschieten,
+  // niet korten — provider-passthrough).
+  const deposit = projectDeposit + domainYear;
+  const rest = payable - projectDeposit;
 
   let term = Number(s("term")) || 0;
   if (!TERMS.includes(term)) term = 0;
@@ -195,10 +199,9 @@ export async function startOffer(
       : mailKind === "team"
         ? MAIL_USER_CENTS * users
         : 0;
-  const domainMonthly =
-    domain === "register" ? Math.round(REGISTER_CENTS / 12) : 0;
-  const monthlyTotal =
-    monthlyInstall + subTier.cents + mailMonthly + domainMonthly;
+  // Domein zit in de aanbetaling (jaarlijks bij provider), niet in
+  // de maandfactuur.
+  const monthlyTotal = monthlyInstall + subTier.cents + mailMonthly;
 
   if (!leadsConfigured) return { ok: false, error: "not_configured" };
 
@@ -234,7 +237,8 @@ export async function startOffer(
       monthly_install_cents: monthlyInstall,
       subscription_cents: subTier.cents,
       domain_kind: domain,
-      domain_monthly_cents: domainMonthly,
+      domain_monthly_cents: 0,
+      domain_year_cents: domainYear,
       mail_kind: mailKind,
       mail_users: mailKind === "team" ? users : null,
       mail_monthly_cents: mailMonthly,
@@ -260,14 +264,14 @@ export async function startOffer(
       ? `Extra: ${paidExtras.map((a) => `${a.name} (${cents(a.cents)})`).join(", ")}`
       : "Extra: —",
     `Eenmalig: ${cents(eenmalig)} − vastlegkorting ${cents(discount)} = ${cents(payable)} (excl. btw)`,
-    `Aanbetaling 30%: ${cents(deposit)} — nu te betalen`,
+    `Aanbetaling: ${cents(deposit)} — nu te betalen (30% project ${cents(projectDeposit)}${domainYear ? ` + domein 1 jaar ${cents(domainYear)}` : ""})`,
     term === 0
       ? `Saldo: ${cents(rest)} bij oplevering`
       : `Saldo: ${term}× ${cents(monthlyInstall)}/maand vanaf oplevering`,
     `Onderhoud: ${subTier.name} ${cents(subTier.cents)}/maand`,
     mailMonthly ? `E-mail: ${cents(mailMonthly)}/maand` : "E-mail: —",
-    domainMonthly
-      ? `Domein: ${cents(domainMonthly)}/maand (herrekend)`
+    domainYear
+      ? `Domein: ${domain} — ${cents(domainYear)} (1e jaar in aanbetaling, daarna jaarlijks)`
       : `Domein: ${domain}`,
     `Maandfactuur vanaf oplevering: ${cents(monthlyTotal)}/maand`,
   ];

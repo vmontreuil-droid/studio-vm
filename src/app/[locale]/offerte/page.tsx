@@ -105,6 +105,7 @@ const T: Record<
     restRowSpread: string;
     monthRow: string;
     monthFromNote: string;
+    domainPrepaid: string;
     nonpay: string;
     redirect: string;
     intakeOk: string;
@@ -182,12 +183,13 @@ const T: Record<
     depositBtn: "Leg vast & betaal 30% aanbetaling",
     quoteBtn2: "Of vraag eerst een vrijblijvende offerte aan",
     payNote:
-      "Je betaalt nu 30% om je samenstelling vast te leggen. Vanaf oplevering wordt je maandfactuur opgemaakt: het maanddeel (indien gespreid) + je onderhoudsabonnement + je domein, herrekend per maand.",
-    depRow: "Aanbetaling 30% — nu",
+      "Je betaalt nu 30% van het project + het eerste jaar domein om je samenstelling vast te leggen. Vanaf oplevering wordt je maandfactuur opgemaakt: het maanddeel (indien gespreid) + je onderhoudsabonnement. Het domein verlengt nadien jaarlijks (€ 39/jaar).",
+    depRow: "Aanbetaling — nu",
     restRow: "Saldo bij oplevering",
     restRowSpread: "Saldo gespreid",
     monthRow: "Maandfactuur vanaf oplevering",
-    monthFromNote: "incl. abonnement + domein per maand",
+    monthFromNote: "incl. onderhoudsabonnement",
+    domainPrepaid: "incl. domein € 39 — eerste jaar vooruit",
     nonpay:
       "Bij een onbetaalde factuur wordt de website tijdelijk afgesloten tot de openstaande schuld vereffend is.",
     redirect: "Je wordt doorgestuurd naar de beveiligde betaalpagina…",
@@ -267,12 +269,13 @@ const T: Record<
     depositBtn: "Verrouiller & payer l'acompte de 30 %",
     quoteBtn2: "Ou demandez d'abord un devis sans engagement",
     payNote:
-      "Vous payez 30 % maintenant pour verrouiller votre composition. Dès la livraison, votre facture mensuelle est établie : la part mensuelle (si échelonnée) + votre abonnement de maintenance + votre domaine, recalculé par mois.",
-    depRow: "Acompte 30 % — maintenant",
+      "Vous payez maintenant 30 % du projet + la première année de domaine pour verrouiller votre composition. Dès la livraison : la part mensuelle (si échelonnée) + votre abonnement de maintenance. Le domaine se renouvelle ensuite chaque année (39 €/an).",
+    depRow: "Acompte — maintenant",
     restRow: "Solde à la livraison",
     restRowSpread: "Solde échelonné",
     monthRow: "Facture mensuelle dès la livraison",
-    monthFromNote: "incl. abonnement + domaine par mois",
+    monthFromNote: "incl. abonnement de maintenance",
+    domainPrepaid: "incl. domaine 39 € — 1ère année d'avance",
     nonpay:
       "En cas de facture impayée, le site est temporairement suspendu jusqu'au règlement de la dette.",
     redirect: "Vous êtes redirigé vers la page de paiement sécurisée…",
@@ -352,12 +355,13 @@ const T: Record<
     depositBtn: "Lock in & pay 30% deposit",
     quoteBtn2: "Or request a no-obligation quote first",
     payNote:
-      "You pay 30% now to lock your composition. From delivery, your monthly invoice is issued: the monthly part (if split) + your maintenance subscription + your domain, recalculated per month.",
-    depRow: "Deposit 30% — now",
+      "You pay 30% of the project + the first domain year now to lock your composition. From delivery, your monthly invoice is issued: the monthly part (if split) + your maintenance subscription. The domain then renews yearly (€ 39/year).",
+    depRow: "Deposit — now",
     restRow: "Balance at delivery",
     restRowSpread: "Balance split",
     monthRow: "Monthly invoice from delivery",
-    monthFromNote: "incl. subscription + domain per month",
+    monthFromNote: "incl. maintenance subscription",
+    domainPrepaid: "incl. domain € 39 — first year upfront",
     nonpay:
       "If an invoice is left unpaid, the website is temporarily suspended until the outstanding debt is settled.",
     redirect: "You are being redirected to the secure payment page…",
@@ -423,8 +427,7 @@ export default function OffertePage() {
         : 0;
 
   const monthlyRecurring = (subTier?.cents ?? 0) + mailMonthly;
-  const domainMonthly =
-    domain === "register" ? Math.round(REGISTER_CENTS / 12) : 0;
+  const domainYear = domain === "register" ? REGISTER_CENTS : 0;
 
   const pct = Math.round(LOCKIN_DISCOUNT * 100);
   const discount = lockin ? Math.round(eenmalig * LOCKIN_DISCOUNT) : 0;
@@ -440,10 +443,9 @@ export default function OffertePage() {
   };
   const spreadPossible = payable >= MIN_SPREAD;
   const plan = planFor(term);
+  const depositTotal = deposit + domainYear;
   const monthlyAfter =
-    (term > 0 && plan.eligible ? plan.monthly : 0) +
-    monthlyRecurring +
-    domainMonthly;
+    (term > 0 && plan.eligible ? plan.monthly : 0) + monthlyRecurring;
 
   const domLabel =
     domain === "connect"
@@ -508,9 +510,10 @@ export default function OffertePage() {
           ? `Betaling: ineens`
           : `Betaling: ${eur(plan.deposit)} bij opstart, daarna ${term}× ${eur(plan.monthly)}/maand`,
         `Maandelijks abonnement: ${eur(monthlyRecurring)}/maand${mailMonthly ? ` (incl. e-mail)` : ""}`,
-        domainMonthly
-          ? `Domein: ${eur(domainMonthly)}/maand (herrekend)`
+        domainYear
+          ? `Domein: ${eur(domainYear)} (1e jaar in aanbetaling, daarna jaarlijks)`
           : "",
+        `Aanbetaling nu: ${eur(depositTotal)}${domainYear ? ` (incl. domein ${eur(domainYear)})` : ""}`,
         `Maandfactuur vanaf oplevering: ${eur(monthlyAfter)}/maand`,
       ].filter(Boolean);
 
@@ -937,8 +940,13 @@ export default function OffertePage() {
               <div className="mt-4 border-t pt-4 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted">{c.depRow}</span>
-                  <strong>{eur(deposit)}</strong>
+                  <strong>{eur(depositTotal)}</strong>
                 </div>
+                {domainYear > 0 && (
+                  <p className="mt-0.5 font-mono text-[10px] text-muted">
+                    {c.domainPrepaid}
+                  </p>
+                )}
                 <div className="mt-1.5 flex items-center justify-between">
                   <span className="text-muted">
                     {term > 0 && plan.eligible ? c.restRowSpread : c.restRow}

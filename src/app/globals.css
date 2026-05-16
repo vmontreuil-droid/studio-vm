@@ -538,17 +538,16 @@ body {
     animation: none !important;
   }
 }
-/* Mobiel: minder bewegende lagen → betere Core Web Vitals (we verkopen snelheid) */
+/* Mobiel: enkel de 4 zwaarste lagen verbergen → blobs (a–d) en de
+   hoofdsweep blijven bewegen (compositor-only transform/opacity, dus
+   goedkoop) zodat de hero ook op gsm leeft zonder de snelheid te raken.
+   prefers-reduced-motion blijft alles uitzetten (zie hierboven). */
 @media (max-width: 640px) {
   .hero-sweep-rev,
   .hero-sweep-down,
   .hero-sweep-up,
   .hero-blob-e {
     display: none;
-  }
-  .hero-blob,
-  .hero-sweep {
-    animation: none !important;
   }
   .page-grid {
     opacity: 0.4;
