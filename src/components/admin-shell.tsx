@@ -11,6 +11,7 @@ import {
   History,
   Clock,
   Gauge,
+  Users,
   Mail,
   LogOut,
   Menu,
@@ -24,11 +25,13 @@ export type AdminCounts = {
   nieuw: number;
   monitorsActief: number;
   scans: number;
+  klanten: number;
 };
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: Inbox, badge: "nieuw" },
+  { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
   { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
   {
     href: "/admin/monitors",

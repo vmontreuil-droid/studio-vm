@@ -32,15 +32,21 @@ export default async function AdminLayout({
 
   const db = getSupabaseAdmin();
   const head = { count: "exact" as const, head: true };
-  const [nieuwR, monitorsR, scansR] = await Promise.all([
+  const [nieuwR, monitorsR, scansR, emailsR] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
     db.from("scan_requests").select("id", head),
+    db.from("scan_requests").select("email").limit(2000),
   ]);
+  const emails = (emailsR.data as { email: string }[] | null) ?? [];
+  const klanten = new Set(
+    emails.map((e) => e.email?.toLowerCase().trim()).filter(Boolean),
+  ).size;
   const counts: AdminCounts = {
     nieuw: nieuwR.count ?? 0,
     monitorsActief: monitorsR.count ?? 0,
     scans: scansR.count ?? 0,
+    klanten,
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;
