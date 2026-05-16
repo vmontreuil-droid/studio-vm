@@ -5,7 +5,7 @@ import { ArrowRight, RefreshCw } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import type { ScanResult } from "@/app/actions/scan";
-import { FIND } from "@/lib/scan-findings";
+import { ScanReport } from "@/components/scan-report";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -160,14 +160,6 @@ export default async function ScanPortalPage({
   if (!row || !row.scan || !row.scan.ok) notFound();
   const s = row.scan;
 
-  const meta: { k: string; v: string }[] = [
-    { k: c.meta.stack, v: s.stack },
-    { k: c.meta.hosting, v: s.hosting ?? "—" },
-    { k: c.meta.builtBy, v: s.builtBy ?? "—" },
-    { k: c.meta.speed, v: `${s.responseMs} ms · ${s.htmlKb} KB` },
-    { k: c.meta.cwv, v: s.cwvRisk },
-  ];
-
   return (
     <main>
       <section className="border-b">
@@ -209,84 +201,7 @@ export default async function ScanPortalPage({
 
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-14">
-          <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-            {meta.map((m) => (
-              <div key={m.k}>
-                <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                  {m.k}
-                </dt>
-                <dd className="mt-1 text-sm">{m.v || "—"}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <p className="mt-12 mb-4 font-mono text-xs uppercase tracking-widest text-accent">
-            {c.cats}
-          </p>
-          <div className="space-y-3">
-            {s.categories.map((cat) => (
-              <div key={cat.cat}>
-                <div className="flex justify-between text-sm">
-                  <span>{c.catLabel[cat.cat] ?? cat.cat}</span>
-                  <span className="font-mono text-muted">{cat.score}</span>
-                </div>
-                <div className="mt-1 h-2 overflow-hidden rounded-full bg-card-hover">
-                  <div
-                    className="h-full rounded-full bg-accent"
-                    style={{ width: `${cat.score}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b">
-        <div className="mx-auto max-w-4xl px-6 py-14">
-          <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
-            {c.pitfalls}
-          </p>
-          {s.pitfalls.length > 0 ? (
-            <ul className="space-y-4">
-              {s.pitfalls.map((key, i) => {
-                const txt = FIND[locale][key];
-                return (
-                  <li
-                    key={key}
-                    className="flex gap-4 rounded-2xl border bg-card p-5"
-                  >
-                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold tracking-tight">
-                        {txt ? txt.title : key}
-                      </p>
-                      {txt && (
-                        <div className="mt-2 space-y-2 text-sm leading-relaxed">
-                          <p>
-                            <span className="font-medium text-foreground">
-                              {c.why}:{" "}
-                            </span>
-                            <span className="text-muted">{txt.why}</span>
-                          </p>
-                          <p>
-                            <span className="font-medium text-accent">
-                              {c.fix}:{" "}
-                            </span>
-                            <span className="text-muted">{txt.fix}</span>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-green-600 dark:text-green-400">{c.none}</p>
-          )}
+          <ScanReport scan={s} locale={locale} />
         </div>
       </section>
 

@@ -1,0 +1,1299 @@
+import Link from "next/link";
+import {
+  Check,
+  X,
+  AlertTriangle,
+  ArrowRight,
+  Info,
+  ShieldCheck,
+  Server,
+  Code2,
+  Layers,
+  ListChecks,
+  Gauge as GaugeIcon,
+} from "lucide-react";
+import {
+  type ScanResult,
+  type Severity,
+  type TechType,
+} from "@/app/actions/scan";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import { FIND } from "@/lib/scan-findings";
+
+type ModuleKey = "security" | "speed" | "seo" | "mobile" | "migration" | "rebuild" | "care";
+const PRICE: Record<ModuleKey, number> = {
+  security: 450,
+  speed: 750,
+  seo: 650,
+  mobile: 550,
+  migration: 1200,
+  rebuild: 2500,
+  care: 49,
+};
+
+const UI: Record<
+  Locale,
+  {
+    domain: {
+      title: string;
+      cert: string;
+      issuer: string;
+      expires: string;
+      protocol: string;
+      mail: string;
+      spf: string;
+      dmarc: string;
+      ipv6: string;
+      yes: string;
+      no: string;
+      na: string;
+      days: string;
+    };
+    placeholder: string;
+    button: string;
+    scanning: string;
+    grade: string;
+    again: string;
+    print: string;
+    copy: string;
+    copied: string;
+    factsHost: string;
+    factsBuilt: string;
+    factsIp: string;
+    factsStack: string;
+    factsSpeed: string;
+    factsWeight: string;
+    verdictTitle: string;
+    verdictGood: string;
+    verdictOk: string;
+    verdictBad: string;
+    honestTitle: string;
+    honest: (f: ScanResult & { ok: true }) => string;
+    catTitle: string;
+    cats: Record<string, string>;
+    cwvTitle: string;
+    cwvLabels: Record<"low" | "medium" | "high", string>;
+    cwvNote: string;
+    pitfallTitle: string;
+    pitfallNone: string;
+    findingsTitle: string;
+    sev: Record<Severity, string>;
+    whyLabel: string;
+    fixLabel: string;
+    measured: string;
+    techTitle: string;
+    techTypes: Record<TechType, string>;
+    techNone: string;
+    headersTitle: string;
+    headerNames: Record<string, string>;
+    present: string;
+    absent: string;
+    seoTitle: string;
+    seoTitleLen: string;
+    seoDescLen: string;
+    seoH1: string;
+    seoAlt: string;
+    benchTitle: string;
+    benchYou: string;
+    benchSvm: string;
+    benchNote: string;
+    planTitle: string;
+    planIntro: string;
+    planStep: string;
+    planNothing: string;
+    planTotal: string;
+    planRebuild: string;
+    planRebuildNote: string;
+    planCare: string;
+    planCareNote: string;
+    excl: string;
+    perMonth: string;
+    from: string;
+    ctaButton: string;
+    disclaimer: string;
+    reportFor: string;
+    reportBy: string;
+    modules: Record<ModuleKey, { name: string; desc: string }>;
+    plan: {
+      title: (stack: string) => string;
+      why: (stack: string, score: number) => string;
+      haveTitle: string;
+      feat: Record<string, string>;
+      buildTitle: string;
+      phasesTitle: string;
+      phases: { t: string; d: string }[];
+      mod: Record<string, { name: string; desc: string }>;
+      base: string;
+      addons: string;
+      total: string;
+      approx: string;
+      timeline: string;
+      timelineNote: string;
+      weeks: (a: number, b: number) => string;
+      careTitle: string;
+      careNote: string;
+      optTitle: string;
+      optNote: string;
+      own: string;
+      cta: string;
+    };
+    copyTpl: (h: string, s: number, g: string, st: string) => string;
+  }
+> = {
+  nl: {
+    domain: { title: "Domein, mail & certificaat", cert: "SSL-certificaat", issuer: "Uitgever", expires: "Verloopt over", protocol: "TLS-protocol", mail: "Mailbeveiliging", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "ja", no: "nee", na: "n.v.t.", days: "dagen" },
+    placeholder: "jouwhuidigesite.be",
+    button: "Scan mijn site diepgaand",
+    scanning: "Site wordt doorgelicht…",
+    grade: "Rapportcijfer",
+    again: "Andere site scannen",
+    print: "Download rapport (PDF)",
+    copy: "Kopieer samenvatting",
+    copied: "Gekopieerd",
+    factsHost: "Host",
+    factsBuilt: "Gebouwd door",
+    factsIp: "IP-adres",
+    factsStack: "Platform",
+    factsSpeed: "Reactietijd",
+    factsWeight: "HTML",
+    verdictTitle: "Samenvatting",
+    verdictGood: "Deze site staat er sterk voor. De fundamenten zitten goed; het gaat hier om finetunen, niet om redden.",
+    verdictOk: "Deze site werkt, maar laat punten liggen die zowel bezoekers als Google merken. Te repareren.",
+    verdictBad: "Deze site staat er zwak voor. Elk rood punt hieronder is omzet, vertrouwen of vindbaarheid die wegloopt.",
+    honestTitle: "Het eerlijke oordeel — sta je er goed voor, en betaal je niet te veel?",
+    honest: (f) => {
+      const lines: string[] = [];
+      if (f.flags.modern)
+        lines.push("Dit is een moderne, goed gebouwde site. Geen reden tot paniek, en geen teken dat je betaalt voor lucht.");
+      else if (f.score >= 75)
+        lines.push("Solide werk. Er is ruimte om te optimaliseren, maar je wordt hier niet bestolen.");
+      if (f.flags.diyPlatform)
+        lines.push(`Je site draait op ${f.stack}, een doe-het-zelf-platform. Dat mag — maar je kunt het in principe zélf beheren. Betaal je een bureau elke maand voor 'onderhoud' van een Wix/Squarespace-site, kijk dan kritisch naar wat je daar concreet voor terugkrijgt. Niet per se oplichting, wél de moeite om je factuur te durven bevragen.`);
+      if (f.flags.outdated)
+        lines.push("Er draait verouderde of opgestapelde techniek. Als je hiervoor betaalt zonder dat het ooit geüpdatet wordt, krijg je weinig waar voor je geld — en het is een veiligheidsrisico.");
+      if (f.flags.insecure)
+        lines.push("De beveiliging is onvoldoende. Dit is geen detail: het raakt het vertrouwen van je bezoekers en je AVG/GDPR-verplichtingen.");
+      if (f.flags.slow)
+        lines.push("De site is traag. Trage sites verliezen aantoonbaar bezoekers én Google-positie — dit kost je rechtstreeks geld.");
+      if (f.flags.abandoned)
+        lines.push("De site oogt verwaarloosd: oude techniek én een verouderd jaartal. Bezoekers vragen zich af of je nog actief bent — en je betaalt mogelijk voor 'onderhoud' dat duidelijk niet gebeurt.");
+      if (f.flags.gdprRisk)
+        lines.push("Er worden externe scripts/trackers geladen zonder zichtbare cookie-toestemming. Dat is een concreet GDPR-boeterisico, geen theorie.");
+      if (f.flags.mailSpoofable)
+        lines.push("Je domein heeft geen SPF én geen DMARC: iemand kan vandaag e-mails versturen die lijken te komen van jouw adres — naar je eigen klanten. Dat is een ernstig en vaak over het hoofd gezien lek.");
+      if (f.flags.certExpiring)
+        lines.push("Je SSL-certificaat verloopt binnenkort. Loopt het af, dan krijgen bezoekers een schrikwekkende waarschuwing en is je site de facto onbereikbaar.");
+      if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
+        lines.push("Kortom: wat je nu hebt, levert niet wat een site in 2026 hoort te leveren. Of dat 'oplichting' is hangt af van wat je ervoor betaalt — maar het kan beduidend beter, vaak voor minder dan je nu denkt.");
+      if (lines.length === 0)
+        lines.push("Niets alarmerends gevonden. Wat hieronder oranje of rood staat, is verbeterwerk — geen brand.");
+      return lines.join(" ");
+    },
+    catTitle: "Score per categorie",
+    cats: { speed: "Snelheid", seo: "SEO", mobile: "Mobiel", security: "Veiligheid", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risico-inschatting",
+    cwvLabels: { low: "Laag risico", medium: "Matig risico", high: "Hoog risico" },
+    cwvNote: "Inschatting op basis van reactietijd, gewicht, render-blokkerende CSS, scripts en beeldaanpak. Google gebruikt Core Web Vitals als rankingfactor; hoog risico = traag aanvoelende site die bezoekers en posities kost.",
+    pitfallTitle: "Waar de valkuilen zitten",
+    pitfallNone: "Geen grote valkuilen gevonden — netjes.",
+    findingsTitle: "Alle bevindingen, met uitleg",
+    sev: { critical: "Kritiek", warning: "Aandacht", good: "In orde", info: "Info" },
+    whyLabel: "Waarom dit telt",
+    fixLabel: "Wat eraan te doen",
+    measured: "Gemeten",
+    techTitle: "Gedetecteerde technologie & plugins",
+    techTypes: { cms: "CMS / platform", ecommerce: "Webshop", builder: "Bouwer / page-builder", theme: "Thema", plugin: "Plugins", analytics: "Analytics", marketing: "Marketing", library: "Libraries", font: "Lettertypes", framework: "Framework", cdn: "CDN", host: "Hosting" },
+    techNone: "Geen herkenbare technologie gevonden (of goed afgeschermd).",
+    headersTitle: "Beveiligingsheaders",
+    headerNames: { hsts: "Strict-Transport-Security", csp: "Content-Security-Policy", xfo: "X-Frame-Options", xcto: "X-Content-Type-Options", referrer: "Referrer-Policy", permissions: "Permissions-Policy" },
+    present: "Aanwezig",
+    absent: "Ontbreekt",
+    seoTitle: "SEO-meting in detail",
+    seoTitleLen: "Titellengte (ideaal 30–60)",
+    seoDescLen: "Omschrijving (ideaal 70–165)",
+    seoH1: "Aantal H1-koppen (ideaal 1)",
+    seoAlt: "Afbeeldingen met alt-tekst",
+    benchTitle: "Jouw site vs. een Studio VM-build",
+    benchYou: "Jouw site",
+    benchSvm: "Studio VM-standaard",
+    benchNote: "Een Studio VM-build mikt standaard op 100/100 op exact deze punten. Snelheid, SEO-basis en veiligheid zijn geen extra — ze zijn het vertrekpunt.",
+    planTitle: "Jouw stappenplan + directe prijsindicatie",
+    planIntro: "Op basis van wat hierboven rood en oranje staat, dit is de aangeraden volgorde — met een richtprijs per stap (excl. btw).",
+    planStep: "Stap",
+    planNothing: "Geen dringende ingrepen nodig. Een onderhoudsabonnement houdt dit zo.",
+    planTotal: "Totaal losse ingrepen",
+    planRebuild: "Of: alles in één — herbouw in Next.js",
+    planRebuildNote: "In plaats van losse pleisters: een snelle, veilige site die standaard 100/100 scoort, waarvan jíj de code en data bezit. Vaak voordeliger dan de optelsom hierboven.",
+    planCare: "Daarna: zorgeloos onderhoud",
+    planCareNote: "Hosting, SSL, back-ups, updates en support — zodat het ook over een jaar nog 100/100 scoort.",
+    excl: "excl. btw",
+    perMonth: "per maand",
+    from: "vanaf",
+    ctaButton: "Bespreek dit rapport met mij",
+    disclaimer: "Snelle, eerlijke heuristische check vanaf onze server — geen volledige pentest. De richtprijzen zijn indicatief; een exacte offerte volgt na een kort gesprek.",
+    reportFor: "Website-doorlichting voor",
+    reportBy: "Opgesteld door Studio VM · studio-vm.be · +32 477 99 56 51",
+    modules: {
+      security: { name: "Beveiligingspakket", desc: "HTTPS forceren, security-headers, versie-lek dichten, cookies hardenen." },
+      speed: { name: "Snelheidsoptimalisatie", desc: "Caching, compressie, scripts opschonen, gewicht terugbrengen." },
+      seo: { name: "SEO-fundament", desc: "Titels, meta's, koppenstructuur, Open Graph en gestructureerde data." },
+      mobile: { name: "Mobiel & toegankelijkheid", desc: "Responsive viewport, alt-teksten, leesbaarheid op gsm." },
+      migration: { name: "Migratie van content", desc: "Bestaande inhoud overzetten van WordPress/Wix/Squarespace." },
+      rebuild: { name: "Volledige herbouw (Next.js)", desc: "Een nieuwe, snelle, veilige site die je zelf bezit." },
+      care: { name: "Care-abonnement", desc: "Hosting, SSL, back-ups, updates en support." },
+    },
+    plan: {
+      title: (st) => `Jouw plan: geen geprutsel meer aan ${st} — een schone herbouw die jíj bezit`,
+      why: (st, s) =>
+        `Op ${st} blijven repareren is goed geld naar slecht gooien: elke fix is tijdelijk, plugin-afhankelijk en lost de oorzaak niet op (score nu ${s}/100). Ik herbouw exact wat je site dóét — schoon, snel en veilig in Next.js — en migreer je inhoud mét behoud van je Google-posities. Geen plugins, geen verrassingen, jij bezit de code en data.`,
+      haveTitle: "Wat ik op je site detecteerde",
+      feat: {
+        pages: "pagina's",
+        shop: "Webshop / verkoop online",
+        multilingual: "Meertalig",
+        forms: "Formulieren",
+        booking: "Reservatie / afspraken",
+        blog: "Blog / nieuws",
+        members: "Ledenzone / e-learning",
+        mediaHeavy: "Veel beeld / galerijen",
+        pageBuilder: "Page-builder (Elementor/Divi…)",
+        plugins: "plugins gedetecteerd",
+      },
+      buildTitle: "Wat ik ervoor in de plaats bouw",
+      phasesTitle: "Aanpak in fasen",
+      phases: [
+        { t: "1 · Audit & contentinventaris", d: "Ik lijst elke pagina, functie en URL op zodat niets verloren gaat." },
+        { t: "2 · Design op jouw merk", d: "Een eigen, snel ontwerp — geen template, mobiel-first." },
+        { t: "3 · Bouw in Next.js", d: "De volledige site native herbouwd, zonder plugins." },
+        { t: "4 · Contentmigratie", d: "Teksten, beelden en pagina's overgezet en opgeschoond." },
+        { t: "5 · SEO-behoud", d: "301-redirectplan zodat je Google-posities meeverhuizen i.p.v. kelderen." },
+        { t: "6 · Lancering & overdracht", d: "Live gezet; jij krijgt code, data en een eigen admin." },
+      ],
+      mod: {
+        base_starter: { name: "Basis-site (tot ±8 pagina's)", desc: "Eigen design, mobiel, contact, SEO-fundament — schoon herbouwd." },
+        base_pro: { name: "Volwaardige site (Pro)", desc: "Meerdere secties, schoon gebouwd en klaar om mee te groeien." },
+        base_webshop: { name: "Webshop", desc: "Volledige shop (Mollie/Stripe), voorraad, bestellingen-admin." },
+        multilingual: { name: "Meertalig", desc: "Zelfde inhoud, nette taalswitch + hreflang voor SEO." },
+        forms: { name: "Formulieren + opvolging", desc: "Contact/offerte-formulieren met spamfilter en mailopvolging." },
+        booking: { name: "Reservatiemodule", desc: "Afspraken/boekingen met agenda en bevestigingsmails." },
+        blog: { name: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving voor artikels — zonder WordPress." },
+        members: { name: "Ledenzone", desc: "Afgeschermd gedeelte met logins en rollen." },
+        admin: { name: "Eigen admin / CMS", desc: "Beheer zelf je teksten, beelden en pagina's — geen factuur voor elke wijziging." },
+        content: { name: "Contentmigratie", desc: "Bestaande pagina's overgezet, geschaald op de omvang van je site." },
+        seoPreserve: { name: "SEO-behoud & redirects", desc: "Volledig 301-plan + sitemap zodat je niet terugvalt in Google." },
+        photoshoot: { name: "Fotoshoot / beeldmateriaal", desc: "Geen eigen foto's? Een halve dag professionele shoot van je zaak, producten of team — bewerkt en webklaar." },
+      },
+      base: "Vertrekpunt",
+      addons: "Op maat van wat je hebt",
+      total: "Totale richtprijs",
+      approx: "indicatief, exacte offerte na een kort gesprek",
+      timeline: "Doorlooptijd",
+      timelineNote:
+        "Uitvoering in 1–2 weken. Hangt enkel af van de vrijgave van je domein en of er fotomateriaal is.",
+      weeks: (a, b) => `${a}–${b} weken`,
+      careTitle: "Daarna: zorgeloos onderhoud",
+      careNote: "Hosting, SSL, back-ups, updates en support — zodat het 100/100 blíjft.",
+      optTitle: "Optioneel — als je nog geen beeldmateriaal hebt",
+      optNote: "Goede foto's maken of breken een site. Heb je niets bruikbaars? Dan regel ik een fotoshoot. Enkel als je het nodig hebt — anders gewoon weglaten.",
+      own: "Bij oplevering bezit jij de volledige code én data. Geen lock-in, geen verplichte afname.",
+      cta: "Bespreek dit plan met mij",
+    },
+    copyTpl: (h, s, g, st) =>
+      `Doorlichting van ${h} (via studio-vm.be/scan)\nRapportcijfer: ${g} — ${s}/100\nPlatform: ${st}\n\nEen Studio VM-build mikt op 100/100. Bespreek: studio-vm.be`,
+  },
+  fr: {
+    domain: { title: "Domaine, mail & certificat", cert: "Certificat SSL", issuer: "Émetteur", expires: "Expire dans", protocol: "Protocole TLS", mail: "Sécurité mail", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "oui", no: "non", na: "s.o.", days: "jours" },
+    placeholder: "votresiteactuel.be",
+    button: "Scanner mon site en profondeur",
+    scanning: "Analyse approfondie…",
+    grade: "Note",
+    again: "Scanner un autre site",
+    print: "Télécharger le rapport (PDF)",
+    copy: "Copier le résumé",
+    copied: "Copié",
+    factsHost: "Hébergeur",
+    factsBuilt: "Réalisé par",
+    factsIp: "Adresse IP",
+    factsStack: "Plateforme",
+    factsSpeed: "Temps de réponse",
+    factsWeight: "HTML",
+    verdictTitle: "Résumé",
+    verdictGood: "Ce site est en bonne position. Les fondations sont saines ; il s'agit d'affiner, pas de sauver.",
+    verdictOk: "Ce site fonctionne, mais laisse des points que visiteurs et Google remarquent. Réparable.",
+    verdictBad: "Ce site est en mauvaise position. Chaque point rouge ci-dessous, c'est du chiffre et de la confiance qui s'en vont.",
+    honestTitle: "Le verdict honnête — êtes-vous bien loti, et ne payez-vous pas trop ?",
+    honest: (f) => {
+      const lines: string[] = [];
+      if (f.flags.modern)
+        lines.push("Site moderne et bien construit. Pas de panique, et aucun signe que vous payez du vent.");
+      else if (f.score >= 75)
+        lines.push("Travail solide. Il y a de la marge pour optimiser, mais on ne vous vole pas.");
+      if (f.flags.diyPlatform)
+        lines.push(`Votre site tourne sur ${f.stack}, une plateforme do-it-yourself. C'est permis — mais vous pouvez en principe le gérer vous-même. Si une agence vous facture chaque mois « l'entretien » d'un site Wix/Squarespace, regardez de près ce que vous recevez concrètement.`);
+      if (f.flags.outdated)
+        lines.push("Une technique obsolète ou empilée tourne ici. Payer pour cela sans mises à jour, c'est peu de valeur — et un risque de sécurité.");
+      if (f.flags.insecure)
+        lines.push("La sécurité est insuffisante. Ce n'est pas un détail : cela touche la confiance des visiteurs et vos obligations RGPD.");
+      if (f.flags.slow)
+        lines.push("Le site est lent. Les sites lents perdent visiteurs et position Google — cela vous coûte directement de l'argent.");
+      if (f.flags.abandoned)
+        lines.push("Le site paraît négligé : technique ancienne et année périmée. Les visiteurs doutent que vous soyez encore actif — et vous payez peut-être un « entretien » qui n'a manifestement pas lieu.");
+      if (f.flags.gdprRisk)
+        lines.push("Des scripts/traceurs externes se chargent sans consentement cookie visible. C'est un risque d'amende RGPD concret, pas théorique.");
+      if (f.flags.mailSpoofable)
+        lines.push("Votre domaine n'a ni SPF ni DMARC : quelqu'un peut aujourd'hui envoyer des e-mails qui semblent venir de votre adresse — à vos propres clients. C'est une faille grave et souvent ignorée.");
+      if (f.flags.certExpiring)
+        lines.push("Votre certificat SSL expire bientôt. À l'expiration, les visiteurs voient un avertissement effrayant et votre site devient de facto inaccessible.");
+      if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
+        lines.push("Bref : ce que vous avez ne livre pas ce qu'un site devrait livrer en 2026. « Arnaque » ou non dépend du prix payé — mais c'est nettement améliorable.");
+      if (lines.length === 0)
+        lines.push("Rien d'alarmant. Ce qui est orange ou rouge ci-dessous, c'est de l'amélioration — pas un incendie.");
+      return lines.join(" ");
+    },
+    catTitle: "Score par catégorie",
+    cats: { speed: "Vitesse", seo: "SEO", mobile: "Mobile", security: "Sécurité", platform: "Plateforme" },
+    cwvTitle: "Core Web Vitals — estimation du risque",
+    cwvLabels: { low: "Risque faible", medium: "Risque modéré", high: "Risque élevé" },
+    cwvNote: "Estimation basée sur le temps de réponse, le poids, le CSS bloquant, les scripts et la gestion des images. Google utilise les Core Web Vitals comme facteur de classement ; risque élevé = site ressenti comme lent qui coûte visiteurs et positions.",
+    pitfallTitle: "Où sont les pièges",
+    pitfallNone: "Aucun piège majeur trouvé — propre.",
+    findingsTitle: "Toutes les observations, expliquées",
+    sev: { critical: "Critique", warning: "Attention", good: "OK", info: "Info" },
+    whyLabel: "Pourquoi ça compte",
+    fixLabel: "Quoi faire",
+    measured: "Mesuré",
+    techTitle: "Technologies & plugins détectés",
+    techTypes: { cms: "CMS / plateforme", ecommerce: "Boutique", builder: "Constructeur / page-builder", theme: "Thème", plugin: "Plugins", analytics: "Analytics", marketing: "Marketing", library: "Bibliothèques", font: "Polices", framework: "Framework", cdn: "CDN", host: "Hébergeur" },
+    techNone: "Aucune technologie reconnaissable (ou bien masquée).",
+    headersTitle: "En-têtes de sécurité",
+    headerNames: { hsts: "Strict-Transport-Security", csp: "Content-Security-Policy", xfo: "X-Frame-Options", xcto: "X-Content-Type-Options", referrer: "Referrer-Policy", permissions: "Permissions-Policy" },
+    present: "Présent",
+    absent: "Absent",
+    seoTitle: "Mesure SEO en détail",
+    seoTitleLen: "Longueur du titre (idéal 30–60)",
+    seoDescLen: "Description (idéal 70–165)",
+    seoH1: "Nombre de H1 (idéal 1)",
+    seoAlt: "Images avec texte alt",
+    benchTitle: "Votre site vs. un build Studio VM",
+    benchYou: "Votre site",
+    benchSvm: "Standard Studio VM",
+    benchNote: "Un build Studio VM vise par défaut 100/100 sur exactement ces points. Vitesse, base SEO et sécurité ne sont pas un extra — c'est le point de départ.",
+    planTitle: "Votre plan d'action + estimation immédiate",
+    planIntro: "Sur base de ce qui est rouge et orange ci-dessus, voici l'ordre conseillé — avec un prix indicatif par étape (HTVA).",
+    planStep: "Étape",
+    planNothing: "Aucune intervention urgente. Un abonnement d'entretien maintient cet état.",
+    planTotal: "Total interventions séparées",
+    planRebuild: "Ou : tout en un — reconstruction en Next.js",
+    planRebuildNote: "Au lieu de rustines : un site rapide et sûr qui vise 100/100, dont vous possédez le code et les données. Souvent plus avantageux que la somme ci-dessus.",
+    planCare: "Ensuite : entretien sans souci",
+    planCareNote: "Hébergement, SSL, sauvegardes, mises à jour et support — pour rester à 100/100 dans un an aussi.",
+    excl: "HTVA",
+    perMonth: "par mois",
+    from: "dès",
+    ctaButton: "Discuter de ce rapport avec moi",
+    disclaimer: "Check heuristique rapide et honnête depuis notre serveur — pas un pentest complet. Les prix sont indicatifs ; un devis exact suit un bref échange.",
+    reportFor: "Analyse de site pour",
+    reportBy: "Établi par Studio VM · studio-vm.be · +32 477 99 56 51",
+    modules: {
+      security: { name: "Pack sécurité", desc: "Forcer HTTPS, en-têtes de sécurité, masquer la version, durcir les cookies." },
+      speed: { name: "Optimisation vitesse", desc: "Cache, compression, nettoyage des scripts, réduction du poids." },
+      seo: { name: "Fondation SEO", desc: "Titres, métas, structure de titres, Open Graph et données structurées." },
+      mobile: { name: "Mobile & accessibilité", desc: "Viewport responsive, textes alt, lisibilité sur mobile." },
+      migration: { name: "Migration du contenu", desc: "Transfert du contenu existant depuis WordPress/Wix/Squarespace." },
+      rebuild: { name: "Reconstruction complète (Next.js)", desc: "Un nouveau site rapide et sûr, que vous possédez." },
+      care: { name: "Abonnement Care", desc: "Hébergement, SSL, sauvegardes, mises à jour et support." },
+    },
+    plan: {
+      title: (st) => `Votre plan : fini de bricoler ${st} — une reconstruction propre que vous possédez`,
+      why: (st, s) =>
+        `Continuer à réparer ${st}, c'est jeter de l'argent par les fenêtres : chaque correctif est temporaire, dépend de plugins et ne règle pas la cause (score ${s}/100). Je reconstruis exactement ce que fait votre site — propre, rapide et sûr en Next.js — et je migre votre contenu en conservant vos positions Google. Pas de plugins, pas de surprises, vous possédez le code et les données.`,
+      haveTitle: "Ce que j'ai détecté sur votre site",
+      feat: {
+        pages: "pages",
+        shop: "Boutique / vente en ligne",
+        multilingual: "Multilingue",
+        forms: "Formulaires",
+        booking: "Réservation / rendez-vous",
+        blog: "Blog / actualités",
+        members: "Espace membres / e-learning",
+        mediaHeavy: "Beaucoup d'images / galeries",
+        pageBuilder: "Page-builder (Elementor/Divi…)",
+        plugins: "plugins détectés",
+      },
+      buildTitle: "Ce que je construis à la place",
+      phasesTitle: "Approche par phases",
+      phases: [
+        { t: "1 · Audit & inventaire du contenu", d: "Je liste chaque page, fonction et URL pour ne rien perdre." },
+        { t: "2 · Design à votre marque", d: "Un design propre et rapide — pas de template, mobile-first." },
+        { t: "3 · Construction en Next.js", d: "Tout le site recodé en natif, sans plugins." },
+        { t: "4 · Migration du contenu", d: "Textes, images et pages transférés et nettoyés." },
+        { t: "5 · Préservation SEO", d: "Plan de redirections 301 pour que vos positions Google suivent." },
+        { t: "6 · Mise en ligne & transfert", d: "Mis en ligne ; vous recevez code, données et un admin." },
+      ],
+      mod: {
+        base_starter: { name: "Site de base (jusqu'à ±8 pages)", desc: "Design propre, mobile, contact, fondation SEO — recodé proprement." },
+        base_pro: { name: "Site complet (Pro)", desc: "Plusieurs sections, proprement construit et prêt à évoluer." },
+        base_webshop: { name: "Boutique", desc: "Boutique complète (Mollie/Stripe), stock, admin commandes." },
+        multilingual: { name: "Multilingue", desc: "Même contenu, bascule de langue propre + hreflang SEO." },
+        forms: { name: "Formulaires + suivi", desc: "Formulaires contact/devis avec anti-spam et suivi mail." },
+        booking: { name: "Module de réservation", desc: "Rendez-vous/réservations avec agenda et confirmations." },
+        blog: { name: "CMS blog / actus", desc: "Environnement de rédaction propre — sans WordPress." },
+        members: { name: "Espace membres", desc: "Zone protégée avec logins et rôles." },
+        admin: { name: "Admin / CMS propre", desc: "Gérez vous-même textes, images et pages — pas de facture pour chaque modification." },
+        content: { name: "Migration du contenu", desc: "Pages existantes transférées, dimensionné selon la taille du site." },
+        seoPreserve: { name: "Préservation SEO & redirections", desc: "Plan 301 complet + sitemap pour ne pas chuter dans Google." },
+        photoshoot: { name: "Shooting photo / visuels", desc: "Pas de photos exploitables ? Une demi-journée de shooting pro de votre activité, produits ou équipe — retouché et prêt pour le web." },
+      },
+      base: "Point de départ",
+      addons: "Sur mesure selon l'existant",
+      total: "Estimation totale",
+      approx: "indicatif, devis exact après un bref échange",
+      timeline: "Délai",
+      timelineNote:
+        "Réalisation en 1–2 semaines. Dépend uniquement de la libération du domaine et de la présence de matériel photo.",
+      weeks: (a, b) => `${a}–${b} semaines`,
+      careTitle: "Ensuite : entretien sans souci",
+      careNote: "Hébergement, SSL, sauvegardes, mises à jour et support — pour rester à 100/100.",
+      optTitle: "Optionnel — si vous n'avez pas encore de visuels",
+      optNote: "De bonnes photos font ou défont un site. Rien d'exploitable ? J'organise un shooting. Uniquement si nécessaire — sinon, à omettre.",
+      own: "À la livraison, vous possédez tout le code et les données. Pas de lock-in, pas d'abonnement obligatoire.",
+      cta: "Discuter de ce plan avec moi",
+    },
+    copyTpl: (h, s, g, st) =>
+      `Analyse de ${h} (via studio-vm.be/scan)\nNote : ${g} — ${s}/100\nPlateforme : ${st}\n\nUn build Studio VM vise 100/100. Discutons : studio-vm.be`,
+  },
+  en: {
+    domain: { title: "Domain, mail & certificate", cert: "SSL certificate", issuer: "Issuer", expires: "Expires in", protocol: "TLS protocol", mail: "Mail security", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "yes", no: "no", na: "n/a", days: "days" },
+    placeholder: "yourcurrentsite.com",
+    button: "Deep-scan my site",
+    scanning: "Running a deep scan…",
+    grade: "Grade",
+    again: "Scan another site",
+    print: "Download report (PDF)",
+    copy: "Copy summary",
+    copied: "Copied",
+    factsHost: "Host",
+    factsBuilt: "Built by",
+    factsIp: "IP address",
+    factsStack: "Platform",
+    factsSpeed: "Response time",
+    factsWeight: "HTML",
+    verdictTitle: "Summary",
+    verdictGood: "This site is in strong shape. The fundamentals are sound; this is fine-tuning, not rescue.",
+    verdictOk: "This site works, but leaves points that both visitors and Google notice. Fixable.",
+    verdictBad: "This site is in weak shape. Every red point below is revenue, trust or visibility walking away.",
+    honestTitle: "The honest verdict — are you in good shape, and not overpaying?",
+    honest: (f) => {
+      const lines: string[] = [];
+      if (f.flags.modern)
+        lines.push("This is a modern, well-built site. No reason to panic, and no sign you're paying for thin air.");
+      else if (f.score >= 75)
+        lines.push("Solid work. There's room to optimize, but you're not being robbed here.");
+      if (f.flags.diyPlatform)
+        lines.push(`Your site runs on ${f.stack}, a do-it-yourself platform. That's fine — but you can largely manage it yourself. If an agency bills you monthly to 'maintain' a Wix/Squarespace site, look hard at what you actually get for it.`);
+      if (f.flags.outdated)
+        lines.push("Outdated or stacked tech is running here. Paying for this without it ever being updated is poor value — and a security risk.");
+      if (f.flags.insecure)
+        lines.push("Security is insufficient. Not a detail: it touches visitor trust and your GDPR obligations.");
+      if (f.flags.slow)
+        lines.push("The site is slow. Slow sites measurably lose visitors and Google ranking — this costs you money directly.");
+      if (f.flags.abandoned)
+        lines.push("The site looks neglected: old tech plus a stale year. Visitors wonder if you're still active — and you may be paying for 'maintenance' that clearly isn't happening.");
+      if (f.flags.gdprRisk)
+        lines.push("External scripts/trackers load without a visible cookie consent. That's a concrete GDPR fine risk, not theory.");
+      if (f.flags.mailSpoofable)
+        lines.push("Your domain has no SPF and no DMARC: someone can send emails today that look like they come from your address — to your own customers. That's a serious and often overlooked hole.");
+      if (f.flags.certExpiring)
+        lines.push("Your SSL certificate expires soon. Once it lapses, visitors get a scary warning and your site is effectively unreachable.");
+      if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
+        lines.push("In short: what you have doesn't deliver what a site should in 2026. Whether that's a 'rip-off' depends on what you pay — but it can be markedly better.");
+      if (lines.length === 0)
+        lines.push("Nothing alarming. What's amber or red below is improvement work — not a fire.");
+      return lines.join(" ");
+    },
+    catTitle: "Score per category",
+    cats: { speed: "Speed", seo: "SEO", mobile: "Mobile", security: "Security", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risk estimate",
+    cwvLabels: { low: "Low risk", medium: "Medium risk", high: "High risk" },
+    cwvNote: "Estimate based on response time, weight, render-blocking CSS, scripts and image approach. Google uses Core Web Vitals as a ranking factor; high risk = a slow-feeling site that costs visitors and rankings.",
+    pitfallTitle: "Where the pitfalls are",
+    pitfallNone: "No major pitfalls found — clean.",
+    findingsTitle: "Every finding, explained",
+    sev: { critical: "Critical", warning: "Attention", good: "OK", info: "Info" },
+    whyLabel: "Why this matters",
+    fixLabel: "What to do",
+    measured: "Measured",
+    techTitle: "Detected technology & plugins",
+    techTypes: { cms: "CMS / platform", ecommerce: "E-commerce", builder: "Builder / page-builder", theme: "Theme", plugin: "Plugins", analytics: "Analytics", marketing: "Marketing", library: "Libraries", font: "Fonts", framework: "Framework", cdn: "CDN", host: "Hosting" },
+    techNone: "No recognizable technology found (or well shielded).",
+    headersTitle: "Security headers",
+    headerNames: { hsts: "Strict-Transport-Security", csp: "Content-Security-Policy", xfo: "X-Frame-Options", xcto: "X-Content-Type-Options", referrer: "Referrer-Policy", permissions: "Permissions-Policy" },
+    present: "Present",
+    absent: "Missing",
+    seoTitle: "SEO measurement in detail",
+    seoTitleLen: "Title length (ideal 30–60)",
+    seoDescLen: "Description (ideal 70–165)",
+    seoH1: "H1 count (ideal 1)",
+    seoAlt: "Images with alt text",
+    benchTitle: "Your site vs. a Studio VM build",
+    benchYou: "Your site",
+    benchSvm: "Studio VM standard",
+    benchNote: "A Studio VM build aims for 100/100 on exactly these points by default. Speed, SEO basics and security aren't an extra — they're the starting point.",
+    planTitle: "Your action plan + instant price estimate",
+    planIntro: "Based on what's red and amber above, here's the recommended order — with an indicative price per step (excl. VAT).",
+    planStep: "Step",
+    planNothing: "No urgent interventions needed. A maintenance plan keeps it this way.",
+    planTotal: "Total of individual fixes",
+    planRebuild: "Or: all in one — rebuild in Next.js",
+    planRebuildNote: "Instead of patches: a fast, secure site aiming for 100/100, whose code and data you own. Often better value than the sum above.",
+    planCare: "Then: worry-free maintenance",
+    planCareNote: "Hosting, SSL, backups, updates and support — so it still scores 100/100 a year from now.",
+    excl: "excl. VAT",
+    perMonth: "per month",
+    from: "from",
+    ctaButton: "Discuss this report with me",
+    disclaimer: "Quick, honest heuristic check from our server — not a full pentest. Prices are indicative; an exact quote follows a short chat.",
+    reportFor: "Website analysis for",
+    reportBy: "Prepared by Studio VM · studio-vm.be · +32 477 99 56 51",
+    modules: {
+      security: { name: "Security pack", desc: "Force HTTPS, security headers, close version leaks, harden cookies." },
+      speed: { name: "Speed optimization", desc: "Caching, compression, script cleanup, weight reduction." },
+      seo: { name: "SEO foundation", desc: "Titles, metas, heading structure, Open Graph and structured data." },
+      mobile: { name: "Mobile & accessibility", desc: "Responsive viewport, alt text, readability on phones." },
+      migration: { name: "Content migration", desc: "Move existing content off WordPress/Wix/Squarespace." },
+      rebuild: { name: "Full rebuild (Next.js)", desc: "A new, fast, secure site that you own." },
+      care: { name: "Care plan", desc: "Hosting, SSL, backups, updates and support." },
+    },
+    plan: {
+      title: (st) => `Your plan: no more tinkering in ${st} — a clean rebuild you own`,
+      why: (st, s) =>
+        `Keeping ${st} patched is throwing good money after bad: every fix is temporary, plugin-dependent and doesn't address the cause (score ${s}/100). I rebuild exactly what your site does — clean, fast and secure in Next.js — and migrate your content while preserving your Google rankings. No plugins, no surprises, you own the code and data.`,
+      haveTitle: "What I detected on your site",
+      feat: {
+        pages: "pages",
+        shop: "Webshop / online sales",
+        multilingual: "Multilingual",
+        forms: "Forms",
+        booking: "Booking / appointments",
+        blog: "Blog / news",
+        members: "Member area / e-learning",
+        mediaHeavy: "Image-heavy / galleries",
+        pageBuilder: "Page builder (Elementor/Divi…)",
+        plugins: "plugins detected",
+      },
+      buildTitle: "What I build instead",
+      phasesTitle: "Phased approach",
+      phases: [
+        { t: "1 · Audit & content inventory", d: "I list every page, feature and URL so nothing is lost." },
+        { t: "2 · Design on your brand", d: "A custom, fast design — no template, mobile-first." },
+        { t: "3 · Build in Next.js", d: "The whole site rebuilt natively, without plugins." },
+        { t: "4 · Content migration", d: "Texts, images and pages moved over and cleaned up." },
+        { t: "5 · SEO preservation", d: "A 301 redirect plan so your Google rankings move with you." },
+        { t: "6 · Launch & handover", d: "Taken live; you get the code, data and an admin." },
+      ],
+      mod: {
+        base_starter: { name: "Base site (up to ±8 pages)", desc: "Custom design, mobile, contact, SEO foundation — cleanly rebuilt." },
+        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, cleanly built and ready to scale." },
+        base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
+        multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
+        forms: { name: "Forms + follow-up", desc: "Contact/quote forms with spam filter and mail follow-up." },
+        booking: { name: "Booking module", desc: "Appointments/bookings with calendar and confirmations." },
+        blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
+        members: { name: "Member area", desc: "Gated section with logins and roles." },
+        admin: { name: "Own admin / CMS", desc: "Manage texts, images and pages yourself — no invoice for every change." },
+        content: { name: "Content migration", desc: "Existing pages moved over, scaled to your site's size." },
+        seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
+        photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
+      },
+      base: "Starting point",
+      addons: "Tailored to what you have",
+      total: "Total estimate",
+      approx: "indicative, exact quote after a short chat",
+      timeline: "Timeline",
+      timelineNote:
+        "Built in 1–2 weeks. Only depends on your domain release and whether photo material is available.",
+      weeks: (a, b) => `${a}–${b} weeks`,
+      careTitle: "Then: worry-free maintenance",
+      careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
+      optTitle: "Optional — if you don't have visuals yet",
+      optNote: "Good photos make or break a site. Nothing usable? I arrange a shoot. Only if you need it — otherwise just leave it out.",
+      own: "On delivery you own all the code and data. No lock-in, no mandatory subscription.",
+      cta: "Discuss this plan with me",
+    },
+    copyTpl: (h, s, g, st) =>
+      `Scan of ${h} (via studio-vm.be/scan)\nGrade: ${g} — ${s}/100\nPlatform: ${st}\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
+  },
+};
+
+const fmt = (n: number, locale: Locale) =>
+  new Intl.NumberFormat(locale === "en" ? "en-IE" : locale === "fr" ? "fr-BE" : "nl-BE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n);
+
+function Ring({ score, grade }: { score: number; grade: string }) {
+  const color = score >= 75 ? "#16a34a" : score >= 45 ? "#f59e0b" : "#ef4444";
+  const r = 52;
+  const circ = 2 * Math.PI * r;
+  const off = circ - (score / 100) * circ;
+  return (
+    <svg viewBox="0 0 120 120" className="h-32 w-32 flex-shrink-0">
+      <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="8" className="text-border" />
+      <circle cx="60" cy="60" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={off} transform="rotate(-90 60 60)" />
+      <text x="60" y="52" textAnchor="middle" dominantBaseline="central" className="fill-foreground" style={{ fontSize: 30, fontWeight: 700 }}>
+        {grade}
+      </text>
+      <text x="60" y="76" textAnchor="middle" dominantBaseline="central" className="fill-muted" style={{ fontSize: 13, fontWeight: 600 }}>
+        {score}/100
+      </text>
+    </svg>
+  );
+}
+
+function Bar({ label, value, max, ideal }: { label: string; value: number; max: number; ideal?: [number, number] }) {
+  const pct = Math.min(100, (value / max) * 100);
+  const inIdeal = ideal ? value >= ideal[0] && value <= ideal[1] : true;
+  const col = inIdeal ? "#16a34a" : value === 0 ? "#ef4444" : "#f59e0b";
+  return (
+    <div className="print-avoid-break">
+      <div className="mb-1 flex items-baseline justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="font-mono text-xs text-muted">{value}</span>
+      </div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-border">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: col }} />
+      </div>
+    </div>
+  );
+}
+
+const SEV_ICON: Record<Severity, React.ReactNode> = {
+  good: <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400" strokeWidth={2.5} />,
+  info: <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-sky-500" strokeWidth={2} />,
+  warning: <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" strokeWidth={2} />,
+  critical: <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" strokeWidth={2.5} />,
+};
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <span>
+      {label}: <strong className="text-foreground">{value}</strong>
+    </span>
+  );
+}
+
+
+export function ScanReport({
+  scan,
+  locale,
+}: {
+  scan: ScanResult & { ok: true };
+  locale: Locale;
+}) {
+  const r = scan;
+  const t = UI[locale];
+  const f = FIND[locale];
+    const verdict =
+      r.score >= 75 ? t.verdictGood : r.score >= 45 ? t.verdictOk : t.verdictBad;
+
+    const grouped = r.technologies.reduce<Record<string, string[]>>((acc, x) => {
+      (acc[x.type] ||= []).push(x.version ? `${x.name} ${x.version}` : x.name);
+      return acc;
+    }, {});
+
+    const sevRank: Record<Severity, number> = { critical: 0, warning: 1, info: 2, good: 3 };
+    const findingsSorted = [...r.findings].sort(
+      (a, b) => sevRank[a.severity] - sevRank[b.severity],
+    );
+
+    // Plan: herbouw-eerst, afgeleid uit de gedetecteerde inventaris
+    const inv = r.inventory;
+    const pages = inv.pages;
+    const bucket: "small" | "medium" | "large" | "xl" =
+      pages == null
+        ? "medium"
+        : pages <= 8
+          ? "small"
+          : pages <= 30
+            ? "medium"
+            : pages <= 80
+              ? "large"
+              : "xl";
+    const contentPrice =
+      pages == null
+        ? 100
+        : pages <= 10
+          ? 100
+          : pages <= 30
+            ? 250
+            : pages <= 80
+              ? 450
+              : 700;
+    const baseKey: "base_webshop" | "base_pro" | "base_starter" = inv.shop
+      ? "base_webshop"
+      : inv.members || bucket === "xl" || (inv.multilingual && bucket === "large")
+        ? "base_pro"
+        : bucket === "small" && !inv.booking && !inv.members
+          ? "base_starter"
+          : "base_pro";
+    const basePrice =
+      baseKey === "base_webshop" ? 3900 : baseKey === "base_pro" ? 1900 : 950;
+    const addons: { key: string; price: number }[] = [];
+    if (inv.multilingual) addons.push({ key: "multilingual", price: 75 });
+    if (inv.forms) addons.push({ key: "forms", price: 100 });
+    if (inv.booking) addons.push({ key: "booking", price: 200 });
+    if (inv.blog) addons.push({ key: "blog", price: 125 });
+    if (inv.members) addons.push({ key: "members", price: 175 });
+    // Elke build bevat een eigen admin/CMS — als aparte, duidelijke post.
+    addons.push({ key: "admin", price: 800 });
+    addons.push({ key: "content", price: contentPrice });
+    addons.push({ key: "seoPreserve", price: 95 });
+    const oneOffLow =
+      basePrice + addons.reduce((s, a) => s + a.price, 0);
+    const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;
+    // Uitvoering: 1 à 2 weken. Hangt enkel af van domeinvrijgave en of er
+    // fotomateriaal is — niet van de scope (alles wordt strak herschreven).
+    const weeksRange: [number, number] = [1, 2];
+    const pl = t.plan;
+    const featChips: string[] = [];
+    if (pages != null) featChips.push(`~${pages} ${pl.feat.pages}`);
+    if (inv.shop) featChips.push(pl.feat.shop);
+    if (inv.multilingual) featChips.push(pl.feat.multilingual);
+    if (inv.forms) featChips.push(pl.feat.forms);
+    if (inv.booking) featChips.push(pl.feat.booking);
+    if (inv.blog) featChips.push(pl.feat.blog);
+    if (inv.members) featChips.push(pl.feat.members);
+    if (inv.mediaHeavy) featChips.push(pl.feat.mediaHeavy);
+    if (inv.pageBuilder) featChips.push(pl.feat.pageBuilder);
+
+    const host = r.host;
+
+    return (
+      <div id="scan-report" className="space-y-7">
+        <div className="print-only mb-4 border-b pb-3">
+          <p className="text-lg font-bold">
+            {t.reportFor} {host}
+          </p>
+          <p className="text-xs text-muted">
+            {t.reportBy} ·{" "}
+            {new Date().toLocaleDateString(
+              locale === "en" ? "en-GB" : `${locale}-BE`,
+            )}
+          </p>
+        </div>
+
+        {/* Hero */}
+        <div className="flex flex-col items-center gap-6 rounded-2xl border bg-card p-8 text-center sm:flex-row sm:text-left print-avoid-break">
+          <Ring score={r.score} grade={r.grade} />
+          <div className="flex-1">
+            <p className="font-mono text-xs uppercase tracking-widest text-muted">{host}</p>
+            <p className="mt-2 text-lg leading-relaxed">{verdict}</p>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs text-muted">
+              {r.hosting && <Fact label={t.factsHost} value={r.hosting} />}
+              {r.builtBy && <Fact label={t.factsBuilt} value={r.builtBy} />}
+              <Fact label={t.factsStack} value={r.stack} />
+              {r.ip && <Fact label={t.factsIp} value={r.ip} />}
+              <Fact label={t.factsSpeed} value={`${r.responseMs} ms`} />
+              <Fact label={t.factsWeight} value={`${r.htmlKb} KB`} />
+            </div>
+          </div>
+        </div>
+
+        {/* Eerlijk oordeel */}
+        <div className="rounded-2xl border border-accent/40 bg-accent/5 p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-semibold">
+            <ShieldCheck className="h-5 w-5 text-accent" strokeWidth={2} />
+            {t.honestTitle}
+          </p>
+          <p className="mt-3 leading-relaxed">{t.honest(r)}</p>
+        </div>
+
+        {/* Categorie-scores */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <GaugeIcon className="h-4 w-4" strokeWidth={2} />
+            {t.catTitle}
+          </p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {r.categories.map((c) => {
+              const col = c.score >= 75 ? "#16a34a" : c.score >= 45 ? "#f59e0b" : "#ef4444";
+              return (
+                <div key={c.cat}>
+                  <div className="mb-1.5 flex items-baseline justify-between">
+                    <span className="text-xs font-medium">{t.cats[c.cat]}</span>
+                    <span className="font-mono text-[11px] text-muted">{c.score}</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-border">
+                    <div className="h-full rounded-full" style={{ width: `${c.score}%`, background: col }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Core Web Vitals risico */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <GaugeIcon className="h-4 w-4" strokeWidth={2} />
+            {t.cwvTitle}
+          </p>
+          <div className="mt-5 flex items-center gap-4">
+            <span
+              className="rounded-full px-3 py-1 text-sm font-semibold"
+              style={{
+                background:
+                  r.cwvRisk === "low"
+                    ? "rgba(22,163,74,0.15)"
+                    : r.cwvRisk === "medium"
+                      ? "rgba(245,158,11,0.15)"
+                      : "rgba(239,68,68,0.15)",
+                color:
+                  r.cwvRisk === "low"
+                    ? "#16a34a"
+                    : r.cwvRisk === "medium"
+                      ? "#b45309"
+                      : "#ef4444",
+              }}
+            >
+              {t.cwvLabels[r.cwvRisk]}
+            </span>
+            <div className="flex flex-1 gap-1.5">
+              {(["low", "medium", "high"] as const).map((lvl, i) => {
+                const active =
+                  (r.cwvRisk === "low" && i === 0) ||
+                  (r.cwvRisk === "medium" && i <= 1) ||
+                  r.cwvRisk === "high";
+                const col = i === 0 ? "#16a34a" : i === 1 ? "#f59e0b" : "#ef4444";
+                return (
+                  <div
+                    key={lvl}
+                    className="h-2.5 flex-1 rounded-full"
+                    style={{ background: active ? col : "var(--border)" }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted">{t.cwvNote}</p>
+        </div>
+
+        {/* Valkuilen */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <AlertTriangle className="h-4 w-4" strokeWidth={2} />
+            {t.pitfallTitle}
+          </p>
+          {r.pitfalls.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">{t.pitfallNone}</p>
+          ) : (
+            <ol className="mt-4 space-y-3">
+              {r.pitfalls.map((key, i) => {
+                const fd = r.findings.find((x) => x.key === key);
+                const txt = f[key];
+                if (!fd || !txt) return null;
+                return (
+                  <li key={key} className="flex gap-3">
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold">
+                        {txt.title}{" "}
+                        <span className={fd.severity === "critical" ? "text-red-500" : "text-amber-500"}>
+                          · {t.sev[fd.severity]}
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">{txt.why}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+
+        {/* Alle bevindingen */}
+        <div className="rounded-2xl border bg-card p-6">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <ListChecks className="h-4 w-4" strokeWidth={2} />
+            {t.findingsTitle}
+          </p>
+          <div className="mt-4 divide-y divide-border">
+            {findingsSorted.map((fd) => {
+              const txt = f[fd.key];
+              if (!txt) return null;
+              return (
+                <details key={fd.key} className="group py-3 print-avoid-break">
+                  <summary className="flex cursor-pointer list-none items-start gap-3">
+                    {SEV_ICON[fd.severity]}
+                    <span className="flex-1">
+                      <span className="text-sm font-semibold">{txt.title}</span>
+                      {fd.value && (
+                        <span className="ml-2 font-mono text-[11px] text-muted">
+                          {t.measured}: {fd.value}
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+                      {t.sev[fd.severity]}
+                    </span>
+                  </summary>
+                  <div className="mt-2 space-y-2 pl-7 text-xs leading-relaxed">
+                    <p>
+                      <span className="font-semibold text-foreground">{t.whyLabel}: </span>
+                      <span className="text-muted">{txt.why}</span>
+                    </p>
+                    {fd.severity !== "good" && (
+                      <p>
+                        <span className="font-semibold text-accent">{t.fixLabel}: </span>
+                        <span className="text-muted">{txt.fix}</span>
+                      </p>
+                    )}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Technologie */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <Layers className="h-4 w-4" strokeWidth={2} />
+            {t.techTitle}
+          </p>
+          {r.technologies.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">{t.techNone}</p>
+          ) : (
+            <div className="mt-5 space-y-4">
+              {(Object.keys(grouped) as TechType[]).map((type) => (
+                <div key={type}>
+                  <p className="mb-2 text-xs font-semibold text-muted">{t.techTypes[type]}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {grouped[type].map((n) => (
+                      <span key={n} className="rounded-full border bg-background px-3 py-1 text-xs">
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Security headers + SEO detail */}
+        <div className="grid gap-7 lg:grid-cols-2">
+          <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+              <Server className="h-4 w-4" strokeWidth={2} />
+              {t.headersTitle}
+            </p>
+            <ul className="mt-4 space-y-2">
+              {r.headers.map((hd) => (
+                <li key={hd.key} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="font-mono text-xs">{t.headerNames[hd.key]}</span>
+                  {hd.present ? (
+                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> {t.present}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-red-500">
+                      <X className="h-3.5 w-3.5" strokeWidth={2.5} /> {t.absent}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+              <Code2 className="h-4 w-4" strokeWidth={2} />
+              {t.seoTitle}
+            </p>
+            <div className="mt-5 space-y-4">
+              <Bar label={t.seoTitleLen} value={r.titleLen} max={80} ideal={[30, 65]} />
+              <Bar label={t.seoDescLen} value={r.metaDescLen} max={200} ideal={[70, 165]} />
+              <Bar label={t.seoH1} value={r.h1Count} max={Math.max(3, r.h1Count)} ideal={[1, 1]} />
+              <Bar
+                label={t.seoAlt}
+                value={r.imgCount - r.imgMissingAlt}
+                max={Math.max(1, r.imgCount)}
+                ideal={[Math.max(1, r.imgCount), r.imgCount]}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Domein, mail & certificaat */}
+        {(r.tls || r.dns) && (
+          <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+              <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+              {t.domain.title}
+            </p>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2">
+              {r.tls && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-muted">
+                    {t.domain.cert}
+                  </p>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.issuer}</span>
+                      <strong>{r.tls.issuer || t.domain.na}</strong>
+                    </li>
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.expires}</span>
+                      <strong
+                        className={
+                          r.tls.daysLeft !== null && r.tls.daysLeft < 21
+                            ? "text-red-500"
+                            : ""
+                        }
+                      >
+                        {r.tls.daysLeft !== null
+                          ? `${r.tls.daysLeft} ${t.domain.days}`
+                          : t.domain.na}
+                      </strong>
+                    </li>
+                    <li className="flex justify-between gap-2">
+                      <span className="text-muted">{t.domain.protocol}</span>
+                      <strong>{r.tls.protocol || t.domain.na}</strong>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {r.dns && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-muted">
+                    {t.domain.mail} / DNS
+                  </p>
+                  <ul className="space-y-1.5 text-sm">
+                    {(
+                      [
+                        ["spf", r.dns.spf],
+                        ["dmarc", r.dns.dmarc],
+                        ["ipv6", r.dns.ipv6],
+                      ] as const
+                    ).map(([k, v]) => (
+                      <li key={k} className="flex justify-between gap-2">
+                        <span className="text-muted">{t.domain[k]}</span>
+                        <strong
+                          className={
+                            v
+                              ? "text-green-600 dark:text-green-400"
+                              : k === "ipv6"
+                                ? ""
+                                : "text-red-500"
+                          }
+                        >
+                          {v ? t.domain.yes : t.domain.no}
+                        </strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            {r.brokenLinks.length > 0 && (
+              <div className="mt-5 border-t pt-4">
+                <p className="mb-2 text-xs font-semibold text-red-500">
+                  {f.brokenLinks.title} ({r.brokenLinks.length})
+                </p>
+                <ul className="space-y-1 font-mono text-xs text-muted">
+                  {r.brokenLinks.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Benchmark */}
+        <div className="rounded-2xl border bg-card p-6 print-avoid-break">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">{t.benchTitle}</p>
+          <div className="mt-5 space-y-3">
+            <div>
+              <div className="mb-1 flex items-center justify-between text-sm">
+                <span className="font-medium">{t.benchYou}</span>
+                <span className="font-mono text-xs text-muted">{r.score}/100</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-border">
+                <div className="h-full rounded-full" style={{ width: `${r.score}%`, background: r.score >= 75 ? "#16a34a" : r.score >= 45 ? "#f59e0b" : "#ef4444" }} />
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-sm">
+                <span className="font-semibold text-accent">{t.benchSvm}</span>
+                <span className="font-mono text-xs text-muted">100/100</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-border">
+                <div className="h-full rounded-full" style={{ width: "100%", background: "var(--accent)" }} />
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted">{t.benchNote}</p>
+        </div>
+
+        {/* Stappenplan + prijs */}
+        <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6 print-avoid-break">
+          <p className="text-lg font-semibold">{pl.title(r.stack)}</p>
+          <p className="mt-3 leading-relaxed">{pl.why(r.stack, r.score)}</p>
+
+          <div className="mt-6 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.haveTitle}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {featChips.length === 0 ? (
+                <span className="text-sm text-muted">{r.stack}</span>
+              ) : (
+                featChips.map((c) => (
+                  <span
+                    key={c}
+                    className="rounded-full border bg-background px-3 py-1 text-xs"
+                  >
+                    {c}
+                  </span>
+                ))
+              )}
+              {r.technologies.filter((x) => x.type === "plugin").length > 0 && (
+                <span className="rounded-full border bg-background px-3 py-1 text-xs">
+                  {r.technologies.filter((x) => x.type === "plugin").length}{" "}
+                  {pl.feat.plugins}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.phasesTitle}
+            </p>
+            <ol className="mt-4 space-y-3">
+              {pl.phases.map((ph, i) => (
+                <li key={ph.t} className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">{ph.t}</p>
+                    <p className="mt-0.5 text-xs text-muted">{ph.d}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="mt-5 rounded-xl border bg-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {pl.buildTitle}
+            </p>
+            <ul className="mt-4 space-y-2">
+              <li className="flex items-start justify-between gap-3 border-b pb-2">
+                <div>
+                  <p className="text-sm font-semibold">
+                    {pl.base}: {pl.mod[baseKey].name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {pl.mod[baseKey].desc}
+                  </p>
+                </div>
+                <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                  {fmt(basePrice, locale)}
+                </span>
+              </li>
+              {addons.map((a) => (
+                <li
+                  key={a.key}
+                  className="flex items-start justify-between gap-3 border-b pb-2 last:border-0"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {pl.mod[a.key].name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {pl.mod[a.key].desc}
+                    </p>
+                  </div>
+                  <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                    {fmt(a.price, locale)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t pt-4">
+              <div>
+                <p className="text-sm font-semibold">{pl.total}</p>
+                <p className="font-mono text-[11px] text-muted">
+                  {pl.approx} · {t.excl}
+                </p>
+              </div>
+              <span className="font-mono text-xl font-bold">
+                {fmt(oneOffLow, locale)} – {fmt(oneOffHigh, locale)}
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
+              <span className="font-semibold">{pl.timeline}</span>
+              <span className="font-mono">
+                {pl.weeks(weeksRange[0], weeksRange[1])}
+              </span>
+            </div>
+            <p className="mt-1 text-[11px] text-muted">{pl.timelineNote}</p>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-dashed bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">{pl.optTitle}</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  {pl.mod.photoshoot.name} — {pl.mod.photoshoot.desc}
+                </p>
+              </div>
+              <span className="whitespace-nowrap font-mono text-sm font-semibold">
+                {fmt(450, locale)}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-muted">{pl.optNote}</p>
+          </div>
+
+          <div className="mt-3 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">{pl.careTitle}</p>
+              <span className="whitespace-nowrap font-mono text-sm font-bold">
+                {fmt(PRICE.care, locale)}
+                <span className="text-xs font-normal text-muted">
+                  {" "}
+                  / {t.perMonth}
+                </span>
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">{pl.careNote}</p>
+          </div>
+
+          <p className="mt-4 rounded-xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
+            {pl.own}
+          </p>
+
+          <div className="mt-6">
+            <Link
+              href={localePath(locale, "/offerte")}
+              className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              {pl.cta}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
+        </div>
+
+        <p className="text-center font-mono text-[11px] text-muted">
+          {t.disclaimer}
+        </p>
+      </div>
+    );
+}
