@@ -59,7 +59,52 @@ export default async function AdminKlanten({
       score: sc ? sc.score : null,
     });
   }
+  // Ook klanten die via de configurator binnenkwamen (geen scan) of
+  // een abonnement hebben, horen hier — niet enkel scan-leads.
+  const [{ data: subData }, { data: cfgData }] = await Promise.all([
+    getSupabaseAdmin()
+      .from("subscriptions")
+      .select("client_email, plan, created_at")
+      .order("created_at", { ascending: false })
+      .limit(2000),
+    getSupabaseAdmin()
+      .from("quotes")
+      .select("email, name, company, created_at")
+      .eq("source", "offerte-configurator")
+      .order("created_at", { ascending: false })
+      .limit(2000),
+  ]);
+  for (const s of (subData as
+    | { client_email: string; plan: string; created_at: string }[]
+    | null) ?? []) {
+    const key = s.client_email?.toLowerCase().trim();
+    if (!key || byEmail.has(key)) continue;
+    byEmail.set(key, {
+      email: key,
+      scans: 0,
+      lastAt: s.created_at,
+      host: `Abonnement ${s.plan}`,
+      grade: null,
+      score: null,
+    });
+  }
+  for (const c of (cfgData as
+    | { email: string; name: string; company: string | null; created_at: string }[]
+    | null) ?? []) {
+    const key = c.email?.toLowerCase().trim();
+    if (!key || byEmail.has(key)) continue;
+    byEmail.set(key, {
+      email: key,
+      scans: 0,
+      lastAt: c.created_at,
+      host: c.company || c.name || "Via configurator",
+      grade: null,
+      score: null,
+    });
+  }
+
   let clients = [...byEmail.values()];
+  clients.sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
   if (sp.q) {
     const n = sp.q.toLowerCase();
     clients = clients.filter(
@@ -98,7 +143,7 @@ export default async function AdminKlanten({
 
       <p className="mt-2 text-sm text-muted">
         {clients.length} klant{clients.length === 1 ? "" : "en"} — automatisch
-        aangemaakt uit elke scan met e-mail.
+        uit scans, configurator-aanvragen en abonnementen.
       </p>
 
       <form
@@ -149,7 +194,10 @@ export default async function AdminKlanten({
               </div>
               <p className="mt-1 truncate text-sm text-muted">{c.host}</p>
               <p className="mt-1 font-mono text-[11px] text-muted">
-                {c.scans} scan{c.scans === 1 ? "" : "s"} · laatst{" "}
+                {c.scans > 0
+                  ? `${c.scans} scan${c.scans === 1 ? "" : "s"}`
+                  : "via configurator / abonnement"}{" "}
+                · laatst{" "}
                 {new Date(c.lastAt).toLocaleDateString("nl-BE", {
                   timeZone: "Europe/Brussels",
                 })}

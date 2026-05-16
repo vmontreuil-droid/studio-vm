@@ -11,6 +11,7 @@ import { after } from "next/server";
 import { scanAndStore } from "@/lib/scan-report";
 import { createMolliePayment } from "@/lib/mollie";
 import { checkVies } from "@/lib/vies";
+import { ensurePortalUser } from "@/lib/portal-access";
 import {
   offerCatalog,
   OFFER_INCLUDED,
@@ -315,6 +316,47 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
 <p style="margin-top:18px"><a href="${siteUrl}/admin/aanvragen" style="color:#b45309">Open in admin →</a></p>
 </div>`,
   });
+
+  // Direct in het klantportaal + als klant in de admin: portaaltoegang,
+  // het gekozen abonnement en een offerte met de volledige samenstelling.
+  try {
+    await ensurePortalUser(email);
+
+    const { data: subRow } = await db
+      .from("subscriptions")
+      .select("id")
+      .eq("client_email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const subPayload = {
+      client_email: email,
+      plan: subTier.name,
+      price_cents: subTier.cents,
+      status: "actief",
+      updated_at: new Date().toISOString(),
+    };
+    if (subRow)
+      await db
+        .from("subscriptions")
+        .update(subPayload)
+        .eq("id", (subRow as { id: string }).id);
+    else await db.from("subscriptions").insert(subPayload);
+
+    await db.from("offers").insert({
+      client_email: email,
+      title: `Configurator — ${base.name}`,
+      body: `Samenstelling via de online configurator:\n\n${breakdown.join("\n")}${userMsg ? `\n\nBericht van de klant:\n${userMsg}` : ""}`,
+      amount_cents: payable,
+      status: "open",
+      valid_until: new Date(Date.now() + 14 * 86400000)
+        .toISOString()
+        .slice(0, 10),
+    });
+  } catch {
+    // Niet-kritisch voor de aanvraag zelf — de quote staat sowieso
+    // bewaard en is zichtbaar in /admin/aanvragen.
+  }
 
   if (!mollieConfigured) {
     // Geen Mollie-sleutel: aanvraag staat geregistreerd, Vincent stuurt
