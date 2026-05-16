@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -106,9 +108,10 @@ export async function sendMagicLink(
     if (gen.error || !hashed) {
       return { ok: false, message: t.fail };
     }
-    // Eigen callback met token_hash → server-side verifyOtp (zet de
-    // cookie-sessie betrouwbaar, los van Supabase's eigen redirect).
-    const link = `${origin}/auth/callback?token_hash=${encodeURIComponent(
+    // Tussenpagina met knop: e-mailscanners (Outlook Safe Links) doen
+    // enkel een GET en verbruiken de éénmalige token niet; pas als een
+    // mens op de knop klikt (POST → confirmLogin) wordt ingelogd.
+    const link = `${origin}/auth/confirm?token_hash=${encodeURIComponent(
       hashed,
     )}&type=magiclink&next=${encodeURIComponent(
       `/${locale}/portail/dashboard`,
@@ -141,6 +144,29 @@ export async function sendMagicLink(
   } catch {
     return { ok: false, message: M.nl.fail };
   }
+}
+
+export async function confirmLogin(formData: FormData): Promise<void> {
+  const tokenHash = String(formData.get("token_hash") ?? "");
+  const rawType = String(formData.get("type") ?? "magiclink");
+  const rawNext = String(formData.get("next") ?? "/nl/portail/dashboard");
+  const next = rawNext.startsWith("/") ? rawNext : "/nl/portail/dashboard";
+
+  if (!supabaseConfigured || !tokenHash) {
+    redirect("/nl/portail?fout=link");
+  }
+  let ok = false;
+  try {
+    const sb = await getSupabaseServer();
+    const { error } = await sb.auth.verifyOtp({
+      type: rawType as EmailOtpType,
+      token_hash: tokenHash,
+    });
+    ok = !error;
+  } catch {
+    ok = false;
+  }
+  redirect(ok ? next : "/nl/portail?fout=link");
 }
 
 export async function signOut(): Promise<void> {
