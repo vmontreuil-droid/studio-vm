@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
 import { unsubLink } from "@/lib/newsletter-token";
+import { ensurePortalUser } from "@/lib/portal-access";
 import type { ScanResult } from "@/app/actions/scan";
 
 export type ScanLeadState =
@@ -163,6 +164,9 @@ export async function submitScanLead(input: {
   } catch {
     // Mag de scan nooit doen falen.
   }
+
+  // Invite-only portaal: scan = automatisch toegang.
+  await ensurePortalUser(email);
 
   await sendPortalMail(email, locale, host, input.scan.grade, input.scan.score, portalUrl);
 

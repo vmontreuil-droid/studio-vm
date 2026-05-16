@@ -21,6 +21,7 @@ const M: Record<
     ok: string;
     bad: string;
     fail: string;
+    noaccess: string;
   }
 > = {
   nl: {
@@ -33,6 +34,8 @@ const M: Record<
     ok: "Check je inbox — de login-link is onderweg.",
     bad: "Dat e-mailadres lijkt niet te kloppen.",
     fail: "Versturen mislukte. Probeer 't opnieuw.",
+    noaccess:
+      "Geen toegang met dit adres. Doe eerst een gratis site-scan, of vraag Studio VM om je toe te voegen.",
   },
   fr: {
     subject: "Votre lien de connexion au portail client",
@@ -44,6 +47,8 @@ const M: Record<
     ok: "Vérifiez votre boîte mail — le lien de connexion arrive.",
     bad: "Cette adresse e-mail semble incorrecte.",
     fail: "L'envoi a échoué. Réessayez.",
+    noaccess:
+      "Pas d'accès avec cette adresse. Faites d'abord un scan gratuit, ou demandez à Studio VM de vous ajouter.",
   },
   en: {
     subject: "Your login link for your client portal",
@@ -55,6 +60,8 @@ const M: Record<
     ok: "Check your inbox — the login link is on its way.",
     bad: "That email address doesn't look right.",
     fail: "Sending failed. Please try again.",
+    noaccess:
+      "No access with this address. Do a free site scan first, or ask Studio VM to add you.",
   },
 };
 
@@ -88,25 +95,17 @@ export async function sendMagicLink(
   try {
     const admin = getSupabaseAdmin();
 
-    // Zorg dat de gebruiker bestaat (scan-leads hebben nog geen account).
-    let gen = await admin.auth.admin.generateLink({
+    // Invite-only: we maken hier GÉÉN account aan. Toegang krijg je door
+    // te scannen of doordat Studio VM iets voor je klaarzet. Bestaat de
+    // gebruiker niet, dan faalt generateLink → nette "geen toegang".
+    const gen = await admin.auth.admin.generateLink({
       type: "magiclink",
       email,
       options: { redirectTo },
     });
-    if (gen.error) {
-      await admin.auth.admin
-        .createUser({ email, email_confirm: true })
-        .catch(() => {});
-      gen = await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: { redirectTo },
-      });
-    }
     const hashed = gen.data?.properties?.hashed_token;
     if (gen.error || !hashed) {
-      return { ok: false, message: t.fail };
+      return { ok: false, message: t.noaccess };
     }
     // Tussenpagina met knop: e-mailscanners (Outlook Safe Links) doen
     // enkel een GET en verbruiken de éénmalige token niet; pas als een

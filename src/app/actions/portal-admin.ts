@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
+import { ensurePortalUser } from "@/lib/portal-access";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
@@ -121,6 +122,7 @@ export async function createOffer(formData: FormData): Promise<void> {
     valid_until: validUntil || null,
   });
   if (error) return;
+  await ensurePortalUser(email);
   await notifyClient(email, "offer", [
     `Er staat een nieuwe offerte voor je klaar: <strong>${title}</strong>${
       amount ? ` — € ${(amount / 100).toFixed(2)}` : ""
@@ -166,6 +168,7 @@ export async function addInvoice(formData: FormData): Promise<void> {
     due_at: dueAt || null,
   });
   if (error) return;
+  await ensurePortalUser(email);
   await notifyClient(email, "invoice", [
     `Er staat een nieuwe factuur klaar: <strong>${number}</strong> — € ${(
       amount / 100
@@ -216,6 +219,7 @@ export async function setSubscription(formData: FormData): Promise<void> {
     ? await db.from("subscriptions").update(payload).eq("id", id)
     : await db.from("subscriptions").insert(payload);
   if (error) return;
+  await ensurePortalUser(email);
   await notifyClient(email, "subscription", [
     `Je abonnement is bijgewerkt: <strong>${plan}</strong> — € ${(
       price / 100
@@ -295,6 +299,7 @@ export async function addSite(formData: FormData): Promise<void> {
     last_deploy: new Date().toISOString().slice(0, 10),
   });
   if (error) return;
+  await ensurePortalUser(email);
   await notifyClient(email, "site", [
     `Je website <strong>${name}</strong> staat in je portaal${
       url ? ` — ${url}` : ""
