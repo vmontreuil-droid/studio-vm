@@ -104,3 +104,19 @@ export async function replyTicket(
   revalidatePath("/[locale]/portail/dashboard", "page");
   return;
 }
+
+export async function toggleChecklistItem(
+  id: string,
+  done: boolean,
+): Promise<void> {
+  const email = await authedEmail();
+  if (!email) return;
+  const sb = await getSupabaseServer();
+  await sb
+    .from("checklist_items")
+    .update({ done })
+    .eq("id", id)
+    .eq("client_email", email);
+  revalidatePath("/[locale]/portail/dashboard", "page");
+  return;
+}

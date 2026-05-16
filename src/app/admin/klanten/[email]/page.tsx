@@ -14,6 +14,12 @@ import {
   setTicketStatus,
   addSite,
   setSiteStatus,
+  setProgress,
+  addChecklistItem,
+  deleteChecklistItem,
+  addDocument,
+  deleteDocument,
+  setDomain,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -49,8 +55,17 @@ export default async function AdminKlantDetail({
   const first: Row | undefined = rows[rows.length - 1];
 
   const db = getSupabaseAdmin();
-  const [offersR, invoicesR, subsR, ticketsR, msgsR, sitesR] =
-    await Promise.all([
+  const [
+    offersR,
+    invoicesR,
+    subsR,
+    ticketsR,
+    msgsR,
+    sitesR,
+    progressR,
+    checklistR,
+    documentsR,
+  ] = await Promise.all([
     db
       .from("offers")
       .select("*")
@@ -77,6 +92,21 @@ export default async function AdminKlantDetail({
       .order("created_at", { ascending: true }),
     db
       .from("sites")
+      .select("*")
+      .eq("client_email", email)
+      .order("created_at", { ascending: false }),
+    db
+      .from("project_progress")
+      .select("*")
+      .eq("client_email", email)
+      .maybeSingle(),
+    db
+      .from("checklist_items")
+      .select("*")
+      .eq("client_email", email)
+      .order("created_at", { ascending: true }),
+    db
+      .from("documents")
       .select("*")
       .eq("client_email", email)
       .order("created_at", { ascending: false }),
@@ -115,12 +145,23 @@ export default async function AdminKlantDetail({
     url: string | null;
     status: string;
     last_deploy: string | null;
+    domain: string | null;
+    registrar: string | null;
+    domain_renewal: string | null;
+    hosting: string | null;
+    dns_note: string | null;
   };
   const offers = (offersR.data as Offer[]) ?? [];
   const invoices = (invoicesR.data as Invoice[]) ?? [];
   const subs = (subsR.data as Sub[]) ?? [];
   const tickets = (ticketsR.data as Ticket[]) ?? [];
   const sites = (sitesR.data as SiteRow[]) ?? [];
+  type ProgressRow = { step: string; note: string | null } | null;
+  type CheckRow = { id: string; label: string; done: boolean };
+  type DocRow = { id: string; name: string; url: string; kind: string };
+  const progress = progressR.data as ProgressRow;
+  const checklist = (checklistR.data as CheckRow[]) ?? [];
+  const documents = (documentsR.data as DocRow[]) ?? [];
   const allMsgs = (msgsR.data as Msg[]) ?? [];
   const ticketIds = new Set(tickets.map((tk) => tk.id));
   const msgsByTicket = new Map<string, Msg[]>();
@@ -564,6 +605,185 @@ export default async function AdminKlantDetail({
           </div>
         </form>
       </div>
+
+      {/* PROJECTVOORTGANG */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Projectvoortgang
+      </h2>
+      <form
+        action={setProgress}
+        className="mt-4 rounded-2xl border border-dashed bg-card/50 p-4"
+      >
+        <input type="hidden" name="client_email" value={email} />
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            name="step"
+            defaultValue={progress?.step ?? "briefing"}
+            className={field}
+          >
+            <option value="briefing">briefing</option>
+            <option value="ontwerp">ontwerp</option>
+            <option value="bouw">bouw</option>
+            <option value="online">online</option>
+            <option value="nazorg">nazorg</option>
+          </select>
+          <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Voortgang opslaan
+          </button>
+        </div>
+        <textarea
+          name="note"
+          rows={2}
+          defaultValue={progress?.note ?? ""}
+          placeholder="Notitie voor de klant (optioneel)"
+          className={`mt-2 ${field}`}
+        />
+      </form>
+
+      {/* CHECKLIST */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Onboarding-checklist
+      </h2>
+      <div className="mt-4 space-y-2">
+        {checklist.map((c) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+          >
+            <span className="text-sm">
+              {c.done ? "✓ " : "○ "}
+              {c.label}
+            </span>
+            <form action={deleteChecklistItem.bind(null, c.id)}>
+              <button className="rounded-full border px-3 py-1 text-xs hover:bg-card-hover">
+                Verwijder
+              </button>
+            </form>
+          </div>
+        ))}
+        <form
+          action={addChecklistItem}
+          className="flex flex-col gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:flex-row"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <input
+            name="label"
+            required
+            placeholder="Nieuw checklist-item (bv. Logo aanleveren)"
+            className={field}
+          />
+          <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Toevoegen
+          </button>
+        </form>
+      </div>
+
+      {/* DOCUMENTEN */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Documenten
+      </h2>
+      <div className="mt-4 space-y-2">
+        {documents.map((d) => (
+          <div
+            key={d.id}
+            className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+          >
+            <a
+              href={d.url}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate text-sm text-accent hover:underline"
+            >
+              {d.name}{" "}
+              <span className="font-mono text-[10px] uppercase text-muted">
+                {d.kind}
+              </span>
+            </a>
+            <form action={deleteDocument.bind(null, d.id)}>
+              <button className="rounded-full border px-3 py-1 text-xs hover:bg-card-hover">
+                Verwijder
+              </button>
+            </form>
+          </div>
+        ))}
+        <form
+          action={addDocument}
+          className="grid gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:grid-cols-4"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <input name="name" required placeholder="Naam" className={field} />
+          <input
+            name="url"
+            required
+            placeholder="Link (Drive/PDF)"
+            className={field}
+          />
+          <input
+            name="kind"
+            placeholder="Type (contract…)"
+            className={field}
+          />
+          <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Document toevoegen
+          </button>
+        </form>
+      </div>
+
+      {/* DOMEIN & HOSTING */}
+      {sites.length > 0 && (
+        <>
+          <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+            Domein &amp; hosting
+          </h2>
+          <div className="mt-4 space-y-3">
+            {sites.map((s) => (
+              <form
+                key={s.id}
+                action={setDomain}
+                className="rounded-2xl border border-dashed bg-card/50 p-4"
+              >
+                <input type="hidden" name="site_id" value={s.id} />
+                <p className="mb-2 text-sm font-medium">{s.name}</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input
+                    name="domain"
+                    defaultValue={s.domain ?? ""}
+                    placeholder="Domein (bv. klant.be)"
+                    className={field}
+                  />
+                  <input
+                    name="registrar"
+                    defaultValue={s.registrar ?? ""}
+                    placeholder="Registrar (one.com…)"
+                    className={field}
+                  />
+                  <input
+                    type="date"
+                    name="domain_renewal"
+                    defaultValue={s.domain_renewal ?? ""}
+                    className={field}
+                  />
+                  <input
+                    name="hosting"
+                    defaultValue={s.hosting ?? ""}
+                    placeholder="Hosting (Vercel…)"
+                    className={field}
+                  />
+                </div>
+                <input
+                  name="dns_note"
+                  defaultValue={s.dns_note ?? ""}
+                  placeholder="DNS-notitie (optioneel)"
+                  className={`mt-2 ${field}`}
+                />
+                <button className="mt-2 rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+                  Opslaan
+                </button>
+              </form>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

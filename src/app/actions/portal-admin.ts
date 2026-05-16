@@ -54,6 +54,16 @@ const SUBJECT: Record<string, Record<string, string>> = {
     fr: "Mise à jour de votre site",
     en: "Update on your website",
   },
+  progress: {
+    nl: "Voortgang van je project",
+    fr: "Avancement de votre projet",
+    en: "Your project progress",
+  },
+  document: {
+    nl: "Nieuw document in je portaal",
+    fr: "Nouveau document dans votre portail",
+    en: "New document in your portal",
+  },
 };
 
 const CTA: Record<string, string> = {
@@ -64,7 +74,14 @@ const CTA: Record<string, string> = {
 
 async function notifyClient(
   email: string,
-  kind: "offer" | "invoice" | "subscription" | "ticket" | "site",
+  kind:
+    | "offer"
+    | "invoice"
+    | "subscription"
+    | "ticket"
+    | "site"
+    | "progress"
+    | "document",
   bodyLines: string[],
 ) {
   const locale = await clientLocale(email);
@@ -349,4 +366,111 @@ export async function addClient(formData: FormData): Promise<void> {
   await ensurePortalUser(email);
   revalidatePath("/admin/klanten", "layout");
   redirect(`/admin/klanten/${encodeURIComponent(email)}`);
+}
+
+export async function setProgress(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const step = String(formData.get("step") ?? "briefing");
+  const valid = ["briefing", "ontwerp", "bouw", "online", "nazorg"];
+  const st = valid.includes(step) ? step : "briefing";
+  const note = String(formData.get("note") ?? "").trim().slice(0, 4000);
+  if (!email) return;
+  const { error } = await getSupabaseAdmin()
+    .from("project_progress")
+    .upsert(
+      {
+        client_email: email,
+        step: st,
+        note: note || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "client_email" },
+    );
+  if (error) return;
+  await ensurePortalUser(email);
+  await notifyClient(email, "progress", [
+    `Je project staat nu op: <strong>${st}</strong>.`,
+  ]);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function addChecklistItem(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const label = String(formData.get("label") ?? "").trim().slice(0, 300);
+  if (!email || !label) return;
+  await getSupabaseAdmin()
+    .from("checklist_items")
+    .insert({ client_email: email, label });
+  await ensurePortalUser(email);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function deleteChecklistItem(id: string): Promise<void> {
+  if (!(await guard())) return;
+  await getSupabaseAdmin().from("checklist_items").delete().eq("id", id);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function addDocument(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const name = String(formData.get("name") ?? "").trim().slice(0, 200);
+  const urlRaw = String(formData.get("url") ?? "").trim().slice(0, 600);
+  const kind = String(formData.get("kind") ?? "document")
+    .trim()
+    .slice(0, 40);
+  const url =
+    urlRaw && /^https?:\/\//i.test(urlRaw) ? urlRaw : `https://${urlRaw}`;
+  if (!email || !name || !urlRaw) return;
+  await getSupabaseAdmin()
+    .from("documents")
+    .insert({ client_email: email, name, url, kind: kind || "document" });
+  await ensurePortalUser(email);
+  await notifyClient(email, "document", [
+    `Er staat een nieuw document voor je klaar: <strong>${name}</strong>.`,
+  ]);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  if (!(await guard())) return;
+  await getSupabaseAdmin().from("documents").delete().eq("id", id);
+  revalidatePath("/admin/klanten", "layout");
+  return;
+}
+
+export async function setDomain(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("site_id") ?? "");
+  if (!id) return;
+  const val = (k: string) => {
+    const v = String(formData.get(k) ?? "").trim();
+    return v ? v.slice(0, 200) : null;
+  };
+  const { error } = await getSupabaseAdmin()
+    .from("sites")
+    .update({
+      domain: val("domain"),
+      registrar: val("registrar"),
+      domain_renewal: val("domain_renewal"),
+      hosting: val("hosting"),
+      dns_note: val("dns_note"),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return;
+  revalidatePath("/admin/klanten", "layout");
+  return;
 }

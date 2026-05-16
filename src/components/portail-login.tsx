@@ -9,9 +9,9 @@ import {
   Mail,
   ArrowLeft,
   Gauge,
+  TrendingUp,
   FileText,
-  CreditCard,
-  RefreshCcw,
+  FolderOpen,
   Globe,
   LifeBuoy,
 } from "lucide-react";
@@ -49,11 +49,11 @@ const T: Record<
     panelEyebrow: "Jouw portaal",
     panelTitle: "Alles van jouw project, op één plek.",
     features: [
-      { t: "Je site-analyse", d: "Score, valkuilen en het volledige rapport." },
-      { t: "Offertes", d: "Bekijk en aanvaard met één klik." },
-      { t: "Facturen & betalingen", d: "Overzicht van wat betaald is en openstaat." },
-      { t: "Abonnement", d: "Je lopende formule en status, altijd inzichtelijk." },
-      { t: "Je website", d: "Live status en link, beheerd door Studio VM." },
+      { t: "Site-analyse", d: "Score, valkuilen en het volledige rapport." },
+      { t: "Projectvoortgang", d: "Zie exact waar je project staat." },
+      { t: "Offertes & facturen", d: "Bekijk, aanvaard en betaal op één plek." },
+      { t: "Documenten", d: "Contracten, ontwerpen en bestanden bij elkaar." },
+      { t: "Je website & domein", d: "Live status, hosting en DNS, beheerd door mij." },
       { t: "Support", d: "Open een ticket en volg de opvolging." },
     ],
   },
@@ -71,11 +71,11 @@ const T: Record<
     panelEyebrow: "Votre portail",
     panelTitle: "Tout votre projet, au même endroit.",
     features: [
-      { t: "Votre analyse", d: "Score, pièges et le rapport complet." },
-      { t: "Devis", d: "Consultez et acceptez en un clic." },
-      { t: "Factures & paiements", d: "Vue de ce qui est payé et à payer." },
-      { t: "Abonnement", d: "Votre formule en cours et son statut, toujours visibles." },
-      { t: "Votre site", d: "Statut en direct et lien, géré par Studio VM." },
+      { t: "Analyse de site", d: "Score, pièges et le rapport complet." },
+      { t: "Avancement", d: "Voyez précisément où en est votre projet." },
+      { t: "Devis & factures", d: "Consultez, acceptez et payez au même endroit." },
+      { t: "Documents", d: "Contrats, maquettes et fichiers réunis." },
+      { t: "Site & domaine", d: "Statut, hébergement et DNS, gérés par moi." },
       { t: "Support", d: "Ouvrez un ticket et suivez le suivi." },
     ],
   },
@@ -92,17 +92,17 @@ const T: Record<
     panelEyebrow: "Your portal",
     panelTitle: "Everything about your project, in one place.",
     features: [
-      { t: "Your site analysis", d: "Score, pitfalls and the full report." },
-      { t: "Quotes", d: "Review and accept in one click." },
-      { t: "Invoices & payments", d: "Overview of paid and outstanding." },
-      { t: "Subscription", d: "Your current plan and status, always visible." },
-      { t: "Your website", d: "Live status and link, managed by Studio VM." },
+      { t: "Site analysis", d: "Score, pitfalls and the full report." },
+      { t: "Project progress", d: "See exactly where your project stands." },
+      { t: "Quotes & invoices", d: "Review, accept and pay in one place." },
+      { t: "Documents", d: "Contracts, designs and files together." },
+      { t: "Site & domain", d: "Live status, hosting and DNS, managed by me." },
       { t: "Support", d: "Open a ticket and follow up." },
     ],
   },
 };
 
-const ICONS = [Gauge, FileText, CreditCard, RefreshCcw, Globe, LifeBuoy];
+const ICONS = [Gauge, TrendingUp, FileText, FolderOpen, Globe, LifeBuoy];
 const initial: AuthState = { ok: false, message: "" };
 
 export function PortailLogin({ locale }: { locale: Locale }) {

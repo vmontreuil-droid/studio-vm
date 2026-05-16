@@ -13,6 +13,11 @@ import {
   RefreshCcw,
   LifeBuoy,
   UserRound,
+  TrendingUp,
+  ListChecks,
+  FolderOpen,
+  CalendarClock,
+  Network,
   LogOut,
   Menu,
   X,
@@ -39,7 +44,10 @@ export function PortalShell({
   const base = `/${locale}/portail/dashboard`;
   const items = [
     { href: base, label: t.overview, icon: LayoutDashboard, exact: true },
+    { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
+    { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
     { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
+    { href: `${base}/domein`, label: t.domain, icon: Network },
     { href: `${base}/scans`, label: t.scans, icon: Gauge },
     {
       href: `${base}/offertes`,
@@ -55,12 +63,14 @@ export function PortalShell({
     },
     { href: `${base}/betalingen`, label: t.payments, icon: CreditCard },
     { href: `${base}/abonnement`, label: t.subscription, icon: RefreshCcw },
+    { href: `${base}/documenten`, label: t.documents, icon: FolderOpen },
     {
       href: `${base}/tickets`,
       label: t.tickets,
       icon: LifeBuoy,
       badge: counts.tickets,
     },
+    { href: `${base}/afspraak`, label: t.appointment, icon: CalendarClock },
     { href: `${base}/account`, label: t.account, icon: UserRound },
   ];
 

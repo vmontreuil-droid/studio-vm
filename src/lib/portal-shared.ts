@@ -55,8 +55,39 @@ export type Site = {
   last_deploy: string | null;
   repo_url: string | null;
   notes: string | null;
+  domain: string | null;
+  registrar: string | null;
+  domain_renewal: string | null;
+  hosting: string | null;
+  dns_note: string | null;
   created_at: string;
 };
+export type Progress = {
+  client_email: string;
+  step: string;
+  note: string | null;
+  updated_at: string;
+};
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  done: boolean;
+  sort: number;
+};
+export type DocItem = {
+  id: string;
+  name: string;
+  url: string;
+  kind: string;
+  created_at: string;
+};
+export const PROGRESS_STEPS = [
+  "briefing",
+  "ontwerp",
+  "bouw",
+  "online",
+  "nazorg",
+] as const;
 
 export const eur = (c: number | null | undefined) =>
   c == null ? "—" : `€ ${(c / 100).toFixed(2)}`;
@@ -99,6 +130,11 @@ export const PORTAL_T: Record<
     subscription: string;
     payments: string;
     mywebsite: string;
+    progress: string;
+    checklist: string;
+    documents: string;
+    appointment: string;
+    domain: string;
     tickets: string;
     account: string;
     signout: string;
@@ -114,6 +150,11 @@ export const PORTAL_T: Record<
     subscription: "Abonnement",
     payments: "Betalingen",
     mywebsite: "Mijn website",
+    progress: "Voortgang",
+    checklist: "Checklist",
+    documents: "Documenten",
+    appointment: "Afspraak",
+    domain: "Domein & hosting",
     tickets: "Support",
     account: "Account",
     signout: "Uitloggen",
@@ -128,6 +169,11 @@ export const PORTAL_T: Record<
     subscription: "Abonnement",
     payments: "Paiements",
     mywebsite: "Mon site",
+    progress: "Avancement",
+    checklist: "Checklist",
+    documents: "Documents",
+    appointment: "Rendez-vous",
+    domain: "Domaine & hébergement",
     tickets: "Support",
     account: "Compte",
     signout: "Déconnexion",
@@ -142,6 +188,11 @@ export const PORTAL_T: Record<
     subscription: "Subscription",
     payments: "Payments",
     mywebsite: "My website",
+    progress: "Progress",
+    checklist: "Checklist",
+    documents: "Documents",
+    appointment: "Appointment",
+    domain: "Domain & hosting",
     tickets: "Support",
     account: "Account",
     signout: "Sign out",
