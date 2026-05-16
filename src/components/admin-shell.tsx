@@ -167,6 +167,10 @@ export function AdminShell({
   counts: AdminCounts;
   children: React.ReactNode;
 }) {
+  const path = usePathname();
+  // Klantfiche: full-bleed, tab-rail tegen de sidebar (geen centrering).
+  const wide =
+    path.startsWith("/admin/klanten/") && path !== "/admin/klanten";
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -252,8 +256,18 @@ export function AdminShell({
       </aside>
 
       {/* Main */}
-      <main className="min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:pt-10 md:px-10">
-        <div className="mx-auto max-w-6xl">{children}</div>
+      <main
+        className={
+          wide
+            ? "min-w-0 flex-1 px-4 pb-16 pt-20 sm:px-6 md:pt-8"
+            : "min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:pt-10 md:px-10"
+        }
+      >
+        {wide ? (
+          children
+        ) : (
+          <div className="mx-auto max-w-6xl">{children}</div>
+        )}
       </main>
     </div>
   );
