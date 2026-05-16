@@ -32,13 +32,15 @@ export default async function AdminLayout({
 
   const db = getSupabaseAdmin();
   const head = { count: "exact" as const, head: true };
-  const [nieuwR, monitorsR] = await Promise.all([
+  const [nieuwR, monitorsR, scansR] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
+    db.from("scan_requests").select("id", head),
   ]);
   const counts: AdminCounts = {
     nieuw: nieuwR.count ?? 0,
     monitorsActief: monitorsR.count ?? 0,
+    scans: scansR.count ?? 0,
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;
