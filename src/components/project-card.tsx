@@ -32,7 +32,7 @@ export function ProjectCard({
               sizes="(max-width: 768px) 100vw, 620px"
               className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           </>
         ) : (
           <>
@@ -56,9 +56,6 @@ export function ProjectCard({
             />
           </>
         )}
-        <span className="absolute bottom-5 left-5 right-5 text-2xl font-semibold tracking-tight text-white">
-          {project.name}
-        </span>
       </div>
       <p className="font-mono text-xs uppercase tracking-widest text-muted">
         {project.tagline}
