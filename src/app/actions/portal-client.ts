@@ -50,6 +50,70 @@ export async function decideOffer(
     `<strong>${email}</strong> heeft een offerte <strong>${decision}</strong>.`,
     `Offerte-id: ${id}`,
   ]);
+
+  // Auto-factuur bij akkoord (eenmalig, idempotent via invoiced_at).
+  if (decision === "akkoord") {
+    const db = getSupabaseAdmin();
+    const { data } = await db
+      .from("offers")
+      .select(
+        "id, client_email, offer_no, title, amount_cents, invoiced_at",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    const o = data as
+      | {
+          id: string;
+          client_email: string;
+          offer_no: string | null;
+          title: string;
+          amount_cents: number | null;
+          invoiced_at: string | null;
+        }
+      | null;
+    if (
+      o &&
+      o.client_email === email &&
+      !o.invoiced_at &&
+      (o.amount_cents ?? 0) > 0
+    ) {
+      const year = new Date().getFullYear();
+      const { count } = await db
+        .from("invoices")
+        .select("id", { count: "exact", head: true });
+      const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
+        3,
+        "0",
+      )}`;
+      const dueAt = new Date(Date.now() + 14 * 86400000)
+        .toISOString()
+        .slice(0, 10);
+      const { error: invErr } = await db.from("invoices").insert({
+        client_email: email,
+        number: invNo,
+        description: `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`,
+        amount_cents: o.amount_cents,
+        status: "open",
+        due_at: dueAt,
+        offer_id: o.id,
+      });
+      if (!invErr) {
+        await db
+          .from("offers")
+          .update({ invoiced_at: new Date().toISOString() })
+          .eq("id", o.id);
+        await sendMail(email, {
+          subject: `Je factuur ${invNo} staat klaar`,
+          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">Bedankt voor je akkoord op <strong>${o.title}</strong>.</p><p style="margin:0 0 8px">Factuur <strong>${invNo}</strong> (€ ${(
+            (o.amount_cents ?? 0) / 100
+          ).toFixed(
+            2,
+          )}) staat klaar in je portaal, betaalbaar tegen ${dueAt}.</p></div>`,
+        }).catch(() => {});
+      }
+    }
+  }
+
   revalidatePath("/[locale]/portail/dashboard", "page");
   return;
 }
