@@ -227,14 +227,17 @@ export default async function PricingPage({
           </p>
           <Link
             href={localePath(locale, "/offerte")}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="group/btn mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
           >
             {locale === "fr"
               ? "Composez votre prix exact"
               : locale === "en"
                 ? "Build your exact price"
                 : "Stel je exacte prijs samen"}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            <ArrowRight
+              className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
+              strokeWidth={2.5}
+            />
           </Link>
         </div>
       </section>
@@ -348,10 +351,13 @@ export default async function PricingPage({
           <p className="mt-4 text-muted">{c.ctaIntro}</p>
           <Link
             href={localePath(locale, "/offerte")}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="group/btn mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
           >
             {c.ctaButton}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            <ArrowRight
+              className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
+              strokeWidth={2.5}
+            />
           </Link>
         </div>
       </section>
@@ -461,18 +467,21 @@ function TierCard({
       </ul>
       <Link
         href={localePath(locale, "/offerte")}
-        className={`mt-6 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
+        className={`group/btn mt-6 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 py-3 text-sm font-semibold shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           tier.highlighted
-            ? "bg-foreground text-background hover:opacity-90"
-            : "border hover:bg-card-hover"
+            ? "bg-accent text-white hover:bg-accent/90"
+            : "bg-foreground text-background hover:opacity-90"
         }`}
       >
         {locale === "fr"
-          ? "Composer & verrouiller"
+          ? "Composer"
           : locale === "en"
-            ? "Compose & lock in"
-            : "Stel samen & leg vast"}
-        <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            ? "Compose"
+            : "Samenstellen"}
+        <ArrowRight
+          className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
+          strokeWidth={2.5}
+        />
       </Link>
     </div>
   );
