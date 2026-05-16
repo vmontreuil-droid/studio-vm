@@ -499,20 +499,12 @@ export default function OffertePage() {
   const monthlyAfter =
     (term > 0 && plan.eligible ? plan.monthly : 0) + monthlyRecurring;
 
-  const domLabel =
-    domain === "connect"
-      ? `${c.domConnect} (gratis)`
-      : domain === "register"
-        ? `${c.domRegister} (${eur(REGISTER_CENTS)}${c.perYear})`
-        : `${c.domTransfer} (${eur(TRANSFER_CENTS)} ${c.oneOff})`;
-  const mailLabel =
-    mail === "none"
-      ? c.mailNone
-      : mail === "one"
-        ? `${c.mailOne} (${eur(MAIL_ONE_CENTS)}${c.perMonth})`
-        : `${c.mailTeam} — ${Math.max(1, users)}× (${eur(
-            MAIL_USER_CENTS,
-          )}${c.perMonth})`;
+  const domMailNote =
+    locale === "fr"
+      ? "Domaine & e-mail : à voir ensemble après le projet (hors prix)"
+      : locale === "en"
+        ? "Domain & email: discussed together after the project (not in price)"
+        : "Domein & e-mail: nog samen te bespreken (niet in de prijs)";
   const termLabel =
     term === 0
       ? c.atOnce
@@ -552,8 +544,7 @@ export default function OffertePage() {
               .join(", ")}`
           : "Extra opties: —",
         `Onderhoud (verplicht): ${subTier ? `${subTier.name} — ${eur(subTier.cents)}/maand` : "—"}`,
-        `Domein: ${domLabel}`,
-        `E-mail: ${mailLabel}`,
+        domMailNote,
         "",
         discount > 0
           ? `Eenmalig: ${eur(payable)} (${c.excl}) — directe-vastlegkorting ${pct} % toegepast (was ${eur(eenmalig)}, bespaart ${eur(discount)})`
@@ -561,11 +552,9 @@ export default function OffertePage() {
         term === 0
           ? `Betaling: ineens`
           : `Betaling: ${eur(plan.deposit)} bij opstart, daarna ${term}× ${eur(plan.monthly)}/maand`,
-        `Maandelijks abonnement: ${eur(monthlyRecurring)}/maand${mailMonthly ? ` (incl. e-mail)` : ""}`,
-        domainYear
-          ? `Domein: ${eur(domainYear)} (1e jaar in aanbetaling, daarna jaarlijks)`
-          : "",
-        `Aanbetaling nu: ${eur(depositTotal)}${domainYear ? ` (incl. domein ${eur(domainYear)})` : ""}`,
+        `Maandelijks abonnement: ${eur(monthlyRecurring)}/maand`,
+        `Aanbetaling nu (excl. btw): ${eur(depositTotal)}`,
+        `Nu te betalen incl. 21% btw: ${eur(Math.round(depositTotal * (1 + VAT_RATE)))}`,
         `Maandfactuur vanaf oplevering: ${eur(monthlyAfter)}/maand`,
       ].filter(Boolean);
 
@@ -581,9 +570,8 @@ export default function OffertePage() {
         "modules",
         [
           ...paidExtras.map((a) => a.name),
-          domLabel,
-          mailLabel,
           termLabel,
+          domMailNote,
           ...(discount > 0 ? [`Scope vastgelegd −${pct}%`] : []),
         ].join(", "),
       );
@@ -776,57 +764,70 @@ export default function OffertePage() {
               </div>
             </div>
 
-            {/* Luik 3 — domein & e-mail */}
+            {/* Luik 3 — domein & e-mail (info, niet in de prijs) */}
             <div>
-              <h2 className="mb-5 font-mono text-xs uppercase tracking-widest text-accent">
+              <h2 className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
                 {c.l3}
               </h2>
+              <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5">
+                <p className="text-sm font-semibold">
+                  {locale === "fr"
+                    ? "À voir ensemble après le projet"
+                    : locale === "en"
+                      ? "Discussed together after the project"
+                      : "Achteraf samen te bekijken"}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
+                  {locale === "fr"
+                    ? "Domaine, e-mail et transfert éventuel restent volontairement hors de ce prix. Votre projet démarre sur une adresse Vercel temporaire ; ensuite on regarde tranquillement ce qui est possible et nécessaire — entièrement négociable, même si vous avez déjà payé un domaine ailleurs. Les montants ci-dessous sont indicatifs."
+                    : locale === "en"
+                      ? "Domain, email and any transfer are deliberately kept out of this price. Your project starts on a temporary Vercel address; afterwards we calmly look at what's possible and needed — fully open to discuss, even if you've already paid for a domain elsewhere. The amounts below are indicative."
+                      : "Domein, e-mail en een eventuele verhuis houden we bewust buiten deze prijs. Je project start op een tijdelijk Vercel-adres; daarna bekijken we samen rustig wat kan en moet — volledig bespreekbaar, ook als je je domein al ergens betaald hebt. Onderstaande bedragen zijn richtprijzen ter info."}
+                </p>
+              </div>
 
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              <p className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.domain}
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {(
                   [
-                    ["connect", c.domConnect, c.domConnectD, "gratis"],
+                    [c.domConnect, c.domConnectD, "gratis"],
                     [
-                      "register",
                       c.domRegister,
                       c.domRegisterD,
                       `${eur(REGISTER_CENTS)}${c.perYear}`,
                     ],
                     [
-                      "transfer",
                       c.domTransfer,
                       c.domTransferD,
                       `${eur(TRANSFER_CENTS)} ${c.oneOff}`,
                     ],
-                  ] as [Domain, string, string, string][]
-                ).map(([k, label, d, price]) => {
-                  const on = domain === k;
-                  return (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => setDomain(k)}
-                      className={`rounded-2xl border p-4 text-left transition-colors ${
-                        on
-                          ? "border-accent bg-card-hover"
-                          : "border-border bg-card hover:bg-card-hover"
-                      }`}
-                    >
-                      <span className="font-semibold tracking-tight">
-                        {label}
+                  ] as [string, string, string][]
+                ).map(([label, d, price]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-dashed border-border bg-card/50 p-4"
+                  >
+                    <span className="font-semibold tracking-tight">
+                      {label}
+                    </span>
+                    <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
+                      {d}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-muted">
+                      {price}{" "}
+                      <span className="opacity-70">
+                        ·{" "}
+                        {locale === "fr"
+                          ? "indicatif"
+                          : locale === "en"
+                            ? "indicative"
+                            : "richtprijs"}
                       </span>
-                      <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
-                        {d}
-                      </p>
-                      <p className="mt-1 font-mono text-xs text-accent">
-                        {price}
-                      </p>
-                    </button>
-                  );
-                })}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               <p className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -835,68 +836,46 @@ export default function OffertePage() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {(
                   [
-                    ["none", c.mailNone, c.mailNoneD, "—"],
+                    [c.mailNone, c.mailNoneD, "—"],
                     [
-                      "one",
                       c.mailOne,
                       c.mailOneD,
                       `${eur(MAIL_ONE_CENTS)}${c.perMonth}`,
                     ],
                     [
-                      "team",
                       c.mailTeam,
                       c.mailTeamD,
                       `${eur(MAIL_USER_CENTS)}${c.perMonth}`,
                     ],
-                  ] as [Mail, string, string, string][]
-                ).map(([k, label, d, price]) => {
-                  const on = mail === k;
-                  return (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => setMail(k)}
-                      className={`rounded-2xl border p-4 text-left transition-colors ${
-                        on
-                          ? "border-accent bg-card-hover"
-                          : "border-border bg-card hover:bg-card-hover"
-                      }`}
-                    >
-                      <span className="font-semibold tracking-tight">
-                        {label}
-                      </span>
-                      <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
-                        {d}
-                      </p>
-                      <p className="mt-1 font-mono text-xs text-accent">
-                        {price}
-                      </p>
-                    </button>
-                  );
-                })}
+                  ] as [string, string, string][]
+                ).map(([label, d, price]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-dashed border-border bg-card/50 p-4"
+                  >
+                    <span className="font-semibold tracking-tight">
+                      {label}
+                    </span>
+                    <p className="mt-1 min-h-[2.25rem] text-xs leading-snug text-muted">
+                      {d}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-muted">
+                      {price}
+                      {price !== "—" && (
+                        <span className="opacity-70">
+                          {" "}
+                          ·{" "}
+                          {locale === "fr"
+                            ? "indicatif"
+                            : locale === "en"
+                              ? "indicative"
+                              : "richtprijs"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                ))}
               </div>
-              {mail === "team" && (
-                <div className="mt-3 flex items-center gap-3">
-                  <label className="font-mono text-xs text-muted">
-                    {c.users}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={users}
-                    onChange={(e) =>
-                      setUsers(
-                        Math.min(
-                          50,
-                          Math.max(1, Number(e.target.value) || 1),
-                        ),
-                      )
-                    }
-                    className={`w-24 ${fld}`}
-                  />
-                </div>
-              )}
             </div>
           </div>
 

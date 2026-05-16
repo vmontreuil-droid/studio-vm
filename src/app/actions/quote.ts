@@ -196,32 +196,19 @@ export async function startOffer(
     (a) => extraKeys.has(a.key) && !incNames.includes(a.name),
   );
 
-  const domain = (["connect", "register", "transfer"] as const).includes(
-    s("domain") as "connect" | "register" | "transfer",
-  )
-    ? (s("domain") as "connect" | "register" | "transfer")
-    : "connect";
-  const mailKind = (["none", "one", "team"] as const).includes(
-    s("mail") as "none" | "one" | "team",
-  )
-    ? (s("mail") as "none" | "one" | "team")
-    : "none";
-  const users = Math.min(50, Math.max(1, Number(s("users")) || 1));
-
+  // Domein, e-mail en verhuis zitten BEWUST niet in de prijs — die
+  // bekijkt Vincent achteraf samen met de klant (project start op een
+  // Vercel-adres). Dus nooit mee aanrekenen, wat er ook gepost wordt.
   const eenmalig =
-    base.cents +
-    paidExtras.reduce((t, a) => t + a.cents, 0) +
-    (domain === "transfer" ? TRANSFER_CENTS : 0);
+    base.cents + paidExtras.reduce((t, a) => t + a.cents, 0);
 
   // Direct betalen = scope vastleggen → korting altijd van toepassing.
   const discount = Math.round(eenmalig * LOCKIN_DISCOUNT);
   const payable = eenmalig - discount;
 
   const projectDeposit = Math.round(payable * DEPOSIT_RATE);
-  const domainYear = domain === "register" ? REGISTER_CENTS : 0;
-  // Domein-jaar gaat mee in de aanbetaling (niet voorschieten,
-  // niet korten — provider-passthrough).
-  const deposit = projectDeposit + domainYear;
+  const domainYear = 0;
+  const deposit = projectDeposit;
   const rest = payable - projectDeposit;
 
   let term = Number(s("term")) || 0;
@@ -233,22 +220,15 @@ export async function startOffer(
     else term = 0;
   }
 
-  const mailMonthly =
-    mailKind === "one"
-      ? MAIL_ONE_CENTS
-      : mailKind === "team"
-        ? MAIL_USER_CENTS * users
-        : 0;
-  // Domein zit in de aanbetaling (jaarlijks bij provider), niet in
-  // de maandfactuur.
-  const monthlyTotal = monthlyInstall + subTier.cents + mailMonthly;
+  // E-mail niet in de prijs (achteraf te bespreken).
+  const mailMonthly = 0;
+  const monthlyTotal = monthlyInstall + subTier.cents;
 
   if (!leadsConfigured) return { ok: false, error: "not_configured" };
 
   const modules = [
     ...paidExtras.map((a) => a.name),
-    `Domein: ${domain}`,
-    `E-mail: ${mailKind}${mailKind === "team" ? ` ×${users}` : ""}`,
+    "Domein & e-mail: nog te bespreken (niet in prijs)",
     term === 0 ? "Betaling: ineens (na aanbetaling)" : `Spreiding: ${term}×`,
     "Scope vastgelegd −7%",
   ];
@@ -282,12 +262,12 @@ export async function startOffer(
       term,
       monthly_install_cents: monthlyInstall,
       subscription_cents: subTier.cents,
-      domain_kind: domain,
+      domain_kind: "tbd",
       domain_monthly_cents: 0,
-      domain_year_cents: domainYear,
-      mail_kind: mailKind,
-      mail_users: mailKind === "team" ? users : null,
-      mail_monthly_cents: mailMonthly,
+      domain_year_cents: 0,
+      mail_kind: "tbd",
+      mail_users: null,
+      mail_monthly_cents: 0,
       monthly_total_cents: monthlyTotal,
       lockin: true,
       deposit_status: "open",
@@ -317,16 +297,13 @@ export async function startOffer(
       ? `Extra: ${paidExtras.map((a) => `${a.name} (${cents(a.cents)})`).join(", ")}`
       : "Extra: —",
     `Eenmalig: ${cents(eenmalig)} − vastlegkorting ${cents(discount)} = ${cents(payable)} (excl. btw)`,
-    `Aanbetaling: ${cents(deposit)} excl. btw (30% project ${cents(projectDeposit)}${domainYear ? ` + domein 1 jaar ${cents(domainYear)}` : ""})`,
+    `Aanbetaling 30% project: ${cents(deposit)} excl. btw`,
     `Nu te betalen incl. 21% btw: ${cents(Math.round(deposit * (1 + VAT_RATE)))}`,
     term === 0
       ? `Saldo: ${cents(rest)} bij oplevering`
       : `Saldo: ${term}× ${cents(monthlyInstall)}/maand vanaf oplevering`,
     `Onderhoud: ${subTier.name} ${cents(subTier.cents)}/maand`,
-    mailMonthly ? `E-mail: ${cents(mailMonthly)}/maand` : "E-mail: —",
-    domainYear
-      ? `Domein: ${domain} — ${cents(domainYear)} (1e jaar in aanbetaling, daarna jaarlijks)`
-      : `Domein: ${domain}`,
+    `Domein & e-mail: nog te bespreken — niet in deze prijs (project start op Vercel-adres)`,
     `Maandfactuur vanaf oplevering: ${cents(monthlyTotal)}/maand`,
   ];
 
