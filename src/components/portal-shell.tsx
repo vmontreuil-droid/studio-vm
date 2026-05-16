@@ -16,8 +16,6 @@ import {
   LogOut,
   Menu,
   X,
-  PanelLeft,
-  PanelLeftClose,
   ExternalLink,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
@@ -55,11 +53,7 @@ export function PortalShell({
       icon: Receipt,
       badge: counts.invoices,
     },
-    {
-      href: `${base}/betalingen`,
-      label: t.payments,
-      icon: CreditCard,
-    },
+    { href: `${base}/betalingen`, label: t.payments, icon: CreditCard },
     { href: `${base}/abonnement`, label: t.subscription, icon: RefreshCcw },
     {
       href: `${base}/tickets`,
@@ -71,14 +65,7 @@ export function PortalShell({
   ];
 
   const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const path = usePathname();
-
-  useEffect(() => {
-    try {
-      setCollapsed(localStorage.getItem("svm-portal-collapsed") === "1");
-    } catch {}
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -92,45 +79,18 @@ export function PortalShell({
     };
   }, [open]);
 
-  const toggleCollapse = () =>
-    setCollapsed((c) => {
-      const next = !c;
-      try {
-        localStorage.setItem("svm-portal-collapsed", next ? "1" : "0");
-      } catch {}
-      return next;
-    });
-
   const Inner = (
     <div className="flex h-full flex-col">
-      <div
-        className={`flex items-center gap-2 px-5 py-5 ${
-          collapsed ? "justify-center" : "justify-between"
-        }`}
-      >
-        {!collapsed && (
-          <p className="text-xl font-extrabold lowercase tracking-tighter">
-            vm<span className="text-accent">.</span>
-            <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
-              {t.portal}
-            </span>
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={toggleCollapse}
-          aria-label="Sidebar"
-          className="hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:inline-flex"
-        >
-          {collapsed ? (
-            <PanelLeft className="h-4 w-4" strokeWidth={2} />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" strokeWidth={2} />
-          )}
-        </button>
+      <div className="px-5 py-5">
+        <p className="text-xl font-extrabold lowercase tracking-tighter">
+          vm<span className="text-accent">.</span>
+          <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
+            {t.portal}
+          </span>
+        </p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-3">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3">
         {items.map(({ href, label, icon: Icon, ...rest }) => {
           const exact = "exact" in rest && rest.exact;
           const active = exact ? path === href : path.startsWith(href);
@@ -140,18 +100,15 @@ export function PortalShell({
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              title={collapsed ? label : undefined}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                collapsed ? "justify-center" : ""
-              } ${
                 active
                   ? "bg-card-hover font-medium text-foreground"
                   : "text-muted hover:bg-card-hover hover:text-foreground"
               }`}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-              {!collapsed && <span className="flex-1">{label}</span>}
-              {!collapsed && n > 0 && (
+              <span className="flex-1">{label}</span>
+              {n > 0 && (
                 <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent">
                   {n}
                 </span>
@@ -162,36 +119,25 @@ export function PortalShell({
       </nav>
 
       <div className="mt-auto border-t p-3">
-        {!collapsed && (
-          <p className="mb-1 truncate px-3 py-1 font-mono text-[10px] text-muted">
-            {email}
-          </p>
-        )}
+        <p className="mb-1 truncate px-3 py-1 font-mono text-[10px] text-muted">
+          {email}
+        </p>
         <a
           href={`/${locale}`}
-          className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground ${
-            collapsed ? "justify-center" : ""
-          }`}
+          className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
         >
           <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={2} />
-          {!collapsed && t.website}
+          {t.website}
         </a>
-        <div
-          className={`flex items-center gap-2 ${
-            collapsed ? "flex-col" : ""
-          }`}
-        >
+        <div className="flex items-center gap-2">
           <ThemeToggle />
-          <form action={signOutAction} className={collapsed ? "" : "flex-1"}>
+          <form action={signOutAction} className="flex-1">
             <button
               type="submit"
-              title={collapsed ? t.signout : undefined}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
-                collapsed ? "justify-center" : ""
-              }`}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
             >
               <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-              {!collapsed && t.signout}
+              {t.signout}
             </button>
           </form>
         </div>
@@ -201,6 +147,7 @@ export function PortalShell({
 
   return (
     <div className="flex min-h-dvh">
+      {/* Mobiele topbar */}
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur md:hidden">
         <p className="text-lg font-extrabold lowercase tracking-tighter">
           vm<span className="text-accent">.</span>
@@ -218,6 +165,7 @@ export function PortalShell({
         </button>
       </div>
 
+      {/* Mobiele backdrop */}
       <div
         onClick={() => setOpen(false)}
         aria-hidden
@@ -226,10 +174,9 @@ export function PortalShell({
         }`}
       />
 
+      {/* Sidebar — altijd volledig zichtbaar op desktop */}
       <aside
-        className={`fixed top-0 z-50 h-dvh shrink-0 border-r bg-card transition-[transform,width] duration-200 ease-out md:sticky ${
-          collapsed ? "md:w-[68px]" : "md:w-64"
-        } w-64 ${
+        className={`fixed top-0 z-50 h-dvh w-64 shrink-0 border-r bg-card transition-transform duration-200 ease-out md:sticky ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >

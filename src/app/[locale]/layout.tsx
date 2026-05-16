@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n";
@@ -50,6 +51,19 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const typedLocale: Locale = locale;
+
+  const h = await headers();
+  const path = h.get("x-pathname") ?? "";
+  // Klantportaal = schone app-omgeving: geen marketing-header/-footer.
+  const isPortal = /\/portail(\/|$)/.test(path);
+
+  if (isPortal) {
+    return (
+      <div id="main" className="flex min-h-dvh flex-col">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <>

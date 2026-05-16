@@ -48,6 +48,7 @@ export function middleware(req: NextRequest) {
     const seg = pathname.split("/")[1];
     const headers = new Headers(req.headers);
     if (isValidLocale(seg)) headers.set("x-locale", seg);
+    headers.set("x-pathname", pathname);
     return NextResponse.next({ request: { headers } });
   }
 
