@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check } from "lucide-react";
@@ -210,11 +211,24 @@ export default async function CapabilityDetailPage({
                 >
                   <div
                     aria-hidden
-                    className="mb-4 h-20 rounded-lg"
+                    className="relative mb-4 h-44 overflow-hidden rounded-xl border sm:h-52"
                     style={{
                       background: `linear-gradient(135deg, ${project.accent}, ${project.accent}cc)`,
                     }}
-                  />
+                  >
+                    {project.image && (
+                      <>
+                        <Image
+                          src={project.image}
+                          alt={`${project.name} — voorpagina`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 460px"
+                          className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                      </>
+                    )}
+                  </div>
                   <h3 className="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
                     {project.name}
                     <ArrowUpRight
