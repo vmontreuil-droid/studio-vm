@@ -184,6 +184,17 @@ export default async function AdminKlantDetail({
   const progress = progressR.data as ProgressRow;
   const checklist = (checklistR.data as CheckRow[]) ?? [];
   const documents = (documentsR.data as DocRow[]) ?? [];
+  const tabBadge: Record<string, number> = {
+    scans: rows.length,
+    offertes: offers.filter((o) => o.status === "open").length,
+    facturen: invoices.filter((i) => i.status === "open").length,
+    abonnement: subs.length,
+    checklist: checklist.filter((c) => !c.done).length,
+    documenten: documents.length,
+    website: sites.length,
+    domein: sites.filter((s) => s.domain).length,
+    tickets: tickets.filter((tk) => tk.status !== "gesloten").length,
+  };
   const allMsgs = (msgsR.data as Msg[]) ?? [];
   const ticketIds = new Set(tickets.map((tk) => tk.id));
   const msgsByTicket = new Map<string, Msg[]>();
@@ -260,23 +271,39 @@ export default async function AdminKlantDetail({
         </div>
       </div>
 
-      {/* Tab-navigatie */}
-      <div className="mt-8 flex flex-wrap gap-1 border-b pb-px">
-        {TABS.map((x) => (
-          <Link
-            key={x.k}
-            href={tabHref(x.k)}
-            className={`rounded-t-lg px-3.5 py-2 text-sm transition-colors ${
-              tab === x.k
-                ? "bg-card font-medium text-foreground"
-                : "text-muted hover:bg-card-hover hover:text-foreground"
-            }`}
-          >
-            {x.l}
-          </Link>
-        ))}
-      </div>
+      {/* Tab-layout: verticale rail links + paneel rechts */}
+      <div className="mt-8 flex flex-col gap-6 lg:flex-row">
+        <nav className="flex shrink-0 gap-1 overflow-x-auto pb-2 lg:w-56 lg:flex-col lg:overflow-visible lg:pb-0">
+          {TABS.map((x) => {
+            const n = tabBadge[x.k] ?? 0;
+            return (
+              <Link
+                key={x.k}
+                href={tabHref(x.k)}
+                className={`flex shrink-0 items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 text-sm transition-colors ${
+                  tab === x.k
+                    ? "bg-card-hover font-medium text-foreground"
+                    : "text-muted hover:bg-card-hover hover:text-foreground"
+                }`}
+              >
+                <span>{x.l}</span>
+                {n > 0 && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ${
+                      tab === x.k
+                        ? "bg-accent/15 text-accent"
+                        : "bg-background text-muted"
+                    }`}
+                  >
+                    {n}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
+        <div className="min-w-0 flex-1">
       {tab === "overzicht" && (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[
@@ -918,6 +945,8 @@ export default async function AdminKlantDetail({
       )}
         </>
       )}
+        </div>
+      </div>
     </>
   );
 }

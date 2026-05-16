@@ -253,7 +253,7 @@ export function AdminShell({
 
       {/* Main */}
       <main className="min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:pt-10 md:px-10">
-        <div className="mx-auto max-w-5xl">{children}</div>
+        <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>
   );
