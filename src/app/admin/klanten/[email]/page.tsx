@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Mail, ExternalLink, BarChart3 } from "lucide-react";
+import { ArrowLeft, Mail, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -73,7 +73,6 @@ export default async function AdminKlantDetail({
     .limit(200);
   const rows = (data as Row[]) ?? [];
   // Geen scans = handmatig toegevoegde klant; toon hem gewoon, geen 404.
-  const latest: Row | undefined = rows[0];
   const first: Row | undefined = rows[rows.length - 1];
 
   const db = getSupabaseAdmin();
@@ -281,7 +280,7 @@ export default async function AdminKlantDetail({
             );
           })}
 
-          <div className="mt-3 flex flex-col gap-1 border-t pt-3">
+          <div className="mt-3 border-t pt-3">
             <a
               href={`mailto:${email}`}
               className="flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground"
@@ -289,16 +288,6 @@ export default async function AdminKlantDetail({
               <Mail className="h-4 w-4 shrink-0" strokeWidth={2} />
               Mail klant
             </a>
-            {latest && (
-              <Link
-                href={`/${latest.locale}/portail/${latest.token}`}
-                target="_blank"
-                className="flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground"
-              >
-                <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={2} />
-                Laatste portaal
-              </Link>
-            )}
           </div>
         </nav>
 
@@ -396,14 +385,6 @@ export default async function AdminKlantDetail({
                 >
                   <BarChart3 className="h-3.5 w-3.5" strokeWidth={2} />
                   Analyse
-                </Link>
-                <Link
-                  href={`/${r.locale}/portail/${r.token}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
-                >
-                  Portaal
-                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
                 </Link>
               </div>
             </div>
