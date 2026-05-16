@@ -42,36 +42,82 @@ export function PortalShell({
 }) {
   const t = PORTAL_T[locale];
   const base = `/${locale}/portail/dashboard`;
-  const items = [
-    { href: base, label: t.overview, icon: LayoutDashboard, exact: true },
-    { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
-    { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
-    { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
-    { href: `${base}/domein`, label: t.domain, icon: Network },
-    { href: `${base}/scans`, label: t.scans, icon: Gauge },
+  const G: Record<
+    Locale,
+    { project: string; admin: string; support: string }
+  > = {
+    nl: { project: "Project", admin: "Administratie", support: "Support & account" },
+    fr: { project: "Projet", admin: "Administration", support: "Aide & compte" },
+    en: { project: "Project", admin: "Billing", support: "Support & account" },
+  };
+  const g = G[locale];
+  const groups: {
+    title: string | null;
+    entries: {
+      href: string;
+      label: string;
+      icon: typeof LayoutDashboard;
+      exact?: boolean;
+      badge?: number;
+    }[];
+  }[] = [
     {
-      href: `${base}/offertes`,
-      label: t.offers,
-      icon: FileText,
-      badge: counts.offers,
+      title: null,
+      entries: [
+        { href: base, label: t.overview, icon: LayoutDashboard, exact: true },
+      ],
     },
     {
-      href: `${base}/facturen`,
-      label: t.invoices,
-      icon: Receipt,
-      badge: counts.invoices,
+      title: g.project,
+      entries: [
+        { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
+        { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
+        { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
+        { href: `${base}/domein`, label: t.domain, icon: Network },
+        { href: `${base}/scans`, label: t.scans, icon: Gauge },
+      ],
     },
-    { href: `${base}/betalingen`, label: t.payments, icon: CreditCard },
-    { href: `${base}/abonnement`, label: t.subscription, icon: RefreshCcw },
-    { href: `${base}/documenten`, label: t.documents, icon: FolderOpen },
     {
-      href: `${base}/tickets`,
-      label: t.tickets,
-      icon: LifeBuoy,
-      badge: counts.tickets,
+      title: g.admin,
+      entries: [
+        {
+          href: `${base}/offertes`,
+          label: t.offers,
+          icon: FileText,
+          badge: counts.offers,
+        },
+        {
+          href: `${base}/facturen`,
+          label: t.invoices,
+          icon: Receipt,
+          badge: counts.invoices,
+        },
+        { href: `${base}/betalingen`, label: t.payments, icon: CreditCard },
+        {
+          href: `${base}/abonnement`,
+          label: t.subscription,
+          icon: RefreshCcw,
+        },
+        { href: `${base}/documenten`, label: t.documents, icon: FolderOpen },
+      ],
     },
-    { href: `${base}/afspraak`, label: t.appointment, icon: CalendarClock },
-    { href: `${base}/account`, label: t.account, icon: UserRound },
+    {
+      title: g.support,
+      entries: [
+        {
+          href: `${base}/tickets`,
+          label: t.tickets,
+          icon: LifeBuoy,
+          badge: counts.tickets,
+        },
+        {
+          href: `${base}/afspraak`,
+          label: t.appointment,
+          icon: CalendarClock,
+        },
+        { href: `${base}/account`, label: t.account, icon: UserRound },
+      ],
+    },
   ];
 
   const [open, setOpen] = useState(false);
@@ -100,32 +146,47 @@ export function PortalShell({
         </p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3">
-        {items.map(({ href, label, icon: Icon, ...rest }) => {
-          const exact = "exact" in rest && rest.exact;
-          const active = exact ? path === href : path.startsWith(href);
-          const n = "badge" in rest ? (rest.badge ?? 0) : 0;
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                active
-                  ? "bg-card-hover font-medium text-foreground"
-                  : "text-muted hover:bg-card-hover hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-              <span className="flex-1">{label}</span>
-              {n > 0 && (
-                <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent">
-                  {n}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
+        {groups.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? "mt-4" : ""}>
+            {group.title && (
+              <p className="px-3 pb-1.5 pt-1 font-mono text-[10px] uppercase tracking-widest text-muted/70">
+                {group.title}
+              </p>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {group.entries.map(({ href, label, icon: Icon, ...rest }) => {
+                const active = rest.exact
+                  ? path === href
+                  : path.startsWith(href);
+                const n = rest.badge ?? 0;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      active
+                        ? "bg-card-hover font-medium text-foreground"
+                        : "text-muted hover:bg-card-hover hover:text-foreground"
+                    }`}
+                  >
+                    <Icon
+                      className="h-[18px] w-[18px] shrink-0"
+                      strokeWidth={2}
+                    />
+                    <span className="flex-1">{label}</span>
+                    {n > 0 && (
+                      <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent">
+                        {n}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="mt-auto border-t p-3">
