@@ -52,6 +52,7 @@ const data: Record<Locale, Bundle> = {
       { name: "Structured data + analytics", price: "€ 350", desc: "Schema.org-data en privacyvriendelijke analytics." },
       { name: "Newsletter signup", price: "€ 135", desc: "Inschrijfveld gekoppeld aan je mailinglijst." },
       { name: "Extra ronde aanpassingen", price: "€ 200", desc: "Bijkomende revisieronde na oplevering." },
+      { name: "Integratie Mollie / Stripe", price: "€ 275", desc: "Online betalen met Mollie of Stripe, volledig ingericht." },
     ],
   },
   fr: {
@@ -85,6 +86,7 @@ const data: Record<Locale, Bundle> = {
       { name: "Données structurées + analytics", price: "€ 350", desc: "Données Schema.org et analytics respectueux de la vie privée." },
       { name: "Inscription newsletter", price: "€ 135", desc: "Champ d'inscription lié à votre liste de diffusion." },
       { name: "Tour de modifications supplémentaire", price: "€ 200", desc: "Cycle de révision additionnel après livraison." },
+      { name: "Intégration Mollie / Stripe", price: "€ 275", desc: "Paiement en ligne avec Mollie ou Stripe, entièrement configuré." },
     ],
   },
   en: {
@@ -118,6 +120,7 @@ const data: Record<Locale, Bundle> = {
       { name: "Structured data + analytics", price: "€ 350", desc: "Schema.org data and privacy-friendly analytics." },
       { name: "Newsletter signup", price: "€ 135", desc: "Signup field connected to your mailing list." },
       { name: "Extra revision round", price: "€ 200", desc: "Additional revision cycle after delivery." },
+      { name: "Mollie / Stripe integration", price: "€ 275", desc: "Online payments with Mollie or Stripe, fully set up." },
     ],
   },
 };
@@ -244,6 +247,7 @@ export const OFFER_INCLUDED: Record<
       "Reservatie / afspraken",
       "Ledenzone",
       "Formulieren + opvolging",
+      "Integratie Mollie / Stripe",
     ],
     sub: "plus",
     lang: "alles inbegrepen",
