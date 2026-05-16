@@ -10,6 +10,8 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co https://*.vercel-insights.com https://va.vercel-scripts.com",
+  // realisatie-previews: échte klantsites live in een iframe tonen
+  "frame-src 'self' https:",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

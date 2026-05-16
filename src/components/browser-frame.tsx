@@ -117,13 +117,10 @@ export function BrowserFrame({
 
       {open && url && (
         <div
-          className="fixed inset-0 z-[90] flex flex-col bg-black/80 p-2 backdrop-blur-sm sm:p-6"
-          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[90] flex flex-col bg-card"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="mx-auto flex h-full w-full max-w-[1500px] flex-col overflow-hidden rounded-xl border bg-card shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex h-full w-full flex-col overflow-hidden">
             <Chrome host={host} accent={accent}>
               <button
                 type="button"
