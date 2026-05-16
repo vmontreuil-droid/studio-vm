@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, UserPlus } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { addClient } from "@/app/actions/portal-admin";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +100,26 @@ export default async function AdminKlanten({
         {clients.length} klant{clients.length === 1 ? "" : "en"} — automatisch
         aangemaakt uit elke scan met e-mail.
       </p>
+
+      <form
+        action={addClient}
+        className="mt-6 flex flex-col gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:flex-row sm:items-center"
+      >
+        <UserPlus className="hidden h-4 w-4 shrink-0 text-accent sm:block" strokeWidth={2} />
+        <input
+          name="client_email"
+          type="email"
+          required
+          placeholder="Klant toevoegen — e-mailadres"
+          className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+        />
+        <button
+          type="submit"
+          className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+        >
+          Toevoegen &amp; openen
+        </button>
+      </form>
 
       <div className="mt-6 space-y-3">
         {clients.length === 0 && (

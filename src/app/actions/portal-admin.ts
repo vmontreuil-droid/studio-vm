@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -337,4 +338,15 @@ export async function setSiteStatus(
   }
   revalidatePath("/admin/klanten", "layout");
   return;
+}
+
+export async function addClient(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  await ensurePortalUser(email);
+  revalidatePath("/admin/klanten", "layout");
+  redirect(`/admin/klanten/${encodeURIComponent(email)}`);
 }

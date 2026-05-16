@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, ExternalLink, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
@@ -45,10 +44,9 @@ export default async function AdminKlantDetail({
     .order("created_at", { ascending: false })
     .limit(200);
   const rows = (data as Row[]) ?? [];
-  if (rows.length === 0) notFound();
-
-  const latest = rows[0];
-  const first = rows[rows.length - 1];
+  // Geen scans = handmatig toegevoegde klant; toon hem gewoon, geen 404.
+  const latest: Row | undefined = rows[0];
+  const first: Row | undefined = rows[rows.length - 1];
 
   const db = getSupabaseAdmin();
   const [offersR, invoicesR, subsR, ticketsR, msgsR, sitesR] =
@@ -168,10 +166,14 @@ export default async function AdminKlantDetail({
             {email}
           </h1>
           <p className="mt-1 font-mono text-[11px] text-muted">
-            {rows.length} scan{rows.length === 1 ? "" : "s"} · klant sinds{" "}
-            {new Date(first.created_at).toLocaleDateString("nl-BE", {
-              timeZone: "Europe/Brussels",
-            })}
+            {rows.length} scan{rows.length === 1 ? "" : "s"}
+            {first
+              ? ` · klant sinds ${new Date(
+                  first.created_at,
+                ).toLocaleDateString("nl-BE", {
+                  timeZone: "Europe/Brussels",
+                })}`
+              : " · handmatig toegevoegd"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -182,14 +184,16 @@ export default async function AdminKlantDetail({
             <Mail className="h-3.5 w-3.5" strokeWidth={2} />
             Mail klant
           </a>
-          <Link
-            href={`/${latest.locale}/portail/${latest.token}`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
-          >
-            Laatste portaal
-            <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
-          </Link>
+          {latest && (
+            <Link
+              href={`/${latest.locale}/portail/${latest.token}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
+            >
+              Laatste portaal
+              <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -197,6 +201,12 @@ export default async function AdminKlantDetail({
         Alle scans
       </h2>
       <div className="mt-4 space-y-3">
+        {rows.length === 0 && (
+          <p className="rounded-2xl border bg-card p-5 text-sm text-muted">
+            Geen scans — handmatig toegevoegde klant. Zet hieronder een
+            offerte, factuur, abonnement of website voor hem klaar.
+          </p>
+        )}
         {rows.map((r) => {
           const sc = r.scan && r.scan.ok ? r.scan : null;
           const host = sc ? sc.host : r.url;
