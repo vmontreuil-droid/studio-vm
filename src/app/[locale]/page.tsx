@@ -9,7 +9,87 @@ import { ContactForm } from "@/components/contact-form";
 import { RotatingHeadline } from "@/components/rotating-headline";
 import { CtaBanner } from "@/components/cta-banner";
 import { getMessages } from "@/lib/i18n";
+import { getCapacity } from "@/lib/now-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { Sparkles, Search, MousePointerClick, ShieldCheck, Rocket } from "lucide-react";
+
+const X: Record<
+  Locale,
+  {
+    outcome: string[];
+    riskEyebrow: string;
+    riskTitle: string;
+    riskIntro: string;
+    risk: { t: string; d: string; href: string; cta: string }[];
+    werkEyebrow: string;
+    werkTitle: string;
+    werkIntro: string;
+  }
+> = {
+  nl: {
+    outcome: [
+      "Volledig herbouwd in 1–2 weken",
+      "Code + eigen admin van jou",
+      "Geen abonnementsval, geen lock-in",
+    ],
+    riskEyebrow: "Zonder risico",
+    riskTitle: "Eerst zien, dan beslissen",
+    riskIntro:
+      "Je hoeft niets blind te tekenen. Test eerst, in je eigen tempo — pas als het klopt, gaan we verder.",
+    risk: [
+      { t: "Gratis site-scan", d: "Eerlijk rapport van je huidige site — snelheid, SEO, valkuilen. Geen account, geen verkooptrechter.", href: "/scan", cta: "Scan mijn site" },
+      { t: "Bouw zelf je voorontwerp", d: "Klik je site in elkaar in de builder — pagina's, secties, je eigen teksten. Ik werk 'm daarna af.", href: "/builder", cta: "Open de builder" },
+      { t: "Alles blijft van jou", d: "Code én eigen admin in jouw handen. Geen abonnementsval — je kan altijd zelf verder.", href: "/pricing", cta: "Bekijk de prijzen" },
+      { t: "Live in 1–2 weken", d: "Strak herbouwd in Next.js + Supabase. Timing hangt enkel af van domeinvrijgave en fotomateriaal.", href: "/aanpak", cta: "Zo werk ik" },
+    ],
+    werkEyebrow: "Realisaties",
+    werkTitle: "Échte, live sites — geen mockups",
+    werkIntro:
+      "Geen verzonnen showcase. Dit zijn projecten die vandaag draaien voor echte ondernemers. Klik door en zie het zelf.",
+  },
+  fr: {
+    outcome: [
+      "Entièrement reconstruit en 1–2 semaines",
+      "Code + admin propre à vous",
+      "Pas de piège d'abonnement, pas de lock-in",
+    ],
+    riskEyebrow: "Sans risque",
+    riskTitle: "D'abord voir, puis décider",
+    riskIntro:
+      "Rien à signer à l'aveugle. Testez d'abord, à votre rythme — on continue seulement quand ça colle.",
+    risk: [
+      { t: "Scan gratuit du site", d: "Rapport honnête de votre site actuel — vitesse, SEO, pièges. Sans compte, sans entonnoir de vente.", href: "/scan", cta: "Scanner mon site" },
+      { t: "Construisez votre maquette", d: "Composez votre site dans le builder — pages, sections, vos textes. Je le finalise ensuite.", href: "/builder", cta: "Ouvrir le builder" },
+      { t: "Tout reste à vous", d: "Le code et un admin propre entre vos mains. Pas de piège d'abonnement — vous gardez la main.", href: "/pricing", cta: "Voir les tarifs" },
+      { t: "En ligne en 1–2 semaines", d: "Reconstruit proprement en Next.js + Supabase. Le délai dépend juste du domaine et des photos.", href: "/aanpak", cta: "Ma méthode" },
+    ],
+    werkEyebrow: "Réalisations",
+    werkTitle: "De vrais sites en ligne — pas des maquettes",
+    werkIntro:
+      "Pas de vitrine inventée. Des projets qui tournent aujourd'hui pour de vrais entrepreneurs. Cliquez et voyez.",
+  },
+  en: {
+    outcome: [
+      "Fully rebuilt in 1–2 weeks",
+      "Code + own admin, yours",
+      "No subscription trap, no lock-in",
+    ],
+    riskEyebrow: "Zero risk",
+    riskTitle: "See it first, then decide",
+    riskIntro:
+      "Nothing to sign blind. Try it first, at your own pace — we only continue when it fits.",
+    risk: [
+      { t: "Free site scan", d: "Honest report on your current site — speed, SEO, pitfalls. No account, no sales funnel.", href: "/scan", cta: "Scan my site" },
+      { t: "Build your own draft", d: "Click your site together in the builder — pages, sections, your own copy. I finish it.", href: "/builder", cta: "Open the builder" },
+      { t: "It all stays yours", d: "Code and an own admin in your hands. No subscription trap — you can always continue yourself.", href: "/pricing", cta: "See pricing" },
+      { t: "Live in 1–2 weeks", d: "Cleanly rebuilt in Next.js + Supabase. Timing only depends on domain release and photos.", href: "/aanpak", cta: "How I work" },
+    ],
+    werkEyebrow: "Work",
+    werkTitle: "Real, live sites — no mockups",
+    werkIntro:
+      "No invented showcase. Projects running today for real businesses. Click through and see for yourself.",
+  },
+};
 
 export default async function Home({
   params,
@@ -19,12 +99,15 @@ export default async function Home({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const t = getMessages(locale);
+  const x = X[locale];
+  const capacity = await getCapacity(locale);
 
   return (
     <main>
-      <Hero locale={locale} t={t} />
+      <Hero locale={locale} t={t} x={x} capacity={capacity} />
       <Stats t={t} />
-      <Werk locale={locale} t={t} />
+      <Werk locale={locale} t={t} x={x} />
+      <RiskReversal locale={locale} x={x} />
       <Testimonials t={t} locale={locale} />
       <Mogelijkheden t={t} locale={locale} />
       <CtaBanner
@@ -41,7 +124,19 @@ export default async function Home({
 
 type T = ReturnType<typeof getMessages>;
 
-function Hero({ locale, t }: { locale: Locale; t: T }) {
+type Xt = (typeof X)[Locale];
+
+function Hero({
+  locale,
+  t,
+  x,
+  capacity,
+}: {
+  locale: Locale;
+  t: T;
+  x: Xt;
+  capacity: string;
+}) {
   return (
     <section className="relative isolate overflow-hidden border-b">
       <div aria-hidden className="hero-backdrop">
@@ -66,7 +161,28 @@ function Hero({ locale, t }: { locale: Locale; t: T }) {
           className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
           subtitleClassName="mt-8 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl"
         />
-        <div className="mt-10 flex flex-wrap gap-3">
+        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+          {x.outcome.map((o) => (
+            <li
+              key={o}
+              className="flex items-center gap-2 text-sm font-medium"
+            >
+              <ShieldCheck
+                className="h-4 w-4 text-accent"
+                strokeWidth={2}
+              />
+              {o}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-medium text-accent">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+          </span>
+          {capacity}
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
           <a
             href="#werk"
             className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
@@ -125,25 +241,70 @@ function Stats({ t }: { t: T }) {
   );
 }
 
-function Werk({ locale, t }: { locale: Locale; t: T }) {
+function Werk({ locale, t, x }: { locale: Locale; t: T; x: Xt }) {
+  void t;
   return (
     <section id="werk" className="reveal-on-scroll border-b">
       <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
         <div className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-              {t.werk.eyebrow}
+              {x.werkEyebrow}
             </p>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              {t.werk.title}
+              {x.werkTitle}
             </h2>
           </div>
-          <p className="max-w-md text-sm text-muted">{t.werk.intro}</p>
+          <p className="max-w-md text-sm text-muted">{x.werkIntro}</p>
         </div>
         <div className="grid gap-px bg-border sm:grid-cols-2">
           {getProjects(locale).map((p) => (
             <ProjectCard key={p.slug} project={p} locale={locale} />
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RiskReversal({ locale, x }: { locale: Locale; x: Xt }) {
+  const icons = [Search, MousePointerClick, ShieldCheck, Rocket];
+  return (
+    <section className="reveal-on-scroll border-b bg-card">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+            {x.riskEyebrow}
+          </p>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {x.riskTitle}
+          </h2>
+          <p className="mt-4 text-muted">{x.riskIntro}</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {x.risk.map((r, i) => {
+            const Icon = icons[i] ?? Sparkles;
+            return (
+              <div
+                key={r.t}
+                className="flex flex-col rounded-2xl border bg-background p-6"
+              >
+                <Icon className="h-5 w-5 text-accent" strokeWidth={1.75} />
+                <h3 className="mt-4 font-semibold tracking-tight">{r.t}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
+                  {r.d}
+                </p>
+                <Link
+                  href={localePath(locale, r.href)}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+                >
+                  {r.cta}
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

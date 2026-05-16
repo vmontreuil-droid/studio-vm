@@ -47,6 +47,24 @@ export async function dbNow(locale: Locale): Promise<NowOverride | null> {
   };
 }
 
+// Korte capaciteit-regel voor naast de CTA's. Eén bron: de /now-
+// bandbreedte (eerste zin). Geen DB/leeg → eerlijke statische fallback.
+const CAP_FALLBACK: Record<Locale, string> = {
+  nl: "Beperkte plekken — kleine opdrachten dit kwartaal mogelijk",
+  fr: "Places limitées — petites missions possibles ce trimestre",
+  en: "Limited slots — small projects possible this quarter",
+};
+
+export async function getCapacity(locale: Locale): Promise<string> {
+  const ov = await dbNow(locale);
+  const bw = ov?.bandwidth?.trim();
+  if (bw) {
+    const first = bw.split(/(?<=[.!?])\s/)[0].trim();
+    return first.length > 90 ? first.slice(0, 87).trimEnd() + "…" : first;
+  }
+  return CAP_FALLBACK[locale];
+}
+
 // Voor de admin: de volledige rij (of null).
 export async function dbNowRow(): Promise<NowRow | null> {
   return fetchRow();
