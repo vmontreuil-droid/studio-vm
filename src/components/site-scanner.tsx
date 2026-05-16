@@ -258,7 +258,7 @@ const UI: Record<
       submit: "Stuur mijn volledige analyse",
       sending: "Versturen…",
       privacy:
-        "Eén e-mail met je rapportlink. Geen nieuwsbrief, geen verkooptrechter, je adres blijft bij mij.",
+        "Je rapportlink + af en toe nuttige updates. Geen verkooptrechter, en uitschrijven kan altijd met één klik.",
       sentTitle: "Check je inbox",
       sentLead: (email) =>
         `Je volledige analyse is onderweg naar ${email}. Geen mail na een minuut? Kijk in spam — of open ’m hieronder meteen.`,
@@ -442,7 +442,7 @@ const UI: Record<
       submit: "Envoyer mon analyse complète",
       sending: "Envoi…",
       privacy:
-        "Un e-mail avec le lien de votre rapport. Pas de newsletter, pas d'entonnoir, votre adresse reste chez moi.",
+        "Le lien de votre rapport + quelques updates utiles. Pas d'entonnoir, et désinscription en un clic à tout moment.",
       sentTitle: "Vérifiez votre boîte mail",
       sentLead: (email) =>
         `Votre analyse complète part vers ${email}. Pas de mail après une minute ? Regardez dans les spams — ou ouvrez-la ci-dessous tout de suite.`,
@@ -626,7 +626,7 @@ const UI: Record<
       submit: "Send my full analysis",
       sending: "Sending…",
       privacy:
-        "One email with your report link. No newsletter, no funnel, your address stays with me.",
+        "Your report link + the occasional useful update. No funnel, and one-click unsubscribe anytime.",
       sentTitle: "Check your inbox",
       sentLead: (email) =>
         `Your full analysis is on its way to ${email}. No mail after a minute? Check spam — or open it right below now.`,

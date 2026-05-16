@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
+import { unsubLink } from "@/lib/newsletter-token";
 import type { ScanResult } from "@/app/actions/scan";
 
 export type ScanLeadState =
@@ -149,6 +150,20 @@ export async function submitScanLead(input: {
     return { ok: false, error: "store" };
   }
 
+  // Scan-lead ook in de nieuwsbrieflijst. ignoreDuplicates: bestaande
+  // (incl. eerder uitgeschreven) rijen blijven ongemoeid — geen
+  // heractivatie van wie zich al uitschreef.
+  try {
+    await getSupabaseAdmin()
+      .from("newsletter_subscribers")
+      .upsert(
+        { email, locale, source: "scan", active: true },
+        { onConflict: "email", ignoreDuplicates: true },
+      );
+  } catch {
+    // Mag de scan nooit doen falen.
+  }
+
   await sendPortalMail(email, locale, host, input.scan.grade, input.scan.score, portalUrl);
 
   return { ok: true, url: portalUrl };
@@ -232,7 +247,13 @@ async function sendPortalMail(
       </td></tr>
     </table>
   </td></tr>
-  <tr><td style="padding:22px 4px 0;text-align:center;font:400 11px/1.5 ${font};color:#57534e">© ${new Date().getFullYear()} Studio VM · Vincent Montreuil · <a href="https://studio-vm.be" style="color:#78716c;text-decoration:none">studio-vm.be</a></td></tr>
+  <tr><td style="padding:22px 4px 0;text-align:center;font:400 11px/1.5 ${font};color:#57534e">© ${new Date().getFullYear()} Studio VM · Vincent Montreuil · <a href="https://studio-vm.be" style="color:#78716c;text-decoration:none">studio-vm.be</a><br><a href="${unsubLink(email)}" style="color:#57534e;text-decoration:underline">${
+    locale === "fr"
+      ? "Se désinscrire des updates"
+      : locale === "en"
+        ? "Unsubscribe from updates"
+        : "Uitschrijven voor updates"
+  }</a></td></tr>
 </table>
 </td></tr>
 </table>

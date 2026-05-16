@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import { PORTAL_T, type PortalCounts } from "@/lib/portal-shared";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function PortalShell({
   locale,
@@ -167,18 +168,25 @@ export function PortalShell({
           <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={2} />
           {!collapsed && t.website}
         </a>
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            title={collapsed ? t.signout : undefined}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-            {!collapsed && t.signout}
-          </button>
-        </form>
+        <div
+          className={`flex items-center gap-2 ${
+            collapsed ? "flex-col" : ""
+          }`}
+        >
+          <ThemeToggle />
+          <form action={signOutAction} className={collapsed ? "" : "flex-1"}>
+            <button
+              type="submit"
+              title={collapsed ? t.signout : undefined}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
+                collapsed ? "justify-center" : ""
+              }`}
+            >
+              <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+              {!collapsed && t.signout}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

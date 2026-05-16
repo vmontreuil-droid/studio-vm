@@ -5,6 +5,7 @@ import { supabaseConfigured } from "@/lib/supabase/config";
 import { signOut } from "@/app/actions/portail";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { PORTAL_T } from "@/lib/portal-shared";
+import { LangSwitcher } from "@/components/lang-switcher";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,9 @@ export default async function PortalAccount({
           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
             {l.lang}
           </dt>
-          <dd className="mt-1 text-sm uppercase">{locale}</dd>
+          <dd className="mt-2">
+            <LangSwitcher current={locale} />
+          </dd>
         </div>
       </dl>
 
