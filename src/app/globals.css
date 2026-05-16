@@ -70,9 +70,13 @@ html {
   color-scheme: light dark;
   background: var(--background);
   overflow-x: clip;
+  /* voorkomt horizontale rubber-band/pan op iOS Safari */
+  overscroll-behavior-x: none;
 }
 body {
   overflow-x: clip;
+  overscroll-behavior-x: none;
+  max-width: 100%;
 }
 
 body {
@@ -291,7 +295,10 @@ body {
 .hero-backdrop {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  /* clip + contain: betrouwbaarder dan 'hidden' op iOS Safari, dat
+     getransformeerde kind-elementen anders tóch laat zijscrollen. */
+  overflow: clip;
+  contain: layout paint;
   pointer-events: none;
   z-index: 0;
 }
