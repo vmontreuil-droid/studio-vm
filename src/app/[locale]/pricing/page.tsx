@@ -5,6 +5,7 @@ import { Check, ArrowRight, Sparkles } from "lucide-react";
 import { getPricing, type PricingTier } from "@/lib/pricing";
 import { openproviderConfigured } from "@/lib/openprovider";
 import { DomainCheck } from "@/components/domain-check";
+import { PricingCompare } from "@/components/pricing-compare";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -321,6 +322,8 @@ export default async function PricingPage({
           </p>
         </div>
       </section>
+
+      <PricingCompare locale={locale} />
 
       <section className="border-b">
         <div className="mx-auto max-w-3xl px-6 py-20 sm:py-24">
