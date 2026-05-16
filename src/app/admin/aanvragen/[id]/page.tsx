@@ -40,6 +40,10 @@ type Quote = {
   locale: string;
   name: string;
   email: string;
+  phone: string | null;
+  company: string | null;
+  address: string | null;
+  vat_number: string | null;
   message: string | null;
   notes: string | null;
   base: string;
@@ -48,6 +52,22 @@ type Quote = {
   est_low: number | null;
   est_high: number | null;
   monthly: number | null;
+  one_off_cents: number | null;
+  discount_cents: number | null;
+  deposit_cents: number | null;
+  term: number | null;
+  monthly_install_cents: number | null;
+  subscription_cents: number | null;
+  domain_kind: string | null;
+  domain_year_cents: number | null;
+  mail_kind: string | null;
+  mail_users: number | null;
+  mail_monthly_cents: number | null;
+  monthly_total_cents: number | null;
+  lockin: boolean | null;
+  deposit_status: string | null;
+  mollie_payment_id: string | null;
+  deposit_paid_at: string | null;
   status: string;
   source: string | null;
   snapshot: Snapshot | null;
@@ -56,6 +76,8 @@ type Quote = {
 
 const eur = (x: number | null) =>
   x == null ? "—" : "€ " + x.toLocaleString("nl-BE");
+const eurc = (x: number | null) =>
+  x == null ? "—" : "€ " + (x / 100).toLocaleString("nl-BE");
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -174,6 +196,175 @@ export default async function QuoteDetail({
           </button>
         </form>
       </div>
+
+      {/* Contact & facturatie */}
+      <div className="mt-4 rounded-2xl border bg-card p-5">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+          Contact & facturatie
+        </p>
+        <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          <Field label="Naam" value={q.name} />
+          <Field
+            label="E-mail"
+            value={
+              <a
+                href={`mailto:${q.email}`}
+                className="text-accent underline"
+              >
+                {q.email}
+              </a>
+            }
+          />
+          <Field
+            label="Telefoon"
+            value={
+              q.phone ? (
+                <a
+                  href={`tel:${q.phone.replace(/\s/g, "")}`}
+                  className="text-accent underline"
+                >
+                  {q.phone}
+                </a>
+              ) : (
+                "—"
+              )
+            }
+          />
+          <Field label="Bedrijf" value={q.company} />
+          <Field label="BTW-nummer" value={q.vat_number} />
+          <Field label="Facturatieadres" value={q.address} />
+          <Field label="Taal" value={q.locale.toUpperCase()} />
+          <Field label="Bron" value={q.source ?? "—"} />
+        </dl>
+        {(q.company || q.email) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(
+                `${q.company ?? q.name} ${q.address ?? ""} website`,
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover"
+            >
+              Zoek bedrijfswebsite →
+            </a>
+            {q.vat_number && (
+              <a
+                href={`https://kbopub.economie.fgov.be/kbopub/zoeknummerform.html?nummer=${encodeURIComponent(
+                  q.vat_number.replace(/[^0-9]/g, ""),
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover"
+              >
+                KBO-fiche →
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Aanbetaling & financieel */}
+      {q.deposit_cents != null && (
+        <div className="mt-4 rounded-2xl border bg-card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              Aanbetaling & financieel
+            </p>
+            <span
+              className={`rounded px-2 py-0.5 font-mono text-[10px] ${
+                q.deposit_status === "betaald"
+                  ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+              }`}
+            >
+              aanbetaling {q.deposit_status ?? "open"}
+            </span>
+          </div>
+          <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            <Field label="Eenmalig (project)" value={eurc(q.one_off_cents)} />
+            <Field
+              label="Vastlegkorting"
+              value={
+                q.discount_cents
+                  ? `− ${eurc(q.discount_cents)}${q.lockin ? " (−7%)" : ""}`
+                  : "—"
+              }
+            />
+            <Field
+              label="Aanbetaling (nu)"
+              value={
+                <strong>
+                  {eurc(q.deposit_cents)}
+                  {q.domain_year_cents
+                    ? ` (incl. domein ${eurc(q.domain_year_cents)})`
+                    : ""}
+                </strong>
+              }
+            />
+            <Field
+              label="Spreiding"
+              value={
+                q.term && q.term > 0
+                  ? `${q.term}× ${eurc(q.monthly_install_cents)}/maand`
+                  : "Ineens bij oplevering"
+              }
+            />
+            <Field
+              label="Onderhoud"
+              value={`${q.plan} — ${eurc(q.subscription_cents)}/maand`}
+            />
+            <Field
+              label="E-mail"
+              value={
+                q.mail_kind && q.mail_kind !== "none"
+                  ? `${q.mail_kind}${
+                      q.mail_users ? ` ×${q.mail_users}` : ""
+                    } — ${eurc(q.mail_monthly_cents)}/maand`
+                  : "—"
+              }
+            />
+            <Field
+              label="Domein"
+              value={
+                q.domain_kind
+                  ? `${q.domain_kind}${
+                      q.domain_year_cents
+                        ? ` — ${eurc(
+                            q.domain_year_cents,
+                          )} (1e jaar in aanbetaling, daarna jaarlijks)`
+                        : ""
+                    }`
+                  : "—"
+              }
+            />
+            <Field
+              label="Maandfactuur vanaf oplevering"
+              value={
+                <strong>{eurc(q.monthly_total_cents)}/maand</strong>
+              }
+            />
+            {q.mollie_payment_id && (
+              <Field
+                label="Mollie payment-id"
+                value={
+                  <span className="font-mono text-xs">
+                    {q.mollie_payment_id}
+                  </span>
+                }
+              />
+            )}
+            {q.deposit_paid_at && (
+              <Field
+                label="Betaald op"
+                value={new Date(q.deposit_paid_at).toLocaleString("nl-BE", {
+                  timeZone: "Europe/Brussels",
+                })}
+              />
+            )}
+          </dl>
+        </div>
+      )}
 
       {/* Offerte-details */}
       {!isBuilder && (

@@ -10,6 +10,7 @@ import { isEmail, sendMail } from "@/lib/monitor";
 import { after } from "next/server";
 import { scanAndStore } from "@/lib/scan-report";
 import { createMolliePayment } from "@/lib/mollie";
+import { checkVies } from "@/lib/vies";
 import {
   offerCatalog,
   OFFER_INCLUDED,
@@ -38,8 +39,14 @@ export async function submitQuote(
   const estHigh = Number(s("estHigh")) || null;
   const monthly = Number(s("monthly")) || 0;
 
+  const phone = s("phone").slice(0, 40);
+  const company = s("company").slice(0, 160) || null;
+  const address = s("address").slice(0, 240) || null;
+  const vatNumber = s("vat_number").slice(0, 40) || null;
+
   if (!name) return { ok: false, error: "name" };
   if (!isEmail(email)) return { ok: false, error: "email" };
+  if (!phone) return { ok: false, error: "phone" };
 
   const currentSite = s("currentSite");
 
@@ -52,6 +59,10 @@ export async function submitQuote(
       locale,
       name,
       email,
+      phone,
+      company,
+      address,
+      vat_number: vatNumber,
       message: message || null,
       base,
       modules,
@@ -92,6 +103,18 @@ ${message ? `<p style="margin-top:14px;white-space:pre-wrap">${message.replace(/
   return { ok: true };
 }
 
+export type VatLookup = {
+  valid: boolean | null;
+  name: string | null;
+  address: string | null;
+};
+
+export async function lookupVat(vat: string): Promise<VatLookup> {
+  const r = await checkVies(String(vat).slice(0, 40));
+  if (!r) return { valid: null, name: null, address: null };
+  return { valid: r.valid, name: r.name, address: r.address };
+}
+
 // --- Directe intake + 30% aanbetaling (offerte-configurator) ---
 
 const TRANSFER_CENTS = 7500;
@@ -123,6 +146,9 @@ export async function startOffer(
   const email = s("email").toLowerCase().slice(0, 160);
   if (!name) return { ok: false, error: "name" };
   if (!isEmail(email)) return { ok: false, error: "email" };
+
+  const phone = s("phone").slice(0, 40);
+  if (!phone) return { ok: false, error: "phone" };
 
   const locale = s("locale") || "nl";
   const company = s("company").slice(0, 160) || null;
@@ -220,6 +246,7 @@ export async function startOffer(
       locale,
       name,
       email,
+      phone,
       company,
       address,
       vat_number: vatNumber,
@@ -280,7 +307,7 @@ export async function startOffer(
     subject: `Nieuwe vastlegging (30% aanbetaling) — ${name}`,
     html: `<div style="font-family:system-ui,sans-serif;max-width:560px;color:#111;line-height:1.6">
 <h2 style="margin:0 0 12px">Klant legt vast & betaalt aanbetaling</h2>
-<p><strong>${name}</strong>${company ? ` · ${company}` : ""} · <a href="mailto:${email}">${email}</a></p>
+<p><strong>${name}</strong>${company ? ` · ${company}` : ""} · <a href="mailto:${email}">${email}</a> · ${phone}${address ? `<br><span style="color:#666">${address.replace(/</g, "&lt;")}</span>` : ""}</p>
 <table style="border-collapse:collapse;font-size:14px;margin-top:8px">
 ${breakdown.map((b) => `<tr><td style="padding:3px 0">${b.replace(/</g, "&lt;")}</td></tr>`).join("")}
 </table>

@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Check, Send, Loader2, AlertTriangle } from "lucide-react";
-import { submitQuote, startOffer } from "@/app/actions/quote";
+import { submitQuote, startOffer, lookupVat } from "@/app/actions/quote";
 import {
   offerCatalog,
   OFFER_INCLUDED,
@@ -97,6 +97,11 @@ const T: Record<
     company: string;
     address: string;
     vat: string;
+    phone: string;
+    viesChecking: string;
+    viesOk: string;
+    viesBad: string;
+    noWeb: string;
     depositBtn: string;
     quoteBtn2: string;
     payNote: string;
@@ -177,9 +182,14 @@ const T: Record<
       "Vul je dit in, dan voeren we automatisch een snelle scan uit zodat we je beter kunnen helpen.",
     pricingLink: "Of bekijk de vaste pakketten",
     sumHead: "Samenstelling",
-    company: "Bedrijf (optioneel)",
-    address: "Facturatieadres (optioneel)",
-    vat: "BTW-nummer (optioneel)",
+    company: "Bedrijfsnaam (automatisch via BTW)",
+    address: "Facturatieadres (automatisch via BTW)",
+    vat: "BTW-nummer (bv. BE0123456789)",
+    phone: "Telefoonnummer",
+    viesChecking: "BTW controleren via VIES…",
+    viesOk: "BTW gevonden — gegevens automatisch ingevuld",
+    viesBad: "BTW niet gevonden — vul gegevens handmatig in",
+    noWeb: "Ik heb (nog) geen website",
     depositBtn: "Leg vast & betaal 30% aanbetaling",
     quoteBtn2: "Of vraag eerst een vrijblijvende offerte aan",
     payNote:
@@ -263,9 +273,14 @@ const T: Record<
       "Si vous le renseignez, on lance un scan rapide pour mieux vous aider.",
     pricingLink: "Ou voir les forfaits fixes",
     sumHead: "Composition",
-    company: "Société (facultatif)",
-    address: "Adresse de facturation (facultatif)",
-    vat: "Numéro de TVA (facultatif)",
+    company: "Nom de société (auto via TVA)",
+    address: "Adresse de facturation (auto via TVA)",
+    vat: "Numéro de TVA (ex. BE0123456789)",
+    phone: "Numéro de téléphone",
+    viesChecking: "Vérification TVA via VIES…",
+    viesOk: "TVA trouvée — données remplies automatiquement",
+    viesBad: "TVA introuvable — remplissez manuellement",
+    noWeb: "Je n'ai pas (encore) de site",
     depositBtn: "Verrouiller & payer l'acompte de 30 %",
     quoteBtn2: "Ou demandez d'abord un devis sans engagement",
     payNote:
@@ -349,9 +364,14 @@ const T: Record<
       "If you fill this in, we run a quick scan so we can help you better.",
     pricingLink: "Or see the fixed packages",
     sumHead: "Composition",
-    company: "Company (optional)",
-    address: "Billing address (optional)",
-    vat: "VAT number (optional)",
+    company: "Company name (auto via VAT)",
+    address: "Billing address (auto via VAT)",
+    vat: "VAT number (e.g. BE0123456789)",
+    phone: "Phone number",
+    viesChecking: "Checking VAT via VIES…",
+    viesOk: "VAT found — details filled automatically",
+    viesBad: "VAT not found — fill in manually",
+    noWeb: "I don't have a website (yet)",
     depositBtn: "Lock in & pay 30% deposit",
     quoteBtn2: "Or request a no-obligation quote first",
     payNote:
@@ -390,6 +410,33 @@ export default function OffertePage() {
   const [sent, setSent] = useState<"idle" | "ok" | "err" | "intake">(
     "idle",
   );
+  const [vatNo, setVatNo] = useState("");
+  const [company, setCompany] = useState("");
+  const [address, setAddress] = useState("");
+  const [vies, setVies] = useState<"idle" | "checking" | "ok" | "bad">(
+    "idle",
+  );
+  const [noWeb, setNoWeb] = useState(false);
+  const [website, setWebsite] = useState("");
+
+  async function checkVat() {
+    const v = vatNo.trim();
+    if (!v) {
+      setVies("idle");
+      return;
+    }
+    setVies("checking");
+    const r = await lookupVat(v);
+    if (r.name) setCompany(r.name);
+    if (r.address) setAddress(r.address);
+    setVies(
+      r.valid === false
+        ? "bad"
+        : r.name || r.address || r.valid === true
+          ? "ok"
+          : "bad",
+    );
+  }
   const [pending, startSend] = useTransition();
 
   const base = bases.find((b) => b.slug === baseSlug);
@@ -1069,18 +1116,59 @@ export default function OffertePage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
-                  name="company"
-                  placeholder={c.company}
+                  name="phone"
+                  type="tel"
+                  required
+                  placeholder={c.phone}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
                 <input
                   name="vat_number"
+                  value={vatNo}
+                  onChange={(e) => setVatNo(e.target.value)}
+                  onBlur={checkVat}
                   placeholder={c.vat}
                   className="rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />
               </div>
+              {vies !== "idle" && (
+                <p
+                  className={`flex items-center gap-1.5 px-1 text-xs ${
+                    vies === "ok"
+                      ? "text-accent"
+                      : vies === "bad"
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-muted"
+                  }`}
+                >
+                  {vies === "checking" ? (
+                    <Loader2
+                      className="h-3 w-3 animate-spin"
+                      strokeWidth={2}
+                    />
+                  ) : vies === "ok" ? (
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  ) : (
+                    <AlertTriangle className="h-3 w-3" strokeWidth={2.5} />
+                  )}
+                  {vies === "checking"
+                    ? c.viesChecking
+                    : vies === "ok"
+                      ? c.viesOk
+                      : c.viesBad}
+                </p>
+              )}
+              <input
+                name="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder={c.company}
+                className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              />
               <input
                 name="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 placeholder={c.address}
                 className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
               />
@@ -1096,9 +1184,21 @@ export default function OffertePage() {
                   type="text"
                   inputMode="url"
                   autoComplete="off"
+                  required={!noWeb}
+                  disabled={noWeb}
+                  value={noWeb ? "" : website}
+                  onChange={(e) => setWebsite(e.target.value)}
                   placeholder={c.site}
-                  className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+                  className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent disabled:opacity-50"
                 />
+                <label className="mt-2 flex cursor-pointer items-center gap-2 px-1 text-xs text-muted">
+                  <input
+                    type="checkbox"
+                    checked={noWeb}
+                    onChange={(e) => setNoWeb(e.target.checked)}
+                  />
+                  {c.noWeb}
+                </label>
                 <p className="mt-1.5 px-1 text-xs text-muted">{c.siteNote}</p>
               </div>
               {sent === "err" && (
