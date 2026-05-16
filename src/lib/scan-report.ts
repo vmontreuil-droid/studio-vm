@@ -10,10 +10,11 @@ export async function scanAndMail(
   rawUrl: string,
   ctx: { source: string; name?: string; email?: string },
 ): Promise<void> {
-  const url = (rawUrl ?? "").trim();
-  if (!url || url.length < 4 || !/[a-z0-9][a-z0-9-]*\.[a-z]{2,}/i.test(url)) {
-    return;
-  }
+  let url = (rawUrl ?? "").trim();
+  if (!url || url.length < 4) return;
+  // Bezoeker typt meestal "studio-vm.be" zonder schema → zelf aanvullen.
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url.replace(/^\/+/, "");
+  if (!/^https?:\/\/[a-z0-9][a-z0-9-]*\.[a-z]{2,}/i.test(url)) return;
   const who =
     [ctx.name, ctx.email].filter(Boolean).map(esc).join(" · ") || "—";
 

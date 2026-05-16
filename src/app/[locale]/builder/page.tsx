@@ -1214,7 +1214,9 @@ export default function BuilderPage() {
                     className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
                   />
                   <input
-                    type="url"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="off"
                     value={currentSite}
                     onChange={(e) => setCurrentSite(e.target.value)}
                     placeholder={c.buildSite}

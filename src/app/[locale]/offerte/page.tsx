@@ -653,7 +653,9 @@ export default function OffertePage() {
               <div>
                 <input
                   name="currentSite"
-                  type="url"
+                  type="text"
+                  inputMode="url"
+                  autoComplete="off"
                   placeholder={c.formSite}
                   className="w-full rounded-full border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
                 />

@@ -53,8 +53,8 @@ export function ContactForm() {
         <Field
           name="currentSite"
           label="Je huidige website (optioneel)"
-          type="url"
-          placeholder="https://jouwsite.be"
+          type="text"
+          placeholder="jouwsite.be"
         />
         <p className="mt-1.5 text-xs text-muted">
           Vul je dit in, dan voeren we automatisch een snelle scan van je
