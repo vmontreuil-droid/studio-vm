@@ -270,7 +270,7 @@ const UI: Record<
         { t: "6 · Lancering & overdracht", d: "Live gezet; jij krijgt code, data en een eigen admin." },
       ],
       mod: {
-        base_starter: { name: "Basis-site (tot ±8 pagina's)", desc: "Eigen design, mobiel, contact, SEO-fundament — schoon herbouwd." },
+        base_starter: { name: "One-pager", desc: "Eén sterke pagina, eigen design, mobiel, contact, SEO-basis — schoon gebouwd." },
         base_pro: { name: "Volwaardige site (Pro)", desc: "Meerdere secties, schoon gebouwd en klaar om mee te groeien." },
         base_webshop: { name: "Webshop", desc: "Volledige shop (Mollie/Stripe), voorraad, bestellingen-admin." },
         multilingual: { name: "Meertalig", desc: "Zelfde inhoud, nette taalswitch + hreflang voor SEO." },
@@ -279,7 +279,7 @@ const UI: Record<
         blog: { name: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving voor artikels — zonder WordPress." },
         members: { name: "Ledenzone", desc: "Afgeschermd gedeelte met logins en rollen." },
         admin: { name: "Eigen admin / CMS", desc: "Beheer zelf je teksten, beelden en pagina's — geen factuur voor elke wijziging." },
-        content: { name: "Contentmigratie", desc: "Bestaande pagina's overgezet, geschaald op de omvang van je site." },
+        content: { name: "Teksten", desc: "Professionele, SEO-bewuste webteksten voor je pagina's." },
         seoPreserve: { name: "SEO-behoud & redirects", desc: "Volledig 301-plan + sitemap zodat je niet terugvalt in Google." },
         photoshoot: { name: "Fotoshoot / beeldmateriaal", desc: "Geen eigen foto's? Een halve dag professionele shoot van je zaak, producten of team — bewerkt en webklaar." },
       },
@@ -431,7 +431,7 @@ const UI: Record<
         { t: "6 · Mise en ligne & transfert", d: "Mis en ligne ; vous recevez code, données et un admin." },
       ],
       mod: {
-        base_starter: { name: "Site de base (jusqu'à ±8 pages)", desc: "Design propre, mobile, contact, fondation SEO — recodé proprement." },
+        base_starter: { name: "One-pager", desc: "Une page forte, design propre, mobile, contact, SEO de base — proprement construit." },
         base_pro: { name: "Site complet (Pro)", desc: "Plusieurs sections, proprement construit et prêt à évoluer." },
         base_webshop: { name: "Boutique", desc: "Boutique complète (Mollie/Stripe), stock, admin commandes." },
         multilingual: { name: "Multilingue", desc: "Même contenu, bascule de langue propre + hreflang SEO." },
@@ -440,7 +440,7 @@ const UI: Record<
         blog: { name: "CMS blog / actus", desc: "Environnement de rédaction propre — sans WordPress." },
         members: { name: "Espace membres", desc: "Zone protégée avec logins et rôles." },
         admin: { name: "Admin / CMS propre", desc: "Gérez vous-même textes, images et pages — pas de facture pour chaque modification." },
-        content: { name: "Migration du contenu", desc: "Pages existantes transférées, dimensionné selon la taille du site." },
+        content: { name: "Textes", desc: "Textes web professionnels et optimisés SEO pour vos pages." },
         seoPreserve: { name: "Préservation SEO & redirections", desc: "Plan 301 complet + sitemap pour ne pas chuter dans Google." },
         photoshoot: { name: "Shooting photo / visuels", desc: "Pas de photos exploitables ? Une demi-journée de shooting pro de votre activité, produits ou équipe — retouché et prêt pour le web." },
       },
@@ -592,7 +592,7 @@ const UI: Record<
         { t: "6 · Launch & handover", d: "Taken live; you get the code, data and an admin." },
       ],
       mod: {
-        base_starter: { name: "Base site (up to ±8 pages)", desc: "Custom design, mobile, contact, SEO foundation — cleanly rebuilt." },
+        base_starter: { name: "One-pager", desc: "One strong page, custom design, mobile, contact, SEO basics — cleanly built." },
         base_pro: { name: "Full site (Pro)", desc: "Multiple sections, cleanly built and ready to scale." },
         base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
         multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
@@ -601,7 +601,7 @@ const UI: Record<
         blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
         members: { name: "Member area", desc: "Gated section with logins and roles." },
         admin: { name: "Own admin / CMS", desc: "Manage texts, images and pages yourself — no invoice for every change." },
-        content: { name: "Content migration", desc: "Existing pages moved over, scaled to your site's size." },
+        content: { name: "Texts", desc: "Professional, SEO-aware web copy for your pages." },
         seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
         photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
       },
@@ -720,16 +720,6 @@ export function ScanReport({
             : pages <= 80
               ? "large"
               : "xl";
-    const contentPrice =
-      pages == null
-        ? 100
-        : pages <= 10
-          ? 100
-          : pages <= 30
-            ? 250
-            : pages <= 80
-              ? 450
-              : 700;
     const baseKey: "base_webshop" | "base_pro" | "base_starter" = inv.shop
       ? "base_webshop"
       : inv.members || bucket === "xl" || (inv.multilingual && bucket === "large")
@@ -737,21 +727,22 @@ export function ScanReport({
         : bucket === "small" && !inv.booking && !inv.members
           ? "base_starter"
           : "base_pro";
+    // Prijzen 1-op-1 met de pricing-pagina: One-pager €750, Pro €1900,
+    // Webshop vanaf €3900. Admin zit inbegrepen in elk pakket (geen
+    // aparte post). Content = vaste copywriting-add-on (€145).
     const basePrice =
-      baseKey === "base_webshop" ? 3900 : baseKey === "base_pro" ? 1900 : 950;
+      baseKey === "base_webshop" ? 3900 : baseKey === "base_pro" ? 1900 : 750;
     const addons: { key: string; price: number }[] = [];
     if (inv.multilingual) addons.push({ key: "multilingual", price: 75 });
     if (inv.forms) addons.push({ key: "forms", price: 100 });
     if (inv.booking) addons.push({ key: "booking", price: 200 });
     if (inv.blog) addons.push({ key: "blog", price: 125 });
     if (inv.members) addons.push({ key: "members", price: 175 });
-    // Elke build bevat een eigen admin/CMS — als aparte, duidelijke post.
-    addons.push({ key: "admin", price: 800 });
-    addons.push({ key: "content", price: contentPrice });
+    addons.push({ key: "content", price: 145 });
     addons.push({ key: "seoPreserve", price: 95 });
     const oneOffLow =
       basePrice + addons.reduce((s, a) => s + a.price, 0);
-    const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;
+    const oneOffHigh = Math.round((oneOffLow * 1.1) / 50) * 50;
     // Uitvoering: 1 à 2 weken. Hangt enkel af van domeinvrijgave en of er
     // fotomateriaal is — niet van de scope (alles wordt strak herschreven).
     const weeksRange: [number, number] = [1, 2];
