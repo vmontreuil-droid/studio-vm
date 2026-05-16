@@ -210,7 +210,7 @@ export default async function PricingPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
-  const { oneShot, subscription, addons } = getPricing(locale);
+  const { oneShot, subscription } = getPricing(locale);
 
   return (
     <main>
@@ -243,36 +243,6 @@ export default async function PricingPage({
         locale={locale}
         muted
       />
-
-      <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
-          <div className="mx-auto mb-14 max-w-2xl text-center">
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-              {c.modEyebrow}
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              {c.modTitle}
-            </h2>
-            <p className="mt-4 text-muted">{c.modIntro}</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {addons.map((a) => (
-              <div
-                key={a.name}
-                className="flex flex-col rounded-2xl border bg-card p-5"
-              >
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-semibold">{a.name}</h3>
-                  <span className="whitespace-nowrap font-mono text-sm font-semibold text-accent">
-                    {a.price}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-muted">{a.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section className="border-b bg-card">
         <div className="mx-auto max-w-4xl px-6 py-20 sm:py-24">
