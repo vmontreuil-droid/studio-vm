@@ -23,10 +23,10 @@ type Bundle = {
 const data: Record<Locale, Bundle> = {
   nl: {
     oneShot: [
-      { slug: "onepager", name: "One-pager", tagline: "Klein beginnen", price: "€ 750", priceNote: "eenmalig, excl. btw", features: ["1 sterke pagina (alles op één scroll)", "Eigen design op jouw merk", "Eigen admin om alles zelf te wijzigen", "Mobile + dark mode", "Contactformulier", "SEO-basis + Open Graph"], ctaLabel: "Start gesprek", ctaHref: "/#contact" },
-      { slug: "starter", name: "Starter", tagline: "Voor wie net begint", price: "€ 1 250", priceNote: "eenmalig, excl. btw", features: ["Tot 5 pagina's", "Eigen design op jouw merk", "Eigen admin om alles zelf te wijzigen", "Mobile + dark mode", "Contactformulier", "SEO + sitemap + Open Graph", "1 ronde aanpassingen"], ctaLabel: "Start gesprek", ctaHref: "/#contact" },
-      { slug: "pro", name: "Pro", tagline: "Meest gekozen", price: "€ 1 900", priceNote: "eenmalig, excl. btw", features: ["Tot 15 pagina's", "Tweetalig (NL/FR of NL/EN)", "Eigen admin om content te wijzigen", "Newsletter signup", "Structured data + analytics", "2 rondes aanpassingen"], highlighted: true, ctaLabel: "Start gesprek", ctaHref: "/#contact" },
-      { slug: "webshop", name: "Webshop", tagline: "Voor verkoop online", price: "vanaf € 3 900", priceNote: "eenmalig, excl. btw", features: ["Alles van Pro", "Volledige webshop met Mollie of Stripe", "Voorraad, kortingscodes, gift cards", "Klantportaal voor bestellingen", "Bestellingen-admin met facturen", "Tot 100 producten inbegrepen"], ctaLabel: "Bespreek shop", ctaHref: "/#contact" },
+      { slug: "onepager", name: "One-pager", tagline: "Klein beginnen", price: "€ 750", priceNote: "eenmalig, excl. btw", features: ["1 sterke pagina (alles op één scroll)", "Eigen design op jouw merk", "Eigen admin / CMS inbegrepen", "Mobile + dark mode", "Contactformulier inbegrepen", "Teksten / copywriting inbegrepen", "Cookiebanner & GDPR inbegrepen", "1 extra taal inbegrepen", "SEO-basis + Open Graph", "Care-abonnement inbegrepen"], ctaLabel: "Start gesprek", ctaHref: "/#contact" },
+      { slug: "starter", name: "Starter", tagline: "Voor wie net begint", price: "€ 1 250", priceNote: "eenmalig, excl. btw", features: ["Tot 5 pagina's", "Eigen design op jouw merk", "Eigen admin / CMS inbegrepen", "Mobile + dark mode", "Contactformulier + teksten inbegrepen", "2 extra talen inbegrepen", "Cookiebanner & GDPR inbegrepen", "Blog / nieuws-CMS inbegrepen", "SEO-behoud bij migratie inbegrepen", "SEO + sitemap + Open Graph", "1 ronde aanpassingen", "Care-abonnement inbegrepen"], ctaLabel: "Start gesprek", ctaHref: "/#contact" },
+      { slug: "pro", name: "Pro", tagline: "Meest gekozen", price: "€ 1 900", priceNote: "eenmalig, excl. btw", features: ["Tot 15 pagina's", "Alles van Starter — meertalig inbegrepen", "Reservatie / afspraken inbegrepen", "Ledenzone inbegrepen", "Formulieren + opvolging inbegrepen", "Structured data + analytics", "2 rondes aanpassingen", "Plus-abonnement inbegrepen"], highlighted: true, ctaLabel: "Start gesprek", ctaHref: "/#contact" },
+      { slug: "webshop", name: "Webshop", tagline: "Voor verkoop online", price: "vanaf € 3 900", priceNote: "eenmalig, excl. btw", features: ["Alles van Pro inbegrepen", "Volledige webshop met Mollie of Stripe", "Voorraad, kortingscodes, gift cards", "Klantportaal voor bestellingen", "Bestellingen-admin met facturen", "Tot 100 producten inbegrepen", "Plus-abonnement inbegrepen"], ctaLabel: "Bespreek shop", ctaHref: "/#contact" },
       { slug: "custom", name: "Custom", tagline: "Op maat", price: "op aanvraag", priceNote: "scope-afhankelijk", features: ["Multi-app systemen", "Integraties (boekhouding, CRM, ERP)", "Migratie van WordPress/Squarespace", "Custom admin workflows", "Booking-systemen, ticketing, ...", "Wat je ook nodig hebt"], ctaLabel: "Praat met me", ctaHref: "/#contact" },
     ],
     subscription: [
@@ -47,14 +47,20 @@ const data: Record<Locale, Bundle> = {
       { name: "Teksten / copywriting", price: "€ 145", desc: "Professionele, SEO-bewuste webteksten voor je pagina's." },
       { name: "Contactformulier", price: "€ 0", desc: "Contactformulier met spamfilter — standaard inbegrepen in elk pakket." },
       { name: "Admin / CMS", price: "€ 800", desc: "Eigen beheeromgeving om teksten, beelden en pagina's zelf te wijzigen — geen factuur per aanpassing." },
+      { name: "Eigen design op jouw merk", price: "€ 0", desc: "Maatwerk-ontwerp in jouw huisstijl, geen template." },
+      { name: "Mobile + dark mode", price: "€ 0", desc: "Volledig responsief, met automatische licht/donker-modus." },
+      { name: "SEO + sitemap + Open Graph", price: "€ 0", desc: "Technische SEO-basis, sitemap en nette social-previews." },
+      { name: "Structured data + analytics", price: "€ 0", desc: "Schema.org-data en privacyvriendelijke analytics." },
+      { name: "Newsletter signup", price: "€ 0", desc: "Inschrijfveld gekoppeld aan je mailinglijst." },
+      { name: "Extra ronde aanpassingen", price: "€ 0", desc: "Bijkomende revisieronde na oplevering (prijs op aanvraag)." },
     ],
   },
   fr: {
     oneShot: [
-      { slug: "onepager", name: "One-pager", tagline: "Commencer petit", price: "€ 750", priceNote: "unique, HTVA", features: ["1 page forte (tout en un scroll)", "Design propre à votre marque", "Admin propre pour tout modifier vous-même", "Mobile + dark mode", "Formulaire de contact", "SEO de base + Open Graph"], ctaLabel: "Démarrer", ctaHref: "/#contact" },
-      { slug: "starter", name: "Starter", tagline: "Pour bien démarrer", price: "€ 1 250", priceNote: "unique, HTVA", features: ["Jusqu'à 5 pages", "Design propre à votre marque", "Admin propre pour tout modifier vous-même", "Mobile + dark mode", "Formulaire de contact", "SEO + sitemap + Open Graph", "1 tour de modifications"], ctaLabel: "Démarrer", ctaHref: "/#contact" },
-      { slug: "pro", name: "Pro", tagline: "Le plus choisi", price: "€ 1 900", priceNote: "unique, HTVA", features: ["Jusqu'à 15 pages", "Bilingue (NL/FR ou NL/EN)", "Admin propre pour modifier le contenu", "Inscription newsletter", "Données structurées + analytics", "2 tours de modifications"], highlighted: true, ctaLabel: "Démarrer", ctaHref: "/#contact" },
-      { slug: "webshop", name: "Boutique", tagline: "Pour vendre en ligne", price: "dès € 3 900", priceNote: "unique, HTVA", features: ["Tout de Pro", "Boutique complète avec Mollie ou Stripe", "Stock, codes promo, cartes-cadeaux", "Espace client pour les commandes", "Admin commandes avec factures", "Jusqu'à 100 produits inclus"], ctaLabel: "Discuter boutique", ctaHref: "/#contact" },
+      { slug: "onepager", name: "One-pager", tagline: "Commencer petit", price: "€ 750", priceNote: "unique, HTVA", features: ["1 page forte (tout en un scroll)", "Design propre à votre marque", "Admin / CMS inclus", "Mobile + dark mode", "Formulaire de contact inclus", "Textes / rédaction inclus", "Bannière cookies & RGPD incluse", "1 langue supplémentaire incluse", "SEO de base + Open Graph", "Abonnement Care inclus"], ctaLabel: "Démarrer", ctaHref: "/#contact" },
+      { slug: "starter", name: "Starter", tagline: "Pour bien démarrer", price: "€ 1 250", priceNote: "unique, HTVA", features: ["Jusqu'à 5 pages", "Design propre à votre marque", "Admin / CMS inclus", "Mobile + dark mode", "Formulaire de contact + textes inclus", "2 langues supplémentaires incluses", "Bannière cookies & RGPD incluse", "CMS blog / actus inclus", "Préservation SEO (migration) incluse", "SEO + sitemap + Open Graph", "1 tour de modifications", "Abonnement Care inclus"], ctaLabel: "Démarrer", ctaHref: "/#contact" },
+      { slug: "pro", name: "Pro", tagline: "Le plus choisi", price: "€ 1 900", priceNote: "unique, HTVA", features: ["Jusqu'à 15 pages", "Tout de Starter — multilingue inclus", "Réservation / rendez-vous inclus", "Espace membres inclus", "Formulaires + suivi inclus", "Données structurées + analytics", "2 tours de modifications", "Abonnement Plus inclus"], highlighted: true, ctaLabel: "Démarrer", ctaHref: "/#contact" },
+      { slug: "webshop", name: "Boutique", tagline: "Pour vendre en ligne", price: "dès € 3 900", priceNote: "unique, HTVA", features: ["Tout de Pro inclus", "Boutique complète avec Mollie ou Stripe", "Stock, codes promo, cartes-cadeaux", "Espace client pour les commandes", "Admin commandes avec factures", "Jusqu'à 100 produits inclus", "Abonnement Plus inclus"], ctaLabel: "Discuter boutique", ctaHref: "/#contact" },
       { slug: "custom", name: "Sur mesure", tagline: "Personnalisé", price: "sur demande", priceNote: "selon le scope", features: ["Systèmes multi-apps", "Intégrations (compta, CRM, ERP)", "Migration WordPress/Squarespace", "Workflows admin personnalisés", "Systèmes de réservation, ticketing, ...", "Tout ce dont vous avez besoin"], ctaLabel: "Discutons-en", ctaHref: "/#contact" },
     ],
     subscription: [
@@ -75,14 +81,20 @@ const data: Record<Locale, Bundle> = {
       { name: "Textes / rédaction", price: "€ 145", desc: "Textes web professionnels et optimisés SEO pour vos pages." },
       { name: "Formulaire de contact", price: "€ 0", desc: "Formulaire de contact anti-spam — inclus dans chaque forfait." },
       { name: "Admin / CMS", price: "€ 800", desc: "Votre espace de gestion pour modifier textes, images et pages vous-même." },
+      { name: "Design propre à votre marque", price: "€ 0", desc: "Design sur mesure dans votre identité, pas de template." },
+      { name: "Mobile + dark mode", price: "€ 0", desc: "Entièrement responsive, avec mode clair/sombre automatique." },
+      { name: "SEO + sitemap + Open Graph", price: "€ 0", desc: "Base SEO technique, sitemap et aperçus sociaux soignés." },
+      { name: "Données structurées + analytics", price: "€ 0", desc: "Données Schema.org et analytics respectueux de la vie privée." },
+      { name: "Inscription newsletter", price: "€ 0", desc: "Champ d'inscription lié à votre liste de diffusion." },
+      { name: "Tour de modifications supplémentaire", price: "€ 0", desc: "Cycle de révision additionnel après livraison (prix sur demande)." },
     ],
   },
   en: {
     oneShot: [
-      { slug: "onepager", name: "One-pager", tagline: "Start small", price: "€ 750", priceNote: "one-off, excl. VAT", features: ["1 strong page (all on one scroll)", "Custom design on your brand", "Own admin to edit everything yourself", "Mobile + dark mode", "Contact form", "SEO basics + Open Graph"], ctaLabel: "Start a chat", ctaHref: "/#contact" },
-      { slug: "starter", name: "Starter", tagline: "For getting started", price: "€ 1,250", priceNote: "one-off, excl. VAT", features: ["Up to 5 pages", "Custom design on your brand", "Own admin to edit everything yourself", "Mobile + dark mode", "Contact form", "SEO + sitemap + Open Graph", "1 round of revisions"], ctaLabel: "Start a chat", ctaHref: "/#contact" },
-      { slug: "pro", name: "Pro", tagline: "Most chosen", price: "€ 1,900", priceNote: "one-off, excl. VAT", features: ["Up to 15 pages", "Bilingual (NL/FR or NL/EN)", "Own admin to edit content", "Newsletter signup", "Structured data + analytics", "2 rounds of revisions"], highlighted: true, ctaLabel: "Start a chat", ctaHref: "/#contact" },
-      { slug: "webshop", name: "Webshop", tagline: "For selling online", price: "from € 3,900", priceNote: "one-off, excl. VAT", features: ["Everything in Pro", "Full webshop with Mollie or Stripe", "Stock, discount codes, gift cards", "Customer portal for orders", "Orders admin with invoices", "Up to 100 products included"], ctaLabel: "Discuss a shop", ctaHref: "/#contact" },
+      { slug: "onepager", name: "One-pager", tagline: "Start small", price: "€ 750", priceNote: "one-off, excl. VAT", features: ["1 strong page (all on one scroll)", "Custom design on your brand", "Own admin / CMS included", "Mobile + dark mode", "Contact form included", "Copywriting / texts included", "Cookie & GDPR banner included", "1 extra language included", "SEO basics + Open Graph", "Care subscription included"], ctaLabel: "Start a chat", ctaHref: "/#contact" },
+      { slug: "starter", name: "Starter", tagline: "For getting started", price: "€ 1,250", priceNote: "one-off, excl. VAT", features: ["Up to 5 pages", "Custom design on your brand", "Own admin / CMS included", "Mobile + dark mode", "Contact form + texts included", "2 extra languages included", "Cookie & GDPR banner included", "Blog / news CMS included", "SEO migration safeguard included", "SEO + sitemap + Open Graph", "1 round of revisions", "Care subscription included"], ctaLabel: "Start a chat", ctaHref: "/#contact" },
+      { slug: "pro", name: "Pro", tagline: "Most chosen", price: "€ 1,900", priceNote: "one-off, excl. VAT", features: ["Up to 15 pages", "Everything in Starter — multilingual included", "Booking / appointments included", "Members area included", "Forms + follow-up included", "Structured data + analytics", "2 rounds of revisions", "Plus subscription included"], highlighted: true, ctaLabel: "Start a chat", ctaHref: "/#contact" },
+      { slug: "webshop", name: "Webshop", tagline: "For selling online", price: "from € 3,900", priceNote: "one-off, excl. VAT", features: ["Everything in Pro included", "Full webshop with Mollie or Stripe", "Stock, discount codes, gift cards", "Customer portal for orders", "Orders admin with invoices", "Up to 100 products included", "Plus subscription included"], ctaLabel: "Discuss a shop", ctaHref: "/#contact" },
       { slug: "custom", name: "Custom", tagline: "Tailor-made", price: "on request", priceNote: "scope-dependent", features: ["Multi-app systems", "Integrations (accounting, CRM, ERP)", "WordPress/Squarespace migration", "Custom admin workflows", "Booking systems, ticketing, ...", "Whatever you need"], ctaLabel: "Let's talk", ctaHref: "/#contact" },
     ],
     subscription: [
@@ -103,6 +115,12 @@ const data: Record<Locale, Bundle> = {
       { name: "Copywriting / texts", price: "€ 145", desc: "Professional, SEO-aware web copy for your pages." },
       { name: "Contact form", price: "€ 0", desc: "Anti-spam contact form — included in every package." },
       { name: "Admin / CMS", price: "€ 800", desc: "Your own admin to edit texts, images and pages yourself." },
+      { name: "Custom design on your brand", price: "€ 0", desc: "Bespoke design in your identity, no template." },
+      { name: "Mobile + dark mode", price: "€ 0", desc: "Fully responsive, with automatic light/dark mode." },
+      { name: "SEO + sitemap + Open Graph", price: "€ 0", desc: "Technical SEO base, sitemap and clean social previews." },
+      { name: "Structured data + analytics", price: "€ 0", desc: "Schema.org data and privacy-friendly analytics." },
+      { name: "Newsletter signup", price: "€ 0", desc: "Signup field connected to your mailing list." },
+      { name: "Extra revision round", price: "€ 0", desc: "Additional revision cycle after delivery (price on request)." },
     ],
   },
 };
