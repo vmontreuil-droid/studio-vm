@@ -83,6 +83,7 @@ export function PortailLogin({ locale }: { locale: Locale }) {
             className="hidden"
             aria-hidden
           />
+          <input type="hidden" name="locale" value={locale} />
           <div>
             <label
               htmlFor="email"
