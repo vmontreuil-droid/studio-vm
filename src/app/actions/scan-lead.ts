@@ -15,22 +15,22 @@ const T: Record<
   { subject: (h: string) => string; pre: string; cta: string; foot: string }
 > = {
   nl: {
-    subject: (h) => `Je site-analyse van ${h} staat klaar`,
-    pre: "Je volledige, eerlijke analyse staat voor je klaar in je beveiligde portaal — score, valkuilen, stack en het plan om het op te lossen.",
-    cta: "Bekijk je volledige analyse",
-    foot: "Deze link is persoonlijk. Vragen? Antwoord gerust op deze mail.",
+    subject: (h) => `Je klantenportaal voor ${h} staat klaar`,
+    pre: "Je persoonlijke klantenportaal staat klaar. Daarin vind je je volledige, eerlijke site-analyse — score, valkuilen, stack en het plan — plus je offerte op maat.",
+    cta: "Open je klantenportaal",
+    foot: "Deze link is persoonlijk en blijft geldig. Vragen? Antwoord gerust op deze mail.",
   },
   fr: {
-    subject: (h) => `Votre analyse de site de ${h} est prête`,
-    pre: "Votre analyse complète et honnête vous attend dans votre portail sécurisé — score, pièges, stack et le plan pour corriger.",
-    cta: "Voir votre analyse complète",
-    foot: "Ce lien est personnel. Une question ? Répondez à cet e-mail.",
+    subject: (h) => `Votre portail client pour ${h} est prêt`,
+    pre: "Votre portail client personnel est prêt. Vous y trouvez votre analyse de site complète et honnête — score, pièges, stack et le plan — ainsi que votre devis sur mesure.",
+    cta: "Ouvrir votre portail client",
+    foot: "Ce lien est personnel et reste valable. Une question ? Répondez à cet e-mail.",
   },
   en: {
-    subject: (h) => `Your site analysis for ${h} is ready`,
-    pre: "Your full, honest analysis is waiting in your secure portal — score, pitfalls, stack and the plan to fix it.",
-    cta: "View your full analysis",
-    foot: "This link is personal. Questions? Just reply to this email.",
+    subject: (h) => `Your client portal for ${h} is ready`,
+    pre: "Your personal client portal is ready. Inside you'll find your full, honest site analysis — score, pitfalls, stack and the plan — plus your tailored quote.",
+    cta: "Open your client portal",
+    foot: "This link is personal and stays valid. Questions? Just reply to this email.",
   },
 };
 
@@ -57,7 +57,7 @@ export async function submitScanLead(input: {
   const t = T[locale];
   const token = randomBytes(24).toString("base64url");
   const host = input.scan.host;
-  const portalUrl = `${siteUrl}/${locale}/portail/scan/${token}`;
+  const portalUrl = `${siteUrl}/${locale}/portail/${token}`;
 
   try {
     const { error } = await getSupabaseAdmin()

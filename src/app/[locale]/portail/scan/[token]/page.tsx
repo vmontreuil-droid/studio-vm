@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, ArrowLeft, RefreshCw } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import type { ScanResult } from "@/app/actions/scan";
@@ -17,6 +17,7 @@ type Row = { email: string; url: string; scan: ScanResult; created_at: string };
 const C: Record<
   Locale,
   {
+    backToPortal: string;
     eyebrow: string;
     title: string;
     intro: string;
@@ -39,6 +40,7 @@ const C: Record<
   }
 > = {
   nl: {
+    backToPortal: "Terug naar je portaal",
     eyebrow: "Jouw analyse",
     title: "Volledige site-analyse",
     intro:
@@ -73,6 +75,7 @@ const C: Record<
     scannedOn: "Gescand op",
   },
   fr: {
+    backToPortal: "Retour à votre portail",
     eyebrow: "Votre analyse",
     title: "Analyse complète du site",
     intro:
@@ -107,6 +110,7 @@ const C: Record<
     scannedOn: "Scanné le",
   },
   en: {
+    backToPortal: "Back to your portal",
     eyebrow: "Your analysis",
     title: "Full site analysis",
     intro:
@@ -164,6 +168,13 @@ export default async function ScanPortalPage({
     <main>
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+          <Link
+            href={localePath(locale, `/portail/${token}`)}
+            className="mb-6 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            {c.backToPortal}
+          </Link>
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
           </p>

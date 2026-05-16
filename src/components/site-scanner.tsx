@@ -262,7 +262,7 @@ const UI: Record<
       sentTitle: "Check je inbox",
       sentLead: (email) =>
         `Je volledige analyse is onderweg naar ${email}. Geen mail na een minuut? Kijk in spam — of open ’m hieronder meteen.`,
-      open: "Open mijn analyse nu",
+      open: "Open mijn klantenportaal",
       errEmail: "Vul een geldig e-mailadres in.",
       errGeneric:
         "Versturen lukte niet. Probeer opnieuw of mail rechtstreeks naar hallo@studio-vm.be.",
@@ -446,7 +446,7 @@ const UI: Record<
       sentTitle: "Vérifiez votre boîte mail",
       sentLead: (email) =>
         `Votre analyse complète part vers ${email}. Pas de mail après une minute ? Regardez dans les spams — ou ouvrez-la ci-dessous tout de suite.`,
-      open: "Ouvrir mon analyse maintenant",
+      open: "Ouvrir mon portail client",
       errEmail: "Saisissez une adresse e-mail valide.",
       errGeneric:
         "L'envoi a échoué. Réessayez ou écrivez directement à hallo@studio-vm.be.",
@@ -630,7 +630,7 @@ const UI: Record<
       sentTitle: "Check your inbox",
       sentLead: (email) =>
         `Your full analysis is on its way to ${email}. No mail after a minute? Check spam — or open it right below now.`,
-      open: "Open my analysis now",
+      open: "Open my client portal",
       errEmail: "Enter a valid email address.",
       errGeneric:
         "Sending failed. Try again or email hallo@studio-vm.be directly.",
