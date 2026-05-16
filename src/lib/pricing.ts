@@ -107,3 +107,36 @@ const data: Record<Locale, Bundle> = {
 export function getPricing(locale: Locale): Bundle {
   return data[locale];
 }
+
+// --- Offerte-bouwer (admin): prijzen als centen, NL-catalogus ---
+export function priceToCents(s: string): number {
+  // "€ 1 250" / "vanaf € 3 900" -> 125000 / 390000
+  const m = s.replace(/\s/g, "").match(/(\d+)/g);
+  if (!m) return 0;
+  return parseInt(m.join(""), 10) * 100;
+}
+
+export type CatalogItem = { key: string; name: string; cents: number; desc?: string };
+
+export function offerCatalog(): { bases: CatalogItem[]; addons: CatalogItem[] } {
+  const nl = data.nl;
+  const bases = nl.oneShot
+    .filter((t) => t.slug !== "custom")
+    .map((t) => ({
+      key: `base:${t.slug}`,
+      name: `${t.name} — ${t.tagline}`,
+      cents: priceToCents(t.price),
+    }));
+  const subs = nl.subscription.map((t) => ({
+    key: `sub:${t.slug}`,
+    name: `Abonnement ${t.name} (${t.price}/maand)`,
+    cents: 0,
+  }));
+  const addons = nl.addons.map((a, i) => ({
+    key: `addon:${i}`,
+    name: a.name,
+    cents: priceToCents(a.price),
+    desc: a.desc,
+  }));
+  return { bases, addons: [...addons, ...subs] };
+}

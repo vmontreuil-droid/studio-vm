@@ -10,7 +10,17 @@ export const dynamic = "force-dynamic";
 
 const L: Record<
   Locale,
-  { none: string; accept: string; reject: string; valid: string; proof: string }
+  {
+    none: string;
+    accept: string;
+    reject: string;
+    valid: string;
+    proof: string;
+    daysLeft: (n: number) => string;
+    expired: string;
+    reverse: string;
+    vatExcl: string;
+  }
 > = {
   nl: {
     none: "Nog geen offerte. Zodra ik er een klaarzet, zie je 'm hier.",
@@ -18,6 +28,10 @@ const L: Record<
     reject: "Afwijzen",
     valid: "Geldig tot",
     proof: "Bevestiging / PDF",
+    daysLeft: (n) => (n === 1 ? "nog 1 dag" : `nog ${n} dagen`),
+    expired: "vervallen",
+    reverse: "BTW verlegd (intracommunautair, 0%)",
+    vatExcl: "excl. 21% btw",
   },
   fr: {
     none: "Aucun devis pour l'instant.",
@@ -25,6 +39,10 @@ const L: Record<
     reject: "Refuser",
     valid: "Valable jusqu'au",
     proof: "Confirmation / PDF",
+    daysLeft: (n) => (n === 1 ? "1 jour restant" : `${n} jours restants`),
+    expired: "expiré",
+    reverse: "TVA autoliquidée (intracommunautaire, 0%)",
+    vatExcl: "hors 21% TVA",
   },
   en: {
     none: "No quote yet.",
@@ -32,6 +50,10 @@ const L: Record<
     reject: "Decline",
     valid: "Valid until",
     proof: "Confirmation / PDF",
+    daysLeft: (n) => (n === 1 ? "1 day left" : `${n} days left`),
+    expired: "expired",
+    reverse: "VAT reverse-charged (intra-EU, 0%)",
+    vatExcl: "excl. 21% VAT",
   },
 };
 
@@ -53,6 +75,24 @@ export default async function PortalOffers({
     .order("created_at", { ascending: false });
   const offers = (data as Offer[]) ?? [];
 
+  // Markeer als 'bekeken' (RLS staat update op eigen rijen toe).
+  const unseen = offers
+    .filter((o) => o.status === "open")
+    .map((o) => o.id);
+  if (unseen.length > 0) {
+    await sb
+      .from("offers")
+      .update({ viewed_at: new Date().toISOString() })
+      .in("id", unseen)
+      .is("viewed_at", null);
+  }
+
+  // force-dynamic pagina: serverklok is hier bewust de bron.
+  // eslint-disable-next-line react-hooks/purity
+  const todayMs = Date.now();
+  const daysUntil = (d: string) =>
+    Math.ceil((new Date(d).getTime() - todayMs) / 86400000);
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -64,13 +104,41 @@ export default async function PortalOffers({
           <div key={o.id} className="rounded-2xl border bg-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-semibold tracking-tight">{o.title}</p>
+                <p className="font-semibold tracking-tight">
+                  {o.offer_no ? (
+                    <span className="mr-2 font-mono text-xs text-muted">
+                      {o.offer_no}
+                    </span>
+                  ) : null}
+                  {o.title}
+                </p>
                 {o.amount_cents != null && (
-                  <p className="mt-1 font-mono text-sm">{eur(o.amount_cents)}</p>
+                  <p className="mt-1 font-mono text-sm">
+                    {eur(o.amount_cents)}{" "}
+                    <span className="text-[11px] text-muted">
+                      {o.vat_reverse ? l.reverse : l.vatExcl}
+                    </span>
+                  </p>
+                )}
+                {o.items && o.items.length > 0 && (
+                  <ul className="mt-2 space-y-0.5 text-xs text-muted">
+                    {o.items.map((it, i) => (
+                      <li key={i}>
+                        {it.label} — {eur(it.cents)}
+                      </li>
+                    ))}
+                  </ul>
                 )}
                 {o.valid_until && (
-                  <p className="mt-1 font-mono text-[11px] text-muted">
+                  <p className="mt-2 font-mono text-[11px] text-muted">
                     {l.valid} {dt(o.valid_until, locale)}
+                    {o.status === "open"
+                      ? ` · ${
+                          daysUntil(o.valid_until) >= 0
+                            ? l.daysLeft(daysUntil(o.valid_until))
+                            : l.expired
+                        }`
+                      : ""}
                   </p>
                 )}
               </div>

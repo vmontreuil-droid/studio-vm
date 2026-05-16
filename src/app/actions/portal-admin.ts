@@ -7,6 +7,8 @@ import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
 import { ensurePortalUser, deletePortalUser } from "@/lib/portal-access";
+import { offerCatalog } from "@/lib/pricing";
+import { checkVies } from "@/lib/vies";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
@@ -126,26 +128,94 @@ export async function createOffer(formData: FormData): Promise<void> {
   const email = String(formData.get("client_email") ?? "")
     .trim()
     .toLowerCase();
-  const title = String(formData.get("title") ?? "").trim().slice(0, 200);
+  const title =
+    String(formData.get("title") ?? "").trim().slice(0, 200) || "Offerte";
   const body = String(formData.get("body") ?? "").trim().slice(0, 8000);
-  const amount = cents(formData.get("amount"));
-  const validUntil = String(formData.get("valid_until") ?? "").trim();
-  if (!email || !title) return;
+  const internalNote = String(formData.get("internal_note") ?? "")
+    .trim()
+    .slice(0, 4000);
+  const clientName = String(formData.get("client_name") ?? "")
+    .trim()
+    .slice(0, 160);
+  const clientCompany = String(formData.get("client_company") ?? "")
+    .trim()
+    .slice(0, 160);
+  const clientAddress = String(formData.get("client_address") ?? "")
+    .trim()
+    .slice(0, 400);
+  const vatRaw = String(formData.get("vat_number") ?? "")
+    .trim()
+    .slice(0, 32);
+  const validDays = [7, 14, 30].includes(
+    Number(formData.get("valid_days")),
+  )
+    ? Number(formData.get("valid_days"))
+    : 7;
+  if (!email) return;
 
-  const { error } = await getSupabaseAdmin().from("offers").insert({
+  const db = getSupabaseAdmin();
+  const { bases, addons } = offerCatalog();
+  const picked: { label: string; cents: number }[] = [];
+  const baseKey = String(formData.get("base") ?? "");
+  const base = bases.find((b) => b.key === baseKey);
+  if (base) picked.push({ label: base.name, cents: base.cents });
+  for (const k of formData.getAll("addon").map(String)) {
+    const a = addons.find((x) => x.key === k);
+    if (a) picked.push({ label: a.name, cents: a.cents });
+  }
+  const computed = picked.reduce((s, p) => s + p.cents, 0);
+  const override = cents(formData.get("amount"));
+  const amount = override > 0 ? override : computed;
+
+  // BTW-controle via VIES (faalt nooit de opslag).
+  let vatValid: boolean | null = null;
+  let vatName: string | null = null;
+  let vatReverse = false;
+  if (vatRaw) {
+    const v = await checkVies(vatRaw);
+    if (v) {
+      vatValid = v.valid;
+      vatName = v.name;
+      vatReverse = v.valid === true && v.country !== "BE";
+    }
+  }
+
+  // Offertenummer OFF-{jaar}-{volgnr}
+  const year = new Date().getFullYear();
+  const { count } = await db
+    .from("offers")
+    .select("id", { count: "exact", head: true });
+  const offerNo = `OFF-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
+
+  const validUntil = new Date(Date.now() + validDays * 86400000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { error } = await db.from("offers").insert({
     client_email: email,
+    offer_no: offerNo,
     title,
     body: body || null,
+    items: picked,
     amount_cents: amount || null,
-    valid_until: validUntil || null,
+    valid_days: validDays,
+    valid_until: validUntil,
+    internal_note: internalNote || null,
+    client_name: clientName || null,
+    client_company: clientCompany || null,
+    client_address: clientAddress || null,
+    vat_number: vatRaw || null,
+    vat_valid: vatValid,
+    vat_name: vatName,
+    vat_reverse: vatReverse,
   });
   if (error) return;
   await ensurePortalUser(email);
   await notifyClient(email, "offer", [
-    `Er staat een nieuwe offerte voor je klaar: <strong>${title}</strong>${
+    `Er staat een nieuwe offerte voor je klaar: <strong>${title}</strong> (${offerNo})${
       amount ? ` — € ${(amount / 100).toFixed(2)}` : ""
     }.`,
-    "Bekijk 'm in je portaal en aanvaard of wijs af met één klik.",
+    `Geldig tot ${validUntil}. Bekijk 'm in je portaal en aanvaard of wijs af met één klik.`,
   ]);
   revalidatePath("/admin/klanten", "layout");
   return;

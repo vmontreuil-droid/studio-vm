@@ -3,6 +3,7 @@ import { ArrowLeft, Mail, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { offerCatalog } from "@/lib/pricing";
 import type { ScanResult } from "@/app/actions/scan";
 import {
   createOffer,
@@ -135,9 +136,17 @@ export default async function AdminKlantDetail({
   ]);
   type Offer = {
     id: string;
+    offer_no: string | null;
     title: string;
     amount_cents: number | null;
     status: string;
+    valid_until: string | null;
+    items: { label: string; cents: number }[] | null;
+    vat_number: string | null;
+    vat_valid: boolean | null;
+    vat_reverse: boolean | null;
+    vat_name: string | null;
+    viewed_at: string | null;
     created_at: string;
   };
   type Invoice = {
@@ -216,6 +225,8 @@ export default async function AdminKlantDetail({
           : "bg-accent/15 text-accent";
   const field =
     "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
+  const catalog = offerCatalog();
+  const cEur = (c: number) => `€ ${(c / 100).toFixed(2)}`;
 
   const gradeColor = (s: number) =>
     s >= 75
@@ -432,67 +443,168 @@ export default async function AdminKlantDetail({
       {tab === "offertes" && (
         <>
       {/* OFFERTES */}
-      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+      <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
         Offertes
       </h2>
       <div className="mt-4 space-y-3">
         {offers.map((o) => (
-          <div
-            key={o.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
-          >
-            <div className="min-w-0">
-              <p className="font-medium">
-                {o.title}{" "}
-                <span className="text-muted">· {eur(o.amount_cents)}</span>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span
-                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
-                  o.status,
-                )}`}
-              >
-                {o.status}
-              </span>
-              <form action={setOfferStatus.bind(null, o.id, "akkoord")}>
-                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                  ✓
-                </button>
-              </form>
-              <form action={setOfferStatus.bind(null, o.id, "afgewezen")}>
-                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                  ✕
-                </button>
-              </form>
+          <div key={o.id} className="rounded-2xl border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-medium">
+                  {o.offer_no ? `${o.offer_no} · ` : ""}
+                  {o.title}{" "}
+                  <span className="text-muted">· {eur(o.amount_cents)}</span>
+                </p>
+                <p className="mt-1 font-mono text-[11px] text-muted">
+                  {o.valid_until ? `geldig tot ${o.valid_until}` : ""}
+                  {o.vat_number
+                    ? ` · BTW ${o.vat_number} ${
+                        o.vat_valid === true
+                          ? "✓"
+                          : o.vat_valid === false
+                            ? "✕"
+                            : "?"
+                      }`
+                    : ""}
+                  {o.vat_reverse ? " · BTW verlegd" : ""}
+                  {o.viewed_at ? " · bekeken" : " · niet bekeken"}
+                </p>
+                {o.items && o.items.length > 0 && (
+                  <ul className="mt-2 space-y-0.5 text-xs text-muted">
+                    {o.items.map((it, i) => (
+                      <li key={i}>
+                        {it.label} — {cEur(it.cents)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                    o.status,
+                  )}`}
+                >
+                  {o.status}
+                </span>
+                <form action={setOfferStatus.bind(null, o.id, "akkoord")}>
+                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                    ✓
+                  </button>
+                </form>
+                <form action={setOfferStatus.bind(null, o.id, "afgewezen")}>
+                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                    ✕
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         ))}
+
         <form
           action={createOffer}
-          className="rounded-2xl border border-dashed bg-card/50 p-4"
+          className="space-y-4 rounded-2xl border border-dashed bg-card/50 p-5"
         >
           <input type="hidden" name="client_email" value={email} />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <input name="title" required placeholder="Titel" className={field} />
+
+          <div>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Klantgegevens
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input
+                name="client_name"
+                placeholder="Naam contactpersoon"
+                className={field}
+              />
+              <input
+                name="client_company"
+                placeholder="Bedrijf"
+                className={field}
+              />
+            </div>
+            <input
+              name="client_address"
+              placeholder="Adres"
+              className={`mt-2 ${field}`}
+            />
+            <input
+              name="vat_number"
+              placeholder="BTW-nummer (bv. BE0123456789) — wordt gecontroleerd via VIES"
+              className={`mt-2 ${field}`}
+            />
+          </div>
+
+          <div>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Pakket
+            </p>
+            <select name="base" defaultValue="" className={field}>
+              <option value="">— Geen basispakket —</option>
+              {catalog.bases.map((b) => (
+                <option key={b.key} value={b.key}>
+                  {b.name} · {cEur(b.cents)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Opties
+            </p>
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {catalog.addons.map((a) => (
+                <label
+                  key={a.key}
+                  className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
+                >
+                  <input type="checkbox" name="addon" value={a.key} />
+                  <span className="flex-1">{a.name}</span>
+                  <span className="font-mono text-xs text-muted">
+                    {a.cents ? cEur(a.cents) : "—"}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            <select name="valid_days" defaultValue="7" className={field}>
+              <option value="7">Bedenktijd: 1 week</option>
+              <option value="14">Bedenktijd: 14 dagen</option>
+              <option value="30">Bedenktijd: 30 dagen</option>
+            </select>
+            <input
+              name="title"
+              placeholder="Titel (optioneel)"
+              className={field}
+            />
             <input
               name="amount"
-              placeholder="Bedrag €"
+              placeholder="Totaal override € (optioneel)"
               className={field}
             />
           </div>
+
           <textarea
             name="body"
             rows={2}
-            placeholder="Omschrijving (optioneel)"
-            className={`mt-2 ${field}`}
+            placeholder="Omschrijving voor de klant (optioneel)"
+            className={field}
           />
-          <div className="mt-2 flex items-center gap-2">
-            <input type="date" name="valid_until" className={field} />
-            <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
-              Offerte sturen
-            </button>
-          </div>
+          <textarea
+            name="internal_note"
+            rows={2}
+            placeholder="Interne notitie (enkel voor jou — niet zichtbaar voor de klant)"
+            className={field}
+          />
+
+          <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Offerte aanmaken &amp; versturen
+          </button>
         </form>
       </div>
 

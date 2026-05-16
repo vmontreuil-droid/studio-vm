@@ -9,11 +9,14 @@ export type ScanRow = {
 };
 export type Offer = {
   id: string;
+  offer_no: string | null;
   title: string;
   body: string | null;
   amount_cents: number | null;
   status: string;
   valid_until: string | null;
+  items: { label: string; cents: number }[] | null;
+  vat_reverse: boolean | null;
   created_at: string;
 };
 export type Invoice = {
