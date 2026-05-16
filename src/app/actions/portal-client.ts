@@ -1,10 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { supabaseConfigured } from "@/lib/supabase/config";
+import { redirect } from "next/navigation";
+import {
+  supabaseConfigured,
+  mollieConfigured,
+  siteUrl,
+} from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
+import { createMolliePayment } from "@/lib/mollie";
 
 const STUDIO_INBOX = "hallo@studio-vm.be";
 
@@ -103,6 +109,66 @@ export async function replyTicket(
   ]);
   revalidatePath("/[locale]/portail/dashboard", "page");
   return;
+}
+
+export async function setNewsletter(on: boolean): Promise<void> {
+  const email = await authedEmail();
+  if (!email) return;
+  const db = getSupabaseAdmin();
+  if (on) {
+    await db.from("newsletter_subscribers").upsert(
+      {
+        email,
+        locale: "nl",
+        source: "portaal",
+        active: true,
+        unsubscribed_at: null,
+      },
+      { onConflict: "email" },
+    );
+  } else {
+    await db
+      .from("newsletter_subscribers")
+      .update({ active: false, unsubscribed_at: new Date().toISOString() })
+      .eq("email", email);
+  }
+  revalidatePath("/[locale]/portail/dashboard", "page");
+  return;
+}
+
+export async function payInvoice(id: string): Promise<void> {
+  const email = await authedEmail();
+  const facturen = `${siteUrl}/nl/portail/dashboard/facturen`;
+  if (!email || !mollieConfigured) redirect(facturen);
+
+  const sb = await getSupabaseServer();
+  const { data } = await sb
+    .from("invoices")
+    .select("id, number, amount_cents, status")
+    .eq("id", id)
+    .maybeSingle();
+  const inv = data as
+    | { id: string; number: string; amount_cents: number; status: string }
+    | null;
+  if (!inv || inv.status === "betaald" || inv.amount_cents <= 0) {
+    redirect(facturen);
+  }
+
+  const pay = await createMolliePayment({
+    amountCents: inv!.amount_cents,
+    description: `Factuur ${inv!.number} — Studio VM`,
+    redirectUrl: facturen,
+    webhookUrl: `${siteUrl}/api/mollie/webhook`,
+    metadata: { invoice_id: inv!.id },
+  });
+  if (!pay) redirect(facturen);
+
+  await getSupabaseAdmin()
+    .from("invoices")
+    .update({ mollie_payment_id: pay!.id })
+    .eq("id", inv!.id);
+
+  redirect(pay!.checkoutUrl);
 }
 
 export async function toggleChecklistItem(

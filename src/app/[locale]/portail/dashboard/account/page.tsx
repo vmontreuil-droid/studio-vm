@@ -1,8 +1,10 @@
 import { redirect, notFound } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { signOut } from "@/app/actions/portail";
+import { setNewsletter } from "@/app/actions/portal-client";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { PORTAL_T } from "@/lib/portal-shared";
 import { LangSwitcher } from "@/components/lang-switcher";
@@ -11,7 +13,18 @@ export const dynamic = "force-dynamic";
 
 const L: Record<
   Locale,
-  { email: string; lang: string; sessionTitle: string; sessionText: string }
+  {
+    email: string;
+    lang: string;
+    sessionTitle: string;
+    sessionText: string;
+    mailTitle: string;
+    mailText: string;
+    mailOn: string;
+    mailOff: string;
+    subOn: string;
+    subOff: string;
+  }
 > = {
   nl: {
     email: "E-mailadres",
@@ -19,6 +32,13 @@ const L: Record<
     sessionTitle: "Sessie",
     sessionText:
       "Je blijft ingelogd op dit toestel tot je uitlogt. Inloggen gaat altijd via een veilige login-link — geen wachtwoord.",
+    mailTitle: "Mailvoorkeuren",
+    mailText:
+      "Belangrijke mails over je project (offertes, facturen, tickets) krijg je altijd. Updates & tips zijn optioneel.",
+    mailOn: "Updates & tips: aan",
+    mailOff: "Updates & tips: uit",
+    subOn: "Uitschrijven",
+    subOff: "Inschrijven",
   },
   fr: {
     email: "Adresse e-mail",
@@ -26,6 +46,13 @@ const L: Record<
     sessionTitle: "Session",
     sessionText:
       "Vous restez connecté sur cet appareil jusqu'à la déconnexion. La connexion se fait toujours via un lien sécurisé — sans mot de passe.",
+    mailTitle: "Préférences e-mail",
+    mailText:
+      "Les e-mails importants (devis, factures, tickets) sont toujours envoyés. Les updates & astuces sont optionnels.",
+    mailOn: "Updates & astuces : activé",
+    mailOff: "Updates & astuces : désactivé",
+    subOn: "Se désinscrire",
+    subOff: "S'inscrire",
   },
   en: {
     email: "Email address",
@@ -33,6 +60,13 @@ const L: Record<
     sessionTitle: "Session",
     sessionText:
       "You stay logged in on this device until you sign out. Login is always via a secure link — no password.",
+    mailTitle: "Email preferences",
+    mailText:
+      "Important project emails (quotes, invoices, tickets) are always sent. Updates & tips are optional.",
+    mailOn: "Updates & tips: on",
+    mailOff: "Updates & tips: off",
+    subOn: "Unsubscribe",
+    subOff: "Subscribe",
   },
 };
 
@@ -51,6 +85,16 @@ export default async function PortalAccount({
   const {
     data: { user },
   } = await sb.auth.getUser();
+
+  let newsletterOn = false;
+  if (user?.email) {
+    const { data: sub } = await getSupabaseAdmin()
+      .from("newsletter_subscribers")
+      .select("active")
+      .eq("email", user.email.toLowerCase())
+      .maybeSingle();
+    newsletterOn = Boolean((sub as { active?: boolean } | null)?.active);
+  }
 
   async function out() {
     "use server";
@@ -97,6 +141,34 @@ export default async function PortalAccount({
             {t.signout}
           </button>
         </form>
+      </div>
+
+      <div className="mt-6 rounded-2xl border bg-card p-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+          {l.mailTitle}
+        </p>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+          {l.mailText}
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-4">
+          <span
+            className={`rounded-full px-3 py-1 font-mono text-[11px] ${
+              newsletterOn
+                ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                : "bg-muted/15 text-muted"
+            }`}
+          >
+            {newsletterOn ? l.mailOn : l.mailOff}
+          </span>
+          <form action={setNewsletter.bind(null, !newsletterOn)}>
+            <button
+              type="submit"
+              className="rounded-full border px-5 py-2 text-sm transition-colors hover:bg-card-hover"
+            >
+              {newsletterOn ? l.subOn : l.subOff}
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );

@@ -33,3 +33,9 @@ export const siteUrl =
 export const adminPassword = process.env.ADMIN_PASSWORD ?? "";
 export const leadsConfigured = monitorConfigured;
 export const adminConfigured = Boolean(monitorConfigured && adminPassword);
+
+// Online betalen via Mollie (optioneel). Zonder MOLLIE_API_KEY blijft de
+// "Betaal nu"-knop verborgen — facturen tonen dan enkel hun status.
+// Sleutel: Mollie dashboard → Developers → API keys (test_ of live_).
+export const mollieApiKey = process.env.MOLLIE_API_KEY ?? "";
+export const mollieConfigured = Boolean(mollieApiKey);

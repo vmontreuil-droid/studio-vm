@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
@@ -7,24 +8,30 @@ import { eur, dt, badge, PORTAL_T, type Offer } from "@/lib/portal-shared";
 
 export const dynamic = "force-dynamic";
 
-const L: Record<Locale, { none: string; accept: string; reject: string; valid: string }> = {
+const L: Record<
+  Locale,
+  { none: string; accept: string; reject: string; valid: string; proof: string }
+> = {
   nl: {
     none: "Nog geen offerte. Zodra ik er een klaarzet, zie je 'm hier.",
     accept: "Aanvaarden",
     reject: "Afwijzen",
     valid: "Geldig tot",
+    proof: "Bevestiging / PDF",
   },
   fr: {
     none: "Aucun devis pour l'instant.",
     accept: "Accepter",
     reject: "Refuser",
     valid: "Valable jusqu'au",
+    proof: "Confirmation / PDF",
   },
   en: {
     none: "No quote yet.",
     accept: "Accept",
     reject: "Decline",
     valid: "Valid until",
+    proof: "Confirmation / PDF",
   },
 };
 
@@ -93,6 +100,14 @@ export default async function PortalOffers({
                   </button>
                 </form>
               </div>
+            )}
+            {o.status === "akkoord" && (
+              <Link
+                href={`/${locale}/portail/dashboard/offertes/${o.id}/akkoord`}
+                className="mt-4 inline-flex rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
+              >
+                {l.proof}
+              </Link>
             )}
           </div>
         ))}

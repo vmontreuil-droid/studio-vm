@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { supabaseConfigured } from "@/lib/supabase/config";
+import { supabaseConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { payInvoice } from "@/app/actions/portal-client";
 import { eur, dt, badge, PORTAL_T, type Invoice } from "@/lib/portal-shared";
 
 export const dynamic = "force-dynamic";
@@ -117,6 +118,13 @@ export default async function PortalPayments({
                 >
                   PDF
                 </a>
+              )}
+              {mollieConfigured && i.status !== "betaald" && (
+                <form action={payInvoice.bind(null, i.id)}>
+                  <button className="rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90">
+                    {locale === "fr" ? "Payer" : locale === "en" ? "Pay now" : "Betaal nu"}
+                  </button>
+                </form>
               )}
             </div>
           </div>
