@@ -1008,14 +1008,63 @@ export default function OffertePage() {
                       : eur(rest)}
                   </strong>
                 </div>
-                <div className="mt-2 flex items-center justify-between border-t pt-2">
-                  <span className="text-muted">{c.monthRow}</span>
-                  <strong>
-                    {subTier ? eur(monthlyAfter) : "—"}
-                    {subTier ? c.perMonthShort : ""}
-                  </strong>
+                <div className="mt-2 border-t pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted">{c.monthRow}</span>
+                    <strong>
+                      {eur(monthlyAfter)}
+                      {c.perMonthShort}
+                    </strong>
+                  </div>
+                  <div className="mt-1.5 space-y-0.5 font-mono text-[10px] text-muted">
+                    {term > 0 && plan.eligible && (
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {locale === "fr"
+                            ? "Part mensuelle projet"
+                            : locale === "en"
+                              ? "Project instalment"
+                              : "Maanddeel project"}
+                        </span>
+                        <span>{eur(plan.monthly)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span>
+                        {locale === "fr"
+                          ? "Maintenance"
+                          : locale === "en"
+                            ? "Maintenance"
+                            : "Onderhoud"}
+                      </span>
+                      <span>
+                        {subTier
+                          ? eur(subTier.cents)
+                          : locale === "fr"
+                            ? "à choisir"
+                            : locale === "en"
+                              ? "pick one"
+                              : "kies abonnement"}
+                      </span>
+                    </div>
+                    {mail !== "none" && (
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {locale === "fr"
+                            ? "E-mail"
+                            : locale === "en"
+                              ? "Email"
+                              : "E-mail"}
+                          {mail === "team"
+                            ? ` (${Math.max(1, users)}×)`
+                            : ""}
+                        </span>
+                        <span>{eur(mailMonthly)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-1 font-mono text-[10px] text-muted">
+                <p className="mt-1.5 font-mono text-[10px] text-muted">
                   {c.monthFromNote}
                 </p>
                 <p className="mt-3 text-xs leading-relaxed text-muted">
