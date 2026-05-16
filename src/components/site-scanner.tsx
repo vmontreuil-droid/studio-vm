@@ -474,13 +474,14 @@ const UI: Record<
       ],
       mod: {
         base_starter: { name: "Basis-site (tot ±8 pagina's)", desc: "Eigen design, mobiel, contact, SEO-fundament — schoon herbouwd." },
-        base_pro: { name: "Volwaardige site (Pro)", desc: "Meerdere secties, eigen admin om alles zelf te wijzigen." },
+        base_pro: { name: "Volwaardige site (Pro)", desc: "Meerdere secties, schoon gebouwd en klaar om mee te groeien." },
         base_webshop: { name: "Webshop", desc: "Volledige shop (Mollie/Stripe), voorraad, bestellingen-admin." },
         multilingual: { name: "Meertalig", desc: "Zelfde inhoud, nette taalswitch + hreflang voor SEO." },
         forms: { name: "Formulieren + opvolging", desc: "Contact/offerte-formulieren met spamfilter en mailopvolging." },
         booking: { name: "Reservatiemodule", desc: "Afspraken/boekingen met agenda en bevestigingsmails." },
         blog: { name: "Blog / nieuws-CMS", desc: "Eigen redactie-omgeving voor artikels — zonder WordPress." },
         members: { name: "Ledenzone", desc: "Afgeschermd gedeelte met logins en rollen." },
+        admin: { name: "Eigen admin / CMS", desc: "Beheer zelf je teksten, beelden en pagina's — geen factuur voor elke wijziging." },
         content: { name: "Contentmigratie", desc: "Bestaande pagina's overgezet, geschaald op de omvang van je site." },
         seoPreserve: { name: "SEO-behoud & redirects", desc: "Volledig 301-plan + sitemap zodat je niet terugvalt in Google." },
         photoshoot: { name: "Fotoshoot / beeldmateriaal", desc: "Geen eigen foto's? Een halve dag professionele shoot van je zaak, producten of team — bewerkt en webklaar." },
@@ -632,13 +633,14 @@ const UI: Record<
       ],
       mod: {
         base_starter: { name: "Site de base (jusqu'à ±8 pages)", desc: "Design propre, mobile, contact, fondation SEO — recodé proprement." },
-        base_pro: { name: "Site complet (Pro)", desc: "Plusieurs sections, admin pour tout modifier vous-même." },
+        base_pro: { name: "Site complet (Pro)", desc: "Plusieurs sections, proprement construit et prêt à évoluer." },
         base_webshop: { name: "Boutique", desc: "Boutique complète (Mollie/Stripe), stock, admin commandes." },
         multilingual: { name: "Multilingue", desc: "Même contenu, bascule de langue propre + hreflang SEO." },
         forms: { name: "Formulaires + suivi", desc: "Formulaires contact/devis avec anti-spam et suivi mail." },
         booking: { name: "Module de réservation", desc: "Rendez-vous/réservations avec agenda et confirmations." },
         blog: { name: "CMS blog / actus", desc: "Environnement de rédaction propre — sans WordPress." },
         members: { name: "Espace membres", desc: "Zone protégée avec logins et rôles." },
+        admin: { name: "Admin / CMS propre", desc: "Gérez vous-même textes, images et pages — pas de facture pour chaque modification." },
         content: { name: "Migration du contenu", desc: "Pages existantes transférées, dimensionné selon la taille du site." },
         seoPreserve: { name: "Préservation SEO & redirections", desc: "Plan 301 complet + sitemap pour ne pas chuter dans Google." },
         photoshoot: { name: "Shooting photo / visuels", desc: "Pas de photos exploitables ? Une demi-journée de shooting pro de votre activité, produits ou équipe — retouché et prêt pour le web." },
@@ -790,13 +792,14 @@ const UI: Record<
       ],
       mod: {
         base_starter: { name: "Base site (up to ±8 pages)", desc: "Custom design, mobile, contact, SEO foundation — cleanly rebuilt." },
-        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, own admin to edit everything yourself." },
+        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, cleanly built and ready to scale." },
         base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
         multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
         forms: { name: "Forms + follow-up", desc: "Contact/quote forms with spam filter and mail follow-up." },
         booking: { name: "Booking module", desc: "Appointments/bookings with calendar and confirmations." },
         blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
         members: { name: "Member area", desc: "Gated section with logins and roles." },
+        admin: { name: "Own admin / CMS", desc: "Manage texts, images and pages yourself — no invoice for every change." },
         content: { name: "Content migration", desc: "Existing pages moved over, scaled to your site's size." },
         seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
         photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
@@ -937,6 +940,8 @@ export function SiteScanner({
     if (inv.booking) addons.push({ key: "booking", price: 600 });
     if (inv.blog) addons.push({ key: "blog", price: 350 });
     if (inv.members) addons.push({ key: "members", price: 900 });
+    // Elke build bevat een eigen admin/CMS — als aparte, duidelijke post.
+    addons.push({ key: "admin", price: 800 });
     addons.push({ key: "content", price: contentPrice });
     addons.push({ key: "seoPreserve", price: 250 });
     const oneOffLow =
