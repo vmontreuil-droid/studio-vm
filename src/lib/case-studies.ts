@@ -105,20 +105,20 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       metrics: [
         { label: "Talen", before: "1 (NL)", after: "2 (NL/FR)" },
         { label: "Beheer-systemen", before: "los van Cottage", after: "gedeeld" },
-        { label: "Reservatie-bevestiging", before: "ad hoc", after: "< 1 dag" },
+        { label: "Kaart & events aanpassen", before: "via webdev", after: "zelf, in min" },
       ],
       decisionsTitle: "Belangrijkste keuzes",
       decisions: [
         { title: "Gedeeld backend, aparte huid", rationale: "Cottage en Bar'Botte delen één admin maar tonen elk hun eigen identiteit. Eén keer beheren, twee zaken bediend." },
         { title: "FR niet als bijzaak", rationale: "De Franse versie is geen knop-in-de-hoek maar een volwaardige route met eigen SEO. Aan de taalgrens wordt in beide talen gezocht." },
-        { title: "Reservatie zonder platform", rationale: "Geen externe boekingstool met commissie en account-muur — een eigen formulier dat rechtstreeks naar de zaak mailt." },
+        { title: "Zelf kaart & events beheren", rationale: "Geen reservaties — wél een eigen admin waar de zaak de kaart en events zelf in enkele minuten aanpast. Geen webdev-factuur per wijziging." },
       ],
       timelineTitle: "Tijdlijn",
       timeline: [
         { phase: "Week 1 — Identiteit", detail: "Bepalen wat Bar'Botte onderscheidt van Cottage binnen één systeem." },
         { phase: "Week 2 — i18n-architectuur", detail: "NL/FR routes, taaldetectie, hreflang correct opgezet." },
-        { phase: "Week 3 — Build", detail: "Gedeelde admin uitgebreid, reservatieflow, vertaalbare content." },
-        { phase: "Week 4 — Launch", detail: "Live in beide talen, reservaties getest end-to-end." },
+        { phase: "Week 3 — Build", detail: "Gedeelde admin uitgebreid met kaart- & events-beheer, vertaalbare content." },
+        { phase: "Week 4 — Launch", detail: "Live in beide talen, kaart & events end-to-end getest." },
       ],
       reflectionTitle: "Wat ik zou herdoen",
       reflection:
@@ -131,20 +131,20 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       metrics: [
         { label: "Langues", before: "1 (NL)", after: "2 (NL/FR)" },
         { label: "Systèmes de gestion", before: "séparé de Cottage", after: "partagé" },
-        { label: "Confirmation réservation", before: "ad hoc", after: "< 1 jour" },
+        { label: "Carte & events", before: "via webdev", after: "soi-même, en min" },
       ],
       decisionsTitle: "Choix clés",
       decisions: [
         { title: "Backend partagé, peau séparée", rationale: "Cottage et Bar'Botte partagent un admin mais montrent chacun leur identité. Gérer une fois, servir deux établissements." },
         { title: "Le FR pas en accessoire", rationale: "La version française n'est pas un bouton dans un coin mais une route à part entière avec son SEO. Près de la frontière linguistique, on cherche dans les deux langues." },
-        { title: "Réservation sans plateforme", rationale: "Pas d'outil de réservation externe avec commission et mur de compte — un formulaire propre qui écrit directement à l'établissement." },
+        { title: "Gérer soi-même carte & events", rationale: "Pas de réservations — mais un admin propre où l'établissement adapte lui-même la carte et les events en quelques minutes. Pas de facture webdev par changement." },
       ],
       timelineTitle: "Calendrier",
       timeline: [
         { phase: "Semaine 1 — Identité", detail: "Définir ce qui distingue Bar'Botte de Cottage dans un seul système." },
         { phase: "Semaine 2 — Architecture i18n", detail: "Routes NL/FR, détection de langue, hreflang correct." },
-        { phase: "Semaine 3 — Build", detail: "Admin partagé étendu, flux de réservation, contenu traduisible." },
-        { phase: "Semaine 4 — Lancement", detail: "En ligne dans les deux langues, réservations testées de bout en bout." },
+        { phase: "Semaine 3 — Build", detail: "Admin partagé étendu avec gestion carte & events, contenu traduisible." },
+        { phase: "Semaine 4 — Lancement", detail: "En ligne dans les deux langues, carte & events testés de bout en bout." },
       ],
       reflectionTitle: "Ce que je referais",
       reflection:
@@ -157,20 +157,20 @@ const data: Record<string, Record<Locale, CaseStudy>> = {
       metrics: [
         { label: "Languages", before: "1 (NL)", after: "2 (NL/FR)" },
         { label: "Management systems", before: "separate from Cottage", after: "shared" },
-        { label: "Reservation confirmation", before: "ad hoc", after: "< 1 day" },
+        { label: "Edit menu & events", before: "via webdev", after: "self, in min" },
       ],
       decisionsTitle: "Key decisions",
       decisions: [
         { title: "Shared backend, separate skin", rationale: "Cottage and Bar'Botte share one admin but each show their own identity. Manage once, serve two venues." },
         { title: "FR not as an afterthought", rationale: "The French version isn't a button in a corner but a full route with its own SEO. Near the language border people search in both languages." },
-        { title: "Reservations without a platform", rationale: "No external booking tool with commission and account wall — an own form that emails the venue directly." },
+        { title: "Self-manage menu & events", rationale: "No reservations — but an own admin where the venue updates the menu and events itself in minutes. No webdev invoice per change." },
       ],
       timelineTitle: "Timeline",
       timeline: [
         { phase: "Week 1 — Identity", detail: "Define what sets Bar'Botte apart from Cottage within one system." },
         { phase: "Week 2 — i18n architecture", detail: "NL/FR routes, language detection, hreflang set up correctly." },
-        { phase: "Week 3 — Build", detail: "Shared admin extended, reservation flow, translatable content." },
-        { phase: "Week 4 — Launch", detail: "Live in both languages, reservations tested end-to-end." },
+        { phase: "Week 3 — Build", detail: "Shared admin extended with menu & events management, translatable content." },
+        { phase: "Week 4 — Launch", detail: "Live in both languages, menu & events tested end-to-end." },
       ],
       reflectionTitle: "What I'd redo",
       reflection:
