@@ -935,15 +935,15 @@ export function SiteScanner({
     const basePrice =
       baseKey === "base_webshop" ? 3900 : baseKey === "base_pro" ? 1900 : 950;
     const addons: { key: string; price: number }[] = [];
-    if (inv.multilingual) addons.push({ key: "multilingual", price: 350 });
-    if (inv.forms) addons.push({ key: "forms", price: 200 });
-    if (inv.booking) addons.push({ key: "booking", price: 600 });
-    if (inv.blog) addons.push({ key: "blog", price: 350 });
-    if (inv.members) addons.push({ key: "members", price: 900 });
+    if (inv.multilingual) addons.push({ key: "multilingual", price: 75 });
+    if (inv.forms) addons.push({ key: "forms", price: 100 });
+    if (inv.booking) addons.push({ key: "booking", price: 200 });
+    if (inv.blog) addons.push({ key: "blog", price: 125 });
+    if (inv.members) addons.push({ key: "members", price: 175 });
     // Elke build bevat een eigen admin/CMS — als aparte, duidelijke post.
     addons.push({ key: "admin", price: 800 });
     addons.push({ key: "content", price: contentPrice });
-    addons.push({ key: "seoPreserve", price: 250 });
+    addons.push({ key: "seoPreserve", price: 95 });
     const oneOffLow =
       basePrice + addons.reduce((s, a) => s + a.price, 0);
     const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;

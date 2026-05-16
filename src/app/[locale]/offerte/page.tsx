@@ -15,8 +15,8 @@ import {
 type BaseKind = "onepager" | "starter" | "pro" | "webshop" | "custom";
 
 const basePrice: Record<BaseKind, number> = {
-  onepager: 550,
-  starter: 950,
+  onepager: 750,
+  starter: 1250,
   pro: 1900,
   webshop: 3900,
   custom: 4500,
@@ -38,15 +38,15 @@ const moduleKeys = [
 type ModuleKey = (typeof moduleKeys)[number];
 
 const modulePrice: Record<ModuleKey, number> = {
-  meertalig: 350,
-  copywriting: 300,
+  meertalig: 75,
+  copywriting: 145,
   fotoshoot: 450,
-  formulieren: 200,
-  reservatie: 600,
-  blog: 350,
-  ledenzone: 900,
-  seoMigratie: 250,
-  cookies: 150,
+  formulieren: 100,
+  reservatie: 200,
+  blog: 125,
+  ledenzone: 175,
+  seoMigratie: 95,
+  cookies: 65,
   pwa: 300,
   koppeling: 450,
 };
