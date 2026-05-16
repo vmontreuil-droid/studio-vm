@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Check, Send, Loader2 } from "lucide-react";
+import { Check, Send, Loader2, AlertTriangle } from "lucide-react";
 import { submitQuote, startOffer } from "@/app/actions/quote";
 import {
   offerCatalog,
@@ -962,9 +962,15 @@ export default function OffertePage() {
                 <p className="mt-3 text-xs leading-relaxed text-muted">
                   {c.payNote}
                 </p>
-                <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
-                  {c.nonpay}
-                </p>
+                <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-400 bg-amber-50 px-3 py-2.5 dark:border-amber-600/70 dark:bg-amber-950/50">
+                  <AlertTriangle
+                    className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+                    strokeWidth={2.5}
+                  />
+                  <p className="text-xs font-semibold leading-relaxed text-amber-900 dark:text-amber-200">
+                    {c.nonpay}
+                  </p>
+                </div>
               </div>
 
               {!base && (
@@ -1113,9 +1119,15 @@ export default function OffertePage() {
               >
                 {c.quoteBtn2}
               </button>
-              <p className="px-1 text-center text-xs leading-relaxed text-muted">
-                {c.nonpay}
-              </p>
+              <div className="flex items-start gap-2 rounded-lg border border-amber-400 bg-amber-50 px-3 py-2.5 dark:border-amber-600/70 dark:bg-amber-950/50">
+                <AlertTriangle
+                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+                  strokeWidth={2.5}
+                />
+                <p className="text-xs font-semibold leading-relaxed text-amber-900 dark:text-amber-200">
+                  {c.nonpay}
+                </p>
+              </div>
             </form>
           )}
         </div>
