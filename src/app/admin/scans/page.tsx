@@ -90,7 +90,10 @@ export default async function AdminScans({
               key={r.id}
               className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
             >
-              <div className="min-w-0 flex-1">
+              <Link
+                href={`/admin/scans/${r.id}`}
+                className="min-w-0 flex-1 transition-opacity hover:opacity-80"
+              >
                 <div className="flex flex-wrap items-center gap-3">
                   {ok && (
                     <span
@@ -112,7 +115,7 @@ export default async function AdminScans({
                   })}{" "}
                   · {r.locale.toUpperCase()}
                 </p>
-              </div>
+              </Link>
               <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/${r.locale}/portail/${r.token}`}
