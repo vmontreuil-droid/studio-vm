@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, ArrowUpRight, Check, ArrowRight } from "lucide-react";
+import { ArrowLeft, Check, ArrowRight } from "lucide-react";
 import {
   projectSlugs,
   getProjectBySlug,
@@ -44,7 +44,7 @@ const ui: Record<
   nl: {
     back: "Terug naar werk",
     visit: "Bezoek live site",
-    frameNote: "De échte live site — beweeg erover om mee te scrollen. Blijf gerust hier rondkijken.",
+    frameNote: "De échte site. Klik om 'm groot en live te openen — klik gerust rond, je blijft hier.",
     scope: "Scope",
     stack: "Stack",
     year: "Jaar",
@@ -60,7 +60,7 @@ const ui: Record<
   fr: {
     back: "Retour aux travaux",
     visit: "Voir le site en ligne",
-    frameNote: "Le vrai site en ligne — survolez pour faire défiler. Restez ici tranquillement.",
+    frameNote: "Le vrai site. Cliquez pour l'ouvrir en grand et en direct — cliquez partout, vous restez ici.",
     scope: "Périmètre",
     stack: "Stack",
     year: "Année",
@@ -76,7 +76,7 @@ const ui: Record<
   en: {
     back: "Back to work",
     visit: "Visit live site",
-    frameNote: "The real live site — hover to scroll along. Feel free to keep browsing here.",
+    frameNote: "The real site. Click to open it large and live — click around, you stay here.",
     scope: "Scope",
     stack: "Stack",
     year: "Year",
@@ -161,27 +161,17 @@ export default async function WerkDetailPage({
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
               {project.description}
             </p>
-            {project.url && (
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-              >
-                {t.visit}
-                <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-              </a>
-            )}
           </div>
         </section>
 
         <section className="border-b">
-          <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
             <BrowserFrame
               url={project.url}
               image={project.image}
               name={project.name}
               accent={project.accent}
+              locale={locale}
             />
             <p className="mt-3 text-center font-mono text-xs text-muted">
               {t.frameNote}
