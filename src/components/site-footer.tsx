@@ -103,7 +103,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
             <p aria-label="Studio VM" className="leading-none">
-              <Logo className="text-4xl" />
+              <Logo className="text-6xl sm:text-7xl" />
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {t.footer.tagline}
@@ -111,7 +111,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <div className="mt-4 space-y-1.5 text-sm text-muted">
               <p className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
-                <span>Nieuwpoortstraat 14-301, 8570 Anzegem</span>
+                <span>
+                  Nieuwpoortstraat 14-301
+                  <br />
+                  <span className="whitespace-nowrap">8570 Anzegem</span>
+                </span>
               </p>
               <p className="flex items-center gap-2">
                 <Clock className="h-4 w-4 shrink-0" strokeWidth={1.5} />
