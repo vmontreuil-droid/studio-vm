@@ -332,6 +332,7 @@ const UI: Record<
       total: string;
       approx: string;
       timeline: string;
+      timelineNote: string;
       weeks: (a: number, b: number) => string;
       careTitle: string;
       careNote: string;
@@ -491,7 +492,9 @@ const UI: Record<
       total: "Totale richtprijs",
       approx: "indicatief, exacte offerte na een kort gesprek",
       timeline: "Doorlooptijd",
-      weeks: (a, b) => `±${a}–${b} weken`,
+      timelineNote:
+        "Uitvoering in 1–2 weken. Hangt enkel af van de vrijgave van je domein en of er fotomateriaal is.",
+      weeks: (a, b) => `${a}–${b} weken`,
       careTitle: "Daarna: zorgeloos onderhoud",
       careNote: "Hosting, SSL, back-ups, updates en support — zodat het 100/100 blíjft.",
       optTitle: "Optioneel — als je nog geen beeldmateriaal hebt",
@@ -650,7 +653,9 @@ const UI: Record<
       total: "Estimation totale",
       approx: "indicatif, devis exact après un bref échange",
       timeline: "Délai",
-      weeks: (a, b) => `±${a}–${b} semaines`,
+      timelineNote:
+        "Réalisation en 1–2 semaines. Dépend uniquement de la libération du domaine et de la présence de matériel photo.",
+      weeks: (a, b) => `${a}–${b} semaines`,
       careTitle: "Ensuite : entretien sans souci",
       careNote: "Hébergement, SSL, sauvegardes, mises à jour et support — pour rester à 100/100.",
       optTitle: "Optionnel — si vous n'avez pas encore de visuels",
@@ -809,7 +814,9 @@ const UI: Record<
       total: "Total estimate",
       approx: "indicative, exact quote after a short chat",
       timeline: "Timeline",
-      weeks: (a, b) => `±${a}–${b} weeks`,
+      timelineNote:
+        "Built in 1–2 weeks. Only depends on your domain release and whether photo material is available.",
+      weeks: (a, b) => `${a}–${b} weeks`,
       careTitle: "Then: worry-free maintenance",
       careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
       optTitle: "Optional — if you don't have visuals yet",
@@ -947,13 +954,9 @@ export function SiteScanner({
     const oneOffLow =
       basePrice + addons.reduce((s, a) => s + a.price, 0);
     const oneOffHigh = Math.round((oneOffLow * 1.2) / 50) * 50;
-    let wk =
-      baseKey === "base_webshop" ? 7 : baseKey === "base_pro" ? 5 : 3;
-    if (inv.multilingual) wk += 1;
-    if (inv.booking) wk += 1;
-    if (inv.members) wk += 2;
-    if (bucket === "large" || bucket === "xl") wk += 2;
-    const weeksRange: [number, number] = [wk, wk + 2];
+    // Uitvoering: 1 à 2 weken. Hangt enkel af van domeinvrijgave en of er
+    // fotomateriaal is — niet van de scope (alles wordt strak herschreven).
+    const weeksRange: [number, number] = [1, 2];
     const pl = t.plan;
     const featChips: string[] = [];
     if (pages != null) featChips.push(`~${pages} ${pl.feat.pages}`);
@@ -1456,6 +1459,7 @@ export function SiteScanner({
                 {pl.weeks(weeksRange[0], weeksRange[1])}
               </span>
             </div>
+            <p className="mt-1 text-[11px] text-muted">{pl.timelineNote}</p>
           </div>
 
           <div className="mt-3 rounded-xl border border-dashed bg-card p-4">

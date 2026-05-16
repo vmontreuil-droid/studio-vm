@@ -28,7 +28,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Praktisch",
         items: [
-          { q: "Hoe lang duurt een project?", a: "Starter ~2 weken, Pro 4–6 weken, Webshop 6–10 weken vanaf de officiële kick-off. Migraties hangen af van de hoeveelheid content en redirects." },
+          { q: "Hoe lang duurt een project?", a: "Uitvoering is 1 à 2 weken — alles wordt strak herschreven in Next.js + Supabase, ongeacht de scope. Wat de timing bepaalt is de vrijgave van je domein en of er fotomateriaal klaar is." },
           { q: "Kunnen we eerst kosteloos kennismaken?", a: "Altijd. Een eerste gesprek is vrijblijvend en kost niets. Je krijgt een eerlijk advies — ook als ik denk dat je beter geholpen bent door iemand anders." },
           { q: "Werk je alleen of met een team?", a: "Ik werk alleen voor de development. Voor logo's, fotografie of copy verwijs ik je door naar mensen waar ik graag mee samenwerk — meestal allemaal in West-Vlaanderen." },
           { q: "Werk je met klanten buiten België?", a: "Liefst lokaal (West-Vlaanderen + Brussel) zodat we elkaar kunnen ontmoeten. Maar voor specifieke projecten kan dat ook elders — alles is digitaal." },
@@ -73,7 +73,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Pratique",
         items: [
-          { q: "Combien de temps dure un projet ?", a: "Starter ~2 semaines, Pro 4–6 semaines, Boutique 6–10 semaines depuis le lancement officiel. Les migrations dépendent du volume de contenu et des redirections." },
+          { q: "Combien de temps dure un projet ?", a: "Réalisation en 1 à 2 semaines — tout est réécrit proprement en Next.js + Supabase, quelle que soit la portée. Ce qui détermine le timing : la libération de votre domaine et la disponibilité du matériel photo." },
           { q: "Peut-on d'abord faire connaissance gratuitement ?", a: "Toujours. Un premier entretien est sans engagement et gratuit. Vous recevez un conseil honnête — même si je pense que quelqu'un d'autre vous aiderait mieux." },
           { q: "Travaillez-vous seul ou en équipe ?", a: "Je travaille seul pour le développement. Pour les logos, la photographie ou la rédaction, je vous oriente vers des personnes avec qui j'aime collaborer — souvent toutes en Flandre-Occidentale." },
           { q: "Travaillez-vous avec des clients hors Belgique ?", a: "De préférence en local (Flandre-Occidentale + Bruxelles) pour pouvoir se rencontrer. Mais pour des projets spécifiques, ailleurs est possible — tout est numérique." },
@@ -118,7 +118,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Practical",
         items: [
-          { q: "How long does a project take?", a: "Starter ~2 weeks, Pro 4–6 weeks, Webshop 6–10 weeks from the official kick-off. Migrations depend on the amount of content and redirects." },
+          { q: "How long does a project take?", a: "Build is 1 to 2 weeks — everything is cleanly rewritten in Next.js + Supabase, regardless of scope. Timing only depends on your domain release and whether photo material is ready." },
           { q: "Can we meet for free first?", a: "Always. A first chat is non-binding and free. You get honest advice — even if I think someone else would help you better." },
           { q: "Do you work alone or with a team?", a: "I work alone for development. For logos, photography or copy I refer you to people I like to work with — usually all in West Flanders." },
           { q: "Do you work with clients outside Belgium?", a: "Preferably local (West Flanders + Brussels) so we can meet. But for specific projects, elsewhere works too — it's all digital." },
