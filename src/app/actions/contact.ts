@@ -6,6 +6,7 @@ import { scanAndMail } from "@/lib/scan-report";
 
 const TO = "info@studio-vm.be";
 const FROM = resendFrom;
+const esc = (s: unknown) => String(s ?? "").replace(/</g, "&lt;");
 
 export type ContactState = {
   ok: boolean;
@@ -68,8 +69,33 @@ export async function sendContact(formData: FormData): Promise<ContactState> {
         from: FROM,
         to: TO,
         reply_to: email,
-        subject: subject ? `[studio-vm.be] ${subject}` : `[studio-vm.be] Bericht van ${name}`,
-        text: `Van: ${name} <${email}>\n\n${body}`,
+        subject: subject
+          ? `[studio-vm.be] ${subject}`
+          : `[studio-vm.be] Bericht van ${name}`,
+        text: `Van: ${name} <${email}>\n${subject ? `Onderwerp: ${subject}\n` : ""}${currentSite ? `Huidige site: ${currentSite}\n` : ""}\n${body}`,
+        html: `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:560px;color:#111;line-height:1.6">
+<h2 style="margin:0 0 4px;font-size:18px">Nieuw bericht via het contactformulier</h2>
+<p style="margin:0 0 16px;color:#777;font-size:13px">${new Date().toLocaleString(
+          "nl-BE",
+          { timeZone: "Europe/Brussels" },
+        )}</p>
+<table style="border-collapse:collapse;font-size:14px;margin-bottom:16px">
+<tr><td style="padding:3px 16px 3px 0;color:#888">Naam</td><td><strong>${esc(
+          name,
+        )}</strong></td></tr>
+<tr><td style="padding:3px 16px 3px 0;color:#888">E-mail</td><td><a href="mailto:${esc(
+          email,
+        )}" style="color:#b45309">${esc(email)}</a></td></tr>
+${subject ? `<tr><td style="padding:3px 16px 3px 0;color:#888">Onderwerp</td><td>${esc(subject)}</td></tr>` : ""}
+${currentSite ? `<tr><td style="padding:3px 16px 3px 0;color:#888">Huidige site</td><td>${esc(currentSite)} <span style="color:#999">— auto-scan onderweg</span></td></tr>` : ""}
+</table>
+<div style="background:#faf9f7;border-radius:10px;padding:14px 16px;white-space:pre-wrap;font-size:14px">${esc(
+          body,
+        )}</div>
+<p style="margin-top:18px;font-size:12px;color:#999">Antwoord rechtstreeks op deze mail om ${esc(
+          name,
+        )} te bereiken.</p>
+</div>`,
       }),
     });
 
