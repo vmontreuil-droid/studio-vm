@@ -5,6 +5,15 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import type { ScanResult } from "@/app/actions/scan";
+import {
+  createOffer,
+  setOfferStatus,
+  addInvoice,
+  setInvoiceStatus,
+  setSubscription,
+  replyTicketStudio,
+  setTicketStatus,
+} from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +47,87 @@ export default async function AdminKlantDetail({
 
   const latest = rows[0];
   const first = rows[rows.length - 1];
+
+  const db = getSupabaseAdmin();
+  const [offersR, invoicesR, subsR, ticketsR, msgsR] = await Promise.all([
+    db
+      .from("offers")
+      .select("*")
+      .eq("client_email", email)
+      .order("created_at", { ascending: false }),
+    db
+      .from("invoices")
+      .select("*")
+      .eq("client_email", email)
+      .order("issued_at", { ascending: false }),
+    db
+      .from("subscriptions")
+      .select("*")
+      .eq("client_email", email)
+      .order("created_at", { ascending: false }),
+    db
+      .from("tickets")
+      .select("*")
+      .eq("client_email", email)
+      .order("updated_at", { ascending: false }),
+    db
+      .from("ticket_messages")
+      .select("*")
+      .order("created_at", { ascending: true }),
+  ]);
+  type Offer = {
+    id: string;
+    title: string;
+    amount_cents: number | null;
+    status: string;
+    created_at: string;
+  };
+  type Invoice = {
+    id: string;
+    number: string;
+    amount_cents: number;
+    status: string;
+    issued_at: string;
+  };
+  type Sub = {
+    id: string;
+    plan: string;
+    price_cents: number;
+    status: string;
+  };
+  type Ticket = { id: string; subject: string; status: string };
+  type Msg = {
+    id: string;
+    ticket_id: string;
+    sender: string;
+    body: string;
+    created_at: string;
+  };
+  const offers = (offersR.data as Offer[]) ?? [];
+  const invoices = (invoicesR.data as Invoice[]) ?? [];
+  const subs = (subsR.data as Sub[]) ?? [];
+  const tickets = (ticketsR.data as Ticket[]) ?? [];
+  const allMsgs = (msgsR.data as Msg[]) ?? [];
+  const ticketIds = new Set(tickets.map((tk) => tk.id));
+  const msgsByTicket = new Map<string, Msg[]>();
+  for (const m of allMsgs) {
+    if (!ticketIds.has(m.ticket_id)) continue;
+    const arr = msgsByTicket.get(m.ticket_id);
+    if (arr) arr.push(m);
+    else msgsByTicket.set(m.ticket_id, [m]);
+  }
+  const eur = (c: number | null | undefined) =>
+    c == null ? "—" : `€ ${(c / 100).toFixed(2)}`;
+  const sBadge = (s: string) =>
+    ["akkoord", "betaald", "actief"].includes(s)
+      ? "bg-green-500/15 text-green-600 dark:text-green-400"
+      : ["afgewezen", "vervallen", "gestopt"].includes(s)
+        ? "bg-red-500/15 text-red-500"
+        : s === "in_behandeling"
+          ? "bg-sky-500/15 text-sky-600 dark:text-sky-400"
+          : "bg-accent/15 text-accent";
+  const field =
+    "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
 
   const gradeColor = (s: number) =>
     s >= 75
@@ -139,6 +229,228 @@ export default async function AdminKlantDetail({
             </div>
           );
         })}
+      </div>
+
+      {/* OFFERTES */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Offertes
+      </h2>
+      <div className="mt-4 space-y-3">
+        {offers.map((o) => (
+          <div
+            key={o.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+          >
+            <div className="min-w-0">
+              <p className="font-medium">
+                {o.title}{" "}
+                <span className="text-muted">· {eur(o.amount_cents)}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                  o.status,
+                )}`}
+              >
+                {o.status}
+              </span>
+              <form action={setOfferStatus.bind(null, o.id, "akkoord")}>
+                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                  ✓
+                </button>
+              </form>
+              <form action={setOfferStatus.bind(null, o.id, "afgewezen")}>
+                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                  ✕
+                </button>
+              </form>
+            </div>
+          </div>
+        ))}
+        <form
+          action={createOffer}
+          className="rounded-2xl border border-dashed bg-card/50 p-4"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input name="title" required placeholder="Titel" className={field} />
+            <input
+              name="amount"
+              placeholder="Bedrag €"
+              className={field}
+            />
+          </div>
+          <textarea
+            name="body"
+            rows={2}
+            placeholder="Omschrijving (optioneel)"
+            className={`mt-2 ${field}`}
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <input type="date" name="valid_until" className={field} />
+            <button className="whitespace-nowrap rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+              Offerte sturen
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* FACTUREN */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Facturen
+      </h2>
+      <div className="mt-4 space-y-3">
+        {invoices.map((i) => (
+          <div
+            key={i.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+          >
+            <p className="font-medium">
+              {i.number} <span className="text-muted">· {eur(i.amount_cents)}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <span
+                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                  i.status,
+                )}`}
+              >
+                {i.status}
+              </span>
+              <form action={setInvoiceStatus.bind(null, i.id, "betaald")}>
+                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                  Betaald
+                </button>
+              </form>
+              <form action={setInvoiceStatus.bind(null, i.id, "vervallen")}>
+                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                  Vervallen
+                </button>
+              </form>
+            </div>
+          </div>
+        ))}
+        <form
+          action={addInvoice}
+          className="grid gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:grid-cols-4"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <input name="number" required placeholder="Nummer" className={field} />
+          <input name="amount" required placeholder="Bedrag €" className={field} />
+          <input type="date" name="due_at" className={field} />
+          <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Factuur sturen
+          </button>
+        </form>
+      </div>
+
+      {/* ABONNEMENT */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Abonnement
+      </h2>
+      <div className="mt-4 space-y-3">
+        {subs.map((s) => (
+          <div
+            key={s.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+          >
+            <p className="font-medium">
+              {s.plan} <span className="text-muted">· {eur(s.price_cents)} / maand</span>
+            </p>
+            <span
+              className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                s.status,
+              )}`}
+            >
+              {s.status}
+            </span>
+          </div>
+        ))}
+        <form
+          action={setSubscription}
+          className="grid gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:grid-cols-4"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <input name="plan" required placeholder="Plan (bv. Care)" className={field} />
+          <input name="price" required placeholder="Prijs €/maand" className={field} />
+          <select name="status" className={field} defaultValue="actief">
+            <option value="actief">actief</option>
+            <option value="gepauzeerd">gepauzeerd</option>
+            <option value="gestopt">gestopt</option>
+          </select>
+          <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
+            Opslaan
+          </button>
+        </form>
+      </div>
+
+      {/* TICKETS */}
+      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+        Tickets
+      </h2>
+      <div className="mt-4 space-y-4">
+        {tickets.length === 0 && (
+          <p className="text-sm text-muted">Nog geen tickets.</p>
+        )}
+        {tickets.map((tk) => (
+          <div key={tk.id} className="rounded-2xl border bg-card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-semibold tracking-tight">{tk.subject}</p>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                    tk.status,
+                  )}`}
+                >
+                  {tk.status}
+                </span>
+                <form action={setTicketStatus.bind(null, tk.id, "gesloten")}>
+                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
+                    Sluiten
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {(msgsByTicket.get(tk.id) ?? []).map((m) => (
+                <div
+                  key={m.id}
+                  className={`rounded-xl px-4 py-2.5 text-sm ${
+                    m.sender === "studio" ? "bg-accent/10" : "border bg-background"
+                  }`}
+                >
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    {m.sender === "studio" ? "Studio VM" : "Klant"} ·{" "}
+                    {new Date(m.created_at).toLocaleString("nl-BE", {
+                      timeZone: "Europe/Brussels",
+                    })}
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap leading-relaxed">
+                    {m.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {tk.status !== "gesloten" && (
+              <form
+                action={replyTicketStudio}
+                className="mt-3 flex flex-col gap-2 sm:flex-row"
+              >
+                <input type="hidden" name="ticket_id" value={tk.id} />
+                <input type="hidden" name="client_email" value={email} />
+                <input
+                  name="body"
+                  required
+                  placeholder="Antwoord aan klant…"
+                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+                />
+                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90">
+                  Antwoorden
+                </button>
+              </form>
+            )}
+          </div>
+        ))}
       </div>
     </>
   );
