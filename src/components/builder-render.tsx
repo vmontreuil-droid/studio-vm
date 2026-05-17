@@ -90,27 +90,69 @@ export function BuilderRender({ snap }: { snap: Snap }) {
               </span>
             </nav>
 
-            {page.blocks.map((b, bi) => (
-              <div
-                key={bi}
-                style={{
-                  background: toneBg(
-                    (b.data as Record<string, unknown>)?._bg,
-                    bg,
-                    fg,
-                    accent,
-                  ),
-                }}
-              >
-                <BlockView
-                  block={b}
-                  fg={fg}
-                  bg={bg}
-                  accent={accent}
-                  soft={soft}
-                />
-              </div>
-            ))}
+            {page.blocks.map((b, bi) => {
+              const bd = (b.data as Record<string, unknown>) || {};
+              const ovs = Array.isArray(bd._ov)
+                ? (bd._ov as {
+                    id?: string;
+                    t?: string;
+                    x?: number;
+                    y?: number;
+                    w?: number;
+                    src?: string;
+                    text?: string;
+                    color?: string;
+                    size?: number;
+                  }[])
+                : [];
+              return (
+                <div
+                  key={bi}
+                  className="relative overflow-hidden"
+                  style={{ background: toneBg(bd._bg, bg, fg, accent) }}
+                >
+                  <BlockView
+                    block={b}
+                    fg={fg}
+                    bg={bg}
+                    accent={accent}
+                    soft={soft}
+                  />
+                  {ovs.map((ov, oi) => (
+                    <div
+                      key={ov.id || oi}
+                      className="absolute"
+                      style={{
+                        left: `${ov.x ?? 50}%`,
+                        top: `${ov.y ?? 50}%`,
+                        width: `${ov.w ?? 30}%`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      {ov.t === "img" && ov.src ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={ov.src}
+                          alt=""
+                          className="block w-full rounded-lg"
+                        />
+                      ) : (
+                        <div
+                          className="whitespace-pre-wrap px-3 py-2"
+                          style={{
+                            color: ov.color || fg,
+                            fontSize: ov.size || 18,
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {ov.text || ""}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}

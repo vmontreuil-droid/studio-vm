@@ -282,6 +282,9 @@ const T: Record<
       heroCap: string;
       capTitlePh: string;
       capTextPh: string;
+      ovAddImg: string;
+      ovAddTxt: string;
+      ovTxtPh: string;
       footerColLinks: string;
       footerAbout: string;
       footerColTitle: string;
@@ -425,6 +428,9 @@ const T: Record<
       heroCap: "Foto-bijschrift",
       capTitlePh: "Naam van de foto",
       capTextPh: "Korte uitleg bij deze foto",
+      ovAddImg: "+ Foto",
+      ovAddTxt: "+ Tekst",
+      ovTxtPh: "Typ hier je tekst",
       footerColLinks: "Links",
       footerAbout: "Korte tekst / bedrijfslijn",
       footerColTitle: "Kolomtitel",
@@ -567,6 +573,9 @@ const T: Record<
       heroCap: "Légende photo",
       capTitlePh: "Nom de la photo",
       capTextPh: "Courte description de la photo",
+      ovAddImg: "+ Photo",
+      ovAddTxt: "+ Texte",
+      ovTxtPh: "Tapez votre texte ici",
       footerColLinks: "Liens",
       footerAbout: "Texte court / ligne entreprise",
       footerColTitle: "Titre de colonne",
@@ -709,6 +718,9 @@ const T: Record<
       heroCap: "Photo caption",
       capTitlePh: "Photo name",
       capTextPh: "Short caption for this photo",
+      ovAddImg: "+ Photo",
+      ovAddTxt: "+ Text",
+      ovTxtPh: "Type your text here",
       footerColLinks: "Links",
       footerAbout: "Short text / company line",
       footerColTitle: "Column title",
@@ -2130,6 +2142,7 @@ export default function BuilderPage({
                 sections.map((s) => (
                   <div
                     key={s.id}
+                    className="group/sec relative"
                     style={{ background: sectionToneBg(s.data._bg, theme) }}
                   >
                     <PreviewSection
@@ -2138,6 +2151,12 @@ export default function BuilderPage({
                       theme={theme}
                       businessName={businessName}
                       images={images}
+                      p={c.preview}
+                      edit={(patch) => patchData(s.id, patch)}
+                    />
+                    <SectionOverlays
+                      data={s.data}
+                      theme={theme}
                       p={c.preview}
                       edit={(patch) => patchData(s.id, patch)}
                     />
@@ -3230,6 +3249,234 @@ function HeroPreview({
           }}
         />
       </label>
+    </div>
+  );
+}
+
+type Ovl = {
+  id: string;
+  t: "img" | "txt";
+  x: number;
+  y: number;
+  w: number;
+  src?: string;
+  text?: string;
+  color?: string;
+  size?: number;
+};
+
+// Vrij plaatsbare foto- en tekstlaag bovenop ELK blok: toevoegen,
+// overal naartoe slepen en groter/kleiner maken.
+function SectionOverlays({
+  data,
+  theme,
+  p,
+  edit,
+}: {
+  data: SectionData;
+  theme: Theme;
+  p: Preview;
+  edit: (patch: SectionData) => void;
+}) {
+  const ovls: Ovl[] = Array.isArray(data._ov) ? (data._ov as Ovl[]) : [];
+  const layerRef = useRef<HTMLDivElement>(null);
+  const setOvls = (next: Ovl[]) => edit({ _ov: next });
+  const patchOv = (id: string, patch: Partial<Ovl>) =>
+    setOvls(ovls.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  const addImg = (file?: File | null) => {
+    if (!file || !file.type.startsWith("image/") || file.size > 4_000_000)
+      return;
+    const r = new FileReader();
+    r.onload = () =>
+      setOvls([
+        ...ovls,
+        {
+          id: `o${Date.now().toString(36)}`,
+          t: "img",
+          x: 50,
+          y: 50,
+          w: 34,
+          src: String(r.result),
+        },
+      ]);
+    r.readAsDataURL(file);
+  };
+  const addTxt = () =>
+    setOvls([
+      ...ovls,
+      {
+        id: `o${Date.now().toString(36)}`,
+        t: "txt",
+        x: 50,
+        y: 40,
+        w: 44,
+        text: "",
+        color: theme.fg,
+        size: 18,
+      },
+    ]);
+
+  const drag = (id: string) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = layerRef.current;
+    if (!el) return;
+    const move = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      patchOv(id, {
+        x: Math.min(
+          98,
+          Math.max(2, ((ev.clientX - r.left) / r.width) * 100),
+        ),
+        y: Math.min(
+          98,
+          Math.max(2, ((ev.clientY - r.top) / r.height) * 100),
+        ),
+      });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+  const resize = (id: string, ov: Ovl) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = layerRef.current;
+    if (!el) return;
+    const move = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const curX = ((ev.clientX - r.left) / r.width) * 100;
+      const w = Math.min(96, Math.max(6, (curX - ov.x) * 2));
+      if (ov.t === "txt") {
+        const sz = Math.min(
+          64,
+          Math.max(
+            10,
+            (((ev.clientY - r.top) / r.height) * 100 - ov.y) * 2 + 16,
+          ),
+        );
+        patchOv(id, { w, size: Math.round(sz) });
+      } else {
+        patchOv(id, { w });
+      }
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  return (
+    <div
+      ref={layerRef}
+      className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+    >
+      <div className="pointer-events-auto absolute left-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover/sec:opacity-100">
+        <label
+          className="cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-medium"
+          style={{ background: theme.accent, color: theme.bg }}
+        >
+          {p.ovAddImg}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              addImg(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={addTxt}
+          className="rounded-full px-2.5 py-1 text-[11px] font-medium"
+          style={{ background: theme.accent, color: theme.bg }}
+        >
+          {p.ovAddTxt}
+        </button>
+      </div>
+
+      {ovls.map((ov) => (
+        <div
+          key={ov.id}
+          className="group/ov pointer-events-auto absolute"
+          style={{
+            left: `${ov.x}%`,
+            top: `${ov.y}%`,
+            width: `${ov.w}%`,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <button
+            type="button"
+            onPointerDown={drag(ov.id)}
+            title={p.heroMove}
+            className="absolute -top-3 left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 cursor-move items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover/ov:opacity-100"
+          >
+            <Move className="h-3 w-3" strokeWidth={2.5} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setOvls(ovls.filter((o) => o.id !== ov.id))}
+            title={p.heroRemove}
+            className="absolute -right-2 -top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover/ov:opacity-100"
+          >
+            <X className="h-3 w-3" strokeWidth={3} />
+          </button>
+          {ov.t === "img" ? (
+            <span
+              onPointerDown={drag(ov.id)}
+              className="block cursor-move overflow-hidden rounded-lg"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ov.src}
+                alt=""
+                draggable={false}
+                className="block w-full select-none"
+              />
+            </span>
+          ) : (
+            <div
+              className="rounded-lg px-3 py-2"
+              style={{
+                color: ov.color || theme.fg,
+                fontSize: ov.size || 18,
+                lineHeight: 1.35,
+              }}
+            >
+              <E
+                value={ov.text || p.ovTxtPh}
+                onChange={(v) => patchOv(ov.id, { text: v })}
+                multiline
+              />
+            </div>
+          )}
+          {ov.t === "txt" && (
+            <input
+              type="color"
+              value={ov.color || theme.fg}
+              onChange={(e) => patchOv(ov.id, { color: e.target.value })}
+              title="kleur"
+              className="absolute -left-2 -top-2 h-5 w-5 cursor-pointer rounded-full border-0 bg-transparent p-0 opacity-0 transition-opacity group-hover/ov:opacity-100"
+            />
+          )}
+          <button
+            type="button"
+            onPointerDown={resize(ov.id, ov)}
+            title="↘"
+            className="absolute -bottom-2 -right-2 z-10 flex h-5 w-5 cursor-se-resize items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover/ov:opacity-100"
+          >
+            <Move className="h-3 w-3 rotate-45" strokeWidth={2.5} />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
