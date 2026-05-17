@@ -6,7 +6,8 @@
 // teksten die de klant enkel nog moet bijschaven. Niet-destructief
 // bij "lege velden vullen"; "volledige site" vervangt de pagina's.
 
-export type SectorKey =
+// 12 inhoud-archetypes; ~100 concrete sectoren mappen hierop.
+type BaseSector =
   | "restaurant"
   | "salon"
   | "retail"
@@ -20,6 +21,8 @@ export type SectorKey =
   | "realestate"
   | "automotive";
 
+export type SectorKey = string;
+
 type Loc = "nl" | "fr" | "en";
 export type Tone = "warm" | "zakelijk" | "speels";
 
@@ -31,49 +34,169 @@ export type PageKey =
   | "pricing"
   | "contact";
 
-export const SECTOR_LABELS: Record<Loc, Record<SectorKey, string>> = {
-  nl: {
-    restaurant: "Restaurant / horeca",
-    salon: "Kapper / schoonheid",
-    retail: "Winkel / retail",
-    services: "Dienstverlener / KMO",
-    creative: "Creatief / studio",
-    photography: "Fotograaf / video",
-    construction: "Bouw / renovatie",
-    health: "Zorg / praktijk",
-    consulting: "Consultant / advies",
-    fitness: "Sport / coaching",
-    realestate: "Vastgoed / immo",
-    automotive: "Auto / garage",
-  },
-  fr: {
-    restaurant: "Restaurant / horeca",
-    salon: "Coiffeur / beauté",
-    retail: "Boutique / retail",
-    services: "Prestataire / PME",
-    creative: "Créatif / studio",
-    photography: "Photographe / vidéo",
-    construction: "Construction / rénovation",
-    health: "Santé / cabinet",
-    consulting: "Consultant / conseil",
-    fitness: "Sport / coaching",
-    realestate: "Immobilier",
-    automotive: "Auto / garage",
-  },
-  en: {
-    restaurant: "Restaurant / hospitality",
-    salon: "Hair / beauty",
-    retail: "Shop / retail",
-    services: "Service provider / SME",
-    creative: "Creative / studio",
-    photography: "Photographer / video",
-    construction: "Construction / renovation",
-    health: "Health / practice",
-    consulting: "Consultant / advisory",
-    fitness: "Sport / coaching",
-    realestate: "Real estate",
-    automotive: "Car / garage",
-  },
+type SectorDef = {
+  key: string;
+  base: BaseSector;
+  nl: string;
+  fr: string;
+  en: string;
+};
+
+// ~100 concrete sectoren, elk gekoppeld aan een inhoud-archetype.
+export const SECTORS: SectorDef[] = [
+  // Horeca / food
+  { key: "restaurant", base: "restaurant", nl: "Restaurant", fr: "Restaurant", en: "Restaurant" },
+  { key: "brasserie", base: "restaurant", nl: "Brasserie / bistro", fr: "Brasserie / bistro", en: "Brasserie / bistro" },
+  { key: "cafe", base: "restaurant", nl: "Café / koffiebar", fr: "Café / bar à café", en: "Café / coffee bar" },
+  { key: "bar", base: "restaurant", nl: "Bar / cocktailbar", fr: "Bar / bar à cocktails", en: "Bar / cocktail bar" },
+  { key: "frituur", base: "restaurant", nl: "Frituur / snackbar", fr: "Friterie / snack", en: "Chip shop / snackbar" },
+  { key: "pizzeria", base: "restaurant", nl: "Pizzeria", fr: "Pizzeria", en: "Pizzeria" },
+  { key: "traiteur", base: "restaurant", nl: "Traiteur", fr: "Traiteur", en: "Caterer" },
+  { key: "bakkerij", base: "restaurant", nl: "Bakkerij", fr: "Boulangerie", en: "Bakery" },
+  { key: "slager", base: "restaurant", nl: "Slagerij", fr: "Boucherie", en: "Butcher" },
+  { key: "foodtruck", base: "restaurant", nl: "Foodtruck", fr: "Food truck", en: "Food truck" },
+  { key: "ijssalon", base: "restaurant", nl: "IJssalon", fr: "Glacier", en: "Ice cream parlour" },
+  { key: "chocolatier", base: "restaurant", nl: "Chocolatier", fr: "Chocolatier", en: "Chocolatier" },
+  { key: "wijnhandel", base: "retail", nl: "Wijnhandel", fr: "Cave à vin", en: "Wine shop" },
+  { key: "tearoom", base: "restaurant", nl: "Tearoom / lunchbar", fr: "Tea-room / lunch", en: "Tearoom / lunch bar" },
+  { key: "brouwerij", base: "restaurant", nl: "Brouwerij", fr: "Brasserie (bière)", en: "Brewery" },
+  // Kapper / beauty / wellness
+  { key: "kapper", base: "salon", nl: "Kapper", fr: "Coiffeur", en: "Hairdresser" },
+  { key: "barbier", base: "salon", nl: "Barbier", fr: "Barbier", en: "Barber" },
+  { key: "schoonheidssalon", base: "salon", nl: "Schoonheidssalon", fr: "Institut de beauté", en: "Beauty salon" },
+  { key: "nagelstudio", base: "salon", nl: "Nagelstudio", fr: "Onglerie", en: "Nail studio" },
+  { key: "spa", base: "salon", nl: "Wellness / spa", fr: "Wellness / spa", en: "Wellness / spa" },
+  { key: "masseur", base: "salon", nl: "Massagepraktijk", fr: "Massage", en: "Massage practice" },
+  { key: "zonnecentrum", base: "salon", nl: "Zonnecentrum", fr: "Centre de bronzage", en: "Tanning studio" },
+  { key: "tattoo", base: "salon", nl: "Tattoo / piercing", fr: "Tatouage / piercing", en: "Tattoo / piercing" },
+  { key: "pedicure", base: "salon", nl: "Pedicure / manicure", fr: "Pédicure / manucure", en: "Pedicure / manicure" },
+  { key: "visagist", base: "salon", nl: "Visagist / make-up", fr: "Maquilleur", en: "Make-up artist" },
+  // Retail / winkels
+  { key: "kledingwinkel", base: "retail", nl: "Kledingwinkel", fr: "Boutique de mode", en: "Clothing shop" },
+  { key: "juwelier", base: "retail", nl: "Juwelier", fr: "Bijouterie", en: "Jeweller" },
+  { key: "boekhandel", base: "retail", nl: "Boekhandel", fr: "Librairie", en: "Bookshop" },
+  { key: "bloemist", base: "retail", nl: "Bloemist", fr: "Fleuriste", en: "Florist" },
+  { key: "speelgoedwinkel", base: "retail", nl: "Speelgoedwinkel", fr: "Magasin de jouets", en: "Toy shop" },
+  { key: "interieurwinkel", base: "retail", nl: "Interieur / decoratie", fr: "Déco / intérieur", en: "Interior / decor shop" },
+  { key: "fietsenwinkel", base: "retail", nl: "Fietsenwinkel", fr: "Magasin de vélos", en: "Bike shop" },
+  { key: "dierenwinkel", base: "retail", nl: "Dierenwinkel", fr: "Animalerie", en: "Pet shop" },
+  { key: "optiek", base: "retail", nl: "Opticien", fr: "Opticien", en: "Optician" },
+  { key: "sportwinkel", base: "retail", nl: "Sportwinkel", fr: "Magasin de sport", en: "Sports shop" },
+  { key: "delicatessen", base: "retail", nl: "Delicatessen / kruidenier", fr: "Épicerie fine", en: "Deli / grocer" },
+  { key: "cadeauwinkel", base: "retail", nl: "Cadeauwinkel", fr: "Boutique cadeaux", en: "Gift shop" },
+  { key: "antiek", base: "retail", nl: "Antiek / brocante", fr: "Antiquités / brocante", en: "Antiques" },
+  { key: "tweedehands", base: "retail", nl: "Tweedehands / vintage", fr: "Seconde main / vintage", en: "Second-hand / vintage" },
+  { key: "webshop", base: "retail", nl: "Webshop", fr: "Boutique en ligne", en: "Webshop" },
+  // Diensten / ambacht / B2B
+  { key: "loodgieter", base: "services", nl: "Loodgieter / sanitair", fr: "Plombier / sanitaire", en: "Plumber" },
+  { key: "elektricien", base: "services", nl: "Elektricien", fr: "Électricien", en: "Electrician" },
+  { key: "schilder", base: "services", nl: "Schilder / decorateur", fr: "Peintre / décorateur", en: "Painter / decorator" },
+  { key: "tuinaannemer", base: "services", nl: "Tuinaannemer", fr: "Entrepreneur de jardin", en: "Garden contractor" },
+  { key: "schoonmaak", base: "services", nl: "Schoonmaakbedrijf", fr: "Société de nettoyage", en: "Cleaning company" },
+  { key: "verhuis", base: "services", nl: "Verhuisbedrijf", fr: "Déménagement", en: "Moving company" },
+  { key: "slotenmaker", base: "services", nl: "Slotenmaker", fr: "Serrurier", en: "Locksmith" },
+  { key: "itsupport", base: "services", nl: "IT-support / helpdesk", fr: "Support IT", en: "IT support" },
+  { key: "boekhouder", base: "consulting", nl: "Boekhouder", fr: "Comptable", en: "Accountant" },
+  { key: "verzekeringen", base: "consulting", nl: "Verzekeringsmakelaar", fr: "Courtier en assurances", en: "Insurance broker" },
+  { key: "notaris", base: "services", nl: "Notaris", fr: "Notaire", en: "Notary" },
+  { key: "advocaat", base: "services", nl: "Advocaat", fr: "Avocat", en: "Lawyer" },
+  { key: "vertaler", base: "services", nl: "Vertaler / tolk", fr: "Traducteur / interprète", en: "Translator" },
+  { key: "drukkerij", base: "services", nl: "Drukkerij", fr: "Imprimerie", en: "Print shop" },
+  { key: "evenementen", base: "creative", nl: "Evenementenbureau", fr: "Agence événementielle", en: "Events agency" },
+  { key: "beveiliging", base: "services", nl: "Beveiliging", fr: "Sécurité", en: "Security" },
+  { key: "transport", base: "services", nl: "Transport / koerier", fr: "Transport / coursier", en: "Transport / courier" },
+  { key: "schoorsteenveger", base: "services", nl: "Schoorsteenveger", fr: "Ramoneur", en: "Chimney sweep" },
+  { key: "ongedierte", base: "services", nl: "Ongediertebestrijding", fr: "Dératisation", en: "Pest control" },
+  { key: "uitvaart", base: "services", nl: "Uitvaartzorg", fr: "Pompes funèbres", en: "Funeral services" },
+  { key: "kinderopvang", base: "services", nl: "Kinderopvang", fr: "Crèche / garde", en: "Childcare" },
+  // Creatief / studio
+  { key: "grafisch", base: "creative", nl: "Grafisch ontwerper", fr: "Graphiste", en: "Graphic designer" },
+  { key: "webdesign", base: "creative", nl: "Webdesign / webbureau", fr: "Web design / agence", en: "Web design agency" },
+  { key: "architect", base: "creative", nl: "Architect", fr: "Architecte", en: "Architect" },
+  { key: "interieurarchitect", base: "creative", nl: "Interieurarchitect", fr: "Architecte d'intérieur", en: "Interior architect" },
+  { key: "copywriter", base: "creative", nl: "Copywriter / tekst", fr: "Rédacteur / copywriter", en: "Copywriter" },
+  { key: "illustrator", base: "creative", nl: "Illustrator", fr: "Illustrateur", en: "Illustrator" },
+  { key: "reclamebureau", base: "creative", nl: "Reclame- / marketingbureau", fr: "Agence de pub / marketing", en: "Ad / marketing agency" },
+  { key: "modeontwerper", base: "creative", nl: "Mode-ontwerper", fr: "Créateur de mode", en: "Fashion designer" },
+  { key: "muzikant", base: "creative", nl: "Muzikant / band / DJ", fr: "Musicien / DJ", en: "Musician / band / DJ" },
+  // Fotografie / video
+  { key: "fotograaf", base: "photography", nl: "Fotograaf", fr: "Photographe", en: "Photographer" },
+  { key: "videograaf", base: "photography", nl: "Videograaf / film", fr: "Vidéaste / film", en: "Videographer" },
+  { key: "drone", base: "photography", nl: "Drone / luchtbeelden", fr: "Drone / aérien", en: "Drone / aerial" },
+  { key: "huwelijksfotograaf", base: "photography", nl: "Huwelijksfotograaf", fr: "Photographe mariage", en: "Wedding photographer" },
+  { key: "fotostudio", base: "photography", nl: "Fotostudio", fr: "Studio photo", en: "Photo studio" },
+  // Bouw / renovatie / techniek
+  { key: "aannemer", base: "construction", nl: "Algemene aannemer", fr: "Entrepreneur général", en: "General contractor" },
+  { key: "renovatie", base: "construction", nl: "Renovatiebedrijf", fr: "Rénovation", en: "Renovation" },
+  { key: "dakwerken", base: "construction", nl: "Dakwerken", fr: "Toiture", en: "Roofing" },
+  { key: "schrijnwerk", base: "construction", nl: "Schrijnwerk / timmerwerk", fr: "Menuiserie", en: "Carpentry / joinery" },
+  { key: "metselwerk", base: "construction", nl: "Metsel- / ruwbouw", fr: "Maçonnerie / gros œuvre", en: "Masonry / shell" },
+  { key: "vloeren", base: "construction", nl: "Vloeren / tegelwerk", fr: "Sols / carrelage", en: "Flooring / tiling" },
+  { key: "zwembad", base: "construction", nl: "Zwembadbouw", fr: "Construction de piscines", en: "Pool builder" },
+  { key: "tuinaanleg", base: "construction", nl: "Tuinaanleg / landschap", fr: "Aménagement de jardin", en: "Landscaping" },
+  { key: "zonnepanelen", base: "construction", nl: "Zonnepanelen", fr: "Panneaux solaires", en: "Solar panels" },
+  { key: "isolatie", base: "construction", nl: "Isolatie", fr: "Isolation", en: "Insulation" },
+  { key: "verwarming", base: "construction", nl: "Verwarming / HVAC", fr: "Chauffage / CVC", en: "Heating / HVAC" },
+  { key: "ramendeuren", base: "construction", nl: "Ramen & deuren", fr: "Châssis & portes", en: "Windows & doors" },
+  { key: "grondwerken", base: "construction", nl: "Grond- / afbraakwerken", fr: "Terrassement / démolition", en: "Earthworks / demolition" },
+  // Zorg / gezondheid
+  { key: "huisarts", base: "health", nl: "Huisarts / groepspraktijk", fr: "Médecin généraliste", en: "GP / practice" },
+  { key: "tandarts", base: "health", nl: "Tandarts", fr: "Dentiste", en: "Dentist" },
+  { key: "kinesist", base: "health", nl: "Kinesist / fysio", fr: "Kiné / physio", en: "Physiotherapist" },
+  { key: "osteopaat", base: "health", nl: "Osteopaat", fr: "Ostéopathe", en: "Osteopath" },
+  { key: "psycholoog", base: "health", nl: "Psycholoog / therapeut", fr: "Psychologue", en: "Psychologist" },
+  { key: "dietist", base: "health", nl: "Diëtist / voeding", fr: "Diététicien", en: "Dietitian" },
+  { key: "logopedist", base: "health", nl: "Logopedist", fr: "Logopède", en: "Speech therapist" },
+  { key: "podoloog", base: "health", nl: "Podoloog", fr: "Podologue", en: "Podiatrist" },
+  { key: "dierenarts", base: "health", nl: "Dierenarts", fr: "Vétérinaire", en: "Vet" },
+  { key: "thuisverpleging", base: "health", nl: "Thuisverpleging", fr: "Soins à domicile", en: "Home nursing" },
+  { key: "apotheek", base: "health", nl: "Apotheek", fr: "Pharmacie", en: "Pharmacy" },
+  { key: "vroedvrouw", base: "health", nl: "Vroedvrouw", fr: "Sage-femme", en: "Midwife" },
+  // Advies / consulting
+  { key: "consultant", base: "consulting", nl: "Consultant / advies", fr: "Consultant", en: "Consultant" },
+  { key: "financieel", base: "consulting", nl: "Financieel adviseur", fr: "Conseiller financier", en: "Financial advisor" },
+  { key: "hrbureau", base: "consulting", nl: "HR / rekrutering", fr: "RH / recrutement", en: "HR / recruitment" },
+  { key: "businesscoach", base: "consulting", nl: "Business coach", fr: "Coach business", en: "Business coach" },
+  { key: "energieadvies", base: "consulting", nl: "Energie-advies / EPC", fr: "Conseil énergie", en: "Energy advice" },
+  // Sport / coaching / opleiding
+  { key: "personaltrainer", base: "fitness", nl: "Personal trainer", fr: "Personal trainer", en: "Personal trainer" },
+  { key: "fitnesscentrum", base: "fitness", nl: "Fitnesscentrum", fr: "Salle de fitness", en: "Gym" },
+  { key: "yoga", base: "fitness", nl: "Yoga / pilates", fr: "Yoga / pilates", en: "Yoga / pilates" },
+  { key: "dansschool", base: "fitness", nl: "Dansschool", fr: "École de danse", en: "Dance school" },
+  { key: "vechtsport", base: "fitness", nl: "Vechtsport / club", fr: "Arts martiaux / club", en: "Martial arts / club" },
+  { key: "rijschool", base: "fitness", nl: "Rijschool", fr: "Auto-école", en: "Driving school" },
+  { key: "muziekschool", base: "fitness", nl: "Muziek- / kunstschool", fr: "École de musique", en: "Music / art school" },
+  { key: "voedingscoach", base: "fitness", nl: "Voedings- / leefstijlcoach", fr: "Coach nutrition", en: "Nutrition coach" },
+  // Vastgoed / verblijf
+  { key: "makelaar", base: "realestate", nl: "Vastgoedmakelaar", fr: "Agent immobilier", en: "Estate agent" },
+  { key: "syndicus", base: "realestate", nl: "Syndicus / beheer", fr: "Syndic / gestion", en: "Property management" },
+  { key: "ontwikkelaar", base: "realestate", nl: "Projectontwikkelaar", fr: "Promoteur immobilier", en: "Property developer" },
+  { key: "bnb", base: "realestate", nl: "B&B / gastenkamers", fr: "Chambres d'hôtes", en: "B&B / guesthouse" },
+  { key: "hotel", base: "realestate", nl: "Hotel", fr: "Hôtel", en: "Hotel" },
+  { key: "vakantieverhuur", base: "realestate", nl: "Vakantieverhuur", fr: "Location de vacances", en: "Holiday rental" },
+  { key: "camping", base: "realestate", nl: "Camping / glamping", fr: "Camping / glamping", en: "Campsite / glamping" },
+  // Auto / mobiliteit
+  { key: "garage", base: "automotive", nl: "Garage / onderhoud", fr: "Garage / entretien", en: "Garage / service" },
+  { key: "carrosserie", base: "automotive", nl: "Carrosserie", fr: "Carrosserie", en: "Body shop" },
+  { key: "bandencentrale", base: "automotive", nl: "Bandencentrale", fr: "Centre pneus", en: "Tyre centre" },
+  { key: "autowas", base: "automotive", nl: "Carwash / detailing", fr: "Car wash / detailing", en: "Car wash / detailing" },
+  { key: "autohandelaar", base: "automotive", nl: "Autohandelaar", fr: "Concessionnaire auto", en: "Car dealer" },
+  { key: "motorzaak", base: "automotive", nl: "Motorzaak", fr: "Moto / scooter", en: "Motorcycle shop" },
+  { key: "fietsenmaker", base: "automotive", nl: "Fietsenmaker / e-bike", fr: "Réparation vélo / e-bike", en: "Bike repair / e-bike" },
+  { key: "takeldienst", base: "automotive", nl: "Takeldienst / pechverhelping", fr: "Dépannage / remorquage", en: "Towing / roadside" },
+  { key: "oldtimer", base: "automotive", nl: "Oldtimer-specialist", fr: "Spécialiste old-timer", en: "Classic car specialist" },
+  // Algemeen
+  { key: "services", base: "services", nl: "Andere / algemeen", fr: "Autre / général", en: "Other / general" },
+];
+
+const BASE_OF: Record<string, BaseSector> = Object.fromEntries(
+  SECTORS.map((s) => [s.key, s.base]),
+);
+
+export const SECTOR_LABELS: Record<Loc, Record<string, string>> = {
+  nl: Object.fromEntries(SECTORS.map((s) => [s.key, s.nl])),
+  fr: Object.fromEntries(SECTORS.map((s) => [s.key, s.fr])),
+  en: Object.fromEntries(SECTORS.map((s) => [s.key, s.en])),
 };
 
 export const TONE_LABELS: Record<Loc, Record<Tone, string>> = {
@@ -131,7 +254,7 @@ type Pack = {
 
 // Compacte bron per sector; FR/EN zijn echte vertalingen maar bondig
 // gehouden. De klant past alles toch nog aan.
-const P: Record<SectorKey, Record<Loc, Pack>> = {
+const P: Record<BaseSector, Record<Loc, Pack>> = {
   restaurant: {
     nl: {
       eyebrow: "Welkom", sub: "Verse gerechten, een warme sfeer en vlot reserveren — alles op één plek.", button: "Reserveer een tafel",
@@ -572,7 +695,7 @@ export function buildPreset(
   businessName: string,
 ): Record<string, Record<string, unknown>> {
   const l = loc(locale);
-  const k = P[sector]?.[l] ?? P.services[l];
+  const k = P[BASE_OF[sector] ?? "services"]?.[l] ?? P.services[l];
   const sub = `${TONE_PREFIX[l][tone]}${k.sub}`;
   return {
     hero: { eyebrow: k.eyebrow, heading: businessName, sub, button: k.button },
@@ -602,7 +725,7 @@ export function buildSiteScaffold(
   pageKeys: PageKey[],
 ): ScaffoldPage[] {
   const l = loc(locale);
-  const k = P[sector]?.[l] ?? P.services[l];
+  const k = P[BASE_OF[sector] ?? "services"]?.[l] ?? P.services[l];
   const pl = PAGE_LABELS[l];
   const heroSub = `${TONE_PREFIX[l][tone]}${k.sub}`;
   const hero = (heading: string, sub: string): ScaffoldSection => ({
