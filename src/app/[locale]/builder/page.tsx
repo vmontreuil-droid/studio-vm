@@ -376,6 +376,13 @@ const T: Record<
       ovAddImg: string;
       ovAddTxt: string;
       ovTxtPh: string;
+      linkLabel: string;
+      linkNone: string;
+      linkPage: string;
+      linkSection: string;
+      linkUrl: string;
+      linkNew: string;
+      linkNewPh: string;
       footerColLinks: string;
       footerAbout: string;
       footerColTitle: string;
@@ -525,6 +532,13 @@ const T: Record<
       ovAddImg: "+ Foto",
       ovAddTxt: "+ Tekst",
       ovTxtPh: "Typ hier je tekst",
+      linkLabel: "Koppelen aan",
+      linkNone: "Geen",
+      linkPage: "Pagina",
+      linkSection: "Sectie",
+      linkUrl: "Webadres",
+      linkNew: "Nieuwe pagina",
+      linkNewPh: "Naam nieuwe pagina",
       footerColLinks: "Links",
       footerAbout: "Korte tekst / bedrijfslijn",
       footerColTitle: "Kolomtitel",
@@ -673,6 +687,13 @@ const T: Record<
       ovAddImg: "+ Photo",
       ovAddTxt: "+ Texte",
       ovTxtPh: "Tapez votre texte ici",
+      linkLabel: "Lier à",
+      linkNone: "Aucun",
+      linkPage: "Page",
+      linkSection: "Section",
+      linkUrl: "Adresse web",
+      linkNew: "Nouvelle page",
+      linkNewPh: "Nom de la nouvelle page",
       footerColLinks: "Liens",
       footerAbout: "Texte court / ligne entreprise",
       footerColTitle: "Titre de colonne",
@@ -821,6 +842,13 @@ const T: Record<
       ovAddImg: "+ Photo",
       ovAddTxt: "+ Text",
       ovTxtPh: "Type your text here",
+      linkLabel: "Link to",
+      linkNone: "None",
+      linkPage: "Page",
+      linkSection: "Section",
+      linkUrl: "Web address",
+      linkNew: "New page",
+      linkNewPh: "New page name",
       footerColLinks: "Links",
       footerAbout: "Short text / company line",
       footerColTitle: "Column title",
@@ -1396,6 +1424,24 @@ export default function BuilderPage({
     setActiveId(np.id);
     setOpenId(null);
   };
+  const addPageNamed = (name: string) => {
+    const nm = name.trim();
+    if (!nm) return;
+    setPages((ps) =>
+      ps.some((p) => p.name === nm)
+        ? ps
+        : [
+            ...ps,
+            {
+              id: uid(),
+              name: nm,
+              sections: [
+                { id: uid(), kind: "hero", data: defaults("hero", c.preview) },
+              ],
+            },
+          ],
+    );
+  };
   const renamePage = (id: string, name: string) =>
     setPages((ps) => ps.map((p) => (p.id === id ? { ...p, name } : p)));
   const deletePage = (id: string) =>
@@ -1583,6 +1629,11 @@ export default function BuilderPage({
                       c={c}
                       patch={patchData}
                       theme={theme}
+                      pageNames={pages.map((pp) => pp.name)}
+                      secLabels={active.sections.map(
+                        (ss) => c.sectionLabels[ss.kind],
+                      )}
+                      onNewPage={addPageNamed}
                     />
                   </div>
                 </div>
@@ -2542,6 +2593,111 @@ function Txt({
   );
 }
 
+type LinkVal = { k: "none" | "page" | "section" | "url"; v: string };
+
+// Herbruikbare link-kiezer: koppel een knop/foto/balk aan een
+// pagina, een sectie, een webadres of maak meteen een nieuwe pagina.
+function LinkField({
+  value,
+  onChange,
+  p,
+  pageNames,
+  secLabels,
+  onNewPage,
+}: {
+  value: unknown;
+  onChange: (l: LinkVal) => void;
+  p: Preview;
+  pageNames: string[];
+  secLabels: string[];
+  onNewPage: (name: string) => void;
+}) {
+  const lv: LinkVal =
+    value && typeof value === "object" && "k" in (value as object)
+      ? (value as LinkVal)
+      : { k: "none", v: "" };
+  const sel =
+    "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none";
+  return (
+    <div className="mt-3">
+      <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+        {p.linkLabel}
+      </p>
+      <select
+        value={lv.k}
+        onChange={(e) =>
+          onChange({ k: e.target.value as LinkVal["k"], v: "" })
+        }
+        className={sel}
+      >
+        <option value="none">{p.linkNone}</option>
+        <option value="page">{p.linkPage}</option>
+        <option value="section">{p.linkSection}</option>
+        <option value="url">{p.linkUrl}</option>
+        <option value="new">{p.linkNew}</option>
+      </select>
+      {lv.k === "page" && (
+        <select
+          value={lv.v}
+          onChange={(e) => onChange({ k: "page", v: e.target.value })}
+          className={`${sel} mt-2`}
+        >
+          <option value="">—</option>
+          {pageNames.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      )}
+      {lv.k === "section" && (
+        <select
+          value={lv.v}
+          onChange={(e) => onChange({ k: "section", v: e.target.value })}
+          className={`${sel} mt-2`}
+        >
+          <option value="">—</option>
+          {secLabels.map((n, i) => (
+            <option key={`${n}-${i}`} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      )}
+      {lv.k === "url" && (
+        <input
+          type="url"
+          value={lv.v}
+          onChange={(e) => onChange({ k: "url", v: e.target.value })}
+          placeholder="https://…"
+          className={`${sel} mt-2`}
+        />
+      )}
+      {(lv.k as string) === "new" && (
+        <input
+          type="text"
+          defaultValue=""
+          placeholder={p.linkNewPh}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
+          }}
+          onBlur={(e) => {
+            const nm = e.target.value.trim();
+            if (nm) {
+              onNewPage(nm);
+              onChange({ k: "page", v: nm });
+            }
+          }}
+          className={`${sel} mt-2`}
+        />
+      )}
+    </div>
+  );
+}
+
 // Alle hero-instellingen, in de zijbalk (verschijnt bovenaan zodra je
 // het hero-blok aanklikt). De tekst zelf bewerk je op het doek.
 function HeroSettings({
@@ -2549,11 +2705,17 @@ function HeroSettings({
   edit,
   theme,
   p,
+  pageNames,
+  secLabels,
+  onNewPage,
 }: {
   data: SectionData;
   edit: (patch: SectionData) => void;
   theme: Theme;
   p: Preview;
+  pageNames: string[];
+  secLabels: string[];
+  onNewPage: (name: string) => void;
 }) {
   const slidesArr = Array.isArray(data.slides)
     ? (data.slides as unknown[])
@@ -2787,6 +2949,15 @@ function HeroSettings({
             </button>
           ))}
       </div>
+
+      <LinkField
+        value={data._lnk}
+        onChange={(l) => edit({ _lnk: l })}
+        p={p}
+        pageNames={pageNames}
+        secLabels={secLabels}
+        onNewPage={onNewPage}
+      />
     </div>
   );
 }
@@ -2796,11 +2967,17 @@ function SectionEditor({
   c,
   patch,
   theme,
+  pageNames,
+  secLabels,
+  onNewPage,
 }: {
   section: Section;
   c: Loc;
   patch: (id: string, p: SectionData) => void;
   theme: Theme;
+  pageNames: string[];
+  secLabels: string[];
+  onNewPage: (name: string) => void;
 }) {
   const f = c.fields;
   const d = section.data;
@@ -2811,8 +2988,22 @@ function SectionEditor({
         edit={(pp) => patch(section.id, pp)}
         theme={theme}
         p={c.preview}
+        pageNames={pageNames}
+        secLabels={secLabels}
+        onNewPage={onNewPage}
       />
     );
+  const linkable = ["cta", "newsletter", "banner"].includes(section.kind);
+  const LinkBlock = linkable ? (
+    <LinkField
+      value={d._lnk}
+      onChange={(l) => patch(section.id, { _lnk: l })}
+      p={c.preview}
+      pageNames={pageNames}
+      secLabels={secLabels}
+      onNewPage={onNewPage}
+    />
+  ) : null;
   const set = (k: string, v: unknown) => patch(section.id, { [k]: v });
   const str = (k: string) => (d[k] == null ? "" : String(d[k]));
   const items = Array.isArray(d.items)
@@ -2845,6 +3036,7 @@ function SectionEditor({
             onChange={(v) => set(k, v)}
           />
         ))}
+        {LinkBlock}
       </div>
     );
   }

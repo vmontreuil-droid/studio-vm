@@ -202,6 +202,27 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                       )}
                     </div>
                   ))}
+                  {(() => {
+                    const lk = bd._lnk as
+                      | { k?: string; v?: string }
+                      | undefined;
+                    if (!lk || !lk.k || lk.k === "none" || !lk.v)
+                      return null;
+                    const lbl =
+                      lk.k === "page"
+                        ? `Pagina: ${lk.v}`
+                        : lk.k === "section"
+                          ? `Sectie: ${lk.v}`
+                          : lk.v;
+                    return (
+                      <p
+                        className="absolute bottom-1 right-2 rounded bg-black/55 px-2 py-0.5 font-mono text-[10px] text-white"
+                        title="Gewenste link"
+                      >
+                        → {lbl}
+                      </p>
+                    );
+                  })()}
                 </div>
               );
             })}
