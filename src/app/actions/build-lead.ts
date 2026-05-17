@@ -5,6 +5,7 @@ import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
 import { after } from "next/server";
 import { scanAndStore } from "@/lib/scan-report";
+import { ensurePortalUser } from "@/lib/portal-access";
 
 export type BuildState =
   | { ok: true; stored: boolean }
@@ -25,6 +26,7 @@ type Cfg = {
   pages: PageSnap[];
   imageCount: number;
   currentSite?: string;
+  snapshot?: Record<string, unknown>;
 };
 
 function val(v: unknown): string {
@@ -153,6 +155,83 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
   const quoteId = (data as { id?: string } | null)?.id;
   if (quoteId && currentSite) {
     after(() => scanAndStore(currentSite, quoteId));
+  }
+
+  // De bezoeker krijgt meteen een echt portaalaccount + haar ontwerp
+  // erin, zodat ze kan inloggen en op elk toestel verderwerken.
+  const loc =
+    clean.locale === "fr" || clean.locale === "en" ? clean.locale : "nl";
+  try {
+    await ensurePortalUser(email, { name: businessName });
+    await db
+      .from("builder_designs")
+      .insert({
+        client_email: email,
+        title: businessName,
+        snapshot: clean.snapshot ?? clean,
+        status: "concept",
+      });
+    let link = `${siteUrl}/${loc}/portail`;
+    try {
+      const gen = await db.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+      });
+      const hashed = gen.data?.properties?.hashed_token;
+      if (!gen.error && hashed)
+        link = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+          hashed,
+        )}&type=magiclink&next=${encodeURIComponent(
+          `/${loc}/portail/dashboard/builder`,
+        )}`;
+    } catch {
+      /* val terug op portaal-login */
+    }
+    const a = "#e08214";
+    const ff =
+      "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+    const TT = {
+      nl: {
+        sub: `Je ontwerp staat in je portaal — bouw verder`,
+        eb: "Je ontwerp is bewaard",
+        p1: `We hebben je ontwerp "${businessName}" veilig bewaard in je persoonlijke Studio VM-portaal. Klik hieronder om in te loggen en er verder aan te bouwen — op gsm, tablet of laptop.`,
+        btn: "Verder bouwen in mijn portaal",
+        p2: "Klaar? Dan stuur je het vanuit je portaal door en werk ik het professioneel af.",
+      },
+      fr: {
+        sub: `Votre maquette est dans votre portail — continuez`,
+        eb: "Votre maquette est enregistrée",
+        p1: `Nous avons enregistré votre maquette « ${businessName} » en sécurité dans votre portail Studio VM. Cliquez ci-dessous pour vous connecter et continuer — sur mobile, tablette ou ordinateur.`,
+        btn: "Continuer dans mon portail",
+        p2: "Prêt ? Envoyez-la depuis votre portail et je la finalise.",
+      },
+      en: {
+        sub: `Your draft is in your portal — keep building`,
+        eb: "Your draft is saved",
+        p1: `We've safely saved your draft "${businessName}" in your personal Studio VM portal. Click below to log in and keep building — on phone, tablet or laptop.`,
+        btn: "Keep building in my portal",
+        p2: "Done? Send it from your portal and I'll finish it professionally.",
+      },
+    }[loc];
+    await sendMail(email, {
+      subject: TT.sub,
+      html: `<!DOCTYPE html><html lang="${loc}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-collapse:collapse"><tr><td align="center" style="padding:40px 16px">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:560px;max-width:100%;border-collapse:collapse">
+  <tr><td style="background:#ffffff;border:1px solid #e7e5e4;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:40px 38px">
+    <p style="margin:0 0 26px;font:800 60px/1 ${ff};letter-spacing:-4px;color:#1c1917">vm<span style="color:${a}">.</span></p>
+    <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${a}">${TT.eb}</p>
+    <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${ff};color:#1c1917">${businessName}</h1>
+    <p style="margin:0 0 24px;font:400 15px/1.65 ${ff};color:#44403c">${TT.p1}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="${a}" style="background:${a}"><a href="${link}" style="display:inline-block;padding:14px 30px;font:700 14px/1 ${ff};color:#ffffff;text-decoration:none">${TT.btn} &nbsp;&rarr;</a></td></tr></table>
+    <p style="margin:24px 0 0;font:400 13px/1.6 ${ff};color:#78716c">${TT.p2}</p>
+  </td></tr>
+  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${ff};color:#57534e">Studio VM · studio-vm.be</td></tr>
+</table></td></tr></table></body></html>`,
+    });
+  } catch {
+    // Niet-kritisch — de aanvraag staat sowieso bij Studio VM.
   }
 
   const accent = "#e08214";

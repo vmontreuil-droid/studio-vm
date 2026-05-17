@@ -387,6 +387,7 @@ const T: Record<
       pricelistTitle: string;
       hoursTitle: string;
       mapTitle: string;
+      mapEmbedHint: string;
       hoursSeed: { day: string; time: string }[];
       priceSeed: { name: string; price: string; desc: string }[];
       heroDrop: string;
@@ -541,6 +542,8 @@ const T: Record<
       pricelistTitle: "Prijslijst",
       hoursTitle: "Openingsuren",
       mapTitle: "Waar je ons vindt",
+    mapEmbedHint:
+      "Tip: plak een Google Maps 'insluiten'-link (https://…) in het embed-veld voor een echte kaart.",
       hoursSeed: [
         { day: "Maandag–Vrijdag", time: "9:00 – 17:00" },
         { day: "Zaterdag", time: "Op afspraak" },
@@ -701,6 +704,8 @@ const T: Record<
       pricelistTitle: "Tarifs",
       hoursTitle: "Horaires",
       mapTitle: "Où nous trouver",
+    mapEmbedHint:
+      "Astuce : collez un lien Google Maps « intégrer » (https://…) dans le champ embed pour une vraie carte.",
       hoursSeed: [
         { day: "Lundi–Vendredi", time: "9:00 – 17:00" },
         { day: "Samedi", time: "Sur rendez-vous" },
@@ -861,6 +866,8 @@ const T: Record<
       pricelistTitle: "Price list",
       hoursTitle: "Opening hours",
       mapTitle: "Where to find us",
+    mapEmbedHint:
+      "Tip: paste a Google Maps 'embed' link (https://…) in the embed field for a real map.",
       hoursSeed: [
         { day: "Monday–Friday", time: "9:00 – 17:00" },
         { day: "Saturday", time: "By appointment" },
@@ -1044,6 +1051,8 @@ export type BuilderSnapshot = {
   scale?: number;
   logo?: string;
   navAlign?: "left" | "center" | "right";
+  btnShape?: "rond" | "zacht" | "recht";
+  btnColor?: string;
   pages?: Page[];
   activeId?: string;
   locale?: string;
@@ -1073,6 +1082,10 @@ export default function BuilderPage({
   const [navAlign, setNavAlign] = useState<"left" | "center" | "right">(
     "left",
   );
+  const [btnShape, setBtnShape] = useState<"rond" | "zacht" | "recht">(
+    "rond",
+  );
+  const [btnColor, setBtnColor] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const pg = PG[locale];
   const [pages, setPages] = useState<Page[]>(() => [
@@ -1141,6 +1154,8 @@ export default function BuilderPage({
         if (typeof d.scale === "number") setScale(d.scale);
         if (typeof d.logo === "string") setLogo(d.logo);
         if (d.navAlign) setNavAlign(d.navAlign);
+        if (d.btnShape) setBtnShape(d.btnShape);
+        if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
         if (d.pages && d.pages.length) {
           syncId(d.pages);
           setPages(d.pages);
@@ -1168,6 +1183,8 @@ export default function BuilderPage({
           scale,
           logo,
           navAlign,
+          btnShape,
+          btnColor,
           pages,
           activeId,
         }),
@@ -1178,7 +1195,7 @@ export default function BuilderPage({
     } catch {
       /* quota → stil negeren */
     }
-  }, [hydrated, businessName, theme, font, radius, align, scale, logo, navAlign, pages, activeId]);
+  }, [hydrated, businessName, theme, font, radius, align, scale, logo, navAlign, btnShape, btnColor, pages, activeId]);
 
   // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
   // klant op elk toestel kan hervatten en jij elke versie ziet.
@@ -1196,6 +1213,8 @@ export default function BuilderPage({
         scale,
         logo,
         navAlign,
+        btnShape,
+        btnColor,
         pages,
         activeId,
         locale,
@@ -1216,6 +1235,8 @@ export default function BuilderPage({
     scale,
     logo,
     navAlign,
+    btnShape,
+    btnColor,
     pages,
     activeId,
   ]);
@@ -1252,6 +1273,8 @@ export default function BuilderPage({
     setScale(1);
     setLogo("");
     setNavAlign("left");
+    setBtnShape("rond");
+    setBtnColor("");
     setImages([]);
     setBusinessName(
       locale === "fr"
@@ -1721,6 +1744,41 @@ export default function BuilderPage({
                     {openSec.kind !== "hero" && (
                       <div className="mb-3">
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Espacement"
+                            : locale === "en"
+                              ? "Spacing"
+                              : "Witruimte"}
+                        </p>
+                        <div className="mb-3 grid grid-cols-3 gap-1.5">
+                          {(
+                            [
+                              ["compact", locale === "fr" ? "Compact" : locale === "en" ? "Compact" : "Compact"],
+                              ["", locale === "fr" ? "Normal" : locale === "en" ? "Normal" : "Normaal"],
+                              ["ruim", locale === "fr" ? "Large" : locale === "en" ? "Roomy" : "Ruim"],
+                            ] as const
+                          ).map(([k, lbl]) => {
+                            const selSp =
+                              String(openSec.data._sp ?? "") === k;
+                            return (
+                              <button
+                                key={k || "norm"}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _sp: k })
+                                }
+                                className={`rounded-md border px-2 py-1 text-xs transition-colors ${
+                                  selSp
+                                    ? "border-accent bg-accent/10 text-foreground"
+                                    : "border-border text-muted hover:bg-card-hover"
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -2135,6 +2193,68 @@ export default function BuilderPage({
                 <span className="w-10 text-right font-mono text-[11px] tabular-nums text-muted">
                   {Math.round(scale * 100)}%
                 </span>
+              </div>
+
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Boutons"
+                  : locale === "en"
+                    ? "Buttons"
+                    : "Knoppen"}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ["rond", locale === "fr" ? "Rond" : locale === "en" ? "Round" : "Rond"],
+                    ["zacht", locale === "fr" ? "Doux" : locale === "en" ? "Soft" : "Zacht"],
+                    ["recht", locale === "fr" ? "Droit" : locale === "en" ? "Sharp" : "Recht"],
+                  ] as const
+                ).map(([k, lbl]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setBtnShape(k)}
+                    className={`border p-2 text-xs transition-colors ${
+                      btnShape === k
+                        ? "border-accent"
+                        : "border-border hover:bg-card-hover"
+                    }`}
+                    style={{
+                      borderRadius:
+                        k === "recht"
+                          ? "2px"
+                          : k === "zacht"
+                            ? "10px"
+                            : "9999px",
+                    }}
+                  >
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <span className="text-[11px] text-muted">
+                  {locale === "fr"
+                    ? "Couleur"
+                    : locale === "en"
+                      ? "Colour"
+                      : "Kleur"}
+                </span>
+                <input
+                  type="color"
+                  value={btnColor || theme.accent}
+                  onChange={(e) => setBtnColor(e.target.value)}
+                  className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+                />
+                {btnColor && (
+                  <button
+                    type="button"
+                    onClick={() => setBtnColor("")}
+                    className="font-mono text-[10px] text-muted underline"
+                  >
+                    reset
+                  </button>
+                )}
               </div>
 
               <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -2704,6 +2824,21 @@ export default function BuilderPage({
                         })),
                         imageCount: images.length,
                         currentSite,
+                        snapshot: {
+                          businessName,
+                          theme,
+                          font,
+                          radius,
+                          align,
+                          scale,
+                          logo,
+                          navAlign,
+                          btnShape,
+                          btnColor,
+                          pages,
+                          activeId,
+                          locale,
+                        },
                       });
                       if (r.ok) setSent("ok");
                       else if (r.mailto) window.location.href = r.mailto;
@@ -2819,7 +2954,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -2874,6 +3009,7 @@ export default function BuilderPage({
                 sections.map((s) => (
                   <div
                     key={s.id}
+                    data-sp={String(s.data._sp ?? "")}
                     className={`group/sec relative cursor-pointer transition-shadow ${
                       openId === s.id
                         ? "ring-2 ring-inset ring-accent"
@@ -3468,7 +3604,7 @@ function SectionEditor({
     banner: ["text"],
     newsletter: ["title", "text", "button"],
     gallery: ["title"],
-    map: ["title", "address"],
+    map: ["title", "address", "embed"],
   };
   const areaKeys = new Set(["text", "sub", "address"]);
 
@@ -4143,7 +4279,7 @@ function HeroPreview({
             />
           </p>
           <button
-            className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
+            className="bldr-btn mt-6 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
             <E
@@ -5075,12 +5211,23 @@ function PreviewSection({
                       />
                       &rdquo;
                     </p>
-                    <footer className="mt-2 font-mono text-[10px] opacity-70">
-                      —{" "}
-                      <E
-                        value={t.who}
-                        onChange={(v) => setItem(rows, i, "who", v)}
-                      />
+                    <footer className="mt-3 flex items-center gap-2">
+                      <div className="w-9 shrink-0">
+                        <ItemImg
+                          it={t}
+                          onPatch={(pt) => patchRow(rows, i, pt)}
+                          accent={theme.accent}
+                          fg={theme.fg}
+                          variant="avatar"
+                        />
+                      </div>
+                      <span className="font-mono text-[10px] opacity-70">
+                        —{" "}
+                        <E
+                          value={t.who}
+                          onChange={(v) => setItem(rows, i, "who", v)}
+                        />
+                      </span>
                     </footer>
                   </blockquote>
                 ))}
@@ -5394,6 +5541,8 @@ function PreviewSection({
       );
     case "map": {
       const addr = g("address");
+      const embed = g("embed");
+      const okEmbed = /^https:\/\/[^"'<>]+$/.test(embed);
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
@@ -5402,25 +5551,44 @@ function PreviewSection({
               onChange={(v) => edit({ title: v })}
             />
           </h3>
-          <div
-            className="mx-auto mt-6 flex max-w-2xl flex-col items-center justify-center gap-3 rounded-lg border py-12"
-            style={{
-              ...border,
-              background: `linear-gradient(135deg, ${theme.accent}1f, ${theme.fg}0d)`,
-            }}
-          >
-            <MapPin
-              className="h-8 w-8"
-              strokeWidth={1.5}
-              style={accentText}
-            />
-            <p className="px-6 text-center text-sm font-medium">
-              <E
-                value={addr || "Straat 1, 0000 Gemeente"}
-                onChange={(v) => edit({ address: v })}
+          {okEmbed ? (
+            <div
+              className="mx-auto mt-6 max-w-2xl overflow-hidden rounded-lg border"
+              style={border}
+            >
+              <iframe
+                src={embed}
+                title="map"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-72 w-full"
+                style={{ border: 0 }}
               />
-            </p>
-          </div>
+            </div>
+          ) : (
+            <div
+              className="mx-auto mt-6 flex max-w-2xl flex-col items-center justify-center gap-3 rounded-lg border py-12"
+              style={{
+                ...border,
+                background: `linear-gradient(135deg, ${theme.accent}1f, ${theme.fg}0d)`,
+              }}
+            >
+              <MapPin
+                className="h-8 w-8"
+                strokeWidth={1.5}
+                style={accentText}
+              />
+              <p className="px-6 text-center text-sm font-medium">
+                <E
+                  value={addr || "Straat 1, 0000 Gemeente"}
+                  onChange={(v) => edit({ address: v })}
+                />
+              </p>
+              <p className="px-6 text-center text-[11px] opacity-50">
+                {p.mapEmbedHint}
+              </p>
+            </div>
+          )}
         </div>
       );
     }
@@ -5474,7 +5642,7 @@ function PreviewSection({
               jouw@email.be
             </span>
             <button
-              className="rounded-full px-4 py-2 text-xs font-medium"
+              className="bldr-btn rounded-full px-4 py-2 text-xs font-medium"
               style={{ background: theme.accent, color: theme.bg }}
             >
               <E
@@ -5569,7 +5737,7 @@ function PreviewSection({
             />
           </p>
           <button
-            className="mt-5 rounded-full px-5 py-2 text-xs font-medium"
+            className="bldr-btn mt-5 rounded-full px-5 py-2 text-xs font-medium"
             style={{ background: theme.accent, color: theme.bg }}
           >
             <E

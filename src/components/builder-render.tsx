@@ -571,21 +571,39 @@ function BlockView({
           </p>
         </div>
       );
-    case "map":
+    case "map": {
+      const mEmb = s(d.embed);
+      const mOk = /^https:\/\/[^"'<>]+$/.test(mEmb);
       return (
         <div className="border-t px-6 py-10" style={border}>
           <H>{s(d.title)}</H>
-          <div
-            className="mx-auto mt-5 max-w-xl rounded-lg border py-10 text-center text-sm font-medium"
-            style={{
-              ...border,
-              background: `linear-gradient(135deg, ${accent}1f, ${fg}0d)`,
-            }}
-          >
-            {s(d.address) || "—"}
-          </div>
+          {mOk ? (
+            <div
+              className="mx-auto mt-5 max-w-xl overflow-hidden rounded-lg border"
+              style={border}
+            >
+              <iframe
+                src={mEmb}
+                title="map"
+                loading="lazy"
+                className="h-64 w-full"
+                style={{ border: 0 }}
+              />
+            </div>
+          ) : (
+            <div
+              className="mx-auto mt-5 max-w-xl rounded-lg border py-10 text-center text-sm font-medium"
+              style={{
+                ...border,
+                background: `linear-gradient(135deg, ${accent}1f, ${fg}0d)`,
+              }}
+            >
+              {s(d.address) || "—"}
+            </div>
+          )}
         </div>
       );
+    }
     case "cta":
       return (
         <div
