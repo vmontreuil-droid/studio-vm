@@ -4,6 +4,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { decideOffer } from "@/app/actions/portal-client";
+import { SubmitButton } from "@/components/submit-button";
 import {
   eur,
   dt,
@@ -224,14 +225,14 @@ export default async function PortalOffers({
             {o.status === "open" && (
               <div className="mt-4 flex gap-2">
                 <form action={decideOffer.bind(null, o.id, "akkoord")}>
-                  <button className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
+                  <SubmitButton className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
                     {l.accept}
-                  </button>
+                  </SubmitButton>
                 </form>
                 <form action={decideOffer.bind(null, o.id, "afgewezen")}>
-                  <button className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
+                  <SubmitButton className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
                     {l.reject}
-                  </button>
+                  </SubmitButton>
                 </form>
               </div>
             )}

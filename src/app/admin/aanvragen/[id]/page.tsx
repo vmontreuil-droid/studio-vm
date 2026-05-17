@@ -338,12 +338,29 @@ export default async function QuoteDetail({
                   : "—"
               }
             />
-            <Field
-              label="Maandfactuur vanaf oplevering"
-              value={
-                <strong>{eurc(q.monthly_total_cents)}/maand</strong>
-              }
-            />
+            {q.term && q.term > 0 ? (
+              <>
+                <Field
+                  label="Maandtotaal tijdens afbetaling"
+                  value={
+                    <strong>
+                      {eurc(q.monthly_total_cents)}/maand · {q.term} mnd
+                    </strong>
+                  }
+                />
+                <Field
+                  label="Maandtotaal daarna (onderhoud)"
+                  value={`${eurc(q.subscription_cents)}/maand`}
+                />
+              </>
+            ) : (
+              <Field
+                label="Maandfactuur vanaf oplevering"
+                value={
+                  <strong>{eurc(q.subscription_cents)}/maand</strong>
+                }
+              />
+            )}
             {q.mollie_payment_id && (
               <Field
                 label="Mollie payment-id"

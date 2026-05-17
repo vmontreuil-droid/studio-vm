@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { payInvoice } from "@/app/actions/portal-client";
+import { SubmitButton } from "@/components/submit-button";
 import {
   eur,
   dt,
@@ -147,9 +148,9 @@ export default async function PortalPayments({
               )}
               {mollieConfigured && i.status !== "betaald" && (
                 <form action={payInvoice.bind(null, i.id)}>
-                  <button className="rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90">
+                  <SubmitButton className="rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90">
                     {locale === "fr" ? "Payer" : locale === "en" ? "Pay now" : "Betaal nu"}
-                  </button>
+                  </SubmitButton>
                 </form>
               )}
             </div>

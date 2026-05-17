@@ -13,6 +13,7 @@ import {
 } from "@/lib/portal-shared";
 import { subscriptionTiers } from "@/lib/pricing";
 import { upgradeSubscription } from "@/app/actions/portal-client";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -238,9 +239,9 @@ export default async function PortalSubscription({
           <div className="mt-5 flex flex-wrap gap-2">
             <form action={upgradeSubscription.bind(null, target.slug)}>
               <input type="hidden" name="locale" value={locale} />
-              <button className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
+              <SubmitButton className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
                 {l.cfBtn}
-              </button>
+              </SubmitButton>
             </form>
             <Link
               href={base}

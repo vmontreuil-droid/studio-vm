@@ -196,10 +196,15 @@ export async function POST(req: NextRequest) {
             lMonth: "Maandfactuur vanaf oplevering",
             lDomain: "Domein & e-mail",
             ctaBtn: "Open je klantenportaal",
-            planHead: "Betaalplan",
-            planDep: "Aanbetaling — betaald",
+            planHead: "Aflossingstabel",
+            planCap: "Aflossing van je project + het verplichte onderhoud dat ernaast loopt.",
+            planDep: "Aanbetaling (bij vastleggen) — betaald",
+            planSplit: "Saldo gespreid",
+            planTotal: "Projecttotaal (excl. btw)",
+            planDuring: "Maandtotaal tijdens afbetaling",
+            planAfter: "Maandtotaal daarna (onderhoud)",
+            mnd: "maanden",
             planThen: "Daarna, vanaf oplevering",
-            planTotal: "Totaal project (excl. btw)",
             terms: `Op deze opdracht zijn onze <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">algemene voorwaarden</a> en <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">privacyverklaring</a> van toepassing.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} bij oplevering`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / maand vanaf oplevering`,
@@ -233,10 +238,15 @@ export async function POST(req: NextRequest) {
             lMonth: "Facture mensuelle dès la livraison",
             lDomain: "Domaine & e-mail",
             ctaBtn: "Ouvrir votre espace client",
-            planHead: "Plan de paiement",
-            planDep: "Acompte — payé",
-            planThen: "Ensuite, dès la livraison",
+            planHead: "Tableau d'amortissement",
+            planCap: "Amortissement de votre projet + la maintenance obligatoire qui s'ajoute.",
+            planDep: "Acompte (au verrouillage) — payé",
+            planSplit: "Solde échelonné",
             planTotal: "Total projet (HTVA)",
+            planDuring: "Total mensuel pendant l'échelonnement",
+            planAfter: "Total mensuel ensuite (maintenance)",
+            mnd: "mois",
+            planThen: "Ensuite, dès la livraison",
             terms: `Nos <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">conditions générales</a> et notre <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">politique de confidentialité</a> s'appliquent à cette mission.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} à la livraison`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / mois dès la livraison`,
@@ -270,10 +280,15 @@ export async function POST(req: NextRequest) {
             lMonth: "Monthly invoice from delivery",
             lDomain: "Domain & email",
             ctaBtn: "Open your client portal",
-            planHead: "Payment plan",
-            planDep: "Deposit — paid",
-            planThen: "Then, from delivery",
+            planHead: "Repayment schedule",
+            planCap: "Repayment of your project + the required maintenance running alongside.",
+            planDep: "Deposit (at lock-in) — paid",
+            planSplit: "Balance split",
             planTotal: "Project total (excl. VAT)",
+            planDuring: "Monthly total during repayment",
+            planAfter: "Monthly total after (maintenance)",
+            mnd: "months",
+            planThen: "Then, from delivery",
             terms: `Our <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">general terms</a> and <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">privacy policy</a> apply to this assignment.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} on delivery`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / month from delivery`,
@@ -326,16 +341,24 @@ export async function POST(req: NextRequest) {
           row(TR.lDomain, domainNote);
         const planBlock =
           q.term && q.term > 0
-            ? `<p style="margin:28px 0 10px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.planHead}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:20px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>${
+            ? `<p style="margin:28px 0 4px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.planHead}</p><p style="margin:0 0 10px;font:400 12px/1.5 ${font};color:#78716c">${TR.planCap}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:20px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>${
                 row(
                   TR.planDep,
                   `<span style="color:${accent}">${amt}</span>`,
                 ) +
                 row(
-                  TR.planThen,
+                  TR.planSplit,
                   `${q.term}× ${eur(q.monthly_install_cents)}${TR.perMonth}`,
                 ) +
-                row(TR.planTotal, eur(payable))
+                row(TR.planTotal, eur(payable)) +
+                row(
+                  TR.planDuring,
+                  `<strong>${eur(q.monthly_total_cents)}</strong>${TR.perMonth} · ${q.term} ${TR.mnd}`,
+                ) +
+                row(
+                  TR.planAfter,
+                  `${eur(q.subscription_cents)}${TR.perMonth}`,
+                )
               }</tbody></table></td></tr></table>`
             : "";
         const stepsHtml = TR.steps

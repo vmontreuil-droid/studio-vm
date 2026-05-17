@@ -301,10 +301,17 @@ export async function startOffer(
     `Nu te betalen incl. 21% btw: ${cents(Math.round(deposit * (1 + VAT_RATE)))}`,
     term === 0
       ? `Saldo: ${cents(rest)} bij oplevering`
-      : `Saldo: ${term}× ${cents(monthlyInstall)}/maand vanaf oplevering`,
-    `Onderhoud: ${subTier.name} ${cents(subTier.cents)}/maand`,
+      : `Saldo gespreid: ${term}× ${cents(monthlyInstall)}/maand`,
+    `Onderhoud (verplicht): ${subTier.name} — ${cents(subTier.cents)}/maand`,
     `Domein & e-mail: nog te bespreken — niet in deze prijs (project start op Vercel-adres)`,
-    `Maandfactuur vanaf oplevering: ${cents(monthlyTotal)}/maand`,
+    ...(term > 0
+      ? [
+          `Maandtotaal tijdens afbetaling: ${cents(monthlyTotal)}/maand (afbetaling + onderhoud) — ${term} maanden`,
+          `Maandtotaal daarna: ${cents(subTier.cents)}/maand (enkel onderhoud)`,
+        ]
+      : [
+          `Maandfactuur vanaf oplevering: ${cents(subTier.cents)}/maand (onderhoud)`,
+        ]),
   ];
 
   await sendMail("info@studio-vm.be", {

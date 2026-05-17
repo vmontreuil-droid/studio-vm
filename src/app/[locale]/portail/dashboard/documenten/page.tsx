@@ -6,6 +6,7 @@ import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { dt, PORTAL_T } from "@/lib/portal-shared";
 import { DocUploader } from "@/components/doc-uploader";
 import { deleteOwnDocument } from "@/app/actions/portal-client";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -122,12 +123,12 @@ export default async function PortalDocuments({
         </a>
         {own && (
           <form action={deleteOwnDocument.bind(null, d.id)}>
-            <button
-              aria-label="Verwijder"
+            <SubmitButton
+              ariaLabel="Verwijder"
               className="rounded-full border p-2 text-muted transition-colors hover:text-red-500"
             >
               <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-            </button>
+            </SubmitButton>
           </form>
         )}
       </div>
