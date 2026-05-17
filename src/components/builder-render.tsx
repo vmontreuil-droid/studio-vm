@@ -519,12 +519,27 @@ function BlockView({
       return (
         <div className="border-t px-6 py-10" style={border}>
           <div className="mx-auto grid max-w-2xl gap-5 sm:grid-cols-[1fr_1.4fr]">
-            <div
-              className="aspect-[4/3] rounded-lg"
-              style={{
-                background: `linear-gradient(135deg, ${accent}33, ${fg}11)`,
-              }}
-            />
+            {s(d._img) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={s(d._img)}
+                alt=""
+                className="w-full rounded-lg object-cover"
+                style={{
+                  height: Number(d._ih) || 160,
+                  filter: Number(d._ib)
+                    ? `blur(${Number(d._ib)}px)`
+                    : undefined,
+                }}
+              />
+            ) : (
+              <div
+                className="aspect-[4/3] rounded-lg"
+                style={{
+                  background: `linear-gradient(135deg, ${accent}33, ${fg}11)`,
+                }}
+              />
+            )}
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
                 {s(d.title)}

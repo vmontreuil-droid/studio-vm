@@ -5022,18 +5022,23 @@ function PreviewSection({
               { title: "" },
             ]);
             return (
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <div className="mt-6 flex flex-wrap items-end justify-center gap-4">
                 {rows.map((it, i) => (
-                  <span
-                    key={i}
-                    className="rounded-lg border px-4 py-2 text-xs font-medium opacity-80"
-                    style={border}
-                  >
-                    <E
-                      value={it.title}
-                      onChange={(v) => setItem(rows, i, "title", v)}
+                  <div key={i} className="w-24 text-center">
+                    <ItemImg
+                      it={it}
+                      onPatch={(pt) => patchRow(rows, i, pt)}
+                      accent={theme.accent}
+                      fg={theme.fg}
+                      variant="avatar"
                     />
-                  </span>
+                    <span className="block text-[11px] font-medium opacity-70">
+                      <E
+                        value={it.title}
+                        onChange={(v) => setItem(rows, i, "title", v)}
+                      />
+                    </span>
+                  </div>
                 ))}
               </div>
             );
@@ -5203,21 +5208,13 @@ function PreviewSection({
       return (
         <div className="border-t px-8 py-12" style={border}>
           <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_1.4fr]">
-            {images[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={images[0]}
-                alt=""
-                className="aspect-[4/3] w-full rounded-lg object-cover"
-              />
-            ) : (
-              <div
-                className="aspect-[4/3] rounded-lg"
-                style={{
-                  background: `linear-gradient(135deg, ${theme.accent}33, ${theme.fg}11)`,
-                }}
-              />
-            )}
+            <ItemImg
+              it={data as unknown as Record<string, string>}
+              onPatch={(pt) => edit(pt)}
+              accent={theme.accent}
+              fg={theme.fg}
+              variant="banner"
+            />
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
                 <E
