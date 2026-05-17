@@ -21,6 +21,7 @@ import {
   Check,
   Pencil,
   ChevronDown,
+  GripVertical,
   MapPin,
   Clock,
   Monitor,
@@ -726,6 +727,7 @@ export default function BuilderPage({
     );
   const sections = active.sections;
   const [openId, setOpenId] = useState<string | null>(null);
+  const [dragIx, setDragIx] = useState<number | null>(null);
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
@@ -891,6 +893,21 @@ export default function BuilderPage({
       if (i < 0 || tgt < 0 || tgt >= s.length) return s;
       const n = [...s];
       [n[i], n[tgt]] = [n[tgt], n[i]];
+      return n;
+    });
+  const reorderSection = (from: number, to: number) =>
+    setSections((s) => {
+      if (
+        from === to ||
+        from < 0 ||
+        to < 0 ||
+        from >= s.length ||
+        to >= s.length
+      )
+        return s;
+      const n = [...s];
+      const [moved] = n.splice(from, 1);
+      n.splice(to, 0, moved);
       return n;
     });
   const patchData = (id: string, patch: SectionData) =>
@@ -1176,8 +1193,37 @@ export default function BuilderPage({
             >
               <ul className="space-y-2">
                 {sections.map((s, i) => (
-                  <li key={s.id} className="rounded-lg border bg-background">
-                    <div className="flex items-center justify-between px-3 py-2 text-sm">
+                  <li
+                    key={s.id}
+                    onDragOver={(e) => {
+                      if (dragIx !== null) e.preventDefault();
+                    }}
+                    onDrop={() => {
+                      if (dragIx !== null) reorderSection(dragIx, i);
+                      setDragIx(null);
+                    }}
+                    className={`rounded-lg border bg-background transition-colors ${
+                      dragIx === i
+                        ? "opacity-50"
+                        : dragIx !== null
+                          ? "hover:border-accent"
+                          : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between px-2 py-2 text-sm">
+                      <span
+                        draggable
+                        onDragStart={() => setDragIx(i)}
+                        onDragEnd={() => setDragIx(null)}
+                        aria-label="Versleep om te herschikken"
+                        title="Versleep om te herschikken"
+                        className="cursor-grab px-1 text-muted active:cursor-grabbing"
+                      >
+                        <GripVertical
+                          className="h-3.5 w-3.5"
+                          strokeWidth={2}
+                        />
+                      </span>
                       <button
                         type="button"
                         onClick={() =>
