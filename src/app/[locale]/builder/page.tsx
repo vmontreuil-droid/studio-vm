@@ -1907,17 +1907,17 @@ export default function BuilderPage({
     });
 
   return (
-    <main>
+    <main className="min-h-dvh">
       {!designId && (
         <section className="border-b">
-          <div className="mx-auto max-w-7xl px-6 py-16">
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 xl:px-6">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
               {c.eyebrow}
-            </p>
-            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+            </span>
+            <h1 className="text-base font-semibold tracking-tight">
               {c.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-muted">{c.intro}</p>
+            <p className="hidden text-xs text-muted sm:block">{c.intro}</p>
           </div>
         </section>
       )}
@@ -1925,18 +1925,14 @@ export default function BuilderPage({
       <section className={designId ? "" : "border-b"}>
         <div
           className={
-            designId
-              ? "grid w-full gap-6 px-4 py-6 lg:grid-cols-[360px_1fr] xl:px-8"
-              : "grid w-full gap-6 px-4 py-8 lg:grid-cols-[360px_1fr] xl:px-8"
+            "grid w-full gap-5 px-3 py-3 lg:grid-cols-[340px_1fr] 2xl:grid-cols-[380px_1fr] xl:px-5"
           }
         >
           <aside
             ref={asideRef}
-            className={`space-y-6 lg:sticky lg:self-start lg:overflow-y-auto lg:pr-1 ${
-              designId
-                ? "lg:top-4 lg:max-h-[calc(100vh-2rem)]"
-                : "lg:top-24 lg:max-h-[calc(100vh-7rem)]"
-            }`}
+            className={
+              "space-y-6 lg:sticky lg:top-3 lg:max-h-[calc(100vh-1.5rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
+            }
           >
             {(() => {
               const openSec = sections.find((x) => x.id === openId);
@@ -4261,9 +4257,7 @@ export default function BuilderPage({
 
           <div className="self-start rounded-2xl border bg-card">
             <div
-              className={`sticky top-0 z-30 flex flex-wrap items-center gap-2 rounded-t-2xl border-b bg-background px-4 py-3 ${
-                designId ? "lg:top-4" : "lg:top-24"
-              }`}
+              className="sticky top-0 z-30 flex flex-wrap items-center gap-2 rounded-t-2xl border-b bg-background px-4 py-3 lg:top-3"
             >
               <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
