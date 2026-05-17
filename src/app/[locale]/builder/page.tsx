@@ -37,6 +37,9 @@ import {
 type SectionKind =
   | "hero"
   | "features"
+  | "steps"
+  | "team"
+  | "logos"
   | "about"
   | "stats"
   | "testimonials"
@@ -102,6 +105,9 @@ const themes: Theme[] = [
 const sectionKinds: SectionKind[] = [
   "hero",
   "features",
+  "steps",
+  "team",
+  "logos",
   "about",
   "stats",
   "testimonials",
@@ -211,7 +217,7 @@ const T: Record<
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
     panelSections: "Secties & inhoud",
-    sectionLabels: { hero: "Hero", features: "Features", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", cta: "Oproep", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Werkwijze", team: "Team", logos: "Klanten", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", cta: "Oproep", contact: "Contact" },
     add: "Voeg toe",
     panelReady: "Klaar?",
     readyText:
@@ -326,7 +332,7 @@ const T: Record<
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
     panelSections: "Sections & contenu",
-    sectionLabels: { hero: "Hero", features: "Atouts", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", cta: "Appel", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Atouts", steps: "Méthode", team: "Équipe", logos: "Clients", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", cta: "Appel", contact: "Contact" },
     add: "Ajouter",
     panelReady: "Prêt ?",
     readyText:
@@ -441,7 +447,7 @@ const T: Record<
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
     panelSections: "Sections & content",
-    sectionLabels: { hero: "Hero", features: "Features", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", cta: "Call-out", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Process", team: "Team", logos: "Clients", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", cta: "Call-out", contact: "Contact" },
     add: "Add",
     panelReady: "Done?",
     readyText:
@@ -579,6 +585,24 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
           desc: p.featureDesc,
         })),
       };
+    case "steps":
+      return {
+        title: "",
+        items: [1, 2, 3].map((i) => ({
+          title: `${i}.`,
+          desc: "",
+        })),
+      };
+    case "team":
+      return {
+        title: "",
+        items: [1, 2, 3].map(() => ({ title: "", desc: "" })),
+      };
+    case "logos":
+      return {
+        title: "",
+        items: [1, 2, 3, 4].map(() => ({ title: "" })),
+      };
     case "about":
       return { title: p.aboutTitle, text: p.aboutText };
     case "stats":
@@ -624,6 +648,9 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
 
 const itemTemplate: Partial<Record<SectionKind, Record<string, string>>> = {
   features: { title: "", desc: "" },
+  steps: { title: "", desc: "" },
+  team: { title: "", desc: "" },
+  logos: { title: "" },
   stats: { value: "", label: "" },
   testimonials: { quote: "", who: "" },
   pricing: { name: "", price: "", per: "" },
@@ -1569,6 +1596,9 @@ function SectionEditor({
   // list-based: features, stats, testimonials, pricing, faq
   const itemFieldLabel: Record<string, Record<string, string>> = {
     features: { title: f.itemTitle, desc: f.itemDesc },
+    steps: { title: f.itemTitle, desc: f.itemDesc },
+    team: { title: f.itemTitle, desc: f.itemDesc },
+    logos: { title: f.itemTitle },
     stats: { value: f.value, label: f.label },
     testimonials: { quote: f.quote, who: f.who },
     pricing: { name: f.name, price: f.price, per: f.per },
@@ -1778,6 +1808,123 @@ function PreviewSection({
                       />
                     </p>
                   </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      );
+    case "steps":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            <E value={g("title")} onChange={(v) => edit({ title: v })} />
+          </h3>
+          {(() => {
+            const rows = rowsOr([
+              { title: "1.", desc: "" },
+              { title: "2.", desc: "" },
+              { title: "3.", desc: "" },
+            ]);
+            return (
+              <div className="mx-auto mt-6 max-w-lg space-y-3">
+                {rows.map((it, i) => (
+                  <div key={i} className="flex gap-3">
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ background: theme.accent, color: theme.bg }}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="text-xs">
+                      <p className="font-semibold">
+                        <E
+                          value={it.title}
+                          onChange={(v) => setItem(rows, i, "title", v)}
+                        />
+                      </p>
+                      <p className="mt-0.5 opacity-70">
+                        <E
+                          value={it.desc}
+                          onChange={(v) => setItem(rows, i, "desc", v)}
+                          multiline
+                        />
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      );
+    case "team":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            <E value={g("title")} onChange={(v) => edit({ title: v })} />
+          </h3>
+          {(() => {
+            const rows = rowsOr([
+              { title: "", desc: "" },
+              { title: "", desc: "" },
+              { title: "", desc: "" },
+            ]);
+            return (
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                {rows.map((it, i) => (
+                  <div key={i}>
+                    <div
+                      className="mx-auto mb-2 h-14 w-14 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${theme.accent}55, ${theme.fg}11)`,
+                      }}
+                    />
+                    <p className="text-sm font-semibold">
+                      <E
+                        value={it.title}
+                        onChange={(v) => setItem(rows, i, "title", v)}
+                      />
+                    </p>
+                    <p className="text-xs opacity-70">
+                      <E
+                        value={it.desc}
+                        onChange={(v) => setItem(rows, i, "desc", v)}
+                      />
+                    </p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      );
+    case "logos":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            <E value={g("title")} onChange={(v) => edit({ title: v })} />
+          </h3>
+          {(() => {
+            const rows = rowsOr([
+              { title: "" },
+              { title: "" },
+              { title: "" },
+              { title: "" },
+            ]);
+            return (
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {rows.map((it, i) => (
+                  <span
+                    key={i}
+                    className="rounded-lg border px-4 py-2 text-xs font-medium opacity-80"
+                    style={border}
+                  >
+                    <E
+                      value={it.title}
+                      onChange={(v) => setItem(rows, i, "title", v)}
+                    />
+                  </span>
                 ))}
               </div>
             );

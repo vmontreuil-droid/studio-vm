@@ -130,6 +130,9 @@ function BlockView({
         </div>
       );
     case "features":
+    case "steps":
+    case "team":
+    case "logos":
     case "stats":
     case "testimonials":
     case "pricing":
