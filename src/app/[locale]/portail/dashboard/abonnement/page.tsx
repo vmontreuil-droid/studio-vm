@@ -11,8 +11,15 @@ import {
   PORTAL_T,
   type Sub,
 } from "@/lib/portal-shared";
-import { subscriptionTiers } from "@/lib/pricing";
+import {
+  subscriptionTiers,
+  PUBLISH_BASE_MONTHLY_CENTS,
+} from "@/lib/pricing";
 import { upgradeSubscription } from "@/app/actions/portal-client";
+import {
+  startPublishSubscription,
+  cancelPublishSubscription,
+} from "@/app/actions/subscription";
 import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
@@ -146,6 +153,10 @@ export default async function PortalSubscription({
     .select("*")
     .order("created_at", { ascending: false });
   const subs = (data as Sub[]) ?? [];
+  const webSubs = subs.filter((s) =>
+    String(s.plan ?? "").startsWith("Website"),
+  );
+  const webActive = webSubs.filter((s) => s.status === "actief").length;
   const current = subs.find((s) => s.status === "actief") ?? subs[0];
   const tiers = subscriptionTiers();
   const currentCents = current?.price_cents ?? -1;
@@ -260,6 +271,78 @@ export default async function PortalSubscription({
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
         {t.subscription}
       </h1>
+
+      <div className="mt-5 rounded-xl border bg-card p-4">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {locale === "fr"
+            ? "Abonnement site web"
+            : locale === "en"
+              ? "Website subscription"
+              : "Website-abonnement"}
+        </p>
+        {webActive > 0 ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+              <span className="font-medium text-foreground">
+                {webActive}×{" "}
+                {locale === "fr"
+                  ? "site en ligne"
+                  : locale === "en"
+                    ? "site online"
+                    : "site online"}
+              </span>
+              <span>· €{Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100)}/m</span>
+            </span>
+            <span aria-hidden>·</span>
+            <a
+              href={localePath(
+                locale as Locale,
+                "/portail/dashboard/builder",
+              )}
+              className="text-accent underline underline-offset-2 hover:opacity-80"
+            >
+              {locale === "fr"
+                ? "gérer / site en plus"
+                : locale === "en"
+                  ? "manage / add site"
+                  : "beheren / extra site"}
+            </a>
+            <span aria-hidden>·</span>
+            <form action={cancelPublishSubscription} className="contents">
+              <input type="hidden" name="locale" value={locale} />
+              <SubmitButton className="underline underline-offset-2 hover:text-red-500">
+                {locale === "fr"
+                  ? "résilier"
+                  : locale === "en"
+                    ? "cancel"
+                    : "opzeggen"}
+              </SubmitButton>
+            </form>
+          </div>
+        ) : (
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+            <span className="text-muted">
+              {locale === "fr"
+                ? "Aucun abonnement site web actif."
+                : locale === "en"
+                  ? "No active website subscription."
+                  : "Nog geen actief website-abonnement."}
+            </span>
+            <form action={startPublishSubscription} className="contents">
+              <input type="hidden" name="locale" value={locale} />
+              <SubmitButton className="font-medium text-accent underline underline-offset-2 hover:opacity-80">
+                {locale === "fr"
+                  ? "Démarrer l'abonnement"
+                  : locale === "en"
+                    ? "Start subscription"
+                    : "Start abonnement"}
+              </SubmitButton>
+            </form>
+          </div>
+        )}
+      </div>
+
       {subs.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-accent/40 bg-accent/5 p-6">
           <p className="text-sm text-muted">{l.none}</p>

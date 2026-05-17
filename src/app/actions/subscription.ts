@@ -157,8 +157,9 @@ export async function addExtraSite(formData: FormData): Promise<void> {
   const customerId =
     (data as { mollie_customer_id: string | null } | null)
       ?.mollie_customer_id ?? null;
-  // Geen bestaand betalend abonnement → eerst het gewone startproces.
-  if (!customerId) redirect(`${back}?fout=abo`);
+  // Geen Mollie-klant/mandaat (bv. testrij of Mollie nog niet live)
+  // → extra site kan pas zodra de betaalkoppeling actief is.
+  if (!customerId) redirect(`${back}?fout=mollie`);
 
   const subId = await mollieCreateSubscription({
     customerId: customerId!,

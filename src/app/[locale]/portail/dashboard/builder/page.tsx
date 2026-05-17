@@ -39,6 +39,7 @@ export const dynamic = "force-dynamic";
 type Design = {
   id: string;
   title: string;
+  bname: string | null;
   status: string;
   updated_at: string;
   slug: string | null;
@@ -110,7 +111,9 @@ export default async function PortalBuilderOverview({
   const sb = await getSupabaseServer();
   const { data } = await sb
     .from("builder_designs")
-    .select("id, title, status, updated_at, slug, published")
+    .select(
+      "id, title, status, updated_at, slug, published, bname:snapshot->>businessName",
+    )
     .order("updated_at", { ascending: false });
   const designs = (data as Design[]) ?? [];
 
@@ -166,11 +169,17 @@ export default async function PortalBuilderOverview({
                 : locale === "en"
                   ? "You already have a site online. Take it offline first, or add another subscription."
                   : "Je hebt al een site online. Haal die eerst offline, of koop een extra site."
-              : locale === "fr"
-                ? "Impossible de créer la maquette. Réessayez."
-                : locale === "en"
-                  ? "Could not create the draft. Try again."
-                  : "Kon het ontwerp niet aanmaken. Probeer opnieuw."}
+              : fout === "mollie"
+                ? locale === "fr"
+                  ? "Le paiement (Mollie) n'est pas encore actif — disponible dès que la liaison de paiement est en ligne."
+                  : locale === "en"
+                    ? "Payment (Mollie) is not active yet — available once the payment link is live."
+                    : "De betaalkoppeling (Mollie) staat nog niet actief — dit werkt zodra die live is."
+                : locale === "fr"
+                  ? "Impossible de créer la maquette. Réessayez."
+                  : locale === "en"
+                    ? "Could not create the draft. Try again."
+                    : "Kon het ontwerp niet aanmaken. Probeer opnieuw."}
         </p>
       )}
 
@@ -267,7 +276,9 @@ export default async function PortalBuilderOverview({
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3.5"
           >
             <div className="min-w-0">
-              <p className="font-semibold tracking-tight">{d.title}</p>
+              <p className="font-semibold tracking-tight">
+                {d.bname || d.title}
+              </p>
               <p className="mt-1 font-mono text-[11px] text-muted">
                 <span
                   className={`mr-2 rounded-full px-2 py-0.5 ${
@@ -308,10 +319,10 @@ export default async function PortalBuilderOverview({
                   locale,
                   `/portail/dashboard/builder/editor?d=${d.id}`,
                 )}
-                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-[11px] font-medium text-background transition-opacity hover:opacity-90"
               >
                 {l.resume}
-                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+                <ArrowRight className="h-3 w-3" strokeWidth={2} />
               </Link>
               {d.published ? (
                 <form action={unpublishDesign}>
@@ -325,9 +336,9 @@ export default async function PortalBuilderOverview({
                           ? "Take offline"
                           : "Offline halen"
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:bg-card-hover"
+                    className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] transition-colors hover:bg-card-hover"
                   >
-                    <EyeOff className="h-3.5 w-3.5" strokeWidth={2} />
+                    <EyeOff className="h-3 w-3" strokeWidth={2} />
                   </SubmitButton>
                 </form>
               ) : (
@@ -342,9 +353,9 @@ export default async function PortalBuilderOverview({
                           ? "Publish"
                           : "Publiceren"
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-medium text-white transition-opacity hover:opacity-90"
                   >
-                    <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Rocket className="h-3 w-3" strokeWidth={2} />
                     {locale === "fr"
                       ? "Publier"
                       : locale === "en"
@@ -359,9 +370,9 @@ export default async function PortalBuilderOverview({
                   <input type="hidden" name="locale" value={locale} />
                   <SubmitButton
                     ariaLabel={l.send}
-                    className="rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:bg-card-hover"
+                    className="rounded-full border px-2 py-1 text-[11px] transition-colors hover:bg-card-hover"
                   >
-                    <Send className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Send className="h-3 w-3" strokeWidth={2} />
                   </SubmitButton>
                 </form>
               )}
