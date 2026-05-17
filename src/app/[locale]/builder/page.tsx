@@ -2091,6 +2091,113 @@ export default function BuilderPage({
                           </>
                         )}
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Taille du texte"
+                            : locale === "en"
+                              ? "Text size"
+                              : "Tekstgrootte"}
+                        </p>
+                        <div className="mb-2 grid grid-cols-4 gap-1.5">
+                          {(
+                            [
+                              ["s", "S"],
+                              ["", "M"],
+                              ["l", "L"],
+                              ["xl", "XL"],
+                            ] as const
+                          ).map(([k, lbl]) => {
+                            const selT =
+                              String(openSec.data._tsc ?? "") === k;
+                            return (
+                              <button
+                                key={k || "m"}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _tsc: k })
+                                }
+                                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                                  selT
+                                    ? "border-accent bg-accent/10 text-foreground"
+                                    : "border-border text-muted hover:bg-card-hover"
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Alignement"
+                            : locale === "en"
+                              ? "Alignment"
+                              : "Uitlijning"}
+                        </p>
+                        <div className="mb-2 grid grid-cols-4 gap-1.5">
+                          {(
+                            [
+                              ["", locale === "fr" ? "Auto" : "Auto"],
+                              ["left", locale === "fr" ? "Gauche" : locale === "en" ? "Left" : "Links"],
+                              ["center", locale === "fr" ? "Centre" : "Midden"],
+                              ["right", locale === "fr" ? "Droite" : locale === "en" ? "Right" : "Rechts"],
+                            ] as const
+                          ).map(([k, lbl]) => {
+                            const selAl =
+                              String(openSec.data._talign ?? "") === k;
+                            return (
+                              <button
+                                key={k || "auto"}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _talign: k })
+                                }
+                                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                                  selAl
+                                    ? "border-accent bg-accent/10 text-foreground"
+                                    : "border-border text-muted hover:bg-card-hover"
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mb-3 flex items-center gap-2">
+                          <span className="text-[11px] text-muted">
+                            {locale === "fr"
+                              ? "Couleur texte"
+                              : locale === "en"
+                                ? "Text colour"
+                                : "Tekstkleur"}
+                          </span>
+                          <input
+                            type="color"
+                            value={
+                              typeof openSec.data._tcol === "string" &&
+                              openSec.data._tcol
+                                ? (openSec.data._tcol as string)
+                                : theme.fg
+                            }
+                            onChange={(e) =>
+                              patchData(openSec.id, {
+                                _tcol: e.target.value,
+                              })
+                            }
+                            className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+                          />
+                          {openSec.data._tcol ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                patchData(openSec.id, { _tcol: "" })
+                              }
+                              className="font-mono text-[10px] text-muted underline"
+                            >
+                              reset
+                            </button>
+                          ) : null}
+                        </div>
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -3485,7 +3592,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -3544,6 +3651,8 @@ export default function BuilderPage({
                     data-anim={String(s.data._anim ?? "")}
                     data-hover={s.data._hover ? "1" : ""}
                     data-hidem={s.data._hideM ? "1" : ""}
+                    data-talign={String(s.data._talign ?? "")}
+                    data-tsc={String(s.data._tsc ?? "")}
                     className={`group/sec relative cursor-pointer transition-shadow ${
                       openId === s.id
                         ? "ring-2 ring-inset ring-accent"
@@ -3555,6 +3664,9 @@ export default function BuilderPage({
                     style={{
                       backgroundColor: sectionToneBg(s.data._bg, theme),
                       ...(patternCss(s.data, theme) || {}),
+                      ...(typeof s.data._tcol === "string" && s.data._tcol
+                        ? { color: s.data._tcol as string }
+                        : {}),
                     }}
                   >
                     <PreviewSection
