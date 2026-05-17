@@ -294,3 +294,32 @@ export async function upgradeSubscription(slug: string): Promise<void> {
   revalidatePath("/[locale]/portail/dashboard", "page");
   return;
 }
+
+export async function deleteOwnDocument(id: string): Promise<void> {
+  const email = await authedEmail();
+  if (!email || !id) return;
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("documents")
+    .select("id, url, client_email, uploaded_by")
+    .eq("id", id)
+    .maybeSingle();
+  const doc = data as
+    | {
+        id: string;
+        url: string;
+        client_email: string;
+        uploaded_by: string;
+      }
+    | null;
+  // Klant mag enkel zijn eigen, zelf-geüploade documenten verwijderen.
+  if (!doc || doc.client_email !== email || doc.uploaded_by !== "klant") {
+    return;
+  }
+  if (doc.url && !/^https?:\/\//i.test(doc.url)) {
+    await db.storage.from("client-docs").remove([doc.url]);
+  }
+  await db.from("documents").delete().eq("id", id);
+  revalidatePath("/[locale]/portail/dashboard", "page");
+  return;
+}
