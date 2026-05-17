@@ -162,6 +162,11 @@ export async function POST(req: NextRequest) {
             lMonth: "Maandfactuur vanaf oplevering",
             lDomain: "Domein & e-mail",
             ctaBtn: "Open je klantenportaal",
+            planHead: "Betaalplan",
+            planDep: "Aanbetaling — betaald",
+            planThen: "Daarna, vanaf oplevering",
+            planTotal: "Totaal project (excl. btw)",
+            terms: `Op deze opdracht zijn onze <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">algemene voorwaarden</a> en <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">privacyverklaring</a> van toepassing.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} bij oplevering`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / maand vanaf oplevering`,
             perMonth: "/ maand",
@@ -194,6 +199,11 @@ export async function POST(req: NextRequest) {
             lMonth: "Facture mensuelle dès la livraison",
             lDomain: "Domaine & e-mail",
             ctaBtn: "Ouvrir votre espace client",
+            planHead: "Plan de paiement",
+            planDep: "Acompte — payé",
+            planThen: "Ensuite, dès la livraison",
+            planTotal: "Total projet (HTVA)",
+            terms: `Nos <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">conditions générales</a> et notre <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">politique de confidentialité</a> s'appliquent à cette mission.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} à la livraison`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / mois dès la livraison`,
             perMonth: "/ mois",
@@ -226,6 +236,11 @@ export async function POST(req: NextRequest) {
             lMonth: "Monthly invoice from delivery",
             lDomain: "Domain & email",
             ctaBtn: "Open your client portal",
+            planHead: "Payment plan",
+            planDep: "Deposit — paid",
+            planThen: "Then, from delivery",
+            planTotal: "Project total (excl. VAT)",
+            terms: `Our <a href="${siteUrl}/${loc}/voorwaarden" style="color:${"#e08214"}">general terms</a> and <a href="${siteUrl}/${loc}/privacy" style="color:${"#e08214"}">privacy policy</a> apply to this assignment.`,
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} on delivery`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / month from delivery`,
             perMonth: "/ month",
@@ -275,6 +290,20 @@ export async function POST(req: NextRequest) {
             `${eur(q.monthly_total_cents)}${TR.perMonth}`,
           ) +
           row(TR.lDomain, domainNote);
+        const planBlock =
+          q.term && q.term > 0
+            ? `<p style="margin:28px 0 10px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.planHead}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:20px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>${
+                row(
+                  TR.planDep,
+                  `<span style="color:${accent}">${amt}</span>`,
+                ) +
+                row(
+                  TR.planThen,
+                  `${q.term}× ${eur(q.monthly_install_cents)}${TR.perMonth}`,
+                ) +
+                row(TR.planTotal, eur(payable))
+              }</tbody></table></td></tr></table>`
+            : "";
         const stepsHtml = TR.steps
           .map(
             (s, i) =>
@@ -298,7 +327,7 @@ export async function POST(req: NextRequest) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:20px 24px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>${summaryRows}</tbody></table>
     </td></tr></table>
-
+    ${planBlock}
     <p style="margin:30px 0 14px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.stepsHead}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${stepsHtml}</table>
 
@@ -306,6 +335,7 @@ export async function POST(req: NextRequest) {
     <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="${accent}" style="background:${accent}"><a href="${portalUrl}" style="display:inline-block;padding:14px 28px;font:700 14px/1 ${font};color:#ffffff;text-decoration:none">${TR.ctaBtn} &nbsp;→</a></td></tr></table>
     <p style="margin:24px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.reassure}</p>
     <p style="margin:22px 0 0;font:400 15px/1.6 ${font};color:#1c1917">${TR.sign}</p>
+    <p style="margin:24px 0 0;padding-top:18px;border-top:1px solid #e7e5e4;font:400 12px/1.6 ${font};color:#78716c">${TR.terms}</p>
   </td></tr>
   <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">Studio VM · Vincent Montreuil · Nieuwpoortstraat 14-301, 8570 Anzegem · info@studio-vm.be · BE 0672.960.066</td></tr>
 </table></td></tr></table></body></html>`,
