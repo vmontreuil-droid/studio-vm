@@ -270,6 +270,9 @@ const T: Record<
       heroTrans: string;
       transFade: string;
       transSlide: string;
+      transUp: string;
+      transZoom: string;
+      transBlur: string;
       transNone: string;
       heroHeight: string;
       heroCard: string;
@@ -416,6 +419,9 @@ const T: Record<
       heroTrans: "Overgang",
       transFade: "Vloeiend",
       transSlide: "Schuiven",
+      transUp: "Omhoog",
+      transZoom: "Inzoomen",
+      transBlur: "Wazig",
       transNone: "Direct",
       heroHeight: "Hoogte",
       heroCard: "Kaart achter tekst",
@@ -561,6 +567,9 @@ const T: Record<
       heroTrans: "Transition",
       transFade: "Fondu",
       transSlide: "Glissement",
+      transUp: "Vers le haut",
+      transZoom: "Zoom",
+      transBlur: "Flou",
       transNone: "Direct",
       heroHeight: "Hauteur",
       heroCard: "Carte derrière le texte",
@@ -706,6 +715,9 @@ const T: Record<
       heroTrans: "Transition",
       transFade: "Fade",
       transSlide: "Slide",
+      transUp: "Slide up",
+      transZoom: "Zoom",
+      transBlur: "Blur",
       transNone: "Instant",
       heroHeight: "Height",
       heroCard: "Card behind text",
@@ -2572,10 +2584,19 @@ function HeroPreview({
 
   const slideSec =
     typeof data.slideSec === "number" && data.slideSec >= 2 ? data.slideSec : 4;
-  const trans =
-    data.trans === "slide" || data.trans === "none"
-      ? (data.trans as "slide" | "none")
-      : "fade";
+  const TRANS_TYPES = [
+    "fade",
+    "slide",
+    "slideup",
+    "zoom",
+    "blur",
+    "none",
+  ] as const;
+  const trans = (
+    TRANS_TYPES as readonly string[]
+  ).includes(String(data.trans))
+    ? String(data.trans)
+    : "fade";
   const hTransMs =
     typeof data.hTransMs === "number" ? data.hTransMs : 700;
   const transMs = trans === "none" ? 0 : hTransMs;
@@ -2616,6 +2637,14 @@ function HeroPreview({
     }
     commit(slides.filter((_, j) => j !== i));
     setIdx((v) => Math.max(0, Math.min(v, slides.length - 2)));
+  };
+  const moveSlide = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= slides.length) return;
+    const n = [...slides];
+    [n[i], n[j]] = [n[j], n[i]];
+    commit(n);
+    setIdx(j);
   };
   const addImgs = (files?: FileList | null) => {
     if (!files) return;
@@ -2791,13 +2820,32 @@ function HeroPreview({
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 transitionProperty:
-                  trans === "slide" ? "transform" : "opacity",
+                  trans === "slide" || trans === "slideup"
+                    ? "transform"
+                    : trans === "zoom"
+                      ? "opacity, transform"
+                      : trans === "blur"
+                        ? "opacity, filter"
+                        : "opacity",
                 transitionDuration: `${transMs}ms`,
                 transitionTimingFunction: "ease",
-                opacity: trans === "slide" ? 1 : i === cIdx ? 1 : 0,
+                opacity:
+                  trans === "slide" || trans === "slideup"
+                    ? 1
+                    : i === cIdx
+                      ? 1
+                      : 0,
                 transform:
                   trans === "slide"
                     ? `translateX(${(i - cIdx) * 100}%)`
+                    : trans === "slideup"
+                      ? `translateY(${(i - cIdx) * 100}%)`
+                      : trans === "zoom"
+                        ? `scale(${i === cIdx ? 1 : 1.15})`
+                        : undefined,
+                filter:
+                  trans === "blur" && i !== cIdx
+                    ? "blur(14px)"
                     : undefined,
                 zIndex: i === cIdx ? 1 : 0,
               }}
@@ -2995,6 +3043,28 @@ function HeroPreview({
             >
               <X className="h-2.5 w-2.5" strokeWidth={3} />
             </button>
+            {slides.length > 1 && (
+              <span className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => moveSlide(i, -1)}
+                  disabled={i === 0}
+                  title="◀"
+                  className="flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-[10px] leading-none text-white disabled:opacity-30"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveSlide(i, 1)}
+                  disabled={i === slides.length - 1}
+                  title="▶"
+                  className="flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-[10px] leading-none text-white disabled:opacity-30"
+                >
+                  ›
+                </button>
+              </span>
+            )}
           </span>
         ))}
         <button
@@ -3199,6 +3269,9 @@ function HeroPreview({
               >
                 <option value="fade">{p.transFade}</option>
                 <option value="slide">{p.transSlide}</option>
+                <option value="slideup">{p.transUp}</option>
+                <option value="zoom">{p.transZoom}</option>
+                <option value="blur">{p.transBlur}</option>
                 <option value="none">{p.transNone}</option>
               </select>
             </label>
