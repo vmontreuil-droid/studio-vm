@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { submitBuild } from "@/app/actions/build-lead";
+import { slugify } from "@/lib/publish";
+import { vercelAddDomain } from "@/lib/vercel";
 
 // De builder bewaart pagina's met `sections` ({ kind, data }). We
 // houden de snapshot bewust los getypeerd: hij rondreist enkel; enkel
@@ -153,6 +156,97 @@ export async function sendDesign(formData: FormData): Promise<void> {
   await sb
     .from("builder_designs")
     .update({ status: "verstuurd", updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("client_email", email);
+  revalidatePath(`/${locale}/portail/dashboard/builder`, "page");
+}
+
+// Vrije, unieke slug op basis van een gewenste naam. Botst die met een
+// ander ontwerp, dan -2, -3, ... (eigen ontwerp mag z'n slug houden).
+async function freeSlug(base: string, selfId: string): Promise<string> {
+  const admin = getSupabaseAdmin();
+  const root = slugify(base) || "site";
+  for (let i = 0; i < 30; i++) {
+    const cand = i === 0 ? root : `${root}-${i + 1}`;
+    const { data } = await admin
+      .from("builder_designs")
+      .select("id")
+      .eq("slug", cand)
+      .maybeSingle();
+    const taken = data as { id?: string } | null;
+    if (!taken || taken.id === selfId) return cand;
+  }
+  return `${root}-${Date.now().toString(36)}`;
+}
+
+export async function publishDesign(formData: FormData): Promise<void> {
+  const email = await authed();
+  if (!email) return;
+  const id = String(formData.get("id") ?? "");
+  const locale = String(formData.get("locale") ?? "nl");
+  const back = `/${locale}/portail/dashboard/builder`;
+  if (!id) redirect(back);
+
+  const sb = await getSupabaseServer();
+  const { data } = await sb
+    .from("builder_designs")
+    .select("snapshot, title, slug")
+    .eq("id", id)
+    .eq("client_email", email)
+    .maybeSingle();
+  const row = data as {
+    snapshot: Snapshot;
+    title: string;
+    slug: string | null;
+  } | null;
+  if (!row) redirect(back);
+
+  // Poort: publiceren mag enkel met een actief abonnement.
+  const { data: sub } = await getSupabaseAdmin()
+    .from("subscriptions")
+    .select("status")
+    .eq("client_email", email)
+    .eq("status", "actief")
+    .limit(1)
+    .maybeSingle();
+  if (!sub) redirect(`${back}?fout=abo`);
+
+  const slug =
+    row!.slug ||
+    (await freeSlug(
+      row!.snapshot?.businessName || row!.title || "site",
+      id,
+    ));
+
+  await sb
+    .from("builder_designs")
+    .update({
+      slug,
+      published: true,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("client_email", email);
+
+  // Subdomein koppelen aan Vercel (best-effort; zonder env-vars stil
+  // overgeslagen — DNS-wildcard wijst sowieso al naar Vercel).
+  await vercelAddDomain(`${slug}.studio-vm.be`);
+
+  revalidatePath(back, "page");
+  redirect(`${back}?ok=live`);
+}
+
+export async function unpublishDesign(formData: FormData): Promise<void> {
+  const email = await authed();
+  if (!email) return;
+  const id = String(formData.get("id") ?? "");
+  const locale = String(formData.get("locale") ?? "nl");
+  if (!id) return;
+  const sb = await getSupabaseServer();
+  await sb
+    .from("builder_designs")
+    .update({ published: false, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("client_email", email);
   revalidatePath(`/${locale}/portail/dashboard/builder`, "page");

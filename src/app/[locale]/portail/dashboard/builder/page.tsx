@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PenTool, Trash2, Send, ArrowRight } from "lucide-react";
+import {
+  PenTool,
+  Trash2,
+  Send,
+  ArrowRight,
+  Globe,
+  Rocket,
+  EyeOff,
+} from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
@@ -9,6 +17,8 @@ import {
   createDesign,
   deleteDesign,
   sendDesign,
+  publishDesign,
+  unpublishDesign,
 } from "@/app/actions/builder-designs";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -19,6 +29,8 @@ type Design = {
   title: string;
   status: string;
   updated_at: string;
+  slug: string | null;
+  published: boolean;
 };
 
 const L: Record<
@@ -75,10 +87,10 @@ export default async function PortalBuilderOverview({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ fout?: string }>;
+  searchParams: Promise<{ fout?: string; ok?: string }>;
 }) {
   const { locale } = await params;
-  const { fout } = await searchParams;
+  const { fout, ok } = await searchParams;
   if (!isValidLocale(locale)) notFound();
   if (!supabaseConfigured) return null;
   const l = L[locale];
@@ -86,7 +98,7 @@ export default async function PortalBuilderOverview({
   const sb = await getSupabaseServer();
   const { data } = await sb
     .from("builder_designs")
-    .select("id, title, status, updated_at")
+    .select("id, title, status, updated_at, slug, published")
     .order("updated_at", { ascending: false });
   const designs = (data as Design[]) ?? [];
 
@@ -99,7 +111,25 @@ export default async function PortalBuilderOverview({
         {l.sub}
       </p>
 
-      {fout && (
+      {ok === "live" && (
+        <p className="mt-4 rounded-xl border border-green-500/60 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 dark:bg-green-950/40 dark:text-green-300">
+          {locale === "fr"
+            ? "Votre site est en ligne 🎉"
+            : locale === "en"
+              ? "Your site is live 🎉"
+              : "Je site staat online 🎉"}
+        </p>
+      )}
+      {fout === "abo" && (
+        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
+          {locale === "fr"
+            ? "Un abonnement actif est requis pour publier. Voir « Abonnement »."
+            : locale === "en"
+              ? "An active subscription is required to publish. See “Subscription”."
+              : "Publiceren kan enkel met een actief abonnement. Zie ‘Abonnement’."}
+        </p>
+      )}
+      {fout && fout !== "abo" && (
         <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
           {locale === "fr"
             ? "Impossible de créer la maquette pour l'instant. Réessayez plus tard."
@@ -133,15 +163,36 @@ export default async function PortalBuilderOverview({
               <p className="mt-1 font-mono text-[11px] text-muted">
                 <span
                   className={`mr-2 rounded-full px-2 py-0.5 ${
-                    d.status === "verstuurd"
+                    d.published
                       ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                      : "bg-accent/15 text-accent"
+                      : d.status === "verstuurd"
+                        ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                        : "bg-accent/15 text-accent"
                   }`}
                 >
-                  {d.status === "verstuurd" ? l.sent : l.concept}
+                  {d.published
+                    ? locale === "fr"
+                      ? "En ligne"
+                      : locale === "en"
+                        ? "Live"
+                        : "Online"
+                    : d.status === "verstuurd"
+                      ? l.sent
+                      : l.concept}
                 </span>
                 {l.upd} {dt(d.updated_at, locale)}
               </p>
+              {d.published && d.slug && (
+                <a
+                  href={`https://${d.slug}.studio-vm.be`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-accent underline"
+                >
+                  <Globe className="h-3 w-3" strokeWidth={2} />
+                  {d.slug}.studio-vm.be
+                </a>
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Link
@@ -154,6 +205,46 @@ export default async function PortalBuilderOverview({
                 {l.resume}
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
               </Link>
+              {d.published ? (
+                <form action={unpublishDesign}>
+                  <input type="hidden" name="id" value={d.id} />
+                  <input type="hidden" name="locale" value={locale} />
+                  <SubmitButton
+                    ariaLabel={
+                      locale === "fr"
+                        ? "Hors ligne"
+                        : locale === "en"
+                          ? "Take offline"
+                          : "Offline halen"
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+                  >
+                    <EyeOff className="h-4 w-4" strokeWidth={2} />
+                  </SubmitButton>
+                </form>
+              ) : (
+                <form action={publishDesign}>
+                  <input type="hidden" name="id" value={d.id} />
+                  <input type="hidden" name="locale" value={locale} />
+                  <SubmitButton
+                    ariaLabel={
+                      locale === "fr"
+                        ? "Publier"
+                        : locale === "en"
+                          ? "Publish"
+                          : "Publiceren"
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  >
+                    <Rocket className="h-4 w-4" strokeWidth={2} />
+                    {locale === "fr"
+                      ? "Publier"
+                      : locale === "en"
+                        ? "Publish"
+                        : "Publiceren"}
+                  </SubmitButton>
+                </form>
+              )}
               {d.status !== "verstuurd" && (
                 <form action={sendDesign}>
                   <input type="hidden" name="id" value={d.id} />
