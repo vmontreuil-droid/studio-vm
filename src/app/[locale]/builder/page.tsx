@@ -543,7 +543,7 @@ const T: Record<
       hoursTitle: "Openingsuren",
       mapTitle: "Waar je ons vindt",
     mapEmbedHint:
-      "Tip: plak een Google Maps 'insluiten'-link (https://…) in het embed-veld voor een echte kaart.",
+      "Typ gewoon je adres in het adresveld — de kaart verschijnt vanzelf.",
       hoursSeed: [
         { day: "Maandag–Vrijdag", time: "9:00 – 17:00" },
         { day: "Zaterdag", time: "Op afspraak" },
@@ -705,7 +705,7 @@ const T: Record<
       hoursTitle: "Horaires",
       mapTitle: "Où nous trouver",
     mapEmbedHint:
-      "Astuce : collez un lien Google Maps « intégrer » (https://…) dans le champ embed pour une vraie carte.",
+      "Tapez simplement votre adresse — la carte apparaît automatiquement.",
       hoursSeed: [
         { day: "Lundi–Vendredi", time: "9:00 – 17:00" },
         { day: "Samedi", time: "Sur rendez-vous" },
@@ -867,7 +867,7 @@ const T: Record<
       hoursTitle: "Opening hours",
       mapTitle: "Where to find us",
     mapEmbedHint:
-      "Tip: paste a Google Maps 'embed' link (https://…) in the embed field for a real map.",
+      "Just type your address — the map appears automatically.",
       hoursSeed: [
         { day: "Monday–Friday", time: "9:00 – 17:00" },
         { day: "Saturday", time: "By appointment" },
@@ -5708,7 +5708,19 @@ function PreviewSection({
     case "map": {
       const addr = g("address");
       const embed = g("embed");
-      const okEmbed = /^https:\/\/[^"'<>]+$/.test(embed);
+      // Embed-link enkel als het een echt insluitbare Maps-URL is;
+      // anders bouwen we 'm automatisch uit het adres (geen API-key,
+      // wél toegelaten om in te sluiten).
+      const okEmbed =
+        /^https:\/\//.test(embed) &&
+        /(\/maps\/embed|output=embed)/.test(embed);
+      const mapSrc = okEmbed
+        ? embed
+        : addr
+          ? `https://www.google.com/maps?q=${encodeURIComponent(
+              addr,
+            )}&output=embed`
+          : "";
       return (
         <div className="border-t px-8 py-12" style={border}>
           <h3 className="text-center text-xl font-semibold tracking-tight">
@@ -5717,19 +5729,32 @@ function PreviewSection({
               onChange={(v) => edit({ title: v })}
             />
           </h3>
-          {okEmbed ? (
-            <div
-              className="mx-auto mt-6 max-w-2xl overflow-hidden rounded-lg border"
-              style={border}
-            >
-              <iframe
-                src={embed}
-                title="map"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="h-72 w-full"
-                style={{ border: 0 }}
-              />
+          {mapSrc ? (
+            <div className="mx-auto mt-6 max-w-2xl">
+              <div
+                className="overflow-hidden rounded-lg border"
+                style={border}
+              >
+                <iframe
+                  src={mapSrc}
+                  title="map"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-72 w-full"
+                  style={{ border: 0 }}
+                />
+              </div>
+              <p className="mt-2 text-center text-xs opacity-70">
+                <MapPin
+                  className="mr-1 inline h-3.5 w-3.5"
+                  strokeWidth={2}
+                  style={accentText}
+                />
+                <E
+                  value={addr || "Straat 1, 0000 Gemeente"}
+                  onChange={(v) => edit({ address: v })}
+                />
+              </p>
             </div>
           ) : (
             <div

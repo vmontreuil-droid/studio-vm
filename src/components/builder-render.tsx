@@ -573,22 +573,39 @@ function BlockView({
       );
     case "map": {
       const mEmb = s(d.embed);
-      const mOk = /^https:\/\/[^"'<>]+$/.test(mEmb);
+      const mAddr = s(d.address);
+      const mOk =
+        /^https:\/\//.test(mEmb) &&
+        /(\/maps\/embed|output=embed)/.test(mEmb);
+      const mSrc = mOk
+        ? mEmb
+        : mAddr
+          ? `https://www.google.com/maps?q=${encodeURIComponent(
+              mAddr,
+            )}&output=embed`
+          : "";
       return (
         <div className="border-t px-6 py-10" style={border}>
           <H>{s(d.title)}</H>
-          {mOk ? (
-            <div
-              className="mx-auto mt-5 max-w-xl overflow-hidden rounded-lg border"
-              style={border}
-            >
-              <iframe
-                src={mEmb}
-                title="map"
-                loading="lazy"
-                className="h-64 w-full"
-                style={{ border: 0 }}
-              />
+          {mSrc ? (
+            <div className="mx-auto mt-5 max-w-xl">
+              <div
+                className="overflow-hidden rounded-lg border"
+                style={border}
+              >
+                <iframe
+                  src={mSrc}
+                  title="map"
+                  loading="lazy"
+                  className="h-64 w-full"
+                  style={{ border: 0 }}
+                />
+              </div>
+              {mAddr && (
+                <p className="mt-2 text-center text-xs opacity-70">
+                  {mAddr}
+                </p>
+              )}
             </div>
           ) : (
             <div
@@ -598,7 +615,7 @@ function BlockView({
                 background: `linear-gradient(135deg, ${accent}1f, ${fg}0d)`,
               }}
             >
-              {s(d.address) || "—"}
+              {mAddr || "—"}
             </div>
           )}
         </div>
