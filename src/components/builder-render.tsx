@@ -495,6 +495,12 @@ function BlockView({
                       }}
                     />
                   )}
+                  {(it as Record<string, unknown>)._icon ? (
+                    <p className="leading-relaxed">
+                      <span className="opacity-50">icoon: </span>
+                      {String((it as Record<string, unknown>)._icon)}
+                    </p>
+                  ) : null}
                   {Object.entries(it).map(([k, v]) =>
                     v && !k.startsWith("_") ? (
                       <p key={k} className="leading-relaxed">

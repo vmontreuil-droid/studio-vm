@@ -40,6 +40,43 @@ import {
   Wand2,
   Move,
   Square,
+  Star,
+  Heart,
+  Zap,
+  Shield,
+  Award,
+  Phone,
+  Mail,
+  Users,
+  Briefcase,
+  Camera,
+  Coffee,
+  Scissors,
+  Wrench,
+  Truck,
+  Home,
+  Leaf,
+  Sun,
+  Sparkles,
+  Gift,
+  Target,
+  ThumbsUp,
+  Smile,
+  Music,
+  Globe,
+  Lock,
+  Rocket,
+  Calendar,
+  MessageCircle,
+  CreditCard,
+  Package,
+  Settings,
+  Tag,
+  Compass,
+  Flame,
+  Crown,
+  Gem,
+  HandHeart,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -4516,6 +4553,88 @@ function ItemImg({
   );
 }
 
+const ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string; strokeWidth?: number }>
+> = {
+  star: Star, heart: Heart, check: Check, zap: Zap, shield: Shield,
+  award: Award, clock: Clock, pin: MapPin, phone: Phone, mail: Mail,
+  users: Users, briefcase: Briefcase, camera: Camera, coffee: Coffee,
+  scissors: Scissors, wrench: Wrench, truck: Truck, home: Home,
+  leaf: Leaf, sun: Sun, sparkles: Sparkles, gift: Gift, target: Target,
+  thumb: ThumbsUp, smile: Smile, music: Music, globe: Globe, lock: Lock,
+  rocket: Rocket, calendar: Calendar, chat: MessageCircle, card: CreditCard,
+  package: Package, settings: Settings, tag: Tag, compass: Compass,
+  flame: Flame, crown: Crown, gem: Gem, handheart: HandHeart,
+};
+
+// Iconenkiezer per item — een verzorgd icoon maakt een kaart echt af.
+function IconField({
+  value,
+  onPick,
+  accent,
+}: {
+  value: string;
+  onPick: (k: string) => void;
+  accent: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const Cur = value && ICONS[value] ? ICONS[value] : null;
+  return (
+    <div className="relative mb-2 inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        title="Icoon"
+        className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-card-hover"
+        style={{
+          borderColor: Cur ? accent : "var(--border)",
+          color: accent,
+        }}
+      >
+        {Cur ? (
+          <Cur className="h-4 w-4" strokeWidth={2} />
+        ) : (
+          <Plus className="h-3.5 w-3.5 text-muted" strokeWidth={2} />
+        )}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-11 z-30 w-56 rounded-xl border bg-card p-2 shadow-lg">
+          <div className="grid grid-cols-7 gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                onPick("");
+                setOpen(false);
+              }}
+              title="geen"
+              className="flex h-7 w-7 items-center justify-center rounded text-muted hover:bg-card-hover"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+            {Object.entries(ICONS).map(([k, C]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => {
+                  onPick(k);
+                  setOpen(false);
+                }}
+                title={k}
+                className={`flex h-7 w-7 items-center justify-center rounded hover:bg-card-hover ${
+                  value === k ? "bg-accent/15 text-accent" : "text-foreground"
+                }`}
+              >
+                <C className="h-4 w-4" strokeWidth={2} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function E({
   value,
   onChange,
@@ -4635,6 +4754,11 @@ function PreviewSection({
                     className="rounded-lg border p-4 text-xs"
                     style={border}
                   >
+                    <IconField
+                      value={it._icon || ""}
+                      onPick={(k) => setItem(rows, i, "_icon", k)}
+                      accent={theme.accent}
+                    />
                     <ItemImg
                       it={it}
                       onPatch={(pt) => patchRow(rows, i, pt)}
