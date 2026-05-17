@@ -1906,6 +1906,37 @@ export default function BuilderPage({
             {(() => {
               const openSec = sections.find((x) => x.id === openId);
               if (!openSec) return null;
+              // Mobiel-onafhankelijk bewerken: in "mobiel"-modus schrijven de
+              // stijlknoppen naar een parallelle _xxxM-sleutel. Is die niet
+              // gezet, dan erft mobiel gewoon de desktop-waarde — zo raakt
+              // de ene weergave de andere nooit aan.
+              const mob = device === "mobile";
+              const dv = (base: string): string =>
+                mob && openSec.data[base + "M"] !== undefined
+                  ? String(openSec.data[base + "M"] ?? "")
+                  : String(openSec.data[base] ?? "");
+              const dPatch = (base: string, val: string) =>
+                patchData(openSec.id, {
+                  [mob ? base + "M" : base]: val,
+                });
+              const dOver = (base: string) =>
+                mob && openSec.data[base + "M"] !== undefined;
+              const dReset = (base: string) =>
+                patchData(openSec.id, { [base + "M"]: undefined });
+              const ResetChip = ({ base }: { base: string }) =>
+                dOver(base) ? (
+                  <button
+                    type="button"
+                    onClick={() => dReset(base)}
+                    className="ml-2 font-mono text-[9px] lowercase tracking-normal text-accent underline"
+                  >
+                    {locale === "fr"
+                      ? "↺ comme desktop"
+                      : locale === "en"
+                        ? "↺ same as desktop"
+                        : "↺ zelfde als desktop"}
+                  </button>
+                ) : null;
               return (
                 <div className="sticky top-0 z-20 rounded-xl border border-accent bg-card shadow-lg">
                   <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
@@ -1926,6 +1957,45 @@ export default function BuilderPage({
                     </button>
                   </div>
                   <div className="max-h-[calc(100vh-15rem)] overflow-y-auto p-3">
+                    <div className="mb-3 flex overflow-hidden rounded-lg border">
+                      <button
+                        type="button"
+                        onClick={() => setDevice("desktop")}
+                        className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] transition-colors ${
+                          !mob
+                            ? "bg-accent/10 font-medium text-foreground"
+                            : "text-muted hover:bg-card-hover"
+                        }`}
+                      >
+                        <Monitor className="h-3.5 w-3.5" strokeWidth={2} />
+                        Desktop
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDevice("mobile")}
+                        className={`flex flex-1 items-center justify-center gap-1.5 border-l px-2 py-1.5 text-[11px] transition-colors ${
+                          mob
+                            ? "bg-accent/10 font-medium text-foreground"
+                            : "text-muted hover:bg-card-hover"
+                        }`}
+                      >
+                        <Smartphone className="h-3.5 w-3.5" strokeWidth={2} />
+                        {locale === "fr"
+                          ? "Mobile"
+                          : locale === "en"
+                            ? "Mobile"
+                            : "Mobiel"}
+                      </button>
+                    </div>
+                    {mob && (
+                      <p className="mb-3 rounded-lg bg-accent/5 px-2.5 py-2 text-[10px] leading-snug text-muted">
+                        {locale === "fr"
+                          ? "Vous modifiez la version mobile. Les réglages non touchés reprennent le desktop."
+                          : locale === "en"
+                            ? "You are editing the mobile version. Untouched settings inherit the desktop."
+                            : "Je past de mobiele weergave aan. Niet-gewijzigde instellingen volgen de desktop."}
+                      </p>
+                    )}
                     <button
                       type="button"
                       onClick={() =>
@@ -1969,6 +2039,10 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Spacing"
                               : "Witruimte"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_sp" />
                         </p>
                         <div className="mb-3 grid grid-cols-3 gap-1.5">
                           {(
@@ -1978,15 +2052,12 @@ export default function BuilderPage({
                               ["ruim", locale === "fr" ? "Large" : locale === "en" ? "Roomy" : "Ruim"],
                             ] as const
                           ).map(([k, lbl]) => {
-                            const selSp =
-                              String(openSec.data._sp ?? "") === k;
+                            const selSp = dv("_sp") === k;
                             return (
                               <button
                                 key={k || "norm"}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _sp: k })
-                                }
+                                onClick={() => dPatch("_sp", k)}
                                 className={`rounded-md border px-2 py-1 text-xs transition-colors ${
                                   selSp
                                     ? "border-accent bg-accent/10 text-foreground"
@@ -2126,6 +2197,10 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Text size"
                               : "Tekstgrootte"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_tsc" />
                         </p>
                         <div className="mb-2 grid grid-cols-4 gap-1.5">
                           {(
@@ -2136,15 +2211,12 @@ export default function BuilderPage({
                               ["xl", "XL"],
                             ] as const
                           ).map(([k, lbl]) => {
-                            const selT =
-                              String(openSec.data._tsc ?? "") === k;
+                            const selT = dv("_tsc") === k;
                             return (
                               <button
                                 key={k || "m"}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _tsc: k })
-                                }
+                                onClick={() => dPatch("_tsc", k)}
                                 className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                                   selT
                                     ? "border-accent bg-accent/10 text-foreground"
@@ -2162,6 +2234,10 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Alignment"
                               : "Uitlijning"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_talign" />
                         </p>
                         <div className="mb-2 grid grid-cols-4 gap-1.5">
                           {(
@@ -2172,15 +2248,12 @@ export default function BuilderPage({
                               ["right", locale === "fr" ? "Droite" : locale === "en" ? "Right" : "Rechts"],
                             ] as const
                           ).map(([k, lbl]) => {
-                            const selAl =
-                              String(openSec.data._talign ?? "") === k;
+                            const selAl = dv("_talign") === k;
                             return (
                               <button
                                 key={k || "auto"}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _talign: k })
-                                }
+                                onClick={() => dPatch("_talign", k)}
                                 className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                                   selAl
                                     ? "border-accent bg-accent/10 text-foreground"
@@ -2454,6 +2527,7 @@ export default function BuilderPage({
                       )}
                       onNewPage={addPageNamed}
                       locale={locale}
+                      mob={mob}
                     />
                   </div>
                 </div>
@@ -3867,7 +3941,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-frame[data-dev="mobile"] [data-sp-m="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame[data-dev="mobile"] [data-sp-m="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame[data-dev="mobile"] [data-sp-m="norm"]>div{padding-top:2.5rem;padding-bottom:2.5rem}.bldr-frame[data-dev="mobile"] [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame[data-dev="mobile"] [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame[data-dev="mobile"] [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-frame[data-dev="mobile"] [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-frame[data-dev="mobile"] [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame[data-dev="mobile"] [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame[data-dev="mobile"] [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame[data-dev="mobile"] [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:${align}}.bldr-frame[data-dev="mobile"] [data-hhm="s"]{min-height:200px!important}.bldr-frame[data-dev="mobile"] [data-hhm="m"]{min-height:340px!important}.bldr-frame[data-dev="mobile"] [data-hhm="l"]{min-height:480px!important}.bldr-frame[data-dev="mobile"] [data-hhm="xl"]{min-height:640px!important}.bldr-frame[data-dev="mobile"] [data-hhm="full"]{min-height:85vh!important}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -3928,6 +4002,21 @@ export default function BuilderPage({
                     data-hidem={s.data._hideM ? "1" : ""}
                     data-talign={String(s.data._talign ?? "")}
                     data-tsc={String(s.data._tsc ?? "")}
+                    data-sp-m={
+                      s.data._spM !== undefined
+                        ? String(s.data._spM ?? "") || "norm"
+                        : ""
+                    }
+                    data-talign-m={
+                      s.data._talignM !== undefined
+                        ? String(s.data._talignM ?? "") || "auto"
+                        : ""
+                    }
+                    data-tsc-m={
+                      s.data._tscM !== undefined
+                        ? String(s.data._tscM ?? "") || "norm"
+                        : ""
+                    }
                     className={`group/sec relative cursor-pointer transition-shadow ${
                       openId === s.id
                         ? "ring-2 ring-inset ring-accent"
@@ -4185,6 +4274,8 @@ function HeroSettings({
   pageNames,
   secLabels,
   onNewPage,
+  mob,
+  locale,
 }: {
   data: SectionData;
   edit: (patch: SectionData) => void;
@@ -4193,6 +4284,8 @@ function HeroSettings({
   pageNames: string[];
   secLabels: string[];
   onNewPage: (name: string) => void;
+  mob: boolean;
+  locale: Locale;
 }) {
   const slidesArr = Array.isArray(data.slides)
     ? (data.slides as unknown[])
@@ -4208,6 +4301,14 @@ function HeroSettings({
     ["s", "m", "l", "xl", "full"].includes(data.hH)
       ? String(data.hH)
       : "m";
+  // Mobiel-onafhankelijke hoogte: hHM overschrijft enkel op gsm.
+  const hOver = mob && data.hHM !== undefined;
+  const hHEff =
+    hOver &&
+    typeof data.hHM === "string" &&
+    ["s", "m", "l", "xl", "full"].includes(data.hHM)
+      ? String(data.hHM)
+      : hH;
   const hCard = data.hCard === 1 || data.hCard === true;
   const hBlur = typeof data.hBlur === "number" ? data.hBlur : 0;
   const hCardW = typeof data.hCardW === "number" ? data.hCardW : 86;
@@ -4254,14 +4355,30 @@ function HeroSettings({
         {p.heroMove}. {p.heroDrop}.
       </p>
 
-      <Lbl>{p.heroHeight}</Lbl>
+      <Lbl>
+        {p.heroHeight}
+        {mob && <span className="ml-1 text-accent">· mobiel</span>}
+        {hOver && (
+          <button
+            type="button"
+            onClick={() => edit({ hHM: undefined })}
+            className="ml-2 font-mono text-[9px] lowercase tracking-normal text-accent underline"
+          >
+            {locale === "fr"
+              ? "↺ comme desktop"
+              : locale === "en"
+                ? "↺ same as desktop"
+                : "↺ zelfde als desktop"}
+          </button>
+        )}
+      </Lbl>
       <div className="flex gap-1.5">
         {(["s", "m", "l", "xl", "full"] as const).map((hk) => (
           <button
             key={hk}
             type="button"
-            onClick={() => edit({ hH: hk })}
-            className={seg(hH === hk)}
+            onClick={() => edit(mob ? { hHM: hk } : { hH: hk })}
+            className={seg(hHEff === hk)}
           >
             {hk === "full" ? "100%" : hk.toUpperCase()}
           </button>
@@ -4498,6 +4615,7 @@ function SectionEditor({
   secLabels,
   onNewPage,
   locale,
+  mob,
 }: {
   section: Section;
   c: Loc;
@@ -4507,6 +4625,7 @@ function SectionEditor({
   secLabels: string[];
   onNewPage: (name: string) => void;
   locale: Locale;
+  mob: boolean;
 }) {
   const f = c.fields;
   const d = section.data;
@@ -4520,6 +4639,8 @@ function SectionEditor({
         pageNames={pageNames}
         secLabels={secLabels}
         onNewPage={onNewPage}
+        mob={mob}
+        locale={locale}
       />
     );
   const linkable = ["cta", "newsletter", "banner"].includes(section.kind);
@@ -5170,6 +5291,10 @@ function HeroPreview({
   };
   const hH =
     typeof data.hH === "string" && HEIGHTS[data.hH] ? String(data.hH) : "m";
+  const hHM =
+    typeof data.hHM === "string" && HEIGHTS[data.hHM]
+      ? String(data.hHM)
+      : "";
   const hx = typeof data.hx === "number" ? data.hx : 50;
   const hy = typeof data.hy === "number" ? data.hy : 50;
   const hCard = data.hCard === 1 || data.hCard === true;
@@ -5312,6 +5437,7 @@ function HeroPreview({
   return (
     <div
       ref={heroRef}
+      data-hhm={hHM}
       className="group/hero relative overflow-hidden text-center"
       style={{
         minHeight: HEIGHTS[hH],

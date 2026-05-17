@@ -128,7 +128,7 @@ export function BuilderRender({ snap }: { snap: Snap }) {
 
   return (
     <div className="bldr-ro mt-5 space-y-6">
-      <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}.bldr-ro [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}`}</style>
+      <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}.bldr-ro [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}@media (max-width:640px){.bldr-ro [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-ro [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-ro [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:start}.bldr-ro [data-hhm="s"]{min-height:200px!important}.bldr-ro [data-hhm="m"]{min-height:340px!important}.bldr-ro [data-hhm="l"]{min-height:480px!important}.bldr-ro [data-hhm="xl"]{min-height:640px!important}.bldr-ro [data-hhm="full"]{min-height:85vh!important}}`}</style>
       {snap.pages.map((page, pi) => (
         <div key={pi}>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -191,6 +191,16 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                   data-hidem={bd._hideM ? "1" : ""}
                   data-talign={String(bd._talign ?? "")}
                   data-tsc={String(bd._tsc ?? "")}
+                  data-talign-m={
+                    bd._talignM !== undefined
+                      ? String(bd._talignM ?? "") || "auto"
+                      : ""
+                  }
+                  data-tsc-m={
+                    bd._tscM !== undefined
+                      ? String(bd._tscM ?? "") || "norm"
+                      : ""
+                  }
                   style={{
                     backgroundColor: toneBg(bd._bg, bg, fg, accent),
                     ...(patternCss(bd, fg) || {}),
@@ -362,6 +372,10 @@ function BlockView({
         typeof d.hH === "string" && HH[String(d.hH)]
           ? HH[String(d.hH)]
           : "340px";
+      const hHM =
+        typeof d.hHM === "string" && HH[String(d.hHM)]
+          ? String(d.hHM)
+          : "";
       const hx = typeof d.hx === "number" ? d.hx : 50;
       const hy = typeof d.hy === "number" ? d.hy : 50;
       const hCard = d.hCard === 1 || d.hCard === true;
@@ -397,6 +411,7 @@ function BlockView({
             return (
               <div
                 key={si}
+                data-hhm={hHM}
                 className="relative overflow-hidden border-t text-center first:border-t-0"
                 style={{
                   borderColor: soft,
