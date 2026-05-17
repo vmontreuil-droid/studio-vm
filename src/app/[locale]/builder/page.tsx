@@ -1042,6 +1042,8 @@ export type BuilderSnapshot = {
   radius?: RadiusKey;
   align?: "left" | "center" | "right";
   scale?: number;
+  logo?: string;
+  navAlign?: "left" | "center" | "right";
   pages?: Page[];
   activeId?: string;
   locale?: string;
@@ -1067,6 +1069,10 @@ export default function BuilderPage({
   const [radius, setRadius] = useState<RadiusKey>("zacht");
   const [align, setAlign] = useState<"left" | "center" | "right">("center");
   const [scale, setScale] = useState(1);
+  const [logo, setLogo] = useState("");
+  const [navAlign, setNavAlign] = useState<"left" | "center" | "right">(
+    "left",
+  );
   const [images, setImages] = useState<string[]>([]);
   const pg = PG[locale];
   const [pages, setPages] = useState<Page[]>(() => [
@@ -1133,6 +1139,8 @@ export default function BuilderPage({
         if (d.radius) setRadius(d.radius);
         if (d.align) setAlign(d.align);
         if (typeof d.scale === "number") setScale(d.scale);
+        if (typeof d.logo === "string") setLogo(d.logo);
+        if (d.navAlign) setNavAlign(d.navAlign);
         if (d.pages && d.pages.length) {
           syncId(d.pages);
           setPages(d.pages);
@@ -1158,6 +1166,8 @@ export default function BuilderPage({
           radius,
           align,
           scale,
+          logo,
+          navAlign,
           pages,
           activeId,
         }),
@@ -1168,7 +1178,7 @@ export default function BuilderPage({
     } catch {
       /* quota → stil negeren */
     }
-  }, [hydrated, businessName, theme, font, radius, align, scale, pages, activeId]);
+  }, [hydrated, businessName, theme, font, radius, align, scale, logo, navAlign, pages, activeId]);
 
   // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
   // klant op elk toestel kan hervatten en jij elke versie ziet.
@@ -1184,6 +1194,8 @@ export default function BuilderPage({
         radius,
         align,
         scale,
+        logo,
+        navAlign,
         pages,
         activeId,
         locale,
@@ -1202,6 +1214,8 @@ export default function BuilderPage({
     radius,
     align,
     scale,
+    logo,
+    navAlign,
     pages,
     activeId,
   ]);
@@ -1236,6 +1250,8 @@ export default function BuilderPage({
     setRadius("zacht");
     setAlign("center");
     setScale(1);
+    setLogo("");
+    setNavAlign("left");
     setImages([]);
     setBusinessName(
       locale === "fr"
@@ -1838,6 +1854,102 @@ export default function BuilderPage({
                 onChange={(e) => setBusinessName(e.target.value)}
                 className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
               />
+
+              <p className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Logo"
+                  : locale === "en"
+                    ? "Logo"
+                    : "Logo"}
+              </p>
+              <div className="flex items-center gap-2">
+                {logo ? (
+                  <span className="flex h-10 flex-1 items-center justify-center rounded-lg border bg-background px-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logo}
+                      alt=""
+                      className="max-h-8 w-auto object-contain"
+                    />
+                  </span>
+                ) : (
+                  <label className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed text-xs text-muted transition-colors hover:bg-card-hover">
+                    <ImagePlus className="h-4 w-4" strokeWidth={2} />
+                    {locale === "fr"
+                      ? "Logo importer"
+                      : locale === "en"
+                        ? "Upload logo"
+                        : "Logo uploaden"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (
+                          !f ||
+                          !f.type.startsWith("image/") ||
+                          f.size > 2_000_000
+                        )
+                          return;
+                        const r = new FileReader();
+                        r.onload = () => setLogo(String(r.result));
+                        r.readAsDataURL(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+                {logo && (
+                  <button
+                    type="button"
+                    onClick={() => setLogo("")}
+                    className="rounded-lg border p-2 text-muted transition-colors hover:text-red-500"
+                    aria-label="x"
+                  >
+                    <X className="h-4 w-4" strokeWidth={2} />
+                  </button>
+                )}
+              </div>
+
+              <p className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Menu-positie"
+                  : locale === "en"
+                    ? "Menu position"
+                    : "Menu-positie"}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["left", "center", "right"] as const).map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => setNavAlign(a)}
+                    className={`rounded-lg border p-2 text-xs transition-colors ${
+                      navAlign === a
+                        ? "border-accent"
+                        : "border-border hover:bg-card-hover"
+                    }`}
+                  >
+                    {a === "left"
+                      ? locale === "fr"
+                        ? "Gauche"
+                        : locale === "en"
+                          ? "Left"
+                          : "Links"
+                      : a === "center"
+                        ? locale === "fr"
+                          ? "Centre"
+                          : "Midden"
+                        : locale === "fr"
+                          ? "Droite"
+                          : locale === "en"
+                            ? "Right"
+                            : "Rechts"}
+                  </button>
+                ))}
+              </div>
+
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {themes.map((tm) => (
                   <button
@@ -2712,10 +2824,27 @@ export default function BuilderPage({
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
               >
-                <span className="text-sm font-semibold tracking-tight">
-                  {businessName}
+                <span className="flex shrink-0 items-center text-sm font-semibold tracking-tight">
+                  {logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logo}
+                      alt={businessName}
+                      className="h-8 w-auto object-contain"
+                    />
+                  ) : (
+                    businessName
+                  )}
                 </span>
-                <span className="ml-auto flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                <span
+                  className={`flex flex-wrap gap-x-4 gap-y-1 text-xs ${
+                    navAlign === "center"
+                      ? "mx-auto"
+                      : navAlign === "left"
+                        ? "ml-6"
+                        : "ml-auto"
+                  }`}
+                >
                   {pages.map((p) => (
                     <button
                       key={p.id}
@@ -2745,7 +2874,14 @@ export default function BuilderPage({
                 sections.map((s) => (
                   <div
                     key={s.id}
-                    className="group/sec relative"
+                    className={`group/sec relative cursor-pointer transition-shadow ${
+                      openId === s.id
+                        ? "ring-2 ring-inset ring-accent"
+                        : "hover:ring-1 hover:ring-inset hover:ring-accent/40"
+                    }`}
+                    onClickCapture={() => {
+                      if (openId !== s.id) setOpenId(s.id);
+                    }}
                     style={{
                       backgroundColor: sectionToneBg(s.data._bg, theme),
                       ...(patternCss(s.data, theme) || {}),
