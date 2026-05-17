@@ -38,12 +38,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/voorwaarden",
   ];
 
+  const keyConversion = new Set(["/offerte", "/pricing", "/scan"]);
   const localePages = paths.flatMap((path) =>
     LOCALES.map((locale) => ({
       url: `${BASE}/${locale}${path}`,
       lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: path === "" ? 1 : 0.7,
+      changeFrequency: (keyConversion.has(path)
+        ? "weekly"
+        : "monthly") as "weekly" | "monthly",
+      priority: path === "" ? 1 : keyConversion.has(path) ? 0.9 : 0.7,
     })),
   );
 
