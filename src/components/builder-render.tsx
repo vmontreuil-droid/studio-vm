@@ -536,7 +536,11 @@ function BlockView({
     case "about":
       return (
         <div className="border-t px-6 py-10" style={border}>
-          <div className="mx-auto grid max-w-2xl gap-5 sm:grid-cols-[1fr_1.4fr]">
+          <div
+            className={`mx-auto flex max-w-2xl flex-col gap-5 sm:[&>*]:flex-1 ${
+              s(d._var) === "right" ? "sm:flex-row-reverse" : "sm:flex-row"
+            }`}
+          >
             {s(d._img) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

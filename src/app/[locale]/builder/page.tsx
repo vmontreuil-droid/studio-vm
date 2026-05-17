@@ -1945,6 +1945,50 @@ export default function BuilderPage({
                                 : "Verberg op gsm"}
                           </button>
                         </div>
+                        {(openSec.kind === "features" ||
+                          openSec.kind === "about") && (
+                          <>
+                            <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                              {locale === "fr"
+                                ? "Mise en page"
+                                : locale === "en"
+                                  ? "Layout"
+                                  : "Lay-out"}
+                            </p>
+                            <div className="mb-3 grid grid-cols-3 gap-1.5">
+                              {(openSec.kind === "features"
+                                ? ([
+                                    ["", locale === "fr" ? "3 kol." : locale === "en" ? "3 cols" : "3 kol."],
+                                    ["duo", "2 kol."],
+                                    ["list", locale === "fr" ? "Liste" : locale === "en" ? "List" : "Lijst"],
+                                  ] as const)
+                                : ([
+                                    ["", locale === "fr" ? "Image gauche" : locale === "en" ? "Image left" : "Foto links"],
+                                    ["right", locale === "fr" ? "Image droite" : locale === "en" ? "Image right" : "Foto rechts"],
+                                  ] as const)
+                              ).map(([k, lbl]) => {
+                                const selV =
+                                  String(openSec.data._var ?? "") === k;
+                                return (
+                                  <button
+                                    key={k || "def"}
+                                    type="button"
+                                    onClick={() =>
+                                      patchData(openSec.id, { _var: k })
+                                    }
+                                    className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                                      selV
+                                        ? "border-accent bg-accent/10 text-foreground"
+                                        : "border-border text-muted hover:bg-card-hover"
+                                    }`}
+                                  >
+                                    {lbl}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
                         </p>
@@ -5362,7 +5406,15 @@ function PreviewSection({
               { title: `${p.feature} 3`, desc: p.featureDesc },
             ]);
             return (
-              <div className="mt-6 grid grid-cols-3 gap-4">
+              <div
+                className={
+                  g("_var") === "list"
+                    ? "mt-6 grid grid-cols-1 gap-3"
+                    : g("_var") === "duo"
+                      ? "mt-6 grid grid-cols-2 gap-4"
+                      : "mt-6 grid grid-cols-3 gap-4"
+                }
+              >
                 {rows.map((it, i) => (
                   <div
                     key={i}
@@ -5697,7 +5749,13 @@ function PreviewSection({
     case "about":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_1.4fr]">
+          <div
+            className={`mx-auto flex max-w-2xl flex-col gap-6 sm:[&>*]:flex-1 ${
+              g("_var") === "right"
+                ? "sm:flex-row-reverse"
+                : "sm:flex-row"
+            }`}
+          >
             <ItemImg
               it={data as unknown as Record<string, string>}
               onPatch={(pt) => edit(pt)}
