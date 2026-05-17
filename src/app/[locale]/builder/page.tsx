@@ -193,6 +193,23 @@ function sectionToneBg(
   return `color-mix(in srgb, ${mixCol} ${pct}%, ${th.bg})`;
 }
 
+// WCAG-contrastverhouding tussen twee hex-kleuren (1–21).
+function contrastRatio(hex1: string, hex2: string): number {
+  const lum = (hex: string) => {
+    const m = hex.replace("#", "");
+    const n =
+      m.length === 3 ? m.split("").map((x) => x + x).join("") : m.slice(0, 6);
+    const ch = [0, 2, 4].map((i) => {
+      const v = (parseInt(n.slice(i, i + 2), 16) || 0) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  };
+  const a = lum(hex1);
+  const b = lum(hex2);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
 const PATTERNS = ["none", "dots", "stripes", "grid", "diagonal", "cross"];
 function patternCss(
   data: SectionData,
@@ -1336,6 +1353,31 @@ export default function BuilderPage({
     if (openId) asideRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [openId]);
 
+  // Echte scroll-trigger: animaties spelen pas als het blok in beeld
+  // komt (niet bij het laden). Herbindt bij wijzigingen.
+  useEffect(() => {
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>(".bldr-frame [data-anim]"),
+    ).filter((el) => (el.dataset.anim ?? "") !== "");
+    if (els.length === 0) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("svm-seen");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.18 },
+    );
+    els.forEach((el) => {
+      el.classList.remove("svm-seen");
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [pages, activeId, device, scale]);
+
   const resetDraft = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -2273,6 +2315,26 @@ export default function BuilderPage({
                   </label>
                 ))}
               </div>
+              {(() => {
+                const cr = contrastRatio(theme.bg, theme.fg);
+                if (cr >= 4.5) return null;
+                return (
+                  <p className="mt-2 rounded-lg border border-amber-400/50 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                    ⚠{" "}
+                    {locale === "fr"
+                      ? `Contraste texte/fond faible (${cr.toFixed(
+                          1,
+                        )}:1). Visez 4,5:1 voor leesbaarheid.`
+                      : locale === "en"
+                        ? `Low text/background contrast (${cr.toFixed(
+                            1,
+                          )}:1). Aim for 4.5:1 for readability.`
+                        : `Lage tekst/achtergrond-contrast (${cr.toFixed(
+                            1,
+                          )}:1). Streef naar 4,5:1 voor leesbaarheid.`}
+                  </p>
+                );
+              })()}
 
               <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.shadesLabel}
@@ -3256,7 +3318,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -5150,7 +5212,7 @@ function ItemImg({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={img}
-            alt=""
+            alt={it._alt || ""}
             className="h-full w-full object-cover"
             style={{
               filter: blur ? `blur(${blur}px)` : undefined,
@@ -5200,13 +5262,22 @@ function ItemImg({
           </button>
           <button
             type="button"
-            onClick={() => onPatch({ _img: "", _ih: "", _ib: "" })}
+            onClick={() => onPatch({ _img: "", _ih: "", _ib: "", _alt: "" })}
             title="x"
             className="rounded-full bg-black/70 px-1.5 text-[10px] leading-5 text-white"
           >
             ✕
           </button>
         </span>
+      )}
+      {img && (
+        <input
+          value={it._alt || ""}
+          onChange={(e) => onPatch({ _alt: e.target.value })}
+          placeholder="alt-tekst (toegankelijkheid)"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-x-1 bottom-1 rounded bg-black/55 px-2 py-1 text-[10px] text-white opacity-0 outline-none transition-opacity placeholder:text-white/60 group-hover/ii:opacity-100"
+        />
       )}
     </div>
   );

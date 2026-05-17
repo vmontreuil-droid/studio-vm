@@ -505,7 +505,9 @@ function BlockView({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={im}
-                      alt=""
+                      alt={String(
+                        (it as Record<string, unknown>)._alt ?? "",
+                      )}
                       className="mb-2 w-full rounded-md object-cover"
                       style={{
                         height: ih,
@@ -545,7 +547,7 @@ function BlockView({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={s(d._img)}
-                alt=""
+                alt={s(d._alt)}
                 className="w-full rounded-lg object-cover"
                 style={{
                   height: Number(d._ih) || 160,
