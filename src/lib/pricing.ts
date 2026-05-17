@@ -274,3 +274,67 @@ export const OFFER_INCLUDED: Record<
     lang: "alles inbegrepen",
   },
 };
+
+// --- Builder-publiceermodel: zelf-bouw site als abonnement ---
+// Aparte, eenvoudige prijslijst voor de gepubliceerde builder-sites.
+// Bedragen in eurocent.
+export const PUBLISH_SETUP_CENTS = 19900; // €199 eenmalige opstart
+export const PUBLISH_BASE_MONTHLY_CENTS = 3900; // €39 / maand
+export const PUBLISH_BASE_YEARLY_CENTS = PUBLISH_BASE_MONTHLY_CENTS * 10;
+
+export type ModuleKey =
+  | "reservations"
+  | "languages"
+  | "seo"
+  | "domain"
+  | "gallery"
+  | "webshop";
+
+export const PUBLISH_MODULES: Record<
+  ModuleKey,
+  { cents: number; nl: string; fr: string; en: string }
+> = {
+  reservations: {
+    cents: 1000,
+    nl: "Reservatie-/afspraakformulier",
+    fr: "Formulaire de réservation",
+    en: "Reservation/booking form",
+  },
+  languages: {
+    cents: 1000,
+    nl: "Extra talen (NL/FR/EN)",
+    fr: "Langues supplémentaires",
+    en: "Extra languages",
+  },
+  seo: {
+    cents: 1000,
+    nl: "SEO-pakket",
+    fr: "Pack SEO",
+    en: "SEO pack",
+  },
+  domain: {
+    cents: 500,
+    nl: "Eigen domein",
+    fr: "Domaine propre",
+    en: "Custom domain",
+  },
+  gallery: {
+    cents: 500,
+    nl: "Galerij/portfolio-plus",
+    fr: "Galerie/portfolio plus",
+    en: "Gallery/portfolio plus",
+  },
+  webshop: {
+    cents: 4900,
+    nl: "Mini-webshop + bestellingen-admin",
+    fr: "Mini-boutique + admin commandes",
+    en: "Mini-webshop + orders admin",
+  },
+};
+
+export function publishMonthlyCents(active: ModuleKey[]): number {
+  return active.reduce(
+    (sum, k) => sum + (PUBLISH_MODULES[k]?.cents ?? 0),
+    PUBLISH_BASE_MONTHLY_CENTS,
+  );
+}

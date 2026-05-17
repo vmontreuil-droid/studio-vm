@@ -19,6 +19,8 @@ import {
   CalendarClock,
   Network,
   PenTool,
+  Inbox,
+  PanelLeft,
   LogOut,
   Menu,
   X,
@@ -85,6 +87,16 @@ export function PortalShell({
           icon: PenTool,
         },
         { href: `${base}/domein`, label: t.domain, icon: Network },
+        {
+          href: `${base}/berichten`,
+          label:
+            locale === "fr"
+              ? "Messages"
+              : locale === "en"
+                ? "Messages"
+                : "Berichten",
+          icon: Inbox,
+        },
         { href: `${base}/scans`, label: t.scans, icon: Gauge },
       ],
     },
@@ -137,6 +149,32 @@ export function PortalShell({
   // overzicht hebben); de sidebar blijft uiteraard staan.
   const wide = path.includes("/builder/editor");
 
+  // Inklapbare admin-balk (desktop): enkel icoontjes. Voorkeur wordt
+  // onthouden; in de builder-editor standaard ingeklapt zodat de klant
+  // meteen maximaal scherm heeft om te bouwen.
+  const [rail, setRail] = useState(false);
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("vm_portal_rail");
+      if (v === "1") setRail(true);
+      else if (v === "0") setRail(false);
+      else if (path.includes("/builder/editor")) setRail(true);
+    } catch {
+      /* geen storage → standaard uitgeklapt */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const toggleRail = () =>
+    setRail((r) => {
+      const n = !r;
+      try {
+        localStorage.setItem("vm_portal_rail", n ? "1" : "0");
+      } catch {
+        /* negeren */
+      }
+      return n;
+    });
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -149,22 +187,50 @@ export function PortalShell({
     };
   }, [open]);
 
+  // `lbl` = klasse die labels/teksten op desktop verbergt wanneer de
+  // balk ingeklapt is (mobiele drawer toont altijd alles).
+  const lbl = rail ? "md:hidden" : "";
+  const rowJustify = rail ? "md:justify-center" : "";
+
   const Inner = (
     <div className="flex h-full flex-col">
-      <div className="px-5 py-6">
-        <p className="text-3xl font-extrabold lowercase tracking-tighter">
+      <div
+        className={`flex items-center gap-2 px-5 py-6 ${
+          rail ? "md:justify-center md:px-2" : ""
+        }`}
+      >
+        <p
+          className={`text-3xl font-extrabold lowercase tracking-tighter ${
+            rail ? "md:text-2xl" : ""
+          }`}
+        >
           vm<span className="text-accent">.</span>
-          <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
+          <span
+            className={`ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted ${lbl}`}
+          >
             {t.portal}
           </span>
         </p>
+        <button
+          type="button"
+          onClick={toggleRail}
+          aria-label="Balk in-/uitklappen"
+          title="Balk in-/uitklappen"
+          className={`ml-auto hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:block ${
+            rail ? "md:ml-0" : ""
+          }`}
+        >
+          <PanelLeft className="h-4 w-4" strokeWidth={2} />
+        </button>
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
         {groups.map((group, gi) => (
           <div key={gi} className={gi > 0 ? "mt-4" : ""}>
             {group.title && (
-              <p className="px-3 pb-1.5 pt-1 font-mono text-[10px] uppercase tracking-widest text-muted/70">
+              <p
+                className={`px-3 pb-1.5 pt-1 font-mono text-[10px] uppercase tracking-widest text-muted/70 ${lbl}`}
+              >
                 {group.title}
               </p>
             )}
@@ -179,7 +245,8 @@ export function PortalShell({
                     key={href}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                    title={label}
+                    className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${rowJustify} ${
                       active
                         ? "bg-card-hover font-medium text-foreground"
                         : "text-muted hover:bg-card-hover hover:text-foreground"
@@ -189,11 +256,16 @@ export function PortalShell({
                       className="h-[18px] w-[18px] shrink-0"
                       strokeWidth={2}
                     />
-                    <span className="flex-1">{label}</span>
+                    <span className={`flex-1 ${lbl}`}>{label}</span>
                     {n > 0 && (
-                      <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent">
+                      <span
+                        className={`rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent ${lbl}`}
+                      >
                         {n}
                       </span>
+                    )}
+                    {n > 0 && rail && (
+                      <span className="absolute right-2 hidden h-1.5 w-1.5 rounded-full bg-accent md:block" />
                     )}
                   </Link>
                 );
@@ -204,25 +276,33 @@ export function PortalShell({
       </nav>
 
       <div className="mt-auto border-t p-3">
-        <p className="mb-1 truncate px-3 py-1 font-mono text-[10px] text-muted">
+        <p
+          className={`mb-1 truncate px-3 py-1 font-mono text-[10px] text-muted ${lbl}`}
+        >
           {email}
         </p>
         <a
           href={`/${locale}`}
-          className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+          title={t.website}
+          className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground ${rowJustify}`}
         >
           <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={2} />
-          {t.website}
+          <span className={lbl}>{t.website}</span>
         </a>
-        <div className="flex items-center gap-2">
+        <div
+          className={`flex items-center gap-2 ${
+            rail ? "md:flex-col md:gap-1" : ""
+          }`}
+        >
           <ThemeToggle />
           <form action={signOutAction} className="flex-1">
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
+              title={t.signout}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${rowJustify}`}
             >
               <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-              {t.signout}
+              <span className={lbl}>{t.signout}</span>
             </button>
           </form>
         </div>
@@ -261,7 +341,9 @@ export function PortalShell({
 
       {/* Sidebar — altijd volledig zichtbaar op desktop */}
       <aside
-        className={`fixed top-0 z-50 h-dvh w-64 shrink-0 border-r bg-card transition-transform duration-200 ease-out md:sticky ${
+        className={`fixed top-0 z-50 h-dvh w-64 shrink-0 border-r bg-card transition-all duration-200 ease-out md:sticky ${
+          rail ? "md:w-16" : "md:w-64"
+        } ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
