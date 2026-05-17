@@ -1040,7 +1040,7 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
     for (const m of html.matchAll(
       /<a\b[^>]+href=["']([^"'#][^"']*)["']/gi,
     )) {
-      if (internal.size >= 14) break;
+      if (internal.size >= 40) break;
       const hrefRaw = m[1];
       if (/^(?:mailto:|tel:|javascript:|data:|#)/i.test(hrefRaw)) continue;
       let abs: URL;
@@ -1056,8 +1056,8 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       internal.add(abs.toString());
     }
     const internalList = [...internal];
-    const linkSample = internalList.slice(0, 6);
-    const pageSample = internalList.slice(0, 3);
+    const linkSample = internalList.slice(0, 16);
+    const pageSample = internalList.slice(0, 10);
 
     const [dns, tls, linkRes, pageRes] = await Promise.all([
       dnsAudit(finalHostName),
@@ -1108,6 +1108,38 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
       severity: Severity,
       value?: string,
     ): Finding => ({ key, cat, severity, value });
+
+    // ---- Extra (diepere) HTML-signalen — geen extra requests ----
+    const hasLandmarks =
+      /<(?:main|header|footer|nav)[\s>]/i.test(html) ||
+      /\brole=["'](?:main|banner|navigation|contentinfo)["']/i.test(html);
+    const imgWithDims = imgTags.filter(
+      (t) => /\bwidth\s*=/.test(t) && /\bheight\s*=/.test(t),
+    ).length;
+    const imgDimRatio = imgCount ? imgWithDims / imgCount : 1;
+    const viewportTag =
+      html.match(
+        /<meta\s+name=["']viewport["'][^>]*content=["']([^"']*)["']/i,
+      )?.[1] || "";
+    const zoomBlocked =
+      /user-scalable\s*=\s*no/i.test(viewportTag) ||
+      /maximum-scale\s*=\s*1(?:\.0)?\b/i.test(viewportTag);
+    const httpLinks =
+      isHttps &&
+      new RegExp(
+        `<a\\b[^>]+href=["']http://(?!${url.hostname.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        )})`,
+        "i",
+      ).test(html);
+    const hasPreconnect =
+      /<link[^>]+rel=["'](?:preconnect|dns-prefetch)["']/i.test(html);
+    const hasCharset = /<meta[^>]+charset/i.test(html);
+    const skipNav =
+      /href=["']#(?:main|content|inhoud)["']|class=["'][^"']*skip-link/i.test(
+        html,
+      ) || /<a[^>]+class=["'][^"']*(?:visually-hidden|sr-only)/i.test(html);
 
     const findings: Finding[] = [
       // Security
@@ -1408,6 +1440,29 @@ export async function runScan(rawInput: string): Promise<ScanResult> {
             : "warning",
         subpageIssues ? `${subpageIssues}/${crawledPages}` : undefined,
       ),
+      // ---- Diepere checks ----
+      F("ariaLandmarks", "mobile", hasLandmarks ? "good" : "warning"),
+      F(
+        "imgDims",
+        "speed",
+        imgCount === 0
+          ? "info"
+          : imgDimRatio >= 0.8
+            ? "good"
+            : imgDimRatio >= 0.4
+              ? "warning"
+              : "critical",
+        imgCount ? `${imgWithDims}/${imgCount}` : undefined,
+      ),
+      F("zoomBlocked", "mobile", zoomBlocked ? "warning" : "good"),
+      F("httpLinks", "security", httpLinks ? "warning" : "good"),
+      F(
+        "preconnect",
+        "speed",
+        extDomains >= 4 ? (hasPreconnect ? "good" : "warning") : "info",
+      ),
+      F("metaCharset", "seo", hasCharset ? "good" : "warning"),
+      F("skipNav", "mobile", skipNav ? "good" : "info"),
     ];
 
     const W: Record<Severity, number> = {
