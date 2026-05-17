@@ -3853,8 +3853,12 @@ export default function BuilderPage({
             </Panel>
           </aside>
 
-          <div className="overflow-hidden rounded-2xl border bg-card">
-            <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-3">
+          <div className="self-start rounded-2xl border bg-card">
+            <div
+              className={`sticky top-0 z-30 flex flex-wrap items-center gap-2 rounded-t-2xl border-b bg-background px-4 py-3 ${
+                designId ? "lg:top-4" : "lg:top-24"
+              }`}
+            >
               <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
@@ -3963,11 +3967,11 @@ export default function BuilderPage({
               </span>
             </div>
             <div
-              className={
+              className={`overflow-hidden rounded-b-2xl ${
                 device === "mobile"
                   ? "flex justify-center bg-card-hover p-4"
                   : ""
-              }
+              }`}
             >
               <div
                 data-dev={device}
