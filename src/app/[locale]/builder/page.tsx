@@ -4,6 +4,12 @@ import { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { submitBuild } from "@/app/actions/build-lead";
 import { saveDesign } from "@/app/actions/builder-designs";
+import {
+  buildPreset,
+  SECTOR_LABELS,
+  TONE_LABELS,
+  type SectorKey,
+} from "@/lib/builder-presets";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -27,6 +33,7 @@ import {
   Monitor,
   Smartphone,
   RotateCcw,
+  Wand2,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -728,6 +735,8 @@ export default function BuilderPage({
   const sections = active.sections;
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragIx, setDragIx] = useState<number | null>(null);
+  const [sector, setSector] = useState<SectorKey>("services");
+  const [tone, setTone] = useState<"warm" | "zakelijk" | "speels">("warm");
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
@@ -914,6 +923,39 @@ export default function BuilderPage({
     setSections((s) =>
       s.map((x) => (x.id === id ? { ...x, data: { ...x.data, ...patch } } : x)),
     );
+
+  // Inhoud-assistentie: vult enkel lege velden — bestaande tekst blijft.
+  const fillPreset = () => {
+    const preset = buildPreset(sector, tone, locale, businessName || "");
+    setSections((arr) =>
+      arr.map((sec) => {
+        const p = preset[sec.kind];
+        if (!p) return sec;
+        const data = { ...sec.data } as Record<string, unknown>;
+        for (const [key, val] of Object.entries(p)) {
+          if (key === "items") {
+            const cur = Array.isArray(data.items)
+              ? (data.items as Record<string, unknown>[])
+              : [];
+            const allEmpty =
+              cur.length === 0 ||
+              cur.every((it) =>
+                Object.values(it).every(
+                  (v) => !v || String(v).trim() === "",
+                ),
+              );
+            if (allEmpty && Array.isArray(val)) data.items = val;
+          } else if (
+            typeof val === "string" &&
+            (data[key] == null || String(data[key]).trim() === "")
+          ) {
+            data[key] = val;
+          }
+        }
+        return { ...sec, data: data as SectionData };
+      }),
+    );
+  };
 
   const addPage = () => {
     const np: Page = {
@@ -1105,6 +1147,81 @@ export default function BuilderPage({
                   ))}
                 </div>
               )}
+            </Panel>
+
+            <Panel
+              icon={<Wand2 className="h-4 w-4" />}
+              title={
+                locale === "fr"
+                  ? "Aide au contenu"
+                  : locale === "en"
+                    ? "Content help"
+                    : "Inhoud-assistentie"
+              }
+            >
+              <p className="mb-3 text-[11px] text-muted">
+                {locale === "fr"
+                  ? "Choisissez un secteur et un ton : nous remplissons les champs encore vides avec un exemple de contenu. Votre texte existant reste intact."
+                  : locale === "en"
+                    ? "Pick a sector and tone: we fill the still-empty fields with example content. Your existing text stays untouched."
+                    : "Kies een sector en toon: we vullen de nog lege velden met voorbeeldinhoud. Je bestaande tekst blijft staan."}
+              </p>
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Secteur"
+                  : locale === "en"
+                    ? "Sector"
+                    : "Sector"}
+              </p>
+              <select
+                value={sector}
+                onChange={(e) => setSector(e.target.value as SectorKey)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+              >
+                {(
+                  Object.keys(SECTOR_LABELS[locale]) as SectorKey[]
+                ).map((k) => (
+                  <option key={k} value={k}>
+                    {SECTOR_LABELS[locale][k]}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr" ? "Ton" : locale === "en" ? "Tone" : "Toon"}
+              </p>
+              <select
+                value={tone}
+                onChange={(e) =>
+                  setTone(
+                    e.target.value as "warm" | "zakelijk" | "speels",
+                  )
+                }
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+              >
+                {(
+                  Object.keys(TONE_LABELS[locale]) as (
+                    | "warm"
+                    | "zakelijk"
+                    | "speels"
+                  )[]
+                ).map((k) => (
+                  <option key={k} value={k}>
+                    {TONE_LABELS[locale][k]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={fillPreset}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              >
+                <Wand2 className="h-4 w-4" strokeWidth={2} />
+                {locale === "fr"
+                  ? "Remplir un exemple de contenu"
+                  : locale === "en"
+                    ? "Fill example content"
+                    : "Vul voorbeeldinhoud in"}
+              </button>
             </Panel>
 
             <Panel icon={<Layers className="h-4 w-4" />} title={pg.panel}>
