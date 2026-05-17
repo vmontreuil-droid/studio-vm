@@ -192,7 +192,6 @@ export async function publishDesign(formData: FormData): Promise<void> {
     .from("builder_designs")
     .select("snapshot, title, slug")
     .eq("id", id)
-    .eq("client_email", email)
     .maybeSingle();
   const row = data as {
     snapshot: Snapshot;
@@ -201,22 +200,19 @@ export async function publishDesign(formData: FormData): Promise<void> {
   } | null;
   if (!row) redirect(back);
 
-  // Poort: aantal sites online = aantal actieve abonnementen. Geen
-  // abonnement → niet publiceren; al evenveel sites online als
-  // abonnementen → eerst één offline of een extra abonnement.
-  const adm = getSupabaseAdmin();
-  const { count: subCount } = await adm
+  // Poort: aantal sites online = aantal actieve abonnementen. We tellen
+  // via dezelfde RLS-client als de portaalpagina, zodat de check exact
+  // overeenkomt met wat de klant ziet (geen e-mail-casing-mismatch).
+  const { count: subCount } = await sb
     .from("subscriptions")
     .select("id", { count: "exact", head: true })
-    .eq("client_email", email)
     .eq("status", "actief");
   const allowed = subCount ?? 0;
   if (allowed < 1) redirect(`${back}?fout=abo`);
 
-  const { count: liveCount } = await adm
+  const { count: liveCount } = await sb
     .from("builder_designs")
     .select("id", { count: "exact", head: true })
-    .eq("client_email", email)
     .eq("published", true)
     .neq("id", id);
   if ((liveCount ?? 0) >= allowed) redirect(`${back}?fout=onesite`);

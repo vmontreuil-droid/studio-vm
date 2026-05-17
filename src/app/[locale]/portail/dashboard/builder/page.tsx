@@ -132,7 +132,7 @@ export default async function PortalBuilderOverview({
       </p>
 
       {(ok === "live" || ok === "betaald" || ok === "gestopt") && (
-        <p className="mt-4 rounded-xl border border-green-600 bg-green-100 px-4 py-3 text-sm font-semibold text-green-900 dark:border-green-700 dark:bg-green-900 dark:text-green-100">
+        <p className="mt-4 rounded-md bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-300">
           {ok === "gestopt"
             ? locale === "fr"
               ? "Abonnement résilié."
@@ -146,142 +146,111 @@ export default async function PortalBuilderOverview({
                   ? "Payment received — activating…"
                   : "Betaling ontvangen — abonnement wordt geactiveerd…"
               : locale === "fr"
-                ? "Votre site est en ligne 🎉"
+                ? "Votre site est en ligne."
                 : locale === "en"
-                  ? "Your site is live 🎉"
-                  : "Je site staat online 🎉"}
+                  ? "Your site is live."
+                  : "Je site staat online."}
         </p>
       )}
-      {fout === "abo" && (
-        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
-          {locale === "fr"
-            ? "Un abonnement actif est requis pour publier. Voir « Abonnement »."
-            : locale === "en"
-              ? "An active subscription is required to publish. See “Subscription”."
-              : "Publiceren kan enkel met een actief abonnement. Zie ‘Abonnement’."}
-        </p>
-      )}
-      {fout === "onesite" && (
-        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
-          {locale === "fr"
-            ? "Vous avez déjà un site en ligne. Mettez-le d'abord hors ligne, ou prenez un abonnement supplémentaire pour un second site."
-            : locale === "en"
-              ? "You already have a site online. Take it offline first, or add another subscription for a second site."
-              : "Je hebt al een site online. Haal die eerst offline, of neem een extra abonnement voor een tweede site."}
-        </p>
-      )}
-      {fout && fout !== "abo" && fout !== "onesite" && (
-        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
-          {locale === "fr"
-            ? "Impossible de créer la maquette pour l'instant. Réessayez plus tard."
-            : locale === "en"
-              ? "Could not create the draft right now. Please try again later."
-              : "Kon het ontwerp nu niet aanmaken. Probeer het zo opnieuw."}
+      {fout && !(fout === "abo" && subActive) && (
+        <p className="mt-4 rounded-md bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300">
+          {fout === "abo"
+            ? locale === "fr"
+              ? "Un abonnement actif est requis pour publier."
+              : locale === "en"
+                ? "An active subscription is required to publish."
+                : "Publiceren kan enkel met een actief abonnement."
+            : fout === "onesite"
+              ? locale === "fr"
+                ? "Vous avez déjà un site en ligne. Mettez-le d'abord hors ligne, ou prenez un abonnement supplémentaire."
+                : locale === "en"
+                  ? "You already have a site online. Take it offline first, or add another subscription."
+                  : "Je hebt al een site online. Haal die eerst offline, of koop een extra site."
+              : locale === "fr"
+                ? "Impossible de créer la maquette. Réessayez."
+                : locale === "en"
+                  ? "Could not create the draft. Try again."
+                  : "Kon het ontwerp niet aanmaken. Probeer opnieuw."}
         </p>
       )}
 
-      <div
-        className={`mt-6 rounded-2xl border p-5 ${
-          subActive
-            ? "border-green-600 bg-green-100 dark:border-green-700 dark:bg-green-900"
-            : "border-accent/40 bg-accent/5"
-        }`}
-      >
-        {subActive ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-green-900 dark:text-green-100">
+      {subActive ? (
+        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            <span className="font-medium text-foreground">
               {locale === "fr"
-                ? "Abonnement actif — votre site reste en ligne."
+                ? "Abonnement actif"
                 : locale === "en"
-                  ? "Subscription active — your site stays online."
-                  : "Abonnement actief — je site blijft online."}
-            </p>
-            <form action={cancelPublishSubscription}>
-              <input type="hidden" name="locale" value={locale} />
-              <SubmitButton className="rounded-full border border-green-700 bg-white px-4 py-2 text-xs font-semibold text-green-900 transition-colors hover:border-red-500 hover:text-red-600 dark:border-green-200 dark:bg-green-950 dark:text-green-50 dark:hover:text-red-400">
-                {locale === "fr"
-                  ? "Résilier l'abonnement"
-                  : locale === "en"
-                    ? "Cancel subscription"
-                    : "Abonnement opzeggen"}
-              </SubmitButton>
-            </form>
-          </div>
-        ) : null}
-        {subActive && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-green-700/40 pt-4 dark:border-green-200/30">
-            <p className="text-sm text-green-900 dark:text-green-100">
+                  ? "Subscription active"
+                  : "Abonnement actief"}
+            </span>
+            <span>
+              · {liveSites}/{allowedSites}{" "}
               {locale === "fr"
-                ? `${liveSites} site(s) en ligne · ${allowedSites} autorisé(s). 1 site par abonnement — besoin d'un site en plus ?`
+                ? "site en ligne"
                 : locale === "en"
-                  ? `${liveSites} site(s) online · ${allowedSites} allowed. 1 site per subscription — need another site?`
-                  : `${liveSites} site(s) online · ${allowedSites} toegelaten. 1 site per abonnement — extra site nodig?`}
-            </p>
-            <form action={addExtraSite}>
-              <input type="hidden" name="locale" value={locale} />
-              <SubmitButton className="rounded-full border border-green-700 bg-white px-4 py-2 text-xs font-semibold text-green-900 transition-colors hover:opacity-80 dark:border-green-200 dark:bg-green-950 dark:text-green-50">
-                {locale === "fr"
-                  ? `+ Site supplémentaire (+€${Math.round(
-                      PUBLISH_BASE_MONTHLY_CENTS / 100,
-                    )}/m)`
-                  : locale === "en"
-                    ? `+ Extra site (+€${Math.round(
-                        PUBLISH_BASE_MONTHLY_CENTS / 100,
-                      )}/m)`
-                    : `+ Extra site bijkopen (+€${Math.round(
-                        PUBLISH_BASE_MONTHLY_CENTS / 100,
-                      )}/m)`}
-              </SubmitButton>
-            </form>
-          </div>
-        )}
-        {!subActive && (
-          <>
-            <p className="text-lg font-semibold tracking-tight">
+                  ? "site online"
+                  : "site online"}
+            </span>
+          </span>
+          <span aria-hidden>·</span>
+          <form action={addExtraSite} className="contents">
+            <input type="hidden" name="locale" value={locale} />
+            <SubmitButton className="text-accent underline underline-offset-2 hover:opacity-80">
               {locale === "fr"
-                ? "Mettez votre site en ligne"
+                ? `+ site (+€${Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100)}/m)`
+                : `+ extra site (+€${Math.round(
+                    PUBLISH_BASE_MONTHLY_CENTS / 100,
+                  )}/m)`}
+            </SubmitButton>
+          </form>
+          <span aria-hidden>·</span>
+          <form action={cancelPublishSubscription} className="contents">
+            <input type="hidden" name="locale" value={locale} />
+            <SubmitButton className="underline underline-offset-2 hover:text-red-500">
+              {locale === "fr"
+                ? "résilier"
                 : locale === "en"
-                  ? "Put your site online"
-                  : "Zet je site online"}
-            </p>
-            <p className="mt-1 max-w-xl text-sm text-muted">
-              {locale === "fr"
-                ? `Hébergement, entretien et mises à jour inclus. ${euroFmt(
+                  ? "cancel"
+                  : "opzeggen"}
+            </SubmitButton>
+          </form>
+        </div>
+      ) : (
+        <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+          <span className="text-muted">
+            {locale === "fr"
+              ? `Mettez votre site en ligne — €${euroFmt(
+                  publishSetupCents(),
+                )} + €${euroFmt(PUBLISH_BASE_MONTHLY_CENTS)}/m.`
+              : locale === "en"
+                ? `Put your site online — €${euroFmt(
                     publishSetupCents(),
-                  )} € de démarrage, puis ${euroFmt(
+                  )} + €${euroFmt(PUBLISH_BASE_MONTHLY_CENTS)}/m.`
+                : `Zet je site online — €${euroFmt(
+                    publishSetupCents(),
+                  )} opstart, daarna €${euroFmt(
                     PUBLISH_BASE_MONTHLY_CENTS,
-                  )} €/mois. Résiliable à tout moment.`
+                  )}/m.`}
+          </span>
+          <form action={startPublishSubscription} className="contents">
+            <input type="hidden" name="locale" value={locale} />
+            <SubmitButton className="font-medium text-accent underline underline-offset-2 hover:opacity-80">
+              {locale === "fr"
+                ? "Démarrer l'abonnement"
                 : locale === "en"
-                  ? `Hosting, maintenance and updates included. €${euroFmt(
-                      publishSetupCents(),
-                    )} setup, then €${euroFmt(
-                      PUBLISH_BASE_MONTHLY_CENTS,
-                    )}/month. Cancel anytime.`
-                  : `Hosting, onderhoud en updates inbegrepen. €${euroFmt(
-                      publishSetupCents(),
-                    )} opstart, daarna €${euroFmt(
-                      PUBLISH_BASE_MONTHLY_CENTS,
-                    )}/maand. Maandelijks opzegbaar.`}
-            </p>
-            <form action={startPublishSubscription} className="mt-4">
-              <input type="hidden" name="locale" value={locale} />
-              <SubmitButton className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
-                <Rocket className="h-4 w-4" strokeWidth={2} />
-                {locale === "fr"
-                  ? "Démarrer l'abonnement"
-                  : locale === "en"
-                    ? "Start subscription"
-                    : "Start abonnement"}
-              </SubmitButton>
-            </form>
-          </>
-        )}
-      </div>
+                  ? "Start subscription"
+                  : "Start abonnement"}
+            </SubmitButton>
+          </form>
+        </div>
+      )}
 
-      <form action={createDesign} className="mt-6">
+      <form action={createDesign} className="mt-5">
         <input type="hidden" name="locale" value={locale} />
-        <SubmitButton className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
-          <PenTool className="h-4 w-4" strokeWidth={2} />
+        <SubmitButton className="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors hover:bg-card-hover">
+          <PenTool className="h-3.5 w-3.5" strokeWidth={2} />
           {l.nieuw}
         </SubmitButton>
       </form>
@@ -295,7 +264,7 @@ export default async function PortalBuilderOverview({
         {designs.map((d) => (
           <div
             key={d.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3.5"
           >
             <div className="min-w-0">
               <p className="font-semibold tracking-tight">{d.title}</p>
@@ -339,10 +308,10 @@ export default async function PortalBuilderOverview({
                   locale,
                   `/portail/dashboard/builder/editor?d=${d.id}`,
                 )}
-                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
               >
                 {l.resume}
-                <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
               </Link>
               {d.published ? (
                 <form action={unpublishDesign}>
@@ -356,9 +325,9 @@ export default async function PortalBuilderOverview({
                           ? "Take offline"
                           : "Offline halen"
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:bg-card-hover"
                   >
-                    <EyeOff className="h-4 w-4" strokeWidth={2} />
+                    <EyeOff className="h-3.5 w-3.5" strokeWidth={2} />
                   </SubmitButton>
                 </form>
               ) : (
@@ -373,9 +342,9 @@ export default async function PortalBuilderOverview({
                           ? "Publish"
                           : "Publiceren"
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
                   >
-                    <Rocket className="h-4 w-4" strokeWidth={2} />
+                    <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
                     {locale === "fr"
                       ? "Publier"
                       : locale === "en"
@@ -390,9 +359,9 @@ export default async function PortalBuilderOverview({
                   <input type="hidden" name="locale" value={locale} />
                   <SubmitButton
                     ariaLabel={l.send}
-                    className="rounded-full border px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+                    className="rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:bg-card-hover"
                   >
-                    <Send className="h-4 w-4" strokeWidth={2} />
+                    <Send className="h-3.5 w-3.5" strokeWidth={2} />
                   </SubmitButton>
                 </form>
               )}
@@ -401,9 +370,9 @@ export default async function PortalBuilderOverview({
                 <input type="hidden" name="locale" value={locale} />
                 <SubmitButton
                   ariaLabel="Verwijder"
-                  className="rounded-full border p-2 text-muted transition-colors hover:text-red-500"
+                  className="rounded-full border p-1.5 text-muted transition-colors hover:text-red-500"
                 >
-                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
                 </SubmitButton>
               </form>
             </div>
