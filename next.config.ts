@@ -37,6 +37,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
+  // De builder verstuurt volledige ontwerpen met foto's (base64) via
+  // een Server Action — de standaard 1 MB is veel te krap.
+  experimental: {
+    serverActions: { bodySizeLimit: "16mb" },
+  },
   async headers() {
     return [
       {

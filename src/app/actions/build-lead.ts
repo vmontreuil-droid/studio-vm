@@ -123,7 +123,7 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
       modules: clean.sections,
       plan: clean.theme,
       source: "builder",
-      snapshot: clean,
+      snapshot: clean.snapshot ?? clean,
     })
     .select("id")
     .maybeSingle();
