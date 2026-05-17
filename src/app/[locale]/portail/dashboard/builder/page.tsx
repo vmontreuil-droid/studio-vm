@@ -174,13 +174,13 @@ export default async function PortalBuilderOverview({
       <div
         className={`mt-6 rounded-2xl border p-5 ${
           subActive
-            ? "border-green-500/40 bg-green-50/60 dark:bg-green-950/30"
+            ? "border-green-600 bg-green-100 dark:border-green-700 dark:bg-green-900"
             : "border-accent/40 bg-accent/5"
         }`}
       >
         {subActive ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+            <p className="text-sm font-semibold text-green-900 dark:text-green-100">
               {locale === "fr"
                 ? "Abonnement actif — vos sites restent en ligne."
                 : locale === "en"
