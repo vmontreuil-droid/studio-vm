@@ -16,7 +16,14 @@ export const dynamic = "force-dynamic";
 
 const L: Record<
   Locale,
-  { paid: string; open: string; overdue: string; history: string; none: string }
+  {
+    paid: string;
+    open: string;
+    overdue: string;
+    history: string;
+    none: string;
+    intro: string;
+  }
 > = {
   nl: {
     paid: "Betaald",
@@ -24,6 +31,8 @@ const L: Record<
     overdue: "Vervallen",
     history: "Betalingshistoriek",
     none: "Nog geen betalingen of facturen.",
+    intro:
+      "Hier zie je al je betalingen en facturen op één plek: je aanbetaling, latere maandfacturen en hun status. Een betaalde aanbetaling verschijnt hier zodra ze door de betaalprovider bevestigd is.",
   },
   fr: {
     paid: "Payé",
@@ -31,6 +40,8 @@ const L: Record<
     overdue: "Échu",
     history: "Historique des paiements",
     none: "Aucun paiement ou facture.",
+    intro:
+      "Vous voyez ici tous vos paiements et factures au même endroit : votre acompte, les factures mensuelles ultérieures et leur statut. Un acompte payé apparaît dès qu'il est confirmé par le prestataire de paiement.",
   },
   en: {
     paid: "Paid",
@@ -38,6 +49,8 @@ const L: Record<
     overdue: "Overdue",
     history: "Payment history",
     none: "No payments or invoices yet.",
+    intro:
+      "Here you see all your payments and invoices in one place: your deposit, later monthly invoices and their status. A paid deposit appears here as soon as it's confirmed by the payment provider.",
   },
 };
 
@@ -74,6 +87,9 @@ export default async function PortalPayments({
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
         {t.payments}
       </h1>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+        {l.intro}
+      </p>
 
       <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {cards.map((c) => (
@@ -103,6 +119,9 @@ export default async function PortalPayments({
                 {i.number}{" "}
                 <span className="text-muted">· {eur(i.amount_cents)}</span>
               </p>
+              {i.description && (
+                <p className="mt-0.5 text-sm text-muted">{i.description}</p>
+              )}
               <p className="mt-1 font-mono text-[11px] text-muted">
                 {dt(i.issued_at, locale)}
                 {i.due_at ? ` → ${dt(i.due_at, locale)}` : ""}

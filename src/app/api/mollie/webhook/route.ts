@@ -132,6 +132,40 @@ export async function POST(req: NextRequest) {
           } as Record<string, string>)[q.base ?? ""] ??
           q.base ??
           "—";
+
+        // Betaalde aanbetaling als factuurregel in het portaal
+        // (Betalingen/Facturen) — idempotent op mollie_payment_id.
+        try {
+          const { data: existInv } = await db
+            .from("invoices")
+            .select("id")
+            .eq("mollie_payment_id", payment.id)
+            .maybeSingle();
+          if (!existInv) {
+            const year = new Date().getFullYear();
+            const { count } = await db
+              .from("invoices")
+              .select("id", { count: "exact", head: true });
+            const invNo = `AANB-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
+            const invDesc = {
+              nl: `Aanbetaling 30% (incl. 21% btw) — ${baseName}`,
+              fr: `Acompte 30% (TVA 21% incl.) — ${baseName}`,
+              en: `30% deposit (incl. 21% VAT) — ${baseName}`,
+            }[loc];
+            await db.from("invoices").insert({
+              client_email: q.email,
+              number: invNo,
+              description: invDesc,
+              amount_cents: depIncl,
+              status: "betaald",
+              paid_at: new Date().toISOString(),
+              mollie_payment_id: payment.id,
+            });
+          }
+        } catch {
+          // Niet-kritisch — de betaling zelf is sowieso geregistreerd.
+        }
+
         const mods = (q.modules ?? []).filter(
           (m) =>
             !!m &&
