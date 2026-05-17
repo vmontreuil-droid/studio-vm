@@ -1582,6 +1582,7 @@ export default function BuilderPage({
                       section={openSec}
                       c={c}
                       patch={patchData}
+                      theme={theme}
                     />
                   </div>
                 </div>
@@ -2541,17 +2542,277 @@ function Txt({
   );
 }
 
+// Alle hero-instellingen, in de zijbalk (verschijnt bovenaan zodra je
+// het hero-blok aanklikt). De tekst zelf bewerk je op het doek.
+function HeroSettings({
+  data,
+  edit,
+  theme,
+  p,
+}: {
+  data: SectionData;
+  edit: (patch: SectionData) => void;
+  theme: Theme;
+  p: Preview;
+}) {
+  const slidesArr = Array.isArray(data.slides)
+    ? (data.slides as unknown[])
+    : [];
+  const nSlides = Math.max(
+    1,
+    slidesArr.length ||
+      (Array.isArray(data.bgs) ? (data.bgs as unknown[]).length : 0) ||
+      1,
+  );
+  const hH =
+    typeof data.hH === "string" &&
+    ["s", "m", "l", "xl", "full"].includes(data.hH)
+      ? String(data.hH)
+      : "m";
+  const hCard = data.hCard === 1 || data.hCard === true;
+  const hBlur = typeof data.hBlur === "number" ? data.hBlur : 0;
+  const hCardW = typeof data.hCardW === "number" ? data.hCardW : 86;
+  const hCardColor =
+    typeof data.hCardColor === "string" && data.hCardColor
+      ? (data.hCardColor as string)
+      : "";
+  const hCardA = typeof data.hCardA === "number" ? data.hCardA : 34;
+  const showCard = hCard || hBlur > 0;
+  const hCap = data.hCap === 1 || data.hCap === true;
+  const hCapPos =
+    data.hCapPos === "br" ||
+    data.hCapPos === "tl" ||
+    data.hCapPos === "tr"
+      ? String(data.hCapPos)
+      : "bl";
+  const slideSec =
+    typeof data.slideSec === "number" && data.slideSec >= 2
+      ? data.slideSec
+      : 4;
+  const trans =
+    typeof data.trans === "string" &&
+    ["fade", "slide", "slideup", "zoom", "blur", "none"].includes(data.trans)
+      ? String(data.trans)
+      : "fade";
+  const hTransMs =
+    typeof data.hTransMs === "number" ? data.hTransMs : 700;
+
+  const Lbl = ({ children }: { children: React.ReactNode }) => (
+    <p className="mb-1.5 mt-3 font-mono text-[10px] uppercase tracking-widest text-muted first:mt-0">
+      {children}
+    </p>
+  );
+  const seg = (active: boolean) =>
+    `rounded-md border px-2 py-1 text-xs transition-colors ${
+      active
+        ? "border-accent bg-accent/10 text-foreground"
+        : "border-border text-muted hover:bg-card-hover"
+    }`;
+
+  return (
+    <div className="space-y-1">
+      <p className="mb-2 text-[11px] text-muted">
+        {p.heroMove}. {p.heroDrop}.
+      </p>
+
+      <Lbl>{p.heroHeight}</Lbl>
+      <div className="flex gap-1.5">
+        {(["s", "m", "l", "xl", "full"] as const).map((hk) => (
+          <button
+            key={hk}
+            type="button"
+            onClick={() => edit({ hH: hk })}
+            className={seg(hH === hk)}
+          >
+            {hk === "full" ? "100%" : hk.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      <Lbl>{p.heroTrans}</Lbl>
+      <select
+        value={trans}
+        onChange={(e) => edit({ trans: e.target.value })}
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+      >
+        <option value="fade">{p.transFade}</option>
+        <option value="slide">{p.transSlide}</option>
+        <option value="slideup">{p.transUp}</option>
+        <option value="zoom">{p.transZoom}</option>
+        <option value="blur">{p.transBlur}</option>
+        <option value="none">{p.transNone}</option>
+      </select>
+      {trans !== "none" && (
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-[11px] text-muted">{p.heroTransDur}</span>
+          <input
+            type="range"
+            min={150}
+            max={1500}
+            step={50}
+            value={hTransMs}
+            onChange={(e) => edit({ hTransMs: Number(e.target.value) })}
+            className="h-1 flex-1 cursor-pointer accent-accent"
+          />
+          <span className="w-12 text-right font-mono text-[11px] tabular-nums">
+            {(hTransMs / 1000).toFixed(2)}s
+          </span>
+        </div>
+      )}
+      {nSlides > 1 && (
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-[11px] text-muted">{p.heroDur}</span>
+          <input
+            type="range"
+            min={2}
+            max={10}
+            step={0.5}
+            value={slideSec}
+            onChange={(e) => edit({ slideSec: Number(e.target.value) })}
+            className="h-1 flex-1 cursor-pointer accent-accent"
+          />
+          <span className="w-12 text-right font-mono text-[11px] tabular-nums">
+            {slideSec.toFixed(1)}s
+          </span>
+        </div>
+      )}
+
+      <Lbl>{p.heroCard}</Lbl>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => edit({ hCard: hCard ? 0 : 1 })}
+          className={seg(hCard)}
+        >
+          <Square className="mr-1 inline h-3 w-3" strokeWidth={2.5} />
+          {hCard ? "✓" : "—"}
+        </button>
+        <span className="text-[11px] text-muted">{p.heroBlur}</span>
+        <input
+          type="range"
+          min={0}
+          max={16}
+          step={1}
+          value={hBlur}
+          onChange={(e) => edit({ hBlur: Number(e.target.value) })}
+          className="h-1 flex-1 cursor-pointer accent-accent"
+        />
+        <span className="w-9 text-right font-mono text-[11px] tabular-nums">
+          {hBlur}px
+        </span>
+      </div>
+      {showCard && (
+        <div className="mt-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-20 text-[11px] text-muted">
+              {p.heroCardW}
+            </span>
+            <input
+              type="range"
+              min={40}
+              max={100}
+              step={2}
+              value={hCardW}
+              onChange={(e) => edit({ hCardW: Number(e.target.value) })}
+              className="h-1 flex-1 cursor-pointer accent-accent"
+            />
+            <span className="w-9 text-right font-mono text-[11px] tabular-nums">
+              {hCardW}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-20 text-[11px] text-muted">
+              {p.heroCardOpacity}
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={95}
+              step={5}
+              value={hCardA}
+              onChange={(e) => edit({ hCardA: Number(e.target.value) })}
+              className="h-1 flex-1 cursor-pointer accent-accent"
+            />
+            <span className="w-9 text-right font-mono text-[11px] tabular-nums">
+              {hCardA}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-20 text-[11px] text-muted">
+              {p.heroCardColor}
+            </span>
+            <input
+              type="color"
+              value={hCardColor || theme.fg}
+              onChange={(e) => edit({ hCardColor: e.target.value })}
+              className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+            />
+            {hCardColor && (
+              <button
+                type="button"
+                onClick={() => edit({ hCardColor: "" })}
+                className="font-mono text-[10px] text-muted underline"
+              >
+                reset
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Lbl>{p.heroCap}</Lbl>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => edit({ hCap: hCap ? 0 : 1 })}
+          className={seg(hCap)}
+        >
+          {hCap ? "✓" : "—"}
+        </button>
+        {hCap &&
+          (["tl", "tr", "bl", "br"] as const).map((cn) => (
+            <button
+              key={cn}
+              type="button"
+              onClick={() => edit({ hCapPos: cn })}
+              className={seg(hCapPos === cn)}
+            >
+              {cn === "tl"
+                ? "◰"
+                : cn === "tr"
+                  ? "◳"
+                  : cn === "bl"
+                    ? "◱"
+                    : "◲"}
+            </button>
+          ))}
+      </div>
+    </div>
+  );
+}
+
 function SectionEditor({
   section,
   c,
   patch,
+  theme,
 }: {
   section: Section;
   c: Loc;
   patch: (id: string, p: SectionData) => void;
+  theme: Theme;
 }) {
   const f = c.fields;
   const d = section.data;
+  if (section.kind === "hero")
+    return (
+      <HeroSettings
+        data={d}
+        edit={(pp) => patch(section.id, pp)}
+        theme={theme}
+        p={c.preview}
+      />
+    );
   const set = (k: string, v: unknown) => patch(section.id, { [k]: v });
   const str = (k: string) => (d[k] == null ? "" : String(d[k]));
   const items = Array.isArray(d.items)
@@ -2562,7 +2823,6 @@ function SectionEditor({
   const tmpl = itemTemplate[section.kind];
 
   const simple: Record<string, string[]> = {
-    hero: ["eyebrow", "heading", "sub", "button"],
     about: ["title", "text"],
     cta: ["title", "text", "button"],
     richtext: ["title", "text"],
@@ -3357,226 +3617,6 @@ function HeroPreview({
         </button>
       </div>
 
-      <div
-        className="absolute inset-x-0 bottom-9 z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 px-4 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
-        style={{ color: curHasBg ? "rgba(255,255,255,0.9)" : theme.fg }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span className="flex items-center gap-1.5">
-          {p.heroHeight}
-          {(["s", "m", "l", "xl", "full"] as const).map((hk) => (
-            <button
-              key={hk}
-              type="button"
-              onClick={() => edit({ hH: hk })}
-              className="rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
-              style={{
-                background:
-                  hH === hk
-                    ? theme.accent
-                    : curHasBg
-                      ? "rgba(255,255,255,0.18)"
-                      : `${theme.fg}14`,
-                color:
-                  hH === hk
-                    ? theme.bg
-                    : curHasBg
-                      ? "#ffffff"
-                      : theme.fg,
-              }}
-            >
-              {hk === "full" ? "▣" : hk}
-            </button>
-          ))}
-        </span>
-        <button
-          type="button"
-          onClick={() => edit({ hCard: hCard ? 0 : 1 })}
-          className="flex items-center gap-1.5 rounded px-1.5 py-0.5"
-          style={{
-            background: hCard
-              ? theme.accent
-              : curHasBg
-                ? "rgba(255,255,255,0.18)"
-                : `${theme.fg}14`,
-            color: hCard ? theme.bg : curHasBg ? "#ffffff" : theme.fg,
-          }}
-        >
-          <Square className="h-3 w-3" strokeWidth={2.5} />
-          {p.heroCard}
-        </button>
-        <label className="flex items-center gap-2">
-          {p.heroBlur}
-          <input
-            type="range"
-            min={0}
-            max={16}
-            step={1}
-            value={hBlur}
-            onChange={(e) => edit({ hBlur: Number(e.target.value) })}
-            className="h-1 w-20 cursor-pointer accent-current"
-          />
-          <span className="font-mono tabular-nums">{hBlur}px</span>
-        </label>
-        <span className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => edit({ hCap: hCap ? 0 : 1 })}
-            className="rounded px-1.5 py-0.5"
-            style={{
-              background: hCap
-                ? theme.accent
-                : curHasBg
-                  ? "rgba(255,255,255,0.18)"
-                  : `${theme.fg}14`,
-              color: hCap ? theme.bg : curHasBg ? "#ffffff" : theme.fg,
-            }}
-          >
-            {p.heroCap}
-          </button>
-          {hCap &&
-            (["tl", "tr", "bl", "br"] as const).map((cn) => (
-              <button
-                key={cn}
-                type="button"
-                onClick={() => edit({ hCapPos: cn })}
-                title={cn}
-                className="flex h-5 w-5 items-center justify-center rounded font-mono text-[11px]"
-                style={{
-                  background:
-                    hCapPos === cn
-                      ? theme.accent
-                      : curHasBg
-                        ? "rgba(255,255,255,0.18)"
-                        : `${theme.fg}14`,
-                  color:
-                    hCapPos === cn
-                      ? theme.bg
-                      : curHasBg
-                        ? "#ffffff"
-                        : theme.fg,
-                }}
-              >
-                {cn === "tl"
-                  ? "◰"
-                  : cn === "tr"
-                    ? "◳"
-                    : cn === "bl"
-                      ? "◱"
-                      : "◲"}
-              </button>
-            ))}
-        </span>
-        {showCard && (
-          <>
-            <label className="flex items-center gap-2">
-              {p.heroCardW}
-              <input
-                type="range"
-                min={40}
-                max={100}
-                step={2}
-                value={hCardW}
-                onChange={(e) => edit({ hCardW: Number(e.target.value) })}
-                className="h-1 w-20 cursor-pointer accent-current"
-              />
-              <span className="font-mono tabular-nums">{hCardW}%</span>
-            </label>
-            <label className="flex items-center gap-2">
-              {p.heroCardOpacity}
-              <input
-                type="range"
-                min={0}
-                max={95}
-                step={5}
-                value={hCardA}
-                onChange={(e) => edit({ hCardA: Number(e.target.value) })}
-                className="h-1 w-20 cursor-pointer accent-current"
-              />
-              <span className="font-mono tabular-nums">{hCardA}%</span>
-            </label>
-            <label className="flex items-center gap-2">
-              {p.heroCardColor}
-              <input
-                type="color"
-                value={hCardColor || (curHasBg ? "#000000" : theme.fg)}
-                onChange={(e) => edit({ hCardColor: e.target.value })}
-                className="h-5 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
-              />
-              {hCardColor && (
-                <button
-                  type="button"
-                  onClick={() => edit({ hCardColor: "" })}
-                  title="reset"
-                  className="font-mono text-[10px] underline opacity-70"
-                >
-                  reset
-                </button>
-              )}
-            </label>
-          </>
-        )}
-        {slides.length > 1 && (
-          <>
-            <label className="flex items-center gap-2">
-              {p.heroDur}
-              <input
-                type="range"
-                min={2}
-                max={10}
-                step={0.5}
-                value={slideSec}
-                onChange={(e) => edit({ slideSec: Number(e.target.value) })}
-                className="h-1 w-20 cursor-pointer accent-current"
-              />
-              <span className="font-mono tabular-nums">
-                {slideSec.toFixed(1)}s
-              </span>
-            </label>
-            <label className="flex items-center gap-2">
-              {p.heroTrans}
-              <select
-                value={trans}
-                onChange={(e) => edit({ trans: e.target.value })}
-                className="rounded border px-1.5 py-0.5 text-[11px] outline-none"
-                style={{
-                  borderColor: curHasBg
-                    ? "rgba(255,255,255,0.4)"
-                    : `${theme.fg}33`,
-                  background: curHasBg ? "rgba(0,0,0,0.4)" : theme.bg,
-                  color: curHasBg ? "#ffffff" : theme.fg,
-                }}
-              >
-                <option value="fade">{p.transFade}</option>
-                <option value="slide">{p.transSlide}</option>
-                <option value="slideup">{p.transUp}</option>
-                <option value="zoom">{p.transZoom}</option>
-                <option value="blur">{p.transBlur}</option>
-                <option value="none">{p.transNone}</option>
-              </select>
-            </label>
-            {trans !== "none" && (
-              <label className="flex items-center gap-2">
-                {p.heroTransDur}
-                <input
-                  type="range"
-                  min={150}
-                  max={1500}
-                  step={50}
-                  value={hTransMs}
-                  onChange={(e) =>
-                    edit({ hTransMs: Number(e.target.value) })
-                  }
-                  className="h-1 w-20 cursor-pointer accent-current"
-                />
-                <span className="font-mono tabular-nums">
-                  {(hTransMs / 1000).toFixed(2)}s
-                </span>
-              </label>
-            )}
-          </>
-        )}
-      </div>
 
       <label
         className="absolute inset-x-0 bottom-0 z-10 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
