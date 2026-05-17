@@ -35,20 +35,28 @@ export async function createDesign(formData: FormData): Promise<void> {
   const locale = String(formData.get("locale") ?? "nl");
   const title = String(formData.get("title") ?? "").trim().slice(0, 80);
   const sb = await getSupabaseServer();
-  const { data } = await sb
-    .from("builder_designs")
-    .insert({
-      client_email: email,
-      title: title || "Mijn ontwerp",
-      snapshot: {},
-    })
-    .select("id")
-    .maybeSingle();
-  const id = (data as { id?: string } | null)?.id;
-  revalidatePath(`/${locale}/portail/dashboard/builder`, "page");
-  if (id) {
-    redirect(`/${locale}/portail/dashboard/builder/editor?d=${id}`);
+  let id: string | undefined;
+  try {
+    const { data, error } = await sb
+      .from("builder_designs")
+      .insert({
+        client_email: email,
+        title: title || "Mijn ontwerp",
+        snapshot: {},
+      })
+      .select("id")
+      .maybeSingle();
+    if (!error) id = (data as { id?: string } | null)?.id;
+  } catch {
+    /* tabel ontbreekt of RLS — netjes afhandelen i.p.v. hangen */
   }
+  revalidatePath(`/${locale}/portail/dashboard/builder`, "page");
+  // Altijd navigeren zodat de knop nooit blijft hangen.
+  redirect(
+    id
+      ? `/${locale}/portail/dashboard/builder/editor?d=${id}`
+      : `/${locale}/portail/dashboard/builder?fout=db`,
+  );
 }
 
 export async function saveDesign(

@@ -72,10 +72,13 @@ const L: Record<
 
 export default async function PortalBuilderOverview({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ fout?: string }>;
 }) {
   const { locale } = await params;
+  const { fout } = await searchParams;
   if (!isValidLocale(locale)) notFound();
   if (!supabaseConfigured) return null;
   const l = L[locale];
@@ -95,6 +98,16 @@ export default async function PortalBuilderOverview({
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
         {l.sub}
       </p>
+
+      {fout && (
+        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
+          {locale === "fr"
+            ? "Impossible de créer la maquette pour l'instant. Réessayez plus tard."
+            : locale === "en"
+              ? "Could not create the draft right now. Please try again later."
+              : "Kon het ontwerp nu niet aanmaken. Probeer het zo opnieuw."}
+        </p>
+      )}
 
       <form action={createDesign} className="mt-6">
         <input type="hidden" name="locale" value={locale} />
