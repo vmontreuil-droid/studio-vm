@@ -516,9 +516,39 @@ function BlockView({
               return (
                 <div
                   key={i}
-                  className="rounded-lg border p-3 text-xs"
-                  style={border}
+                  className="relative rounded-lg border p-3 text-xs"
+                  style={{
+                    ...border,
+                    ...((it as Record<string, unknown>)._bg
+                      ? {
+                          background: String(
+                            (it as Record<string, unknown>)._bg,
+                          ),
+                        }
+                      : {}),
+                    ...((it as Record<string, unknown>)._tc
+                      ? {
+                          color: String(
+                            (it as Record<string, unknown>)._tc,
+                          ),
+                        }
+                      : {}),
+                    ...((it as Record<string, unknown>)._hi
+                      ? {
+                          borderColor: accent,
+                          boxShadow: `0 0 0 2px ${accent}`,
+                        }
+                      : {}),
+                  }}
                 >
+                  {(it as Record<string, unknown>)._hi ? (
+                    <span
+                      className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold uppercase"
+                      style={{ background: accent, color: bg }}
+                    >
+                      ★
+                    </span>
+                  ) : null}
                   {im && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

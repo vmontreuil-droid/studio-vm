@@ -4554,6 +4554,96 @@ function SectionEditor({
               />
             ))}
           </div>
+          {(() => {
+            const pi = (patch: Record<string, string>) =>
+              setItems(
+                items.map((x, j) => (j === idx ? { ...x, ...patch } : x)),
+              );
+            return (
+              <div className="mt-2 border-t pt-2">
+                <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {locale === "fr"
+                    ? "Carte"
+                    : locale === "en"
+                      ? "Card"
+                      : "Kaart"}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => pi({ _hi: it._hi ? "" : "1" })}
+                    title={
+                      locale === "fr"
+                        ? "Mettre en avant"
+                        : locale === "en"
+                          ? "Highlight"
+                          : "Uitlichten"
+                    }
+                    className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                      it._hi
+                        ? "border-accent bg-accent/10 text-foreground"
+                        : "border-border text-muted hover:bg-card-hover"
+                    }`}
+                  >
+                    ★{" "}
+                    {locale === "fr"
+                      ? "Populaire"
+                      : locale === "en"
+                        ? "Popular"
+                        : "Uitgelicht"}
+                  </button>
+                  <label
+                    className="flex items-center gap-1 text-[10px] text-muted"
+                    title="achtergrond"
+                  >
+                    <input
+                      type="color"
+                      value={it._bg || theme.bg}
+                      onChange={(e) => pi({ _bg: e.target.value })}
+                      className="h-6 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
+                    />
+                    bg
+                  </label>
+                  <label
+                    className="flex items-center gap-1 text-[10px] text-muted"
+                    title="tekstkleur"
+                  >
+                    <input
+                      type="color"
+                      value={it._tc || theme.fg}
+                      onChange={(e) => pi({ _tc: e.target.value })}
+                      className="h-6 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
+                    />
+                    txt
+                  </label>
+                  {(it._bg || it._tc) && (
+                    <button
+                      type="button"
+                      onClick={() => pi({ _bg: "", _tc: "" })}
+                      className="font-mono text-[10px] text-muted underline"
+                    >
+                      reset
+                    </button>
+                  )}
+                  <IconField
+                    value={it._icon || ""}
+                    onPick={(k) => pi({ _icon: k })}
+                    accent={theme.accent}
+                  />
+                </div>
+                <LinkField
+                  value={it._lnk}
+                  onChange={(l) =>
+                    pi({ _lnk: l as unknown as string })
+                  }
+                  p={c.preview}
+                  pageNames={pageNames}
+                  secLabels={secLabels}
+                  onNewPage={onNewPage}
+                />
+              </div>
+            );
+          })()}
         </div>
       ))}
       {items.length < 8 && tmpl && (
@@ -5768,9 +5858,27 @@ function PreviewSection({
                 {rows.map((it, i) => (
                   <div
                     key={i}
-                    className="rounded-lg border p-4 text-xs"
-                    style={border}
+                    className="relative rounded-lg border p-4 text-xs"
+                    style={{
+                      ...border,
+                      ...(it._bg ? { background: it._bg } : {}),
+                      ...(it._tc ? { color: it._tc } : {}),
+                      ...(it._hi
+                        ? {
+                            borderColor: theme.accent,
+                            boxShadow: `0 0 0 2px ${theme.accent}`,
+                          }
+                        : {}),
+                    }}
                   >
+                    {it._hi && (
+                      <span
+                        className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                        style={{ background: theme.accent, color: theme.bg }}
+                      >
+                        ★
+                      </span>
+                    )}
                     <IconField
                       value={it._icon || ""}
                       onPick={(k) => setItem(rows, i, "_icon", k)}
@@ -5999,9 +6107,28 @@ function PreviewSection({
                 {rows.map((tier, i) => (
                   <div
                     key={i}
-                    className="rounded-lg border p-4 text-center"
-                    style={border}
+                    className="relative rounded-lg border p-4 text-center"
+                    style={{
+                      ...border,
+                      ...(tier._bg ? { background: tier._bg } : {}),
+                      ...(tier._tc ? { color: tier._tc } : {}),
+                      ...(tier._hi
+                        ? {
+                            borderColor: theme.accent,
+                            boxShadow: `0 0 0 2px ${theme.accent}`,
+                            transform: "scale(1.03)",
+                          }
+                        : {}),
+                    }}
                   >
+                    {tier._hi && (
+                      <span
+                        className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                        style={{ background: theme.accent, color: theme.bg }}
+                      >
+                        {p.perMonth ? "Populair" : "Populair"}
+                      </span>
+                    )}
                     <p className="font-semibold">
                       <E
                         value={tier.name}
