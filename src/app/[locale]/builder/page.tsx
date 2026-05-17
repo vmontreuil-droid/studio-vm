@@ -1045,6 +1045,9 @@ export default function BuilderPage({
   const [impUrl, setImpUrl] = useState("");
   const [impBusy, setImpBusy] = useState(false);
   const [impErr, setImpErr] = useState("");
+  const [review, setReview] = useState<
+    { lvl: "ok" | "warn"; msg: string }[] | null
+  >(null);
   const asideRef = useRef<HTMLDivElement>(null);
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
@@ -1280,6 +1283,136 @@ export default function BuilderPage({
         return { ...sec, data: data as SectionData };
       }),
     );
+  };
+
+  // Klaar-assistent: vriendelijke controle voor een eerste-keer-bouwer.
+  const runReview = () => {
+    const L = (nl: string, fr: string, en: string) =>
+      locale === "fr" ? fr : locale === "en" ? en : nl;
+    const out: { lvl: "ok" | "warn"; msg: string }[] = [];
+    const names = pages.map((pp) => pp.name);
+    const defTag = c.preview.tagline;
+    const defWelcome = c.preview.welcome;
+    let hasContact = false;
+    for (const pg of pages) {
+      for (const s of pg.sections) {
+        const d = s.data as Record<string, unknown>;
+        const sv = (k: string) =>
+          d[k] == null ? "" : String(d[k]).trim();
+        if (s.kind === "contact") {
+          hasContact = true;
+          if (!sv("emailAddr") && !sv("phone") && !sv("address"))
+            out.push({
+              lvl: "warn",
+              msg: L(
+                `Contactgegevens ontbreken op "${pg.name}".`,
+                `Coordonnées manquantes sur « ${pg.name} ».`,
+                `Contact details missing on "${pg.name}".`,
+              ),
+            });
+        }
+        if (s.kind === "hero") {
+          const sl = Array.isArray(d.slides)
+            ? (d.slides as { sub?: string; bg?: string }[])
+            : [];
+          const subs = sl.map((x) => (x.sub || "").trim());
+          if (
+            sl.length === 0 ||
+            subs.every((x) => !x || x === defTag || x === defWelcome)
+          )
+            out.push({
+              lvl: "warn",
+              msg: L(
+                `De hero op "${pg.name}" bevat nog de voorbeeldtekst.`,
+                `Le hero de « ${pg.name} » contient encore le texte d'exemple.`,
+                `The hero on "${pg.name}" still has the example text.`,
+              ),
+            });
+          if (sl.length && sl.every((x) => !x.bg))
+            out.push({
+              lvl: "warn",
+              msg: L(
+                `Tip: sleep een foto in de hero van "${pg.name}".`,
+                `Astuce : glissez une photo dans le hero de « ${pg.name} ».`,
+                `Tip: drop a photo into the hero on "${pg.name}".`,
+              ),
+            });
+        }
+        if (
+          (s.kind === "about" || s.kind === "richtext") &&
+          !sv("text")
+        )
+          out.push({
+            lvl: "warn",
+            msg: L(
+              `Tekstblok op "${pg.name}" is nog leeg.`,
+              `Bloc de texte vide sur « ${pg.name} ».`,
+              `Text block on "${pg.name}" is still empty.`,
+            ),
+          });
+        if (Array.isArray(d.items)) {
+          const its = d.items as Record<string, unknown>[];
+          if (
+            its.length &&
+            its.every((it) =>
+              Object.values(it).every(
+                (v) => !v || String(v).trim() === "",
+              ),
+            )
+          )
+            out.push({
+              lvl: "warn",
+              msg: L(
+                `Een lijst op "${pg.name}" heeft nog lege items.`,
+                `Une liste sur « ${pg.name} » a des éléments vides.`,
+                `A list on "${pg.name}" still has empty items.`,
+              ),
+            });
+        }
+        const lk = d._lnk as { k?: string; v?: string } | undefined;
+        if (lk && lk.k === "page" && lk.v && !names.includes(lk.v))
+          out.push({
+            lvl: "warn",
+            msg: L(
+              `Een knop linkt naar onbestaande pagina "${lk.v}".`,
+              `Un bouton pointe vers une page inexistante « ${lk.v} ».`,
+              `A button links to a missing page "${lk.v}".`,
+            ),
+          });
+        if (
+          ["cta", "newsletter"].includes(s.kind) &&
+          sv("button") &&
+          (!lk || lk.k === "none" || !lk.v)
+        )
+          out.push({
+            lvl: "warn",
+            msg: L(
+              `De knop op "${pg.name}" heeft nog geen bestemming.`,
+              `Le bouton sur « ${pg.name} » n'a pas de destination.`,
+              `The button on "${pg.name}" has no destination yet.`,
+            ),
+          });
+      }
+    }
+    if (!hasContact)
+      out.push({
+        lvl: "warn",
+        msg: L(
+          "Overweeg een contactpagina of contactblok toe te voegen.",
+          "Pensez à ajouter une page ou un bloc de contact.",
+          "Consider adding a contact page or block.",
+        ),
+      });
+    if (out.length === 0)
+      out.push({
+        lvl: "ok",
+        msg: L(
+          "Alles ziet er goed uit — klaar om te versturen!",
+          "Tout semble bon — prêt à envoyer !",
+          "Everything looks good — ready to send!",
+        ),
+      });
+    setReview(out);
   };
 
   // Volledige site bouwen vanuit de survey (vervangt de pagina's).
@@ -2048,6 +2181,78 @@ export default function BuilderPage({
                   <p className="mt-2 text-[11px] text-red-500">{impErr}</p>
                 )}
               </div>
+            </Panel>
+
+            <Panel
+              icon={<Check className="h-4 w-4" />}
+              title={
+                locale === "fr"
+                  ? "Presque prêt ?"
+                  : locale === "en"
+                    ? "Almost done?"
+                    : "Bijna klaar?"
+              }
+            >
+              <p className="mb-3 text-[11px] text-muted">
+                {locale === "fr"
+                  ? "On contrôle votre site et on donne des conseils simples avant l'envoi."
+                  : locale === "en"
+                    ? "We check your site and give simple tips before you send it."
+                    : "We controleren je site en geven eenvoudige tips vóór je verstuurt."}
+              </p>
+              <button
+                type="button"
+                onClick={runReview}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              >
+                <Check className="h-4 w-4" strokeWidth={2} />
+                {locale === "fr"
+                  ? "Contrôler ma site"
+                  : locale === "en"
+                    ? "Check my site"
+                    : "Controleer mijn site"}
+              </button>
+              {review && (
+                <ul className="mt-3 space-y-1.5">
+                  {review.map((r, i) => (
+                    <li
+                      key={i}
+                      className={`flex gap-2 rounded-lg border p-2 text-[11px] leading-relaxed ${
+                        r.lvl === "ok"
+                          ? "border-accent/30 bg-accent/5 text-foreground"
+                          : "border-amber-400/40 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                      }`}
+                    >
+                      <span className="mt-0.5 shrink-0">
+                        {r.lvl === "ok" ? (
+                          <Check
+                            className="h-3.5 w-3.5 text-accent"
+                            strokeWidth={2.5}
+                          />
+                        ) : (
+                          "⚠"
+                        )}
+                      </span>
+                      <span>{r.msg}</span>
+                    </li>
+                  ))}
+                  {review.some((r) => r.lvl === "warn") && (
+                    <li>
+                      <button
+                        type="button"
+                        onClick={fillPreset}
+                        className="mt-1 w-full rounded-lg border px-3 py-2 text-[11px] text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+                      >
+                        {locale === "fr"
+                          ? "Remplir les champs vides automatiquement"
+                          : locale === "en"
+                            ? "Auto-fill the empty fields"
+                            : "Vul lege velden automatisch in"}
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              )}
             </Panel>
 
             <Panel icon={<Layers className="h-4 w-4" />} title={pg.panel}>
