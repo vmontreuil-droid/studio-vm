@@ -2,7 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
-import { getPricing, type PricingTier } from "@/lib/pricing";
+import {
+  getPricing,
+  type PricingTier,
+  PUBLISH_SETUP_CENTS,
+  PUBLISH_BASE_MONTHLY_CENTS,
+} from "@/lib/pricing";
 import { openproviderConfigured } from "@/lib/openprovider";
 import { DomainCheck } from "@/components/domain-check";
 import { PricingCompare } from "@/components/pricing-compare";
@@ -242,6 +247,124 @@ export default async function PricingPage({
           </Link>
         </div>
       </section>
+
+      {(() => {
+        const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
+        const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
+        const z =
+          locale === "fr"
+            ? {
+                eb: "Le moins cher · Construisez vous-même",
+                h: "Forfait Construire soi-même",
+                p: "Vous composez votre site dans notre éditeur visuel. Nous l'hébergeons, l'entretenons et le mettons en ligne sur votre sous-domaine.",
+                incl: [
+                  "Éditeur visuel complet, indépendant mobile",
+                  "Mise en ligne en 1 clic + SSL",
+                  "Formulaires dans votre portail",
+                  "Hébergement, entretien & mises à jour",
+                  "Résiliable chaque mois",
+                ],
+                a: "Voir comment ça marche",
+                b: "Essayer gratuitement",
+                setupL: "démarrage unique",
+                perM: "/ mois",
+              }
+            : locale === "en"
+              ? {
+                  eb: "Lowest cost · Build it yourself",
+                  h: "Self-build package",
+                  p: "You compose your site in our visual editor. We host, maintain and publish it on your subdomain.",
+                  incl: [
+                    "Full visual editor, mobile-independent",
+                    "One-click publish + SSL",
+                    "Form submissions in your portal",
+                    "Hosting, maintenance & updates",
+                    "Cancel any month",
+                  ],
+                  a: "See how it works",
+                  b: "Try it free",
+                  setupL: "one-off setup",
+                  perM: "/ month",
+                }
+              : {
+                  eb: "Goedkoopste · Zelf bouwen",
+                  h: "Zelfbouwpakket",
+                  p: "Jij stelt je site samen in onze visuele editor. Wij hosten, onderhouden en zetten 'm online op je eigen subdomein.",
+                  incl: [
+                    "Volledige visuele editor, mobiel-onafhankelijk",
+                    "In 1 klik online + SSL",
+                    "Formulierberichten in je portaal",
+                    "Hosting, onderhoud & updates",
+                    "Maandelijks opzegbaar",
+                  ],
+                  a: "Bekijk hoe het werkt",
+                  b: "Gratis uitproberen",
+                  setupL: "eenmalige opstart",
+                  perM: "/ maand",
+                };
+        return (
+          <section className="border-b">
+            <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+              <div className="overflow-hidden rounded-3xl border border-accent bg-accent/5 shadow-[0_0_0_1px_var(--accent)]">
+                <div className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+                  <div>
+                    <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+                      <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+                      {z.eb}
+                    </p>
+                    <h2 className="text-3xl font-semibold tracking-tight">
+                      {z.h}
+                    </h2>
+                    <p className="mt-3 max-w-xl text-muted">{z.p}</p>
+                    <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                      {z.incl.map((i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <Check
+                            className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                            strokeWidth={2.5}
+                          />
+                          {i}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="shrink-0 rounded-2xl border bg-background p-7 text-center lg:w-64">
+                    <p className="text-3xl font-semibold tracking-tight">
+                      €{setup}
+                    </p>
+                    <p className="text-xs text-muted">{z.setupL}</p>
+                    <p className="mt-3 text-3xl font-semibold tracking-tight text-accent">
+                      €{month}
+                      <span className="text-sm font-normal text-muted">
+                        {" "}
+                        {z.perM}
+                      </span>
+                    </p>
+                    <div className="mt-6 flex flex-col gap-2">
+                      <Link
+                        href={localePath(locale, "/zelf-bouwen")}
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                      >
+                        {z.a}
+                        <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                      </Link>
+                      <Link
+                        href={localePath(locale, "/builder")}
+                        className="inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-card-hover"
+                      >
+                        {z.b}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       <PricingSection
         eyebrow={c.oneShotEyebrow}

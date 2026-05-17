@@ -12,6 +12,10 @@ import { getMessages } from "@/lib/i18n";
 import { getCapacity } from "@/lib/now-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { Sparkles, Search, MousePointerClick, ShieldCheck, Rocket } from "lucide-react";
+import {
+  PUBLISH_SETUP_CENTS,
+  PUBLISH_BASE_MONTHLY_CENTS,
+} from "@/lib/pricing";
 
 const X: Record<
   Locale,
@@ -108,6 +112,7 @@ export default async function Home({
       <Stats t={t} />
       <Werk locale={locale} t={t} x={x} />
       <RiskReversal locale={locale} x={x} />
+      <ZelfBouwenPromo locale={locale} />
       <Testimonials t={t} locale={locale} />
       <Mogelijkheden t={t} locale={locale} />
       <CtaBanner
@@ -309,6 +314,144 @@ function RiskReversal({ locale, x }: { locale: Locale; x: Xt }) {
               </div>
             );
           })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ZelfBouwenPromo({ locale }: { locale: Locale }) {
+  const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
+  const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
+  const c =
+    locale === "fr"
+      ? {
+          eb: "Nouveau · Construisez vous-même",
+          h: "Votre site web, vous le faites vous-même",
+          p: "Glissez-déposez, tout est modifiable — texte, photos, couleurs, mobile. Pas de connaissances techniques. Nous hébergeons, entretenons et mettons en ligne.",
+          perks: [
+            "Éditeur visuel complet (par bloc & par élément)",
+            "Indépendant mobile — desktop & GSM séparés",
+            "Mise en ligne sur votre sous-domaine en 1 clic",
+            "Formulaires → directement dans votre portail",
+            "Hébergement, entretien & mises à jour inclus",
+          ],
+          price: `€${setup} de démarrage, puis €${month}/mois`,
+          note: "Résiliable chaque mois. Sans engagement.",
+          a: "Voir comment ça marche",
+          b: "Commencer gratuitement",
+        }
+      : locale === "en"
+        ? {
+            eb: "New · Build it yourself",
+            h: "Your website, built by you",
+            p: "Drag & drop, everything editable — text, photos, colours, mobile. No tech skills. We host, maintain and put it online.",
+            perks: [
+              "Full visual editor (per block & per item)",
+              "Mobile-independent — desktop & phone separately",
+              "Live on your subdomain in one click",
+              "Form submissions → straight into your portal",
+              "Hosting, maintenance & updates included",
+            ],
+            price: `€${setup} setup, then €${month}/month`,
+            note: "Cancel any month. No lock-in.",
+            a: "See how it works",
+            b: "Start building free",
+          }
+        : {
+            eb: "Nieuw · Zelf bouwen",
+            h: "Jouw website, helemaal zelf gebouwd",
+            p: "Slepen en neerzetten, alles aanpasbaar — tekst, foto's, kleuren, mobiel. Geen technische kennis nodig. Wij hosten, onderhouden en zetten 'm online.",
+            perks: [
+              "Volledige visuele editor (per blok én per item)",
+              "Mobiel-onafhankelijk — desktop & gsm apart",
+              "In één klik live op je eigen subdomein",
+              "Formulierberichten → rechtstreeks in je portaal",
+              "Hosting, onderhoud & updates inbegrepen",
+            ],
+            price: `€${setup} opstart, daarna €${month}/maand`,
+            note: "Maandelijks opzegbaar. Geen verplichtingen.",
+            a: "Bekijk hoe het werkt",
+            b: "Gratis beginnen",
+          };
+  return (
+    <section className="reveal-on-scroll border-b">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
+        <div className="overflow-hidden rounded-3xl border border-accent bg-accent/5 shadow-[0_0_0_1px_var(--accent)]">
+          <div className="grid gap-10 p-8 sm:p-12 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+            <div>
+              <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+                <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
+                {c.eb}
+              </p>
+              <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+                {c.h}
+              </h2>
+              <p className="mt-4 max-w-xl text-muted">{c.p}</p>
+              <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                {c.perks.map((perk) => (
+                  <li
+                    key={perk}
+                    className="flex items-start gap-2 text-sm"
+                  >
+                    <ShieldCheck
+                      className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                      strokeWidth={2}
+                    />
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border bg-background p-7 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Site web en abonnement"
+                  : locale === "en"
+                    ? "Website subscription"
+                    : "Website-abonnement"}
+              </p>
+              <p className="mt-3 text-2xl font-semibold tracking-tight">
+                €{setup}
+                <span className="text-base font-normal text-muted">
+                  {" "}
+                  {locale === "fr"
+                    ? "démarrage"
+                    : locale === "en"
+                      ? "setup"
+                      : "opstart"}
+                </span>
+              </p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-accent">
+                €{month}
+                <span className="text-base font-normal text-muted">
+                  {" "}
+                  {locale === "fr"
+                    ? "/ mois"
+                    : locale === "en"
+                      ? "/ month"
+                      : "/ maand"}
+                </span>
+              </p>
+              <p className="mt-2 text-xs text-muted">{c.note}</p>
+              <div className="mt-6 flex flex-col gap-2">
+                <Link
+                  href={localePath(locale, "/zelf-bouwen")}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                >
+                  {c.a}
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+                <Link
+                  href={localePath(locale, "/builder")}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
+                >
+                  <MousePointerClick className="h-4 w-4" strokeWidth={2} />
+                  {c.b}
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

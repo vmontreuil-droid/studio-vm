@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight, PenTool, Check } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import {
+  PUBLISH_SETUP_CENTS,
+  PUBLISH_BASE_MONTHLY_CENTS,
+} from "@/lib/pricing";
 import { BuilderTour } from "@/components/builder-tour";
 
 type Copy = {
@@ -378,6 +382,121 @@ export default async function ZelfBouwenPage({
           </div>
         </div>
       </section>
+
+      {(() => {
+        const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
+        const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
+        const z =
+          locale === "fr"
+            ? {
+                eb: "Prix & ce que vous obtenez",
+                h: "Un seul forfait clair",
+                p: "Pas de devis avec astérisques. Vous construisez, nous mettons en ligne et entretenons.",
+                inc: [
+                  "Éditeur visuel complet — chaque bloc & élément réglable",
+                  "Indépendant mobile (desktop & GSM séparés)",
+                  "En ligne en 1 clic sur votre sous-domaine + SSL",
+                  "En-tête personnalisable (sticky, logo, menu, CTA)",
+                  "Formulaires → mails soignés + boîte dans le portail",
+                  "Hébergement, sauvegardes, mises à jour de sécurité",
+                  "Reprenez sur n'importe quel appareil, sauvegarde auto",
+                  "Résiliable chaque mois — sans engagement",
+                ],
+                extra:
+                  "Besoin de plus ? Modules en option : langues, SEO, domaine propre, mini-boutique — votre prix mensuel grandit avec vous.",
+                setupL: "démarrage unique",
+                perM: "/ mois",
+              }
+            : locale === "en"
+              ? {
+                  eb: "Pricing & what you get",
+                  h: "One clear package",
+                  p: "No quotes with asterisks. You build, we publish and maintain.",
+                  inc: [
+                    "Full visual editor — every block & item adjustable",
+                    "Mobile-independent (desktop & phone separately)",
+                    "Live in one click on your subdomain + SSL",
+                    "Customisable header (sticky, logo, menu, CTA)",
+                    "Forms → polished mails + inbox in your portal",
+                    "Hosting, backups, security updates",
+                    "Resume on any device, auto-save",
+                    "Cancel any month — no lock-in",
+                  ],
+                  extra:
+                    "Need more? Optional modules: languages, SEO, custom domain, mini-webshop — your monthly price grows with you.",
+                  setupL: "one-off setup",
+                  perM: "/ month",
+                }
+              : {
+                  eb: "Prijs & wat je krijgt",
+                  h: "Eén helder pakket",
+                  p: "Geen offertes met sterretjes. Jij bouwt, wij zetten online en onderhouden.",
+                  inc: [
+                    "Volledige visuele editor — elk blok & item regelbaar",
+                    "Mobiel-onafhankelijk (desktop & gsm apart)",
+                    "In 1 klik live op je subdomein + SSL",
+                    "Aanpasbare header (sticky, logo, menu, CTA)",
+                    "Formulieren → verzorgde mails + inbox in je portaal",
+                    "Hosting, back-ups, security-updates",
+                    "Hervat op elk toestel, auto-opslaan",
+                    "Maandelijks opzegbaar — geen verplichtingen",
+                  ],
+                  extra:
+                    "Meer nodig? Optionele modules: talen, SEO, eigen domein, mini-webshop — je maandprijs groeit met je mee.",
+                  setupL: "eenmalige opstart",
+                  perM: "/ maand",
+                };
+        return (
+          <section className="border-b">
+            <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+              <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+                {z.eb}
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                {z.h}
+              </h2>
+              <p className="mt-3 max-w-2xl text-muted">{z.p}</p>
+              <div className="mt-8 grid gap-8 rounded-3xl border border-accent bg-accent/5 p-8 shadow-[0_0_0_1px_var(--accent)] sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+                <ul className="grid gap-2.5 sm:grid-cols-2">
+                  {z.inc.map((i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                        strokeWidth={2.5}
+                      />
+                      {i}
+                    </li>
+                  ))}
+                </ul>
+                <div className="shrink-0 rounded-2xl border bg-background p-7 text-center lg:w-64">
+                  <p className="text-3xl font-semibold tracking-tight">
+                    €{setup}
+                  </p>
+                  <p className="text-xs text-muted">{z.setupL}</p>
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-accent">
+                    €{month}
+                    <span className="text-sm font-normal text-muted">
+                      {" "}
+                      {z.perM}
+                    </span>
+                  </p>
+                  <Link
+                    href={builder}
+                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                  >
+                    <PenTool className="h-4 w-4" strokeWidth={2} />
+                    {c.cta}
+                  </Link>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-muted">{z.extra}</p>
+            </div>
+          </section>
+        );
+      })()}
 
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center sm:py-28">
