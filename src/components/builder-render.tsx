@@ -10,6 +10,30 @@ type Snap = {
   pages?: SnapPage[];
 };
 
+// Houd dit in sync met SECT_TONES in de builder.
+const TONE_MIX: Record<string, [string, number]> = {
+  soft1: ["fg", 4],
+  soft2: ["fg", 9],
+  soft3: ["fg", 16],
+  acc1: ["accent", 6],
+  acc2: ["accent", 13],
+  acc3: ["accent", 22],
+  white: ["white", 100],
+};
+function toneBg(
+  tone: unknown,
+  bg: string,
+  fg: string,
+  accent: string,
+): string | undefined {
+  const m = TONE_MIX[String(tone ?? "")];
+  if (!m) return undefined;
+  const [src, pct] = m;
+  if (src === "white") return "#ffffff";
+  const col = src === "accent" ? accent : fg;
+  return `color-mix(in srgb, ${col} ${pct}%, ${bg})`;
+}
+
 function radiusPx(label?: string): string {
   const l = (label ?? "").toLowerCase();
   if (/strak|net|sharp/.test(l)) return "2px";
@@ -67,14 +91,25 @@ export function BuilderRender({ snap }: { snap: Snap }) {
             </nav>
 
             {page.blocks.map((b, bi) => (
-              <BlockView
+              <div
                 key={bi}
-                block={b}
-                fg={fg}
-                bg={bg}
-                accent={accent}
-                soft={soft}
-              />
+                style={{
+                  background: toneBg(
+                    (b.data as Record<string, unknown>)?._bg,
+                    bg,
+                    fg,
+                    accent,
+                  ),
+                }}
+              >
+                <BlockView
+                  block={b}
+                  fg={fg}
+                  bg={bg}
+                  accent={accent}
+                  soft={soft}
+                />
+              </div>
             ))}
           </div>
         </div>

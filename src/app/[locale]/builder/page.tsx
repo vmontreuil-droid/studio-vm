@@ -114,6 +114,41 @@ const themes: Theme[] = [
   { slug: "paars", bg: "#faf5ff", fg: "#2b1147", accent: "#7c3aed" },
 ];
 
+// Een ruime waaier kant-en-klare achtergrond-schakeringen zodat een
+// leek niet hoeft te prutsen met de kleurkiezer en de site echt kan
+// afwerken. Licht → getint → diep/donker.
+const BG_SHADES: string[] = [
+  "#ffffff", "#fdfdfc", "#fafaf9", "#f5f5f4", "#f4f4f5", "#eeeeee",
+  "#f8fafc", "#f1f5f9", "#e8eef5", "#eff6ff", "#e0f2fe", "#ecfeff",
+  "#f0fdf4", "#dcfce7", "#f7fee7", "#fffbeb", "#fff7ed", "#ffedd5",
+  "#fef2f2", "#ffe4e6", "#fff1f2", "#faf5ff", "#f3e8ff", "#ede9fe",
+  "#fdf2f8", "#e7e5e4", "#d6d3d1", "#1f2937", "#18181b", "#0c0a09",
+];
+
+// Per-blok achtergrondtint, afgeleid van het gekozen thema zodat het
+// altijd samenhangend blijft. Wordt opgeslagen als section.data._bg.
+const SECT_TONES: { k: string; mix: [string, number] | null }[] = [
+  { k: "", mix: null },
+  { k: "soft1", mix: ["fg", 4] },
+  { k: "soft2", mix: ["fg", 9] },
+  { k: "soft3", mix: ["fg", 16] },
+  { k: "acc1", mix: ["accent", 6] },
+  { k: "acc2", mix: ["accent", 13] },
+  { k: "acc3", mix: ["accent", 22] },
+  { k: "white", mix: ["white", 100] },
+];
+function sectionToneBg(
+  tone: unknown,
+  th: Theme,
+): string | undefined {
+  const t = SECT_TONES.find((x) => x.k === String(tone ?? ""));
+  if (!t || !t.mix) return undefined;
+  const [src, pct] = t.mix;
+  if (src === "white") return "#ffffff";
+  const mixCol = src === "accent" ? th.accent : th.fg;
+  return `color-mix(in srgb, ${mixCol} ${pct}%, ${th.bg})`;
+}
+
 const sectionKinds: SectionKind[] = [
   "hero",
   "features",
@@ -179,6 +214,8 @@ const T: Record<
     colorBg: string;
     colorFg: string;
     colorAccent: string;
+    shadesLabel: string;
+    sectBgLabel: string;
     imagesLabel: string;
     uploadHint: string;
     buildEmail: string;
@@ -263,6 +300,8 @@ const T: Record<
     colorBg: "Achtergrond",
     colorFg: "Tekst",
     colorAccent: "Accent",
+    shadesLabel: "Achtergrond-schakeringen",
+    sectBgLabel: "Achtergrond van dit blok",
     imagesLabel: "Afbeeldingen",
     uploadHint: "Sleep of kies foto's — verschijnen in galerij & 'over ons'.",
     buildEmail: "Je e-mail",
@@ -385,6 +424,8 @@ const T: Record<
     colorBg: "Fond",
     colorFg: "Texte",
     colorAccent: "Accent",
+    shadesLabel: "Nuances de fond",
+    sectBgLabel: "Fond de ce bloc",
     imagesLabel: "Images",
     uploadHint: "Glissez ou choisissez des photos — visibles dans galerie & à-propos.",
     buildEmail: "Votre e-mail",
@@ -507,6 +548,8 @@ const T: Record<
     colorBg: "Background",
     colorFg: "Text",
     colorAccent: "Accent",
+    shadesLabel: "Background shades",
+    sectBgLabel: "Background of this block",
     imagesLabel: "Images",
     uploadHint: "Drag or pick photos — shown in gallery & about.",
     buildEmail: "Your email",
@@ -1102,6 +1145,35 @@ export default function BuilderPage({
                   </label>
                 ))}
               </div>
+
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.shadesLabel}
+              </p>
+              <div className="grid grid-cols-6 gap-1.5">
+                {BG_SHADES.map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() =>
+                      setTheme((t) => ({ ...t, slug: "custom", bg: hex }))
+                    }
+                    title={hex}
+                    aria-label={hex}
+                    className="h-7 w-full rounded-md border transition-transform hover:scale-110"
+                    style={{
+                      background: hex,
+                      borderColor:
+                        theme.bg.toLowerCase() === hex
+                          ? "var(--accent)"
+                          : "var(--border)",
+                      outline:
+                        theme.bg.toLowerCase() === hex
+                          ? "2px solid var(--accent)"
+                          : "none",
+                    }}
+                  />
+                ))}
+              </div>
             </Panel>
 
             <Panel icon={<Type className="h-4 w-4" />} title={c.panelStyle}>
@@ -1432,6 +1504,41 @@ export default function BuilderPage({
                     </div>
                     {openId === s.id && (
                       <div className="border-t p-3">
+                        {s.kind !== "hero" && (
+                          <div className="mb-3">
+                            <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                              {c.sectBgLabel}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {SECT_TONES.map((tn) => {
+                                const sel =
+                                  String(s.data._bg ?? "") === tn.k;
+                                return (
+                                  <button
+                                    key={tn.k || "def"}
+                                    type="button"
+                                    onClick={() =>
+                                      patchData(s.id, { _bg: tn.k })
+                                    }
+                                    title={tn.k || "standaard"}
+                                    className="h-6 w-6 rounded-md border transition-transform hover:scale-110"
+                                    style={{
+                                      background:
+                                        sectionToneBg(tn.k, theme) ??
+                                        theme.bg,
+                                      borderColor: sel
+                                        ? "var(--accent)"
+                                        : "var(--border)",
+                                      outline: sel
+                                        ? "2px solid var(--accent)"
+                                        : "none",
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                         <SectionEditor section={s} c={c} patch={patchData} />
                       </div>
                     )}
@@ -1696,16 +1803,20 @@ export default function BuilderPage({
                 </div>
               ) : (
                 sections.map((s) => (
-                  <PreviewSection
+                  <div
                     key={s.id}
-                    kind={s.kind}
-                    data={s.data}
-                    theme={theme}
-                    businessName={businessName}
-                    images={images}
-                    p={c.preview}
-                    edit={(patch) => patchData(s.id, patch)}
-                  />
+                    style={{ background: sectionToneBg(s.data._bg, theme) }}
+                  >
+                    <PreviewSection
+                      kind={s.kind}
+                      data={s.data}
+                      theme={theme}
+                      businessName={businessName}
+                      images={images}
+                      p={c.preview}
+                      edit={(patch) => patchData(s.id, patch)}
+                    />
+                  </div>
                 ))
               )}
               </div>
