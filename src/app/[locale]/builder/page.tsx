@@ -2299,7 +2299,7 @@ export default function BuilderPage({
                             />
                           )}
                         </div>
-                        {openSec.data._bgimg && (
+                        {!!openSec.data._bgimg && (
                           <div className="mb-3 flex items-center gap-2">
                             <span className="text-[11px] text-muted">
                               {locale === "fr"
@@ -2453,6 +2453,7 @@ export default function BuilderPage({
                         (ss) => c.sectionLabels[ss.kind],
                       )}
                       onNewPage={addPageNamed}
+                      locale={locale}
                     />
                   </div>
                 </div>
@@ -4496,6 +4497,7 @@ function SectionEditor({
   pageNames,
   secLabels,
   onNewPage,
+  locale,
 }: {
   section: Section;
   c: Loc;
@@ -4504,6 +4506,7 @@ function SectionEditor({
   pageNames: string[];
   secLabels: string[];
   onNewPage: (name: string) => void;
+  locale: Locale;
 }) {
   const f = c.fields;
   const d = section.data;
