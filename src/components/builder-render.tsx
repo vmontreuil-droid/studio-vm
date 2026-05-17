@@ -1,6 +1,14 @@
 // Read-only visuele weergave van een builder-ontwerp, zoals de klant het
 // maakte. Server-component (geen hooks/events) — gebruikt in de admin.
 
+import {
+  Star, Heart, Check, Zap, Shield, Award, Clock, MapPin, Phone, Mail,
+  Users, Briefcase, Camera, Coffee, Scissors, Wrench, Truck, Home, Leaf,
+  Sun, Sparkles, Gift, Target, ThumbsUp, Smile, Music, Globe, Lock,
+  Rocket, Calendar, MessageCircle, CreditCard, Package, Settings, Tag,
+  Compass, Flame, Crown, Gem, HandHeart,
+} from "lucide-react";
+
 type Block = { kind: string; data: Record<string, unknown> };
 // Tolereert beide vormen: cfg-shape (pages[].blocks, theme=label,
 // colors{}) én het portaal-snapshot (pages[].sections, theme-object).
@@ -25,17 +33,13 @@ type Snap = {
   pages?: SnapPage[];
 };
 
-import {
-  Star, Heart, Check, Zap, Shield, Award, Clock, MapPin, Phone, Mail,
-  Users, Briefcase, Camera, Coffee, Scissors, Wrench, Truck, Home, Leaf,
-  Sun, Sparkles, Gift, Target, ThumbsUp, Smile, Music, Globe, Lock,
-  Rocket, Calendar, MessageCircle, CreditCard, Package, Settings, Tag,
-  Compass, Flame, Crown, Gem, HandHeart,
-} from "lucide-react";
-
 const RICONS: Record<
   string,
-  React.ComponentType<{ className?: string; strokeWidth?: number }>
+  React.ComponentType<{
+    className?: string;
+    strokeWidth?: number;
+    style?: React.CSSProperties;
+  }>
 > = {
   star: Star, heart: Heart, check: Check, zap: Zap, shield: Shield,
   award: Award, clock: Clock, pin: MapPin, phone: Phone, mail: Mail,

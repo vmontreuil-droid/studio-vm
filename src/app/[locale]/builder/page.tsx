@@ -7534,7 +7534,11 @@ function ItemImg({
 
 const ICONS: Record<
   string,
-  React.ComponentType<{ className?: string; strokeWidth?: number }>
+  React.ComponentType<{
+    className?: string;
+    strokeWidth?: number;
+    style?: React.CSSProperties;
+  }>
 > = {
   star: Star, heart: Heart, check: Check, zap: Zap, shield: Shield,
   award: Award, clock: Clock, pin: MapPin, phone: Phone, mail: Mail,
