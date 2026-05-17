@@ -384,9 +384,15 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
   }
 
   const depositInclVat = Math.round(deposit * (1 + VAT_RATE));
+  // Tijdelijke test-gate: zet OFFER_TEST_CENTS in Vercel (bv. 100 = € 1)
+  // om de volledige live-keten te testen zonder het echte bedrag aan
+  // te rekenen. Geclamped op € 0,50–€ 100. Env weghalen = weer normaal.
+  const testCents = Math.trunc(Number(process.env.OFFER_TEST_CENTS) || 0);
+  const testMode = testCents >= 50 && testCents <= 10000;
+  const charge = testMode ? testCents : depositInclVat;
   const pay = await createMolliePayment({
-    amountCents: depositInclVat,
-    description: `Aanbetaling 30% incl. 21% btw — Studio VM (${base.name})`,
+    amountCents: charge,
+    description: `Aanbetaling 30% incl. 21% btw — Studio VM (${base.name})${testMode ? " [TEST]" : ""}`,
     redirectUrl: `${siteUrl}/${locale}/offerte?betaald=1`,
     webhookUrl: `${siteUrl}/api/mollie/webhook`,
     metadata: { quote_id: quoteId },
