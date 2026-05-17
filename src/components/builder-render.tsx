@@ -189,8 +189,22 @@ function arr(v: unknown): Record<string, string>[] {
   return Array.isArray(v) ? (v as Record<string, string>[]) : [];
 }
 
-export function BuilderRender({ snap }: { snap: Snap }) {
+export function BuilderRender({
+  snap,
+  live,
+  pageIndex,
+}: {
+  snap: Snap;
+  // live = echte gepubliceerde site: geen "Pagina:"-debuglabels, geen
+  // SEO-debugkader, geen kaderrand — één pagina schoon, edge-to-edge.
+  live?: boolean;
+  pageIndex?: number;
+}) {
   if (!snap.pages || snap.pages.length === 0) return null;
+  const liveIdx = Math.min(
+    Math.max(pageIndex ?? 0, 0),
+    snap.pages.length - 1,
+  );
   const themeObj =
     snap.theme && typeof snap.theme === "object" ? snap.theme : null;
   const bg = snap.colors?.bg || themeObj?.bg || "#ffffff";
@@ -206,15 +220,21 @@ export function BuilderRender({ snap }: { snap: Snap }) {
         ? p.sections
         : [];
 
+  const renderPages = live
+    ? [{ page: snap.pages[liveIdx], pi: liveIdx }]
+    : snap.pages.map((page, pi) => ({ page, pi }));
+
   return (
-    <div className="bldr-ro mt-5 space-y-6">
+    <div className={live ? "bldr-ro" : "bldr-ro mt-5 space-y-6"}>
       <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}.bldr-ro [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-ro [data-fw="1"] [class*="max-w-"]{max-width:100%!important}.bldr-ro [data-fw="1"] [class*="px-8"]{padding-left:1.25rem!important;padding-right:1.25rem!important}@media (max-width:640px){.bldr-ro [data-anim-m="none"]{animation:none!important}.bldr-ro [data-anim-m="fade"]{animation:svmIn .7s ease both!important}.bldr-ro [data-anim-m="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both!important}.bldr-ro [data-anim-m="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both!important}.bldr-ro [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-ro [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-ro [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:start}.bldr-ro [data-hhm="s"]{min-height:200px!important}.bldr-ro [data-hhm="m"]{min-height:340px!important}.bldr-ro [data-hhm="l"]{min-height:480px!important}.bldr-ro [data-hhm="xl"]{min-height:640px!important}.bldr-ro [data-hhm="full"]{min-height:85vh!important}}`}</style>
-      {snap.pages.map((page, pi) => (
+      {renderPages.map(({ page, pi }) => (
         <div key={pi}>
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-            Pagina: {page.name || `#${pi + 1}`}
-          </p>
-          {(page.seoTitle || page.seoDesc) && (
+          {!live && (
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Pagina: {page.name || `#${pi + 1}`}
+            </p>
+          )}
+          {!live && (page.seoTitle || page.seoDesc) && (
             <p className="mb-2 rounded-lg bg-card p-2 text-[11px] text-muted">
               <span className="opacity-60">SEO:</span>{" "}
               <strong>{page.seoTitle || page.name}</strong>
@@ -222,8 +242,12 @@ export function BuilderRender({ snap }: { snap: Snap }) {
             </p>
           )}
           <div
-            className="overflow-hidden border"
-            style={{ background: bg, color: fg, borderRadius: rad }}
+            className={live ? "" : "overflow-hidden border"}
+            style={{
+              background: bg,
+              color: fg,
+              ...(live ? {} : { borderRadius: rad }),
+            }}
           >
             {/* nav / menu */}
             {(() => {
@@ -275,18 +299,9 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                     {snap.pages!.map((pp, j) => {
                       const PI =
                         pp.icon && RICONS[pp.icon] ? RICONS[pp.icon] : null;
-                      return (
-                        <span
-                          key={j}
-                          className="inline-flex items-center gap-1"
-                          style={{
-                            color: pp.name === page.name ? accent : hFg,
-                            opacity: pp.name === page.name ? 1 : 0.6,
-                            fontWeight: pp.name === page.name ? 600 : 400,
-                            textTransform: upper ? "uppercase" : undefined,
-                            letterSpacing: upper ? "0.06em" : undefined,
-                          }}
-                        >
+                      const cur = pp.name === page.name;
+                      const inner = (
+                        <>
                           {PI && (
                             <PI
                               strokeWidth={2}
@@ -294,6 +309,33 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                             />
                           )}
                           {pp.name || `#${j + 1}`}
+                        </>
+                      );
+                      const st = {
+                        color: cur ? accent : hFg,
+                        opacity: cur ? 1 : 0.6,
+                        fontWeight: cur ? 600 : 400,
+                        textTransform: upper
+                          ? ("uppercase" as const)
+                          : undefined,
+                        letterSpacing: upper ? "0.06em" : undefined,
+                      };
+                      return live ? (
+                        <a
+                          key={j}
+                          href={j === 0 ? "?" : `?p=${j}`}
+                          className="inline-flex items-center gap-1 no-underline"
+                          style={st}
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        <span
+                          key={j}
+                          className="inline-flex items-center gap-1"
+                          style={st}
+                        >
+                          {inner}
                         </span>
                       );
                     })}

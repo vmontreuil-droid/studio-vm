@@ -39,6 +39,26 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Klant-subdomein (bv. bakkerijjan.studio-vm.be) → render de
+  // gepubliceerde site. Apex en www blijven de gewone studio-vm-site.
+  const ROOT = "studio-vm.be";
+  const host = (req.headers.get("host") ?? "")
+    .split(":")[0]
+    .toLowerCase();
+  if (
+    host.endsWith(`.${ROOT}`) &&
+    host !== ROOT &&
+    host !== `www.${ROOT}`
+  ) {
+    const label = host.slice(0, host.length - ROOT.length - 1);
+    // Enkel één-labels subdomeinen (geen geneste hosts, geen www).
+    if (label && label !== "www" && !label.includes(".")) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/_site/${label}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   // Already locale-prefixed → geef de locale door als request-header
   // zodat de root-layout <html lang> correct kan zetten (niet cookie-gedreven).
   const hasLocale = LOCALE_PATHS.some(
