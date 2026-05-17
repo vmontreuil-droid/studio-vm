@@ -1145,6 +1145,32 @@ export default function BuilderPage({
     );
   const sections = active.sections;
 
+  // Mediabibliotheek: elke foto die al ergens in het ontwerp staat,
+  // herbruikbaar in een ander blok. Afgeleid (geen dubbele opslag).
+  const mediaLib = (() => {
+    const set = new Set<string>();
+    const add = (v: unknown) => {
+      if (typeof v === "string" && v.startsWith("data:image")) set.add(v);
+    };
+    for (const pg of pages)
+      for (const sec of pg.sections) {
+        const d = sec.data as Record<string, unknown>;
+        add(d._img);
+        add(d._bgimg);
+        if (Array.isArray(d.slides))
+          for (const sl of d.slides as Record<string, unknown>[])
+            add(sl.bg);
+        if (Array.isArray(d.bgs))
+          for (const b of d.bgs as unknown[]) add(b);
+        if (Array.isArray(d._ov))
+          for (const o of d._ov as Record<string, unknown>[]) add(o.src);
+        if (Array.isArray(d.items))
+          for (const it of d.items as Record<string, unknown>[])
+            add(it._img);
+      }
+    return [...set].slice(0, 60);
+  })();
+
   // Versies: undo/redo over de pagina's (max 40 stappen).
   const histRef = useRef<Page[][]>([]);
   const redoRef = useRef<Page[][]>([]);
@@ -1871,7 +1897,11 @@ export default function BuilderPage({
         >
           <aside
             ref={asideRef}
-            className="space-y-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
+            className={`space-y-6 lg:sticky lg:self-start lg:overflow-y-auto lg:pr-1 ${
+              designId
+                ? "lg:top-4 lg:max-h-[calc(100vh-2rem)]"
+                : "lg:top-24 lg:max-h-[calc(100vh-7rem)]"
+            }`}
           >
             {(() => {
               const openSec = sections.find((x) => x.id === openId);
@@ -1895,7 +1925,7 @@ export default function BuilderPage({
                       <X className="h-3.5 w-3.5" strokeWidth={2} />
                     </button>
                   </div>
-                  <div className="max-h-[60vh] overflow-y-auto p-3">
+                  <div className="max-h-[calc(100vh-15rem)] overflow-y-auto p-3">
                     <button
                       type="button"
                       onClick={() =>
@@ -2259,6 +2289,14 @@ export default function BuilderPage({
                                 }}
                               />
                             </label>
+                          )}
+                          {mediaLib.length > 0 && (
+                            <MediaPicker
+                              lib={mediaLib}
+                              onPick={(u) =>
+                                patchData(openSec.id, { _bgimg: u })
+                              }
+                            />
                           )}
                         </div>
                         {openSec.data._bgimg && (
@@ -3933,6 +3971,7 @@ export default function BuilderPage({
                         images={images}
                         p={c.preview}
                         edit={(patch) => patchData(s.id, patch)}
+                        lib={mediaLib}
                       />
                     </div>
                     <SectionOverlays
@@ -5814,18 +5853,71 @@ function SectionOverlays({
 
 // Foto-slot per item-kaart: klik of sleep een foto, grootte + blur
 // instelbaar, verwijderen. Opgeslagen op het item (_img/_ih/_ib).
+// Kleine "kies uit bibliotheek"-popover: hergebruik een foto die al
+// ergens anders in het ontwerp staat.
+function MediaPicker({
+  lib,
+  onPick,
+}: {
+  lib: string[];
+  onPick: (url: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  if (lib.length === 0) return null;
+  return (
+    <span className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        title="Uit bibliotheek"
+        className="rounded-full bg-black/60 px-1.5 text-[10px] leading-5 text-white"
+      >
+        ▦
+      </button>
+      {open && (
+        <div className="absolute right-0 top-7 z-30 grid w-52 grid-cols-4 gap-1 rounded-lg border bg-card p-2 shadow-lg">
+          {lib.map((u, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPick(u);
+                setOpen(false);
+              }}
+              className="aspect-square overflow-hidden rounded border hover:border-accent"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={u}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </span>
+  );
+}
+
 function ItemImg({
   it,
   onPatch,
   accent,
   fg,
   variant,
+  lib,
 }: {
   it: Record<string, string>;
   onPatch: (patch: Record<string, string>) => void;
   accent: string;
   fg: string;
   variant: "avatar" | "banner";
+  lib?: string[];
 }) {
   const img = it._img || "";
   const round = variant === "avatar";
@@ -5890,6 +5982,14 @@ function ItemImg({
           }}
         />
       </label>
+      {lib && lib.length > 0 && (
+        <span className="absolute left-1 top-1 opacity-0 transition-opacity group-hover/ii:opacity-100">
+          <MediaPicker
+            lib={lib}
+            onPick={(u) => onPatch({ _img: u })}
+          />
+        </span>
+      )}
       {img && (
         <span className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover/ii:opacity-100">
           <button
@@ -6071,6 +6171,7 @@ function PreviewSection({
   images,
   p,
   edit,
+  lib,
 }: {
   kind: SectionKind;
   data: SectionData;
@@ -6079,6 +6180,7 @@ function PreviewSection({
   images: string[];
   p: Preview;
   edit: (patch: SectionData) => void;
+  lib: string[];
 }) {
   const accentText = { color: theme.accent };
   const border = { borderColor: `${theme.fg}1a` };
@@ -6177,6 +6279,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="banner"
+                    lib={lib}
                     />
                     <p className="font-semibold">
                       <E
@@ -6264,6 +6367,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="avatar"
+                    lib={lib}
                     />
                     <p className="text-sm font-semibold">
                       <E
@@ -6307,6 +6411,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="avatar"
+                    lib={lib}
                     />
                     <span className="block text-[11px] font-medium opacity-70">
                       <E
@@ -6359,6 +6464,7 @@ function PreviewSection({
                           accent={theme.accent}
                           fg={theme.fg}
                           variant="avatar"
+                        lib={lib}
                         />
                       </div>
                       <span className="font-mono text-[10px] opacity-70">
@@ -6496,6 +6602,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="banner"
+                    lib={lib}
                     />
                     <p className="mt-1 text-center text-[11px] opacity-70">
                       <E
@@ -6526,6 +6633,7 @@ function PreviewSection({
               accent={theme.accent}
               fg={theme.fg}
               variant="banner"
+            lib={lib}
             />
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
