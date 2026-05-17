@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { submitBuild } from "@/app/actions/build-lead";
+import { saveDesign } from "@/app/actions/builder-designs";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -631,7 +632,23 @@ const itemTemplate: Partial<Record<SectionKind, Record<string, string>>> = {
   hours: { day: "", time: "" },
 };
 
-export default function BuilderPage() {
+export type BuilderSnapshot = {
+  businessName?: string;
+  theme?: Theme;
+  font?: FontKey;
+  radius?: RadiusKey;
+  pages?: Page[];
+  activeId?: string;
+  locale?: string;
+};
+
+export default function BuilderPage({
+  designId,
+  initialSnapshot,
+}: {
+  designId?: string;
+  initialSnapshot?: BuilderSnapshot;
+} = {}) {
   const params = useParams();
   const raw = Array.isArray(params.locale) ? params.locale[0] : params.locale;
   const locale: Locale = isValidLocale(raw) ? raw : DEFAULT_LOCALE;
@@ -674,19 +691,26 @@ export default function BuilderPage() {
   const [hydrated, setHydrated] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
 
-  // Concept herstellen bij terugkomst.
+  // Concept herstellen: serverontwerp (account) heeft voorrang op de
+  // lokale draft; anders de localStorage-draft.
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const d = JSON.parse(raw) as {
-          businessName?: string;
-          theme?: Theme;
-          font?: FontKey;
-          radius?: RadiusKey;
-          pages?: Page[];
-          activeId?: string;
-        };
+      const fromServer =
+        initialSnapshot && Object.keys(initialSnapshot).length > 0;
+      const raw = fromServer ? null : localStorage.getItem(STORAGE_KEY);
+      const d = fromServer
+        ? initialSnapshot!
+        : raw
+          ? (JSON.parse(raw) as {
+              businessName?: string;
+              theme?: Theme;
+              font?: FontKey;
+              radius?: RadiusKey;
+              pages?: Page[];
+              activeId?: string;
+            })
+          : null;
+      if (d) {
         if (d.businessName) setBusinessName(d.businessName);
         if (d.theme) setTheme(d.theme);
         if (d.font) setFont(d.font);
@@ -718,6 +742,38 @@ export default function BuilderPage() {
       /* quota → stil negeren */
     }
   }, [hydrated, businessName, theme, font, radius, pages, activeId]);
+
+  // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
+  // klant op elk toestel kan hervatten en jij elke versie ziet.
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!hydrated || !designId) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void saveDesign(designId, {
+        businessName,
+        theme,
+        font,
+        radius,
+        pages,
+        activeId,
+        locale,
+      });
+    }, 1500);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [
+    hydrated,
+    designId,
+    locale,
+    businessName,
+    theme,
+    font,
+    radius,
+    pages,
+    activeId,
+  ]);
 
   const resetDraft = () => {
     try {
