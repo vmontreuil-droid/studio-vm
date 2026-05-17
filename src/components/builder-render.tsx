@@ -148,6 +148,8 @@ function BlockView({
         heading?: string;
         sub?: string;
         button?: string;
+        capTitle?: string;
+        capText?: string;
       };
       const rawSl =
         Array.isArray(d.slides) && d.slides.length
@@ -193,6 +195,13 @@ function BlockView({
       const hCard = d.hCard === 1 || d.hCard === true;
       const hBlur = typeof d.hBlur === "number" ? d.hBlur : 0;
       const showCard = hCard || hBlur > 0;
+      const hCap = d.hCap === 1 || d.hCap === true;
+      const hCapPos =
+        d.hCapPos === "br" ||
+        d.hCapPos === "tl" ||
+        d.hCapPos === "tr"
+          ? String(d.hCapPos)
+          : "bl";
       return (
         <div>
           {heroSlides.map((sl, si) => {
@@ -276,6 +285,46 @@ function BlockView({
                     )}
                   </div>
                 </div>
+                {hCap && (s(sl.capTitle) || s(sl.capText)) && (
+                  <div
+                    className="absolute z-[4] max-w-[280px] text-left"
+                    style={
+                      hCapPos === "br"
+                        ? { right: 16, bottom: 16 }
+                        : hCapPos === "tl"
+                          ? { left: 16, top: 16 }
+                          : hCapPos === "tr"
+                            ? { right: 16, top: 16 }
+                            : { left: 16, bottom: 16 }
+                    }
+                  >
+                    <div
+                      style={{
+                        background: hb
+                          ? "rgba(0,0,0,0.42)"
+                          : `${fg}14`,
+                        backdropFilter:
+                          hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                        WebkitBackdropFilter:
+                          hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                        borderRadius: 14,
+                        border: hb
+                          ? "1px solid rgba(255,255,255,0.18)"
+                          : `1px solid ${fg}1f`,
+                        padding: "12px 16px",
+                      }}
+                    >
+                      <p className="text-xs font-semibold tracking-tight">
+                        {s(sl.capTitle)}
+                      </p>
+                      {s(sl.capText) && (
+                        <p className="mt-1 text-[11px] leading-relaxed opacity-80">
+                          {s(sl.capText)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -442,15 +491,53 @@ function BlockView({
           )}
         </div>
       );
-    case "footer":
+    case "footer": {
+      type FCol = { title?: string; links?: { label?: string }[] };
+      const fcols: FCol[] = Array.isArray(d.cols)
+        ? (d.cols as FCol[])
+        : [];
+      const legacyTxt = s(d.text);
+      if (!fcols.length && !s(d.about) && !s(d.note) && legacyTxt) {
+        return (
+          <div
+            className="border-t px-6 py-6 text-center text-xs opacity-60"
+            style={border}
+          >
+            {legacyTxt}
+          </div>
+        );
+      }
       return (
-        <div
-          className="border-t px-6 py-6 text-center text-xs opacity-60"
-          style={border}
-        >
-          {s(d.text) || "—"}
+        <div className="border-t px-6 py-8" style={border}>
+          <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1.4fr_repeat(auto-fit,minmax(0,1fr))]">
+            <div className="text-xs opacity-70">{s(d.about) || "—"}</div>
+            {fcols.map((col, ci) => (
+              <div key={ci} className="text-[11px]">
+                <p
+                  className="mb-1.5 font-mono uppercase tracking-widest"
+                  style={{ color: accent }}
+                >
+                  {s(col.title)}
+                </p>
+                <ul className="space-y-1 opacity-70">
+                  {(col.links ?? []).map((lk, li) => (
+                    <li key={li}>{s(lk.label)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {s(d.note) && (
+            <div
+              className="mx-auto mt-6 max-w-2xl border-t pt-4 text-center text-[10px] opacity-60"
+              style={border}
+            >
+              {s(d.note)}
+            </div>
+          )}
         </div>
       );
+    }
     default:
       return (
         <div className="border-t px-6 py-6 text-xs" style={border}>

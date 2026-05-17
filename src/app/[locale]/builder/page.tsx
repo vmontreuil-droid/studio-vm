@@ -271,6 +271,20 @@ const T: Record<
       heroCard: string;
       heroBlur: string;
       heroMove: string;
+      heroCardW: string;
+      heroCardColor: string;
+      heroCardOpacity: string;
+      heroTransDur: string;
+      heroCap: string;
+      capTitlePh: string;
+      capTextPh: string;
+      footerColLinks: string;
+      footerAbout: string;
+      footerColTitle: string;
+      footerLink: string;
+      footerNote: string;
+      footerAddCol: string;
+      footerAddLink: string;
     };
   }
 > = {
@@ -400,6 +414,20 @@ const T: Record<
       heroCard: "Kaart achter tekst",
       heroBlur: "Wazig",
       heroMove: "Versleep de tekst",
+      heroCardW: "Kaartbreedte",
+      heroCardColor: "Kaartkleur",
+      heroCardOpacity: "Kaart-dekking",
+      heroTransDur: "Overgangsduur",
+      heroCap: "Foto-bijschrift",
+      capTitlePh: "Naam van de foto",
+      capTextPh: "Korte uitleg bij deze foto",
+      footerColLinks: "Links",
+      footerAbout: "Korte tekst / bedrijfslijn",
+      footerColTitle: "Kolomtitel",
+      footerLink: "Link-tekst",
+      footerNote: "Onderste regel (bv. © 2026 Mijn Zaak)",
+      footerAddCol: "Kolom toevoegen",
+      footerAddLink: "Link toevoegen",
     },
   },
   fr: {
@@ -528,6 +556,20 @@ const T: Record<
       heroCard: "Carte derrière le texte",
       heroBlur: "Flou",
       heroMove: "Déplacez le texte",
+      heroCardW: "Largeur carte",
+      heroCardColor: "Couleur carte",
+      heroCardOpacity: "Opacité carte",
+      heroTransDur: "Durée transition",
+      heroCap: "Légende photo",
+      capTitlePh: "Nom de la photo",
+      capTextPh: "Courte description de la photo",
+      footerColLinks: "Liens",
+      footerAbout: "Texte court / ligne entreprise",
+      footerColTitle: "Titre de colonne",
+      footerLink: "Texte du lien",
+      footerNote: "Ligne du bas (ex. © 2026 Mon Affaire)",
+      footerAddCol: "Ajouter une colonne",
+      footerAddLink: "Ajouter un lien",
     },
   },
   en: {
@@ -656,6 +698,20 @@ const T: Record<
       heroCard: "Card behind text",
       heroBlur: "Blur",
       heroMove: "Drag the text",
+      heroCardW: "Card width",
+      heroCardColor: "Card colour",
+      heroCardOpacity: "Card opacity",
+      heroTransDur: "Transition speed",
+      heroCap: "Photo caption",
+      capTitlePh: "Photo name",
+      capTextPh: "Short caption for this photo",
+      footerColLinks: "Links",
+      footerAbout: "Short text / company line",
+      footerColTitle: "Column title",
+      footerLink: "Link text",
+      footerNote: "Bottom line (e.g. © 2026 My Business)",
+      footerAddCol: "Add column",
+      footerAddLink: "Add link",
     },
   },
 };
@@ -751,7 +807,13 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
     case "newsletter":
       return { title: "", text: "", button: "" };
     case "footer":
-      return { text: "" };
+      return {
+        about: "",
+        cols: [
+          { title: p.footerColLinks, links: [{ label: "" }, { label: "" }] },
+        ],
+        note: "",
+      };
     case "cta":
       return { title: p.ctaTitle2, text: p.ctaText2, button: p.ctaBtn2 };
     case "contact":
@@ -1950,7 +2012,6 @@ function SectionEditor({
     richtext: ["title", "text"],
     banner: ["text"],
     newsletter: ["title", "text", "button"],
-    footer: ["text"],
     gallery: ["title"],
     map: ["title", "address"],
   };
@@ -1987,6 +2048,139 @@ function SectionEditor({
           value={str("address")}
           onChange={(v) => set("address", v)}
           area
+        />
+      </div>
+    );
+  }
+
+  if (section.kind === "footer") {
+    type FCol = { title?: string; links?: { label?: string }[] };
+    const cols: FCol[] = Array.isArray(d.cols) ? (d.cols as FCol[]) : [];
+    const setCols = (next: FCol[]) => patch(section.id, { cols: next });
+    const fp = c.preview;
+    return (
+      <div className="space-y-3">
+        <Txt
+          label={fp.footerAbout}
+          value={str("about")}
+          area
+          onChange={(v) => set("about", v)}
+        />
+        {cols.map((col, ci) => (
+          <div key={ci} className="rounded-lg border p-2.5">
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                #{ci + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCols(cols.filter((_, j) => j !== ci))}
+                className="rounded p-0.5 text-muted hover:text-red-500"
+                aria-label="x"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <Txt
+                label={fp.footerColTitle}
+                value={col.title ?? ""}
+                onChange={(v) =>
+                  setCols(
+                    cols.map((x, j) =>
+                      j === ci ? { ...x, title: v } : x,
+                    ),
+                  )
+                }
+              />
+              {(col.links ?? []).map((lk, li) => (
+                <div key={li} className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Txt
+                      label={`${fp.footerLink} ${li + 1}`}
+                      value={lk.label ?? ""}
+                      onChange={(v) =>
+                        setCols(
+                          cols.map((x, j) =>
+                            j === ci
+                              ? {
+                                  ...x,
+                                  links: (x.links ?? []).map((y, k) =>
+                                    k === li ? { ...y, label: v } : y,
+                                  ),
+                                }
+                              : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCols(
+                        cols.map((x, j) =>
+                          j === ci
+                            ? {
+                                ...x,
+                                links: (x.links ?? []).filter(
+                                  (_, k) => k !== li,
+                                ),
+                              }
+                            : x,
+                        ),
+                      )
+                    }
+                    className="mt-5 rounded p-0.5 text-muted hover:text-red-500"
+                    aria-label="x"
+                  >
+                    <X className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
+                </div>
+              ))}
+              {(col.links ?? []).length < 8 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCols(
+                      cols.map((x, j) =>
+                        j === ci
+                          ? {
+                              ...x,
+                              links: [...(x.links ?? []), { label: "" }],
+                            }
+                          : x,
+                      ),
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] text-muted hover:bg-card-hover hover:text-foreground"
+                >
+                  <Plus className="h-3 w-3" strokeWidth={2.5} />
+                  {fp.footerAddLink}
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {cols.length < 4 && (
+          <button
+            type="button"
+            onClick={() =>
+              setCols([
+                ...cols,
+                { title: fp.footerColLinks, links: [{ label: "" }] },
+              ])
+            }
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] text-muted hover:bg-card-hover hover:text-foreground"
+          >
+            <Plus className="h-3 w-3" strokeWidth={2.5} />
+            {fp.footerAddCol}
+          </button>
+        )}
+        <Txt
+          label={fp.footerNote}
+          value={str("note")}
+          onChange={(v) => set("note", v)}
         />
       </div>
     );
@@ -2062,6 +2256,8 @@ type HeroSlide = {
   heading?: string;
   sub?: string;
   button?: string;
+  capTitle?: string;
+  capText?: string;
 };
 
 function HeroPreview({
@@ -2116,7 +2312,9 @@ function HeroPreview({
     data.trans === "slide" || data.trans === "none"
       ? (data.trans as "slide" | "none")
       : "fade";
-  const transMs = trans === "none" ? 0 : 700;
+  const hTransMs =
+    typeof data.hTransMs === "number" ? data.hTransMs : 700;
+  const transMs = trans === "none" ? 0 : hTransMs;
 
   const [idx, setIdx] = useState(0);
   const [hover, setHover] = useState(false);
@@ -2198,7 +2396,37 @@ function HeroPreview({
   const hy = typeof data.hy === "number" ? data.hy : 50;
   const hCard = data.hCard === 1 || data.hCard === true;
   const hBlur = typeof data.hBlur === "number" ? data.hBlur : 0;
+  const hCardW =
+    typeof data.hCardW === "number" ? data.hCardW : 86;
+  const hCardColor =
+    typeof data.hCardColor === "string" && data.hCardColor
+      ? data.hCardColor
+      : "";
+  const hCardA =
+    typeof data.hCardA === "number"
+      ? data.hCardA
+      : curHasBg
+        ? 34
+        : 9;
   const showCard = hCard || hBlur > 0;
+  const hCap = data.hCap === 1 || data.hCap === true;
+  const hCapPos =
+    data.hCapPos === "br" ||
+    data.hCapPos === "tl" ||
+    data.hCapPos === "tr"
+      ? String(data.hCapPos)
+      : "bl";
+  const hexToRgba = (hex: string, a: number) => {
+    const m = hex.replace("#", "");
+    const n =
+      m.length === 3
+        ? m.split("").map((x) => x + x).join("")
+        : m.padEnd(6, "0").slice(0, 6);
+    const r = parseInt(n.slice(0, 2), 16) || 0;
+    const g = parseInt(n.slice(2, 4), 16) || 0;
+    const b = parseInt(n.slice(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`;
+  };
 
   const heroRef = useRef<HTMLDivElement>(null);
   const startDrag = (e: React.PointerEvent) => {
@@ -2226,9 +2454,10 @@ function HeroPreview({
     window.addEventListener("pointerup", up);
   };
 
+  const cardBase = hCardColor || (curHasBg ? "#000000" : theme.fg);
   const cardStyle: React.CSSProperties = showCard
     ? {
-        background: curHasBg ? "rgba(0,0,0,0.34)" : `${theme.fg}0f`,
+        background: hexToRgba(cardBase, hCardA / 100),
         backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
         WebkitBackdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
         padding: "30px 34px",
@@ -2295,7 +2524,7 @@ function HeroPreview({
           left: `${hx}%`,
           top: `${hy}%`,
           transform: "translate(-50%, -50%)",
-          width: "min(86%, 640px)",
+          width: `min(${hCardW}%, 760px)`,
           zIndex: 3,
         }}
       >
@@ -2373,6 +2602,54 @@ function HeroPreview({
           )}
         </div>
       </div>
+
+      {hCap && (
+        <div
+          className="absolute z-[4] max-w-[300px] text-left"
+          style={
+            hCapPos === "br"
+              ? { right: 18, bottom: 18 }
+              : hCapPos === "tl"
+                ? { left: 18, top: 18 }
+                : hCapPos === "tr"
+                  ? { right: 18, top: 18 }
+                  : { left: 18, bottom: 18 }
+          }
+        >
+          <div
+            style={{
+              background: hexToRgba(
+                cardBase,
+                (showCard ? hCardA : curHasBg ? 42 : 9) / 100,
+              ),
+              backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+              WebkitBackdropFilter:
+                hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+              borderRadius: 14,
+              border: curHasBg
+                ? "1px solid rgba(255,255,255,0.18)"
+                : `1px solid ${theme.fg}1f`,
+              padding: "12px 16px",
+            }}
+          >
+            <p className="text-xs font-semibold tracking-tight">
+              <E
+                key={`ct-${cIdx}`}
+                value={cur.capTitle || p.capTitlePh}
+                onChange={(v) => patchSlide(cIdx, { capTitle: v })}
+              />
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed opacity-80">
+              <E
+                key={`cx-${cIdx}`}
+                value={cur.capText || p.capTextPh}
+                onChange={(v) => patchSlide(cIdx, { capText: v })}
+                multiline
+              />
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* slide-beheer: thumbnails + per slide selecteren/verwijderen */}
       <div className="absolute right-3 top-3 z-10 flex max-w-[62%] flex-wrap justify-end gap-1 opacity-0 transition-opacity group-hover/hero:opacity-100">
@@ -2484,6 +2761,104 @@ function HeroPreview({
           />
           <span className="font-mono tabular-nums">{hBlur}px</span>
         </label>
+        <span className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => edit({ hCap: hCap ? 0 : 1 })}
+            className="rounded px-1.5 py-0.5"
+            style={{
+              background: hCap
+                ? theme.accent
+                : curHasBg
+                  ? "rgba(255,255,255,0.18)"
+                  : `${theme.fg}14`,
+              color: hCap ? theme.bg : curHasBg ? "#ffffff" : theme.fg,
+            }}
+          >
+            {p.heroCap}
+          </button>
+          {hCap &&
+            (["tl", "tr", "bl", "br"] as const).map((cn) => (
+              <button
+                key={cn}
+                type="button"
+                onClick={() => edit({ hCapPos: cn })}
+                title={cn}
+                className="flex h-5 w-5 items-center justify-center rounded font-mono text-[11px]"
+                style={{
+                  background:
+                    hCapPos === cn
+                      ? theme.accent
+                      : curHasBg
+                        ? "rgba(255,255,255,0.18)"
+                        : `${theme.fg}14`,
+                  color:
+                    hCapPos === cn
+                      ? theme.bg
+                      : curHasBg
+                        ? "#ffffff"
+                        : theme.fg,
+                }}
+              >
+                {cn === "tl"
+                  ? "◰"
+                  : cn === "tr"
+                    ? "◳"
+                    : cn === "bl"
+                      ? "◱"
+                      : "◲"}
+              </button>
+            ))}
+        </span>
+        {showCard && (
+          <>
+            <label className="flex items-center gap-2">
+              {p.heroCardW}
+              <input
+                type="range"
+                min={40}
+                max={100}
+                step={2}
+                value={hCardW}
+                onChange={(e) => edit({ hCardW: Number(e.target.value) })}
+                className="h-1 w-20 cursor-pointer accent-current"
+              />
+              <span className="font-mono tabular-nums">{hCardW}%</span>
+            </label>
+            <label className="flex items-center gap-2">
+              {p.heroCardOpacity}
+              <input
+                type="range"
+                min={0}
+                max={95}
+                step={5}
+                value={hCardA}
+                onChange={(e) => edit({ hCardA: Number(e.target.value) })}
+                className="h-1 w-20 cursor-pointer accent-current"
+              />
+              <span className="font-mono tabular-nums">{hCardA}%</span>
+            </label>
+            <label className="flex items-center gap-2">
+              {p.heroCardColor}
+              <input
+                type="color"
+                value={hCardColor || (curHasBg ? "#000000" : theme.fg)}
+                onChange={(e) => edit({ hCardColor: e.target.value })}
+                className="h-5 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
+              />
+              {hCardColor && (
+                <button
+                  type="button"
+                  onClick={() => edit({ hCardColor: "" })}
+                  title="reset"
+                  className="font-mono text-[10px] underline opacity-70"
+                >
+                  reset
+                </button>
+              )}
+            </label>
+          </>
+        )}
         {slides.length > 1 && (
           <>
             <label className="flex items-center gap-2">
@@ -2520,6 +2895,25 @@ function HeroPreview({
                 <option value="none">{p.transNone}</option>
               </select>
             </label>
+            {trans !== "none" && (
+              <label className="flex items-center gap-2">
+                {p.heroTransDur}
+                <input
+                  type="range"
+                  min={150}
+                  max={1500}
+                  step={50}
+                  value={hTransMs}
+                  onChange={(e) =>
+                    edit({ hTransMs: Number(e.target.value) })
+                  }
+                  className="h-1 w-20 cursor-pointer accent-current"
+                />
+                <span className="font-mono tabular-nums">
+                  {(hTransMs / 1000).toFixed(2)}s
+                </span>
+              </label>
+            )}
           </>
         )}
       </div>
@@ -3215,19 +3609,70 @@ function PreviewSection({
           </div>
         </div>
       );
-    case "footer":
+    case "footer": {
+      type FCol = { title?: string; links?: { label?: string }[] };
+      const fcols: FCol[] = Array.isArray(data.cols)
+        ? (data.cols as FCol[])
+        : [];
+      const setCol = (ci: number, patch: Partial<FCol>) =>
+        edit({
+          cols: fcols.map((x, j) => (j === ci ? { ...x, ...patch } : x)),
+        });
       return (
-        <div
-          className="border-t px-8 py-8 text-center text-xs opacity-60"
-          style={border}
-        >
-          <E
-            value={g("text")}
-            onChange={(v) => edit({ text: v })}
-            multiline
-          />
+        <div className="border-t px-8 py-10" style={border}>
+          <div className="mx-auto grid max-w-3xl gap-8 sm:grid-cols-[1.4fr_repeat(auto-fit,minmax(0,1fr))]">
+            <div className="text-sm">
+              <p className="font-semibold tracking-tight">{businessName}</p>
+              <p className="mt-2 text-xs leading-relaxed opacity-70">
+                <E
+                  value={g("about")}
+                  onChange={(v) => edit({ about: v })}
+                  multiline
+                />
+              </p>
+            </div>
+            {fcols.map((col, ci) => (
+              <div key={ci} className="text-xs">
+                <p
+                  className="mb-2 font-mono uppercase tracking-widest"
+                  style={{ color: theme.accent }}
+                >
+                  <E
+                    value={col.title ?? ""}
+                    onChange={(v) => setCol(ci, { title: v })}
+                  />
+                </p>
+                <ul className="space-y-1.5 opacity-70">
+                  {(col.links ?? []).map((lk, li) => (
+                    <li key={li}>
+                      <E
+                        value={lk.label ?? ""}
+                        onChange={(v) =>
+                          setCol(ci, {
+                            links: (col.links ?? []).map((y, k) =>
+                              k === li ? { ...y, label: v } : y,
+                            ),
+                          })
+                        }
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div
+            className="mx-auto mt-8 max-w-3xl border-t pt-5 text-center text-[11px] opacity-60"
+            style={border}
+          >
+            <E
+              value={g("note")}
+              onChange={(v) => edit({ note: v })}
+            />
+          </div>
         </div>
       );
+    }
     case "cta":
       return (
         <div
