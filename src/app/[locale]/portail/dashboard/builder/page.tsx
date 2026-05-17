@@ -20,7 +20,18 @@ import {
   publishDesign,
   unpublishDesign,
 } from "@/app/actions/builder-designs";
+import {
+  startPublishSubscription,
+  cancelPublishSubscription,
+} from "@/app/actions/subscription";
+import {
+  PUBLISH_SETUP_CENTS,
+  PUBLISH_BASE_MONTHLY_CENTS,
+} from "@/lib/pricing";
 import { SubmitButton } from "@/components/submit-button";
+
+const euroFmt = (c: number) =>
+  (c / 100).toLocaleString("nl-BE").replace(/,00$/, "");
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +113,15 @@ export default async function PortalBuilderOverview({
     .order("updated_at", { ascending: false });
   const designs = (data as Design[]) ?? [];
 
+  const { data: subRow } = await sb
+    .from("subscriptions")
+    .select("status")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const subActive = (subRow as { status?: string } | null)?.status ===
+    "actief";
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -111,13 +131,25 @@ export default async function PortalBuilderOverview({
         {l.sub}
       </p>
 
-      {ok === "live" && (
+      {(ok === "live" || ok === "betaald" || ok === "gestopt") && (
         <p className="mt-4 rounded-xl border border-green-500/60 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 dark:bg-green-950/40 dark:text-green-300">
-          {locale === "fr"
-            ? "Votre site est en ligne 🎉"
-            : locale === "en"
-              ? "Your site is live 🎉"
-              : "Je site staat online 🎉"}
+          {ok === "gestopt"
+            ? locale === "fr"
+              ? "Abonnement résilié."
+              : locale === "en"
+                ? "Subscription cancelled."
+                : "Abonnement opgezegd."
+            : ok === "betaald"
+              ? locale === "fr"
+                ? "Paiement reçu — activation en cours…"
+                : locale === "en"
+                  ? "Payment received — activating…"
+                  : "Betaling ontvangen — abonnement wordt geactiveerd…"
+              : locale === "fr"
+                ? "Votre site est en ligne 🎉"
+                : locale === "en"
+                  ? "Your site is live 🎉"
+                  : "Je site staat online 🎉"}
         </p>
       )}
       {fout === "abo" && (
@@ -138,6 +170,76 @@ export default async function PortalBuilderOverview({
               : "Kon het ontwerp nu niet aanmaken. Probeer het zo opnieuw."}
         </p>
       )}
+
+      <div
+        className={`mt-6 rounded-2xl border p-5 ${
+          subActive
+            ? "border-green-500/40 bg-green-50/60 dark:bg-green-950/30"
+            : "border-accent/40 bg-accent/5"
+        }`}
+      >
+        {subActive ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+              {locale === "fr"
+                ? "Abonnement actif — vos sites restent en ligne."
+                : locale === "en"
+                  ? "Subscription active — your sites stay online."
+                  : "Abonnement actief — je sites blijven online."}
+            </p>
+            <form action={cancelPublishSubscription}>
+              <input type="hidden" name="locale" value={locale} />
+              <SubmitButton className="rounded-full border px-4 py-2 text-xs text-muted transition-colors hover:text-red-500">
+                {locale === "fr"
+                  ? "Résilier"
+                  : locale === "en"
+                    ? "Cancel"
+                    : "Opzeggen"}
+              </SubmitButton>
+            </form>
+          </div>
+        ) : (
+          <>
+            <p className="text-lg font-semibold tracking-tight">
+              {locale === "fr"
+                ? "Mettez votre site en ligne"
+                : locale === "en"
+                  ? "Put your site online"
+                  : "Zet je site online"}
+            </p>
+            <p className="mt-1 max-w-xl text-sm text-muted">
+              {locale === "fr"
+                ? `Hébergement, entretien et mises à jour inclus. ${euroFmt(
+                    PUBLISH_SETUP_CENTS,
+                  )} € de démarrage, puis ${euroFmt(
+                    PUBLISH_BASE_MONTHLY_CENTS,
+                  )} €/mois. Résiliable à tout moment.`
+                : locale === "en"
+                  ? `Hosting, maintenance and updates included. €${euroFmt(
+                      PUBLISH_SETUP_CENTS,
+                    )} setup, then €${euroFmt(
+                      PUBLISH_BASE_MONTHLY_CENTS,
+                    )}/month. Cancel anytime.`
+                  : `Hosting, onderhoud en updates inbegrepen. €${euroFmt(
+                      PUBLISH_SETUP_CENTS,
+                    )} opstart, daarna €${euroFmt(
+                      PUBLISH_BASE_MONTHLY_CENTS,
+                    )}/maand. Maandelijks opzegbaar.`}
+            </p>
+            <form action={startPublishSubscription} className="mt-4">
+              <input type="hidden" name="locale" value={locale} />
+              <SubmitButton className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
+                <Rocket className="h-4 w-4" strokeWidth={2} />
+                {locale === "fr"
+                  ? "Démarrer l'abonnement"
+                  : locale === "en"
+                    ? "Start subscription"
+                    : "Start abonnement"}
+              </SubmitButton>
+            </form>
+          </>
+        )}
+      </div>
 
       <form action={createDesign} className="mt-6">
         <input type="hidden" name="locale" value={locale} />

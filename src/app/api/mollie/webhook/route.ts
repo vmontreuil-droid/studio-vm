@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { monitorConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { getMolliePayment } from "@/lib/mollie";
+import { mollieCreateSubscription } from "@/lib/mollie-sub";
+import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 import { sendMail } from "@/lib/monitor";
 import { siteUrl } from "@/lib/supabase/config";
 
@@ -397,6 +399,63 @@ export async function POST(req: NextRequest) {
   <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">Studio VM · Vincent Montreuil · Nieuwpoortstraat 14-301, 8570 Anzegem · info@studio-vm.be · BE 0672.960.066</td></tr>
 </table></td></tr></table></body></html>`,
         }).catch(() => {});
+      }
+    } catch {
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+  }
+
+  // ---- Publiceer-abonnement (€199 opstart + €39/m) ----
+  const subEmail = payment.metadata?.sub_email;
+  if (payment.status === "paid" && subEmail) {
+    try {
+      const db = getSupabaseAdmin();
+      const { data } = await db
+        .from("subscriptions")
+        .select(
+          "id, setup_paid, status, mollie_customer_id, mollie_subscription_id",
+        )
+        .eq("client_email", subEmail)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const sub = data as {
+        id: string;
+        setup_paid: boolean;
+        status: string;
+        mollie_customer_id: string | null;
+        mollie_subscription_id: string | null;
+      } | null;
+      if (sub) {
+        if (!sub.setup_paid) {
+          let subId = sub.mollie_subscription_id;
+          if (!subId && sub.mollie_customer_id) {
+            subId = await mollieCreateSubscription({
+              customerId: sub.mollie_customer_id,
+              amountCents: PUBLISH_BASE_MONTHLY_CENTS,
+              description: "Website — maandabonnement",
+              metadata: { sub_email: subEmail },
+            });
+          }
+          await db
+            .from("subscriptions")
+            .update({
+              status: "actief",
+              setup_paid: true,
+              ...(subId ? { mollie_subscription_id: subId } : {}),
+              started_at: new Date().toISOString().slice(0, 10),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", sub.id);
+        } else if (sub.status !== "actief") {
+          await db
+            .from("subscriptions")
+            .update({
+              status: "actief",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", sub.id);
+        }
       }
     } catch {
       return NextResponse.json({ ok: false }, { status: 500 });
