@@ -216,7 +216,7 @@ export default async function PricingPage({
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-4xl px-6 py-20 text-center sm:py-28">
+        <div className="mx-auto max-w-4xl px-6 pb-12 pt-20 text-center sm:pb-14 sm:pt-24">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
             {c.heroEyebrow}
           </p>
