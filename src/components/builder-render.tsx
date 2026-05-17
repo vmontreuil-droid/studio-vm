@@ -25,6 +25,30 @@ type Snap = {
   pages?: SnapPage[];
 };
 
+import {
+  Star, Heart, Check, Zap, Shield, Award, Clock, MapPin, Phone, Mail,
+  Users, Briefcase, Camera, Coffee, Scissors, Wrench, Truck, Home, Leaf,
+  Sun, Sparkles, Gift, Target, ThumbsUp, Smile, Music, Globe, Lock,
+  Rocket, Calendar, MessageCircle, CreditCard, Package, Settings, Tag,
+  Compass, Flame, Crown, Gem, HandHeart,
+} from "lucide-react";
+
+const RICONS: Record<
+  string,
+  React.ComponentType<{ className?: string; strokeWidth?: number }>
+> = {
+  star: Star, heart: Heart, check: Check, zap: Zap, shield: Shield,
+  award: Award, clock: Clock, pin: MapPin, phone: Phone, mail: Mail,
+  users: Users, briefcase: Briefcase, camera: Camera, coffee: Coffee,
+  scissors: Scissors, wrench: Wrench, truck: Truck, home: Home,
+  leaf: Leaf, sun: Sun, sparkles: Sparkles, gift: Gift, target: Target,
+  thumb: ThumbsUp, smile: Smile, music: Music, globe: Globe, lock: Lock,
+  rocket: Rocket, calendar: Calendar, chat: MessageCircle,
+  card: CreditCard, package: Package, settings: Settings, tag: Tag,
+  compass: Compass, flame: Flame, crown: Crown, gem: Gem,
+  handheart: HandHeart,
+};
+
 // Houd dit in sync met SECT_TONES in de builder.
 const TONE_MIX: Record<string, [string, number]> = {
   soft1: ["fg", 4],
@@ -244,20 +268,31 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                     )}
                   </span>
                   <span className="ml-auto flex flex-wrap items-center gap-x-4 text-xs">
-                    {snap.pages!.map((pp, j) => (
-                      <span
-                        key={j}
-                        style={{
-                          color: pp.name === page.name ? accent : hFg,
-                          opacity: pp.name === page.name ? 1 : 0.6,
-                          fontWeight: pp.name === page.name ? 600 : 400,
-                          textTransform: upper ? "uppercase" : undefined,
-                          letterSpacing: upper ? "0.06em" : undefined,
-                        }}
-                      >
-                        {pp.name || `#${j + 1}`}
-                      </span>
-                    ))}
+                    {snap.pages!.map((pp, j) => {
+                      const PI =
+                        pp.icon && RICONS[pp.icon] ? RICONS[pp.icon] : null;
+                      return (
+                        <span
+                          key={j}
+                          className="inline-flex items-center gap-1"
+                          style={{
+                            color: pp.name === page.name ? accent : hFg,
+                            opacity: pp.name === page.name ? 1 : 0.6,
+                            fontWeight: pp.name === page.name ? 600 : 400,
+                            textTransform: upper ? "uppercase" : undefined,
+                            letterSpacing: upper ? "0.06em" : undefined,
+                          }}
+                        >
+                          {PI && (
+                            <PI
+                              strokeWidth={2}
+                              {...{ style: { width: 13, height: 13 } }}
+                            />
+                          )}
+                          {pp.name || `#${j + 1}`}
+                        </span>
+                      );
+                    })}
                     {ctaTxt && (
                       <span
                         style={{
@@ -457,10 +492,71 @@ function BlockView({
   const d = block.data || {};
   const items = arr(d.items);
   const border = { borderColor: soft };
+  const hN = (k: string, dv: number) =>
+    typeof d[k] === "number" ? (d[k] as number) : dv;
+  const headSub = typeof d._sub === "string" ? (d._sub as string) : "";
+  const headDiv = d._div === 1 || d._div === true;
+  const headDIcon =
+    typeof d._divIcon === "string" ? (d._divIcon as string) : "";
+  const HDI = headDIcon && RICONS[headDIcon] ? RICONS[headDIcon] : null;
+  const headDSz = hN("_divIconSz", 14);
   const H = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="text-center text-lg font-semibold tracking-tight">
-      {children}
-    </h3>
+    <div
+      className="text-center"
+      style={{
+        paddingTop: hN("_hPadT", 0),
+        marginBottom: hN("_hBelow", 0),
+      }}
+    >
+      <h3 className="text-lg font-semibold tracking-tight">{children}</h3>
+      {headSub && (
+        <p
+          className="mx-auto max-w-2xl text-sm opacity-70"
+          style={{ marginTop: hN("_hGap", 8) }}
+        >
+          {headSub}
+        </p>
+      )}
+      {headDiv && (
+        <div
+          className="flex items-center justify-center gap-3"
+          style={{
+            marginTop: hN("_hDivGap", 16),
+            marginBottom: hN("_hDivGap", 16),
+          }}
+        >
+          <span
+            className="h-px w-full max-w-[120px]"
+            style={{ background: `${fg}33` }}
+          />
+          {HDI ? (
+            <span
+              className="flex shrink-0 items-center justify-center rounded-full"
+              style={{
+                width: Math.max(28, headDSz + 14),
+                height: Math.max(28, headDSz + 14),
+                background: `${accent}1a`,
+                color: accent,
+              }}
+            >
+              <HDI
+                strokeWidth={2}
+                {...{ style: { width: headDSz, height: headDSz } }}
+              />
+            </span>
+          ) : (
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ background: accent }}
+            />
+          )}
+          <span
+            className="h-px w-full max-w-[120px]"
+            style={{ background: `${fg}33` }}
+          />
+        </div>
+      )}
+    </div>
   );
 
   switch (block.kind) {
@@ -793,9 +889,45 @@ function BlockView({
               <h3 className="text-lg font-semibold tracking-tight">
                 {s(d.title)}
               </h3>
+              {headSub && (
+                <p className="mt-1.5 text-sm opacity-70">{headSub}</p>
+              )}
+              {headDiv && (
+                <div className="mt-3 flex items-center gap-3">
+                  <span
+                    className="h-px w-full max-w-[120px]"
+                    style={{ background: `${fg}33` }}
+                  />
+                  {HDI && (
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                      style={{ background: `${accent}1a`, color: accent }}
+                    >
+                      <HDI strokeWidth={2} />
+                    </span>
+                  )}
+                </div>
+              )}
               <p className="mt-2 whitespace-pre-wrap text-sm opacity-70">
                 {s(d.text)}
               </p>
+              {arr(d.items).length > 0 && (
+                <ul className="mt-3 space-y-1.5 text-sm">
+                  {arr(d.items).map((b, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 opacity-80"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0"
+                        strokeWidth={2.5}
+                        {...{ style: { color: accent } }}
+                      />
+                      <span>{String(b.text || "")}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
@@ -890,17 +1022,116 @@ function BlockView({
           )}
         </div>
       );
-    case "contact":
+    case "contact": {
+      const cf = arr(d.items);
+      const crows =
+        cf.length > 0
+          ? cf
+          : [
+              { label: "Naam", type: "text", req: "1" },
+              { label: "E-mail", type: "email", req: "1" },
+              { label: "Bericht", type: "textarea", req: "1" },
+            ];
+      const cBtnR =
+        s(d._btnShape) === "recht"
+          ? 2
+          : s(d._btnShape) === "zacht"
+            ? 12
+            : 9999;
+      const cFldR =
+        s(d._fldShape) === "recht"
+          ? 2
+          : s(d._fldShape) === "rond"
+            ? 9999
+            : 8;
+      const cCard = d._card === 1 || d._card === true;
+      const okC = s(d._okColor) || "#16a34a";
+      const formCol = (
+        <div className={cCard ? "" : "mx-auto max-w-sm"}>
+          <div className="space-y-2 text-xs">
+            {crows.map((fl, i) => {
+              const lbl = String(fl.label || `Veld ${i + 1}`);
+              const req = fl.req === "1" || fl.req === "true";
+              const fst = {
+                ...border,
+                borderRadius: cFldR,
+                ...(fl.bg ? { background: String(fl.bg) } : {}),
+              };
+              return (
+                <div key={i}>
+                  <span className="mb-1 block opacity-70">
+                    {lbl}
+                    {req && <span style={{ color: accent }}> *</span>}
+                  </span>
+                  {fl.type === "textarea" ? (
+                    <div
+                      className="h-16 w-full border"
+                      style={fst}
+                    />
+                  ) : (
+                    <div
+                      className="h-8 w-full border"
+                      style={fst}
+                    />
+                  )}
+                </div>
+              );
+            })}
+            <span
+              className="mt-1 inline-block px-4 py-2 text-xs font-medium"
+              style={{
+                background: s(d._btnColor) || accent,
+                color: s(d._btnTxt) || bg,
+                borderRadius: cBtnR,
+              }}
+            >
+              {s(d.button) || "Verstuur"}
+            </span>
+            <p
+              className="mt-1 rounded px-3 py-1.5 text-[11px]"
+              style={{ background: `${okC}1f`, color: okC }}
+            >
+              {s(d._okText) || "Bedankt! We nemen snel contact met je op."}
+            </p>
+          </div>
+        </div>
+      );
       return (
-        <div className="border-t px-6 py-10 text-center" style={border}>
+        <div className="border-t px-6 py-10" style={border}>
           <H>{s(d.title)}</H>
-          <p className="mt-2 text-xs opacity-70">
+          <p className="mt-2 text-center text-xs opacity-70">
             {[s(d.emailAddr), s(d.phone), s(d.address)]
               .filter(Boolean)
               .join("  ·  ") || "—"}
           </p>
+          <div
+            className={
+              cCard
+                ? "mx-auto mt-6 grid max-w-2xl gap-5 md:grid-cols-2"
+                : "mt-6"
+            }
+          >
+            {formCol}
+            {cCard && (
+              <div
+                className="rounded-xl border p-4 text-xs"
+                style={{
+                  ...border,
+                  background: s(d._cardBg) || `${fg}08`,
+                }}
+              >
+                <p className="mb-2 text-sm font-semibold">
+                  {s(d._cardTitle) || "Contactgegevens"}
+                </p>
+                <p className="whitespace-pre-line opacity-80">
+                  {s(d._cardText)}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       );
+    }
     case "form": {
       const ff = arr(d.items);
       return (
@@ -927,19 +1158,57 @@ function BlockView({
         </div>
       );
     }
-    case "richtext":
+    case "richtext": {
+      const rw =
+        s(d._w) === "smal"
+          ? "max-w-xl"
+          : s(d._w) === "breed"
+            ? "max-w-4xl"
+            : s(d._w) === "vol"
+              ? "max-w-none"
+              : "max-w-2xl";
+      const rta = (s(d._txtAlign) ||
+        "left") as React.CSSProperties["textAlign"];
+      const rTwo = s(d._cols) === "2";
+      const rBtn = s(d.button);
+      const rBR =
+        s(d._btnShape) === "recht"
+          ? 2
+          : s(d._btnShape) === "zacht"
+            ? 12
+            : 9999;
       return (
         <div className="border-t px-6 py-10" style={border}>
-          <div className="mx-auto max-w-2xl">
-            <h3 className="text-lg font-semibold tracking-tight">
-              {s(d.title)}
-            </h3>
-            <p className="mt-2 whitespace-pre-wrap text-sm opacity-70">
+          <div className={`mx-auto ${rw}`}>
+            {(s(d.title) || headSub || headDiv) && <H>{s(d.title)}</H>}
+            <p
+              className="mt-2 whitespace-pre-wrap text-sm opacity-80"
+              style={{
+                textAlign: rta,
+                columnCount: rTwo ? 2 : undefined,
+                columnGap: rTwo ? "2rem" : undefined,
+              }}
+            >
               {s(d.text)}
             </p>
+            {rBtn && (
+              <div className="mt-4" style={{ textAlign: rta }}>
+                <span
+                  className="inline-block px-5 py-2 text-xs font-medium"
+                  style={{
+                    background: s(d._btnColor) || accent,
+                    color: s(d._btnTxt) || bg,
+                    borderRadius: rBR,
+                  }}
+                >
+                  {rBtn}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       );
+    }
     case "banner":
       return (
         <div

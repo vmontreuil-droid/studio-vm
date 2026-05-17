@@ -5340,7 +5340,6 @@ function SectionEditor({
   const tmpl = itemTemplate[section.kind];
 
   const simple: Record<string, string[]> = {
-    about: ["title", "text"],
     cta: ["title", "text", "button"],
     banner: ["text"],
     newsletter: ["title", "text", "button"],
@@ -5348,6 +5347,141 @@ function SectionEditor({
     map: ["title", "address", "embed"],
   };
   const areaKeys = new Set(["text", "sub", "address"]);
+
+  if (section.kind === "about") {
+    const bl: Record<string, string>[] = items;
+    const AL =
+      locale === "fr"
+        ? {
+            photo: "Photo",
+            side: "Côté de la photo",
+            left: "Gauche",
+            right: "Droite",
+            shape: "Forme photo",
+            auto: "Auto",
+            round: "Rond",
+            square: "Carré",
+            pts: "Points (cochés)",
+            add: "Point +",
+          }
+        : locale === "en"
+          ? {
+              photo: "Photo",
+              side: "Photo side",
+              left: "Left",
+              right: "Right",
+              shape: "Photo shape",
+              auto: "Auto",
+              round: "Round",
+              square: "Square",
+              pts: "Bullet points",
+              add: "Point +",
+            }
+          : {
+              photo: "Foto",
+              side: "Kant van de foto",
+              left: "Links",
+              right: "Rechts",
+              shape: "Fotovorm",
+              auto: "Auto",
+              round: "Rond",
+              square: "Vierkant",
+              pts: "Punten (met vinkjes)",
+              add: "Punt +",
+            };
+    const segA = (k: string, def: string, opts: [string, string][]) => (
+      <div
+        className="grid gap-1.5"
+        style={{
+          gridTemplateColumns: `repeat(${opts.length},minmax(0,1fr))`,
+        }}
+      >
+        {opts.map(([val, lbl]) => {
+          const cur = (str(k) || def) === val;
+          return (
+            <button
+              key={val || "d"}
+              type="button"
+              onClick={() => set(k, val)}
+              className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                cur
+                  ? "border-accent bg-accent/10 text-foreground"
+                  : "border-border text-muted hover:bg-card-hover"
+              }`}
+            >
+              {lbl}
+            </button>
+          );
+        })}
+      </div>
+    );
+    return (
+      <div className="space-y-3">
+        <Txt
+          label={f.title}
+          value={str("title")}
+          onChange={(v) => set("title", v)}
+        />
+        <HeadEditor d={d} set={set} locale={locale} accent={theme.accent} />
+        <Txt
+          label={f.text ?? "Tekst"}
+          value={str("text")}
+          area
+          onChange={(v) => set("text", v)}
+        />
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {AL.side}
+        </p>
+        {segA("_var", "", [
+          ["", AL.left],
+          ["right", AL.right],
+        ])}
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {AL.shape}
+        </p>
+        {segA("_imgShape", "", [
+          ["", AL.auto],
+          ["rond", AL.round],
+          ["vierkant", AL.square],
+        ])}
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {AL.pts}
+        </p>
+        {bl.map((b, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <input
+              value={b.text || ""}
+              onChange={(e) =>
+                setItems(
+                  bl.map((x, j) =>
+                    j === i ? { ...x, text: e.target.value } : x,
+                  ),
+                )
+              }
+              className={fieldCls}
+            />
+            <button
+              type="button"
+              onClick={() => setItems(bl.filter((_, j) => j !== i))}
+              className="rounded p-1 text-muted hover:text-red-500"
+              aria-label="x"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setItems([...bl, { text: "" }])}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-2 text-[11px] text-muted transition-colors hover:bg-card-hover"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+          {AL.add}
+        </button>
+        {LinkBlock}
+      </div>
+    );
+  }
 
   if (section.kind === "richtext") {
     const L =
@@ -7578,12 +7712,14 @@ function SectionHead({
   theme,
   titleValue,
   onTitle,
+  left,
 }: {
   data: SectionData;
   edit: (p: SectionData) => void;
   theme: Theme;
   titleValue: string;
   onTitle: (v: string) => void;
+  left?: boolean;
 }) {
   const sub = data._sub == null ? "" : String(data._sub);
   const showDiv = data._div === 1 || data._div === true;
@@ -7598,7 +7734,7 @@ function SectionHead({
   const line = `${theme.fg}33`;
   return (
     <div
-      className="text-center"
+      className={left ? "text-left" : "text-center"}
       style={{ paddingTop: padT, marginBottom: below }}
     >
       <h3 className="text-xl font-semibold tracking-tight">
@@ -7606,7 +7742,9 @@ function SectionHead({
       </h3>
       {sub && (
         <p
-          className="mx-auto max-w-2xl text-sm opacity-70"
+          className={`text-sm opacity-70 ${
+            left ? "max-w-2xl" : "mx-auto max-w-2xl"
+          }`}
           style={{ marginTop: gap }}
         >
           <E value={sub} onChange={(v) => edit({ _sub: v })} multiline />
@@ -7614,7 +7752,9 @@ function SectionHead({
       )}
       {showDiv && (
         <div
-          className="flex items-center justify-center gap-3"
+          className={`flex items-center gap-3 ${
+            left ? "justify-start" : "justify-center"
+          }`}
           style={{ marginTop: divGap, marginBottom: divGap }}
         >
           <span
@@ -8178,12 +8318,14 @@ function PreviewSection({
               lib={lib}
             />
             <div>
-              <h3 className="text-xl font-semibold tracking-tight">
-                <E
-                  value={g("title", p.aboutTitle)}
-                  onChange={(v) => edit({ title: v })}
-                />
-              </h3>
+              <SectionHead
+                data={data}
+                edit={edit}
+                theme={theme}
+                titleValue={g("title", p.aboutTitle)}
+                onTitle={(v) => edit({ title: v })}
+                left
+              />
               <p className="mt-3 whitespace-pre-wrap text-sm opacity-70">
                 <E
                   value={g("text", p.aboutText)}
@@ -8191,6 +8333,39 @@ function PreviewSection({
                   multiline
                 />
               </p>
+              {(() => {
+                const bl = Array.isArray(data.items)
+                  ? (data.items as Record<string, string>[])
+                  : [];
+                if (bl.length === 0) return null;
+                return (
+                  <ul className="mt-3 space-y-1.5 text-sm">
+                    {bl.map((b, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 opacity-80"
+                      >
+                        <Check
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          strokeWidth={2.5}
+                          style={{ color: theme.accent }}
+                        />
+                        <E
+                          value={b.text || ""}
+                          onChange={(v) =>
+                            edit({
+                              items: bl.map((x, j) =>
+                                j === i ? { ...x, text: v } : x,
+                              ),
+                            })
+                          }
+                          multiline
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
             </div>
           </div>
         </div>
