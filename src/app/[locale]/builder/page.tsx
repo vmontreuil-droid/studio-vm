@@ -105,7 +105,8 @@ type SectionKind =
   | "newsletter"
   | "cta"
   | "footer"
-  | "contact";
+  | "contact"
+  | "form";
 
 type SectionData = Record<string, unknown>;
 type Section = { id: string; kind: SectionKind; data: SectionData };
@@ -261,6 +262,7 @@ const sectionKinds: SectionKind[] = [
   "cta",
   "footer",
   "contact",
+  "form",
 ];
 
 // Ruime set lettertypes op breed-beschikbare families (geen externe
@@ -445,7 +447,7 @@ const T: Record<
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
     panelSections: "Secties & inhoud",
-    sectionLabels: { hero: "Hero", features: "Features", steps: "Werkwijze", team: "Team", logos: "Klanten", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", richtext: "Tekstblok", banner: "Aankondiging", newsletter: "Nieuwsbrief", cta: "Oproep", footer: "Footer", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Werkwijze", team: "Team", logos: "Klanten", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", richtext: "Tekstblok", banner: "Aankondiging", newsletter: "Nieuwsbrief", cta: "Oproep", footer: "Footer", contact: "Contact", form: "Formulier" },
     add: "Voeg toe",
     panelReady: "Klaar?",
     readyText:
@@ -607,7 +609,7 @@ const T: Record<
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
     panelSections: "Sections & contenu",
-    sectionLabels: { hero: "Hero", features: "Atouts", steps: "Méthode", team: "Équipe", logos: "Clients", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", richtext: "Texte", banner: "Annonce", newsletter: "Newsletter", cta: "Appel", footer: "Pied de page", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Atouts", steps: "Méthode", team: "Équipe", logos: "Clients", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", richtext: "Texte", banner: "Annonce", newsletter: "Newsletter", cta: "Appel", footer: "Pied de page", contact: "Contact", form: "Formulaire" },
     add: "Ajouter",
     panelReady: "Prêt ?",
     readyText:
@@ -769,7 +771,7 @@ const T: Record<
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
     panelSections: "Sections & content",
-    sectionLabels: { hero: "Hero", features: "Features", steps: "Process", team: "Team", logos: "Clients", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", richtext: "Text", banner: "Announcement", newsletter: "Newsletter", cta: "Call-out", footer: "Footer", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Process", team: "Team", logos: "Clients", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", richtext: "Text", banner: "Announcement", newsletter: "Newsletter", cta: "Call-out", footer: "Footer", contact: "Contact", form: "Form" },
     add: "Add",
     panelReady: "Done?",
     readyText:
@@ -1026,6 +1028,16 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
       return { title: p.ctaTitle2, text: p.ctaText2, button: p.ctaBtn2 };
     case "contact":
       return { title: p.contactTitle, emailAddr: "", phone: "", address: "" };
+    case "form":
+      return {
+        title: p.contactTitle,
+        button: p.send,
+        items: [
+          { label: p.name, type: "text" },
+          { label: p.email, type: "email" },
+          { label: p.message, type: "textarea" },
+        ],
+      };
   }
 }
 
@@ -1034,6 +1046,7 @@ const itemTemplate: Partial<Record<SectionKind, Record<string, string>>> = {
   steps: { title: "", desc: "" },
   team: { title: "", desc: "" },
   logos: { title: "" },
+  form: { label: "", type: "text" },
   stats: { value: "", label: "" },
   testimonials: { quote: "", who: "" },
   pricing: { name: "", price: "", per: "" },
@@ -4026,6 +4039,88 @@ function SectionEditor({
     );
   }
 
+  if (section.kind === "form") {
+    const types: { v: string; nl: string; fr: string; en: string }[] = [
+      { v: "text", nl: "Tekst", fr: "Texte", en: "Text" },
+      { v: "email", nl: "E-mail", fr: "E-mail", en: "Email" },
+      { v: "tel", nl: "Telefoon", fr: "Téléphone", en: "Phone" },
+      { v: "number", nl: "Getal", fr: "Nombre", en: "Number" },
+      { v: "date", nl: "Datum", fr: "Date", en: "Date" },
+      { v: "textarea", nl: "Tekstvak", fr: "Zone de texte", en: "Textarea" },
+    ];
+    return (
+      <div className="space-y-3">
+        <Txt
+          label={f.title}
+          value={str("title")}
+          onChange={(v) => set("title", v)}
+        />
+        <Txt
+          label={c.preview.send}
+          value={str("button")}
+          onChange={(v) => set("button", v)}
+        />
+        {items.map((it, idx) => (
+          <div key={idx} className="rounded-lg border p-2.5">
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                #{idx + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => setItems(items.filter((_, j) => j !== idx))}
+                className="rounded p-0.5 text-muted hover:text-red-500"
+                aria-label="x"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </div>
+            <Txt
+              label="Label"
+              value={it.label ?? ""}
+              onChange={(v) =>
+                setItems(
+                  items.map((x, j) =>
+                    j === idx ? { ...x, label: v } : x,
+                  ),
+                )
+              }
+            />
+            <select
+              value={it.type ?? "text"}
+              onChange={(e) =>
+                setItems(
+                  items.map((x, j) =>
+                    j === idx ? { ...x, type: e.target.value } : x,
+                  ),
+                )
+              }
+              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+            >
+              {types.map((tp) => (
+                <option key={tp.v} value={tp.v}>
+                  {tp.nl}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        {items.length < 12 && (
+          <button
+            type="button"
+            onClick={() =>
+              setItems([...items, { label: "", type: "text" }])
+            }
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] text-muted hover:bg-card-hover hover:text-foreground"
+          >
+            <Plus className="h-3 w-3" strokeWidth={2.5} />
+            {c.addItem}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   // list-based: features, stats, testimonials, pricing, faq
   const itemFieldLabel: Record<string, Record<string, string>> = {
     features: { title: f.itemTitle, desc: f.itemDesc },
@@ -6074,5 +6169,53 @@ function PreviewSection({
           </div>
         </div>
       );
+    case "form": {
+      const fields = Array.isArray(data.items)
+        ? (data.items as Record<string, string>[])
+        : [];
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <h3 className="text-center text-xl font-semibold tracking-tight">
+            <E
+              value={g("title", p.contactTitle)}
+              onChange={(v) => edit({ title: v })}
+            />
+          </h3>
+          <div className="mx-auto mt-6 max-w-md space-y-3 text-xs">
+            {fields.map((fl, i) => (
+              <div key={i}>
+                <label className="mb-1 block opacity-70">
+                  {fl.label || `Veld ${i + 1}`}
+                </label>
+                {fl.type === "textarea" ? (
+                  <textarea
+                    rows={3}
+                    readOnly
+                    className="w-full rounded border bg-transparent px-3 py-2"
+                    style={border}
+                  />
+                ) : (
+                  <input
+                    type={fl.type || "text"}
+                    readOnly
+                    className="w-full rounded border bg-transparent px-3 py-2"
+                    style={border}
+                  />
+                )}
+              </div>
+            ))}
+            <button
+              className="bldr-btn w-full rounded-full px-4 py-2 text-xs font-medium"
+              style={{ background: theme.accent, color: theme.bg }}
+            >
+              <E
+                value={g("button", p.send)}
+                onChange={(v) => edit({ button: v })}
+              />
+            </button>
+          </div>
+        </div>
+      );
+    }
   }
 }

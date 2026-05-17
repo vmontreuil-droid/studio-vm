@@ -670,6 +670,32 @@ function BlockView({
           </p>
         </div>
       );
+    case "form": {
+      const ff = arr(d.items);
+      return (
+        <div className="border-t px-6 py-10" style={border}>
+          <H>{s(d.title)}</H>
+          <div className="mx-auto mt-4 max-w-md space-y-2 text-xs">
+            {ff.map((fl, i) => (
+              <div key={i}>
+                <span className="opacity-60">
+                  {String(fl.label || `Veld ${i + 1}`)}
+                </span>
+                <span className="ml-1 opacity-40">
+                  ({String(fl.type || "text")})
+                </span>
+              </div>
+            ))}
+            <span
+              className="mt-2 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
+              style={{ background: accent, color: bg }}
+            >
+              {s(d.button) || "Versturen"}
+            </span>
+          </div>
+        </div>
+      );
+    }
     case "richtext":
       return (
         <div className="border-t px-6 py-10" style={border}>
