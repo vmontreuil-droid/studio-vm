@@ -10,6 +10,7 @@ type SnapPage = {
   sections?: Block[];
   seoTitle?: string;
   seoDesc?: string;
+  icon?: string;
 };
 type Snap = {
   businessName?: string;
@@ -19,6 +20,8 @@ type Snap = {
     | { bg?: string; fg?: string; accent?: string }
     | null;
   radius?: string;
+  logo?: string;
+  header?: Record<string, unknown>;
   pages?: SnapPage[];
 };
 
@@ -195,26 +198,88 @@ export function BuilderRender({ snap }: { snap: Snap }) {
             style={{ background: bg, color: fg, borderRadius: rad }}
           >
             {/* nav / menu */}
-            <nav
-              className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-6 py-3"
-              style={{ borderColor: soft }}
-            >
-              <span className="text-sm font-semibold">{businessName}</span>
-              <span className="ml-auto flex flex-wrap gap-x-4 text-xs">
-                {snap.pages!.map((pp, j) => (
-                  <span
-                    key={j}
-                    style={{
-                      color: pp.name === page.name ? accent : fg,
-                      opacity: pp.name === page.name ? 1 : 0.6,
-                      fontWeight: pp.name === page.name ? 600 : 400,
-                    }}
-                  >
-                    {pp.name || `#${j + 1}`}
+            {(() => {
+              const H = (snap.header || {}) as Record<string, unknown>;
+              const hStr = (k: string) =>
+                typeof H[k] === "string" ? (H[k] as string) : "";
+              const hOn = (k: string, def = false) =>
+                H[k] === undefined ? def : H[k] === 1 || H[k] === true;
+              const hFg = hStr("fg") || fg;
+              const pad =
+                hStr("pad") === "compact"
+                  ? "8px 24px"
+                  : hStr("pad") === "ruim"
+                    ? "22px 24px"
+                    : "14px 24px";
+              const logoH =
+                typeof H.logoSz === "number" ? (H.logoSz as number) : 32;
+              const upper = hOn("upper");
+              const ctaTxt = hStr("ctaText");
+              return (
+                <nav
+                  className="flex flex-wrap items-center gap-x-5 gap-y-2"
+                  style={{
+                    padding: pad,
+                    color: hFg,
+                    background: hStr("bg") || undefined,
+                    borderBottom: hOn("border", true)
+                      ? `1px solid ${soft}`
+                      : undefined,
+                    boxShadow: hOn("shadow")
+                      ? "0 6px 20px rgba(0,0,0,.10)"
+                      : undefined,
+                  }}
+                >
+                  <span className="flex shrink-0 items-center text-sm font-semibold">
+                    {snap.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={snap.logo}
+                        alt={businessName}
+                        style={{ height: logoH, width: "auto" }}
+                        className="object-contain"
+                      />
+                    ) : (
+                      businessName
+                    )}
                   </span>
-                ))}
-              </span>
-            </nav>
+                  <span className="ml-auto flex flex-wrap items-center gap-x-4 text-xs">
+                    {snap.pages!.map((pp, j) => (
+                      <span
+                        key={j}
+                        style={{
+                          color: pp.name === page.name ? accent : hFg,
+                          opacity: pp.name === page.name ? 1 : 0.6,
+                          fontWeight: pp.name === page.name ? 600 : 400,
+                          textTransform: upper ? "uppercase" : undefined,
+                          letterSpacing: upper ? "0.06em" : undefined,
+                        }}
+                      >
+                        {pp.name || `#${j + 1}`}
+                      </span>
+                    ))}
+                    {ctaTxt && (
+                      <span
+                        style={{
+                          background: hStr("ctaColor") || accent,
+                          color: hStr("ctaTxtColor") || bg,
+                          borderRadius:
+                            hStr("ctaShape") === "recht"
+                              ? 2
+                              : hStr("ctaShape") === "zacht"
+                                ? 12
+                                : 9999,
+                          padding: "6px 14px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {ctaTxt}
+                      </span>
+                    )}
+                  </span>
+                </nav>
+              );
+            })()}
 
             {blocksOf(page).map((b, bi) => {
               const bd = (b.data as Record<string, unknown>) || {};

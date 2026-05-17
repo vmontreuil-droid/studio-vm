@@ -133,6 +133,7 @@ type Page = {
   sections: Section[];
   seoTitle?: string;
   seoDesc?: string;
+  icon?: string;
 };
 
 const PG: Record<
@@ -1106,6 +1107,7 @@ export type BuilderSnapshot = {
   navAlign?: "left" | "center" | "right";
   btnShape?: "rond" | "zacht" | "recht";
   btnColor?: string;
+  header?: Record<string, unknown>;
   pages?: Page[];
   activeId?: string;
   locale?: string;
@@ -1139,6 +1141,16 @@ export default function BuilderPage({
     "rond",
   );
   const [btnColor, setBtnColor] = useState("");
+  const [header, setHeader] = useState<Record<string, unknown>>({});
+  const hset = (k: string, v: unknown) =>
+    setHeader((h) => ({ ...h, [k]: v }));
+  const hs = (k: string, fb = "") => {
+    const v = header[k];
+    return v == null || v === "" ? fb : String(v);
+  };
+  const hn = (k: string, fb: number) =>
+    typeof header[k] === "number" ? (header[k] as number) : fb;
+  const hb = (k: string) => header[k] === 1 || header[k] === true;
   const [images, setImages] = useState<string[]>([]);
   const pg = PG[locale];
   const [pages, setPages] = useState<Page[]>(() => [
@@ -1312,6 +1324,8 @@ export default function BuilderPage({
         if (d.navAlign) setNavAlign(d.navAlign);
         if (d.btnShape) setBtnShape(d.btnShape);
         if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
+        if (d.header && typeof d.header === "object")
+          setHeader(d.header as Record<string, unknown>);
         if (d.pages && d.pages.length) {
           syncId(d.pages);
           setPages(d.pages);
@@ -1341,6 +1355,7 @@ export default function BuilderPage({
           navAlign,
           btnShape,
           btnColor,
+          header,
           pages,
           activeId,
         }),
@@ -1351,7 +1366,7 @@ export default function BuilderPage({
     } catch {
       /* quota → stil negeren */
     }
-  }, [hydrated, businessName, theme, font, radius, align, scale, logo, navAlign, btnShape, btnColor, pages, activeId]);
+  }, [hydrated, businessName, theme, font, radius, align, scale, logo, navAlign, btnShape, btnColor, header, pages, activeId]);
 
   // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
   // klant op elk toestel kan hervatten en jij elke versie ziet.
@@ -1371,6 +1386,7 @@ export default function BuilderPage({
         navAlign,
         btnShape,
         btnColor,
+        header,
         pages,
         activeId,
         locale,
@@ -1393,6 +1409,7 @@ export default function BuilderPage({
     navAlign,
     btnShape,
     btnColor,
+    header,
     pages,
     activeId,
   ]);
@@ -1454,6 +1471,7 @@ export default function BuilderPage({
     setScale(1);
     setLogo("");
     setNavAlign("left");
+    setHeader({});
     setBtnShape("rond");
     setBtnColor("");
     setImages([]);
@@ -2820,6 +2838,286 @@ export default function BuilderPage({
               </div>
             </Panel>
 
+            <Panel
+              icon={<Pencil className="h-4 w-4" />}
+              title={
+                locale === "fr"
+                  ? "En-tête"
+                  : locale === "en"
+                    ? "Header"
+                    : "Header"
+              }
+            >
+              {(() => {
+                const HL =
+                  locale === "fr"
+                    ? {
+                        bg: "Fond",
+                        fg: "Couleur texte",
+                        border: "Ligne en bas",
+                        shadow: "Ombre",
+                        blur: "Verre dépoli",
+                        sticky: "Fixe au défilement",
+                        pad: "Hauteur",
+                        compact: "Compact",
+                        normal: "Normal",
+                        roomy: "Grand",
+                        logoSz: "Taille du logo",
+                        upper: "MAJUSCULES menu",
+                        cta: "Bouton (vide = aucun)",
+                        ctaC: "Couleur bouton",
+                        ctaT: "Texte bouton",
+                        ctaL: "Lien bouton (URL)",
+                        shape: "Forme",
+                        soft: "Doux",
+                        round: "Rond",
+                        sharp: "Droit",
+                        icons: "Icônes du menu",
+                      }
+                    : locale === "en"
+                      ? {
+                          bg: "Background",
+                          fg: "Text colour",
+                          border: "Bottom line",
+                          shadow: "Shadow",
+                          blur: "Frosted glass",
+                          sticky: "Sticky on scroll",
+                          pad: "Height",
+                          compact: "Compact",
+                          normal: "Normal",
+                          roomy: "Roomy",
+                          logoSz: "Logo size",
+                          upper: "UPPERCASE menu",
+                          cta: "Button (empty = none)",
+                          ctaC: "Button colour",
+                          ctaT: "Button text colour",
+                          ctaL: "Button link (URL)",
+                          shape: "Shape",
+                          soft: "Soft",
+                          round: "Round",
+                          sharp: "Square",
+                          icons: "Menu icons",
+                        }
+                      : {
+                          bg: "Achtergrond",
+                          fg: "Tekstkleur",
+                          border: "Lijn onderaan",
+                          shadow: "Schaduw",
+                          blur: "Matglas",
+                          sticky: "Vast bij scrollen",
+                          pad: "Hoogte",
+                          compact: "Compact",
+                          normal: "Normaal",
+                          roomy: "Ruim",
+                          logoSz: "Logo-grootte",
+                          upper: "HOOFDLETTERS menu",
+                          cta: "Knop (leeg = geen)",
+                          ctaC: "Knopkleur",
+                          ctaT: "Tekstkleur knop",
+                          ctaL: "Knop-link (URL)",
+                          shape: "Vorm",
+                          soft: "Zacht",
+                          round: "Rond",
+                          sharp: "Recht",
+                          icons: "Menu-iconen",
+                        };
+                const Toggle = ({
+                  k,
+                  label,
+                  def,
+                }: {
+                  k: string;
+                  label: string;
+                  def?: boolean;
+                }) => {
+                  const on =
+                    header[k] === undefined
+                      ? !!def
+                      : header[k] === 1 || header[k] === true;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => hset(k, on ? 0 : 1)}
+                      className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                        on
+                          ? "border-accent bg-accent/10 text-foreground"
+                          : "border-border text-muted hover:bg-card-hover"
+                      }`}
+                    >
+                      {on ? "✓ " : ""}
+                      {label}
+                    </button>
+                  );
+                };
+                const Col = ({
+                  k,
+                  label,
+                  fb,
+                }: {
+                  k: string;
+                  label: string;
+                  fb: string;
+                }) => (
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 text-[11px] text-muted">
+                      {label}
+                    </span>
+                    <input
+                      type="color"
+                      value={hs(k) || fb}
+                      onChange={(e) => hset(k, e.target.value)}
+                      className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+                    />
+                    {hs(k) && (
+                      <button
+                        type="button"
+                        onClick={() => hset(k, "")}
+                        className="font-mono text-[10px] text-muted underline"
+                      >
+                        reset
+                      </button>
+                    )}
+                  </div>
+                );
+                return (
+                  <div className="space-y-2">
+                    <Col k="bg" label={HL.bg} fb={theme.bg} />
+                    <Col k="fg" label={HL.fg} fb={theme.fg} />
+                    <div className="flex flex-wrap gap-1.5">
+                      <Toggle k="border" label={HL.border} def />
+                      <Toggle k="shadow" label={HL.shadow} />
+                      <Toggle k="blur" label={HL.blur} />
+                      <Toggle k="sticky" label={HL.sticky} />
+                      <Toggle k="upper" label={HL.upper} />
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {HL.pad}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {(
+                        [
+                          ["compact", HL.compact],
+                          ["", HL.normal],
+                          ["ruim", HL.roomy],
+                        ] as const
+                      ).map(([val, lbl]) => {
+                        const cur = (hs("pad") || "") === val;
+                        return (
+                          <button
+                            key={val || "n"}
+                            type="button"
+                            onClick={() => hset("pad", val)}
+                            className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                              cur
+                                ? "border-accent bg-accent/10 text-foreground"
+                                : "border-border text-muted hover:bg-card-hover"
+                            }`}
+                          >
+                            {lbl}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex-1 text-[11px] text-muted">
+                        {HL.logoSz}
+                      </span>
+                      <input
+                        type="range"
+                        min={18}
+                        max={72}
+                        step={2}
+                        value={hn("logoSz", 32)}
+                        onChange={(e) =>
+                          hset("logoSz", Number(e.target.value))
+                        }
+                        className="h-1 w-28 cursor-pointer accent-accent"
+                      />
+                      <span className="w-7 text-right font-mono text-[11px] tabular-nums">
+                        {hn("logoSz", 32)}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {HL.icons}
+                    </p>
+                    <div className="space-y-1.5">
+                      {pages.map((pg) => (
+                        <div
+                          key={pg.id}
+                          className="flex items-center gap-2"
+                        >
+                          <span className="flex-1 truncate text-[11px]">
+                            {pg.name}
+                          </span>
+                          <IconField
+                            value={pg.icon || ""}
+                            onPick={(k) =>
+                              setPages((ps) =>
+                                ps.map((x) =>
+                                  x.id === pg.id ? { ...x, icon: k } : x,
+                                ),
+                              )
+                            }
+                            accent={theme.accent}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {HL.cta}
+                    </p>
+                    <input
+                      value={hs("ctaText")}
+                      onChange={(e) => hset("ctaText", e.target.value)}
+                      placeholder={HL.cta}
+                      className="w-full rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-accent"
+                    />
+                    {hs("ctaText") && (
+                      <>
+                        <input
+                          value={hs("ctaLink")}
+                          onChange={(e) => hset("ctaLink", e.target.value)}
+                          placeholder={HL.ctaL}
+                          className="w-full rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-accent"
+                        />
+                        <Col k="ctaColor" label={HL.ctaC} fb={theme.accent} />
+                        <Col
+                          k="ctaTxtColor"
+                          label={HL.ctaT}
+                          fb={theme.bg}
+                        />
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {(
+                            [
+                              ["zacht", HL.soft],
+                              ["rond", HL.round],
+                              ["recht", HL.sharp],
+                            ] as const
+                          ).map(([val, lbl]) => {
+                            const cur = (hs("ctaShape") || "rond") === val;
+                            return (
+                              <button
+                                key={val}
+                                type="button"
+                                onClick={() => hset("ctaShape", val)}
+                                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                                  cur
+                                    ? "border-accent bg-accent/10 text-foreground"
+                                    : "border-border text-muted hover:bg-card-hover"
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+            </Panel>
+
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.bizName}
@@ -4095,51 +4393,114 @@ export default function BuilderPage({
                 }`}
               >
               <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-frame [data-fw="1"] [class*="max-w-"]{max-width:100%!important}.bldr-frame [data-fw="1"] [class*="px-8"]{padding-left:1.25rem!important;padding-right:1.25rem!important}`}</style>
-              <nav
-                className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
-                style={{ borderColor: `${theme.fg}1a` }}
-              >
-                <span className="flex shrink-0 items-center text-sm font-semibold tracking-tight">
-                  {logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={logo}
-                      alt={businessName}
-                      className="h-8 w-auto object-contain"
-                    />
-                  ) : (
-                    businessName
-                  )}
-                </span>
-                <span
-                  className={`flex flex-wrap gap-x-4 gap-y-1 text-xs ${
-                    navAlign === "center"
-                      ? "mx-auto"
-                      : navAlign === "left"
-                        ? "ml-6"
-                        : "ml-auto"
-                  }`}
-                >
-                  {pages.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        setActiveId(p.id);
-                        setOpenId(null);
-                      }}
-                      className="transition-opacity hover:opacity-100"
-                      style={{
-                        opacity: p.id === active.id ? 1 : 0.55,
-                        color: p.id === active.id ? theme.accent : theme.fg,
-                        fontWeight: p.id === active.id ? 600 : 400,
-                      }}
+              {(() => {
+                const hPad =
+                  hs("pad") === "compact"
+                    ? "py-2"
+                    : hs("pad") === "ruim"
+                      ? "py-6"
+                      : "py-4";
+                const hFg = hs("fg") || theme.fg;
+                const hBg = hs("bg") || "transparent";
+                const noBorder = header.border === 0 || header.border === false;
+                const logoH = hn("logoSz", 32);
+                const upper = hb("upper");
+                const ctaTxt = hs("ctaText");
+                const ctaShape =
+                  hs("ctaShape") === "recht"
+                    ? "2px"
+                    : hs("ctaShape") === "zacht"
+                      ? "12px"
+                      : "9999px";
+                return (
+                  <nav
+                    className={`flex flex-wrap items-center gap-x-5 gap-y-2 px-8 ${hPad} ${
+                      noBorder ? "" : "border-b"
+                    } ${hb("sticky") ? "sticky top-0 z-20" : ""}`}
+                    style={{
+                      borderColor: `${theme.fg}1a`,
+                      background: hBg,
+                      color: hFg,
+                      backdropFilter: hb("blur")
+                        ? "blur(8px)"
+                        : undefined,
+                      boxShadow: hb("shadow")
+                        ? "0 6px 20px rgba(0,0,0,.10)"
+                        : undefined,
+                    }}
+                  >
+                    <span
+                      className="flex shrink-0 items-center font-semibold tracking-tight"
+                      style={{ fontSize: 14 }}
                     >
-                      {p.name}
-                    </button>
-                  ))}
-                </span>
-              </nav>
+                      {logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={logo}
+                          alt={businessName}
+                          className="w-auto object-contain"
+                          style={{ height: logoH }}
+                        />
+                      ) : (
+                        businessName
+                      )}
+                    </span>
+                    <span
+                      className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs ${
+                        navAlign === "center"
+                          ? "mx-auto"
+                          : navAlign === "left"
+                            ? "ml-6"
+                            : "ml-auto"
+                      }`}
+                    >
+                      {pages.map((p) => {
+                        const PI =
+                          p.icon && ICONS[p.icon] ? ICONS[p.icon] : null;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveId(p.id);
+                              setOpenId(null);
+                            }}
+                            className="inline-flex items-center gap-1 transition-opacity hover:opacity-100"
+                            style={{
+                              opacity: p.id === active.id ? 1 : 0.55,
+                              color:
+                                p.id === active.id ? theme.accent : hFg,
+                              fontWeight: p.id === active.id ? 600 : 400,
+                              textTransform: upper ? "uppercase" : undefined,
+                              letterSpacing: upper ? "0.06em" : undefined,
+                            }}
+                          >
+                            {PI && (
+                              <PI
+                                strokeWidth={2}
+                                style={{ width: 13, height: 13 }}
+                              />
+                            )}
+                            {p.name}
+                          </button>
+                        );
+                      })}
+                    </span>
+                    {ctaTxt && (
+                      <span
+                        className="bldr-btn ml-3 shrink-0 px-3.5 py-1.5 text-xs font-medium"
+                        style={{
+                          background: hs("ctaColor") || theme.accent,
+                          color: hs("ctaTxtColor") || theme.bg,
+                          borderRadius: ctaShape,
+                        }}
+                      >
+                        {ctaTxt}
+                      </span>
+                    )}
+                  </nav>
+                );
+              })()}
               {sections.length === 0 ? (
                 <div className="flex h-[600px] flex-col items-center justify-center gap-3 p-8 text-center text-muted">
                   <Layers className="h-12 w-12" strokeWidth={1} />
