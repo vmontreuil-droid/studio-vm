@@ -252,21 +252,33 @@ export async function toggleChecklistItem(
   return;
 }
 
-export async function upgradeSubscription(slug: string): Promise<void> {
+export async function upgradeSubscription(
+  slug: string,
+  formData?: FormData,
+): Promise<void> {
   const email = await authedEmail();
   if (!email) return;
-  const tier = subscriptionTiers().find((s) => s.slug === slug);
+  const tiers = subscriptionTiers();
+  const tier = tiers.find((s) => s.slug === slug);
   if (!tier) return;
+  const rawLoc = String(formData?.get("locale") ?? "nl");
+  const loc: "nl" | "fr" | "en" =
+    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
 
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("subscriptions")
-    .select("id")
+    .select("id, plan, price_cents")
     .eq("client_email", email)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const row = data as { id: string } | null;
+  const row = data as
+    | { id: string; plan: string; price_cents: number }
+    | null;
+  const prevTier =
+    tiers.find((tt) => tt.name === row?.plan) ??
+    tiers.find((tt) => tt.cents === row?.price_cents);
 
   const payload = {
     client_email: email,
@@ -278,17 +290,152 @@ export async function upgradeSubscription(slug: string): Promise<void> {
   if (row) await db.from("subscriptions").update(payload).eq("id", row.id);
   else await db.from("subscriptions").insert(payload);
 
-  await notifyStudio(`Abonnement-upgrade — ${email}`, [
-    `<strong>${email}</strong> wijzigde zijn onderhoudsabonnement naar <strong>${tier.name}</strong> (€ ${(
+  const gained = tier.features.filter(
+    (f) => !(prevTier?.features ?? []).includes(f),
+  );
+  const lost = (prevTier?.features ?? []).filter(
+    (f) => !tier.features.includes(f),
+  );
+  const delta = tier.cents - (prevTier?.cents ?? 0);
+
+  await notifyStudio(`Abonnement-wijziging — ${email}`, [
+    `<strong>${email}</strong> wijzigde van <strong>${
+      prevTier?.name ?? row?.plan ?? "—"
+    }</strong> naar <strong>${tier.name}</strong> (€ ${(
       tier.cents / 100
     ).toFixed(2)}/maand).`,
-    "De maandfactuur wordt vanaf nu op dit bedrag aangepast.",
+    "De maandfactuur wordt vanaf de volgende periode aangepast.",
   ]);
+
+  // Magic-link zodat de klant meteen in zijn portaal kan.
+  let portalUrl = `${siteUrl}/${loc}/portail`;
+  try {
+    const gen = await db.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+    const hashed = gen.data?.properties?.hashed_token;
+    if (!gen.error && hashed) {
+      portalUrl = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+        hashed,
+      )}&type=magiclink&next=${encodeURIComponent(
+        `/${loc}/portail/dashboard/abonnement`,
+      )}`;
+    }
+  } catch {
+    /* val terug op portaal-login */
+  }
+
+  const eur = (c: number) =>
+    "€ " +
+    (c / 100).toLocaleString("nl-BE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  const accent = "#e08214";
+  const font =
+    "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const TR = {
+    nl: {
+      subject: `Je onderhoudsabonnement is nu ${tier.name}`,
+      hi: "Dag,",
+      intro: `Je hebt je onderhoudsabonnement gewijzigd van <strong>${
+        prevTier?.name ?? "—"
+      }</strong> naar <strong>${tier.name}</strong> — meteen actief. Je maandfactuur wordt vanaf de volgende periode aangepast.`,
+      from: "Vorig",
+      to: "Nieuw",
+      deltaUp: "per maand méér",
+      deltaDown: "per maand minder",
+      deltaSame: "zelfde maandbedrag",
+      gain: "Wat je erbij krijgt",
+      lose: "Wat je verliest",
+      none: "—",
+      cta: "Open je klantenportaal",
+      reassure:
+        "Vragen? Antwoord gerust gewoon op deze mail — je krijgt mij, geen bot.",
+      sign: "Tot snel,<br>Vincent — Studio VM",
+      terms: `Onze <a href="${siteUrl}/${loc}/voorwaarden" style="color:${accent}">algemene voorwaarden</a> en <a href="${siteUrl}/${loc}/privacy" style="color:${accent}">privacyverklaring</a> blijven van toepassing.`,
+    },
+    fr: {
+      subject: `Votre abonnement de maintenance est maintenant ${tier.name}`,
+      hi: "Bonjour,",
+      intro: `Vous avez changé votre abonnement de maintenance de <strong>${
+        prevTier?.name ?? "—"
+      }</strong> à <strong>${tier.name}</strong> — actif immédiatement. Votre facture mensuelle est adaptée dès la période suivante.`,
+      from: "Ancien",
+      to: "Nouveau",
+      deltaUp: "de plus par mois",
+      deltaDown: "de moins par mois",
+      deltaSame: "même montant mensuel",
+      gain: "Ce que vous gagnez",
+      lose: "Ce que vous perdez",
+      none: "—",
+      cta: "Ouvrir votre espace client",
+      reassure:
+        "Une question ? Répondez simplement à cet e-mail — vous m'avez, moi, pas un bot.",
+      sign: "À bientôt,<br>Vincent — Studio VM",
+      terms: `Nos <a href="${siteUrl}/${loc}/voorwaarden" style="color:${accent}">conditions générales</a> et notre <a href="${siteUrl}/${loc}/privacy" style="color:${accent}">politique de confidentialité</a> restent d'application.`,
+    },
+    en: {
+      subject: `Your maintenance subscription is now ${tier.name}`,
+      hi: "Hi,",
+      intro: `You changed your maintenance subscription from <strong>${
+        prevTier?.name ?? "—"
+      }</strong> to <strong>${tier.name}</strong> — effective immediately. Your monthly invoice adjusts from the next period.`,
+      from: "Previous",
+      to: "New",
+      deltaUp: "more per month",
+      deltaDown: "less per month",
+      deltaSame: "same monthly amount",
+      gain: "What you gain",
+      lose: "What you lose",
+      none: "—",
+      cta: "Open your client portal",
+      reassure:
+        "A question? Just reply to this email — you get me, not a bot.",
+      sign: "Talk soon,<br>Vincent — Studio VM",
+      terms: `Our <a href="${siteUrl}/${loc}/voorwaarden" style="color:${accent}">general terms</a> and <a href="${siteUrl}/${loc}/privacy" style="color:${accent}">privacy policy</a> still apply.`,
+    },
+  }[loc];
+
+  const list = (items: string[]) =>
+    items.length
+      ? `<ul style="margin:8px 0 0;padding-left:18px;font:400 14px/1.6 ${font};color:#44403c">${items
+          .map((f) => `<li style="margin:0 0 4px">${f}</li>`)
+          .join("")}</ul>`
+      : `<p style="margin:8px 0 0;font:400 14px/1.6 ${font};color:#78716c">${TR.none}</p>`;
+  const deltaTxt =
+    delta === 0
+      ? TR.deltaSame
+      : `${eur(Math.abs(delta))} ${delta > 0 ? TR.deltaUp : TR.deltaDown}`;
+
   await sendMail(email, {
-    subject: `Je abonnement is nu ${tier.name}`,
-    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">Je onderhoudsabonnement is gewijzigd naar <strong>${tier.name}</strong> — € ${(
-      tier.cents / 100
-    ).toFixed(2)}/maand, meteen actief.</p><p style="margin:0 0 8px">Je maandelijkse factuur wordt vanaf de volgende periode op dit bedrag aangepast.</p></div>`,
+    subject: TR.subject,
+    html: `<!DOCTYPE html><html lang="${loc}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0a09">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
+  <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;padding:38px 36px">
+    <p style="margin:0 0 22px;font:800 40px/1 ${font};letter-spacing:-2px;color:#1c1917">vm<span style="color:${accent}">.</span><span style="display:inline-block;margin-left:12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.22em;color:#a8a29e;vertical-align:middle">STUDIO&nbsp;VM</span></p>
+    <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${TR.subject}</p>
+    <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${font};color:#1c1917">${TR.hi}</h1>
+    <p style="margin:0 0 24px;font:400 15px/1.65 ${font};color:#44403c">${TR.intro}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:18px 22px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>
+        <tr><td style="padding:6px 18px 6px 0;font:400 13px/1.5 ${font};color:#78716c">${TR.from}</td><td style="padding:6px 0;font:600 14px/1.5 ${font};color:#1c1917">${prevTier?.name ?? "—"} · ${eur(prevTier?.cents ?? 0)}</td></tr>
+        <tr><td style="padding:6px 18px 6px 0;font:400 13px/1.5 ${font};color:#78716c">${TR.to}</td><td style="padding:6px 0;font:700 14px/1.5 ${font};color:#1c1917">${tier.name} · ${eur(tier.cents)}</td></tr>
+        <tr><td style="padding:6px 18px 6px 0;font:400 13px/1.5 ${font};color:#78716c">Δ</td><td style="padding:6px 0;font:600 14px/1.5 ${font};color:${accent}">${deltaTxt}</td></tr>
+      </tbody></table>
+    </td></tr></table>
+    <p style="margin:24px 0 0;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#16a34a">+ ${TR.gain}</p>${list(gained)}
+    <p style="margin:20px 0 0;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#dc2626">− ${TR.lose}</p>${list(lost)}
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:26px;border-collapse:separate"><tr><td bgcolor="${accent}" style="background:${accent}"><a href="${portalUrl}" style="display:inline-block;padding:14px 28px;font:700 14px/1 ${font};color:#ffffff;text-decoration:none">${TR.cta} &nbsp;→</a></td></tr></table>
+    <p style="margin:24px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.reassure}</p>
+    <p style="margin:22px 0 0;font:400 15px/1.6 ${font};color:#1c1917">${TR.sign}</p>
+    <p style="margin:24px 0 0;padding-top:18px;border-top:1px solid #e7e5e4;font:400 12px/1.6 ${font};color:#78716c">${TR.terms}</p>
+  </td></tr>
+  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">Studio VM · Vincent Montreuil · Nieuwpoortstraat 14-301, 8570 Anzegem · info@studio-vm.be · BE 0672.960.066</td></tr>
+</table></td></tr></table></body></html>`,
   }).catch(() => {});
 
   revalidatePath("/[locale]/portail/dashboard", "page");
