@@ -1635,7 +1635,7 @@ export default function BuilderPage({
           className={
             designId
               ? "grid w-full gap-6 px-4 py-6 lg:grid-cols-[360px_1fr] xl:px-8"
-              : "mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[340px_1fr]"
+              : "grid w-full gap-6 px-4 py-8 lg:grid-cols-[360px_1fr] xl:px-8"
           }
         >
           <aside

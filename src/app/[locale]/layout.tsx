@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n";
@@ -8,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
 import { ShortcutsOverlay } from "@/components/shortcuts-overlay";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/json-ld";
+import { SiteChrome } from "@/components/site-chrome";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -52,30 +52,23 @@ export default async function LocaleLayout({
   if (!isValidLocale(locale)) notFound();
   const typedLocale: Locale = locale;
 
-  const h = await headers();
-  const path = h.get("x-pathname") ?? "";
-  // Klantportaal = schone app-omgeving: geen marketing-header/-footer.
-  const isPortal = /\/portail(\/|$)/.test(path);
-
-  if (isPortal) {
-    return (
-      <div id="main" className="flex min-h-dvh flex-col">
-        {children}
-      </div>
-    );
-  }
-
+  // Header/footer-keuze gebeurt client-side (SiteChrome) op basis van
+  // het live pad; een gedeelde server-layout re-rendert niet bij
+  // client-navigatie, waardoor de chrome anders bleef hangen.
   return (
-    <>
-      <OrganizationJsonLd />
-      <WebsiteJsonLd locale={typedLocale} />
-      <SiteHeader locale={typedLocale} />
-      <div id="main" className="flex-1">
-        {children}
-      </div>
-      <SiteFooter locale={typedLocale} />
-      <CookieBanner />
-      <ShortcutsOverlay locale={typedLocale} />
-    </>
+    <SiteChrome
+      header={<SiteHeader locale={typedLocale} />}
+      footer={<SiteFooter locale={typedLocale} />}
+      extras={
+        <>
+          <OrganizationJsonLd />
+          <WebsiteJsonLd locale={typedLocale} />
+          <CookieBanner />
+          <ShortcutsOverlay locale={typedLocale} />
+        </>
+      }
+    >
+      {children}
+    </SiteChrome>
   );
 }
