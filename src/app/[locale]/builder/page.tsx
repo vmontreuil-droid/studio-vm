@@ -6,9 +6,12 @@ import { submitBuild } from "@/app/actions/build-lead";
 import { saveDesign, sendDesign } from "@/app/actions/builder-designs";
 import {
   buildPreset,
+  buildSiteScaffold,
   SECTOR_LABELS,
   TONE_LABELS,
+  PAGE_LABELS,
   type SectorKey,
+  type PageKey,
 } from "@/lib/builder-presets";
 import { useParams } from "next/navigation";
 import {
@@ -888,6 +891,12 @@ export default function BuilderPage({
   const [dragIx, setDragIx] = useState<number | null>(null);
   const [sector, setSector] = useState<SectorKey>("services");
   const [tone, setTone] = useState<"warm" | "zakelijk" | "speels">("warm");
+  const [pageSel, setPageSel] = useState<PageKey[]>([
+    "home",
+    "about",
+    "offer",
+    "contact",
+  ]);
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
@@ -1106,6 +1115,46 @@ export default function BuilderPage({
         return { ...sec, data: data as SectionData };
       }),
     );
+  };
+
+  // Volledige site bouwen vanuit de survey (vervangt de pagina's).
+  const buildFullSite = () => {
+    const warn =
+      locale === "fr"
+        ? "Ceci remplace toutes les pages actuelles par un site exemple. Continuer ?"
+        : locale === "en"
+          ? "This replaces all current pages with an example site. Continue?"
+          : "Dit vervangt alle huidige pagina's door een voorbeeldsite. Doorgaan?";
+    if (
+      pages.some((pp) => pp.sections.length > 0) &&
+      !window.confirm(warn)
+    )
+      return;
+    const scaff = buildSiteScaffold(
+      sector,
+      tone,
+      locale,
+      businessName ||
+        (locale === "fr"
+          ? "Mon Affaire"
+          : locale === "en"
+            ? "My Business"
+            : "Mijn Zaak"),
+      pageSel,
+    );
+    if (!scaff.length) return;
+    const np: Page[] = scaff.map((sp) => ({
+      id: uid(),
+      name: sp.name,
+      sections: sp.sections.map((s) => ({
+        id: uid(),
+        kind: s.kind as SectionKind,
+        data: s.data as SectionData,
+      })),
+    }));
+    setPages(np);
+    setActiveId(np[0].id);
+    setOpenId(null);
   };
 
   const addPage = () => {
@@ -1349,12 +1398,14 @@ export default function BuilderPage({
             >
               <p className="mb-3 text-[11px] text-muted">
                 {locale === "fr"
-                  ? "Choisissez un secteur et un ton : nous remplissons les champs encore vides avec un exemple de contenu. Votre texte existant reste intact."
+                  ? "Répondez à 3 questions : nous montons une site exemple complète. Vous n'avez plus qu'à peaufiner."
                   : locale === "en"
-                    ? "Pick a sector and tone: we fill the still-empty fields with example content. Your existing text stays untouched."
-                    : "Kies een sector en toon: we vullen de nog lege velden met voorbeeldinhoud. Je bestaande tekst blijft staan."}
+                    ? "Answer 3 questions: we build a full example site. You only need to fine-tune."
+                    : "Beantwoord 3 vragen: we zetten een volledige voorbeeldsite klaar. Jij hoeft enkel nog bij te schaven."}
               </p>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+
+              <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                1.{" "}
                 {locale === "fr"
                   ? "Secteur"
                   : locale === "en"
@@ -1366,23 +1417,22 @@ export default function BuilderPage({
                 onChange={(e) => setSector(e.target.value as SectorKey)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
               >
-                {(
-                  Object.keys(SECTOR_LABELS[locale]) as SectorKey[]
-                ).map((k) => (
-                  <option key={k} value={k}>
-                    {SECTOR_LABELS[locale][k]}
-                  </option>
-                ))}
+                {(Object.keys(SECTOR_LABELS[locale]) as SectorKey[]).map(
+                  (k) => (
+                    <option key={k} value={k}>
+                      {SECTOR_LABELS[locale][k]}
+                    </option>
+                  ),
+                )}
               </select>
-              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-                {locale === "fr" ? "Ton" : locale === "en" ? "Tone" : "Toon"}
+
+              <p className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                2. {locale === "fr" ? "Ton" : locale === "en" ? "Tone" : "Toon"}
               </p>
               <select
                 value={tone}
                 onChange={(e) =>
-                  setTone(
-                    e.target.value as "warm" | "zakelijk" | "speels",
-                  )
+                  setTone(e.target.value as "warm" | "zakelijk" | "speels")
                 }
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
               >
@@ -1398,17 +1448,65 @@ export default function BuilderPage({
                   </option>
                 ))}
               </select>
+
+              <p className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                3.{" "}
+                {locale === "fr"
+                  ? "Pages"
+                  : locale === "en"
+                    ? "Pages"
+                    : "Pagina's"}
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {(
+                  Object.keys(PAGE_LABELS[locale]) as PageKey[]
+                ).map((pk) => {
+                  const on = pageSel.includes(pk);
+                  return (
+                    <button
+                      key={pk}
+                      type="button"
+                      onClick={() =>
+                        setPageSel((s) =>
+                          s.includes(pk)
+                            ? s.filter((x) => x !== pk)
+                            : [...s, pk],
+                        )
+                      }
+                      className={`rounded-lg border px-2 py-1.5 text-xs transition-colors ${
+                        on
+                          ? "border-accent bg-accent/10 text-foreground"
+                          : "border-border text-muted hover:bg-card-hover"
+                      }`}
+                    >
+                      {PAGE_LABELS[locale][pk]}
+                    </button>
+                  );
+                })}
+              </div>
+
               <button
                 type="button"
-                onClick={fillPreset}
+                onClick={buildFullSite}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 <Wand2 className="h-4 w-4" strokeWidth={2} />
                 {locale === "fr"
-                  ? "Remplir un exemple de contenu"
+                  ? "Construire le site complet"
                   : locale === "en"
-                    ? "Fill example content"
-                    : "Vul voorbeeldinhoud in"}
+                    ? "Build the full site"
+                    : "Bouw de volledige site"}
+              </button>
+              <button
+                type="button"
+                onClick={fillPreset}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+              >
+                {locale === "fr"
+                  ? "Ou : remplir seulement les champs vides"
+                  : locale === "en"
+                    ? "Or: only fill the empty fields"
+                    : "Of: enkel lege velden invullen"}
               </button>
             </Panel>
 
