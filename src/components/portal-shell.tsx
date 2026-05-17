@@ -18,6 +18,7 @@ import {
   FolderOpen,
   CalendarClock,
   Network,
+  PenTool,
   LogOut,
   Menu,
   X,
@@ -73,6 +74,16 @@ export function PortalShell({
         { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
         { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
         { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
+        {
+          href: `${base}/builder`,
+          label:
+            locale === "fr"
+              ? "Créez votre maquette"
+              : locale === "en"
+                ? "Build your draft"
+                : "Maak je ontwerp",
+          icon: PenTool,
+        },
         { href: `${base}/domein`, label: t.domain, icon: Network },
         { href: `${base}/scans`, label: t.scans, icon: Gauge },
       ],

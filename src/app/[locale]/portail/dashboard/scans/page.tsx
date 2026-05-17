@@ -184,7 +184,10 @@ export default async function PortalScans({
                     )}
                   </div>
                   <Link
-                    href={localePath(locale, `/portail/scan/${s.token}`)}
+                    href={localePath(
+                      locale,
+                      `/portail/dashboard/scans/${s.token}`,
+                    )}
                     className="mt-5 inline-flex rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
                   >
                     {l.full} →
