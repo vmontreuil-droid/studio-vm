@@ -2420,6 +2420,144 @@ export default function BuilderPage({
                 </div>
               );
             })()}
+            <Panel
+              icon={<Wand2 className="h-4 w-4" />}
+              title={
+                locale === "fr"
+                  ? "Styles en 1 clic"
+                  : locale === "en"
+                    ? "1-click styles"
+                    : "Stijlsets (1 klik)"
+              }
+            >
+              <p className="mb-3 text-[11px] text-muted">
+                {locale === "fr"
+                  ? "Couleurs, police, coins et boutons d'un coup."
+                  : locale === "en"
+                    ? "Colours, font, corners and buttons in one go."
+                    : "Kleuren, lettertype, hoeken en knoppen in één keer."}
+              </p>
+              <div className="grid grid-cols-1 gap-1.5">
+                {(
+                  [
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Épuré & moderne"
+                          : locale === "en"
+                            ? "Clean & modern"
+                            : "Strak & modern",
+                      bg: "#ffffff",
+                      fg: "#0f172a",
+                      ac: "#2563eb",
+                      fo: "inter",
+                      ra: "zacht" as RadiusKey,
+                      bs: "zacht" as const,
+                    },
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Chaleureux & classique"
+                          : locale === "en"
+                            ? "Warm & classic"
+                            : "Warm & klassiek",
+                      bg: "#fbf7f0",
+                      fg: "#3b2f23",
+                      ac: "#b45309",
+                      fo: "garamond",
+                      ra: "rond" as RadiusKey,
+                      bs: "rond" as const,
+                    },
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Sombre & chic"
+                          : locale === "en"
+                            ? "Dark & sleek"
+                            : "Donker & strak",
+                      bg: "#0c0a09",
+                      fg: "#f5f5f4",
+                      ac: "#f59e0b",
+                      fo: "helvetica",
+                      ra: "strak" as RadiusKey,
+                      bs: "recht" as const,
+                    },
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Frais & ludique"
+                          : locale === "en"
+                            ? "Fresh & playful"
+                            : "Fris & speels",
+                      bg: "#f0fdf4",
+                      fg: "#14271d",
+                      ac: "#16a34a",
+                      fo: "trebuchet",
+                      ra: "rond" as RadiusKey,
+                      bs: "rond" as const,
+                    },
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Minimal noir/blanc"
+                          : locale === "en"
+                            ? "Minimal mono"
+                            : "Minimaal zwart/wit",
+                      bg: "#fafafa",
+                      fg: "#171717",
+                      ac: "#525252",
+                      fo: "helvetica",
+                      ra: "strak" as RadiusKey,
+                      bs: "recht" as const,
+                    },
+                    {
+                      n:
+                        locale === "fr"
+                          ? "Élégant édition"
+                          : locale === "en"
+                            ? "Editorial elegant"
+                            : "Elegant magazine",
+                      bg: "#fffdf8",
+                      fg: "#1c1917",
+                      ac: "#9f1239",
+                      fo: "didot",
+                      ra: "zacht" as RadiusKey,
+                      bs: "zacht" as const,
+                    },
+                  ] as const
+                ).map((st) => (
+                  <button
+                    key={st.n}
+                    type="button"
+                    onClick={() => {
+                      setTheme((t) => ({
+                        ...t,
+                        slug: "custom",
+                        bg: st.bg,
+                        fg: st.fg,
+                        accent: st.ac,
+                      }));
+                      setFont(st.fo);
+                      setRadius(st.ra);
+                      setBtnShape(st.bs);
+                    }}
+                    className="flex items-center gap-3 rounded-lg border p-2 text-left text-xs transition-colors hover:border-accent"
+                  >
+                    <span
+                      aria-hidden
+                      className="h-7 w-7 shrink-0 rounded-full border"
+                      style={{
+                        background: `linear-gradient(135deg, ${st.bg} 0 50%, ${st.ac} 50% 100%)`,
+                      }}
+                    />
+                    <span style={{ fontFamily: fontStacks[st.fo] }}>
+                      {st.n}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Panel>
+
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.bizName}
