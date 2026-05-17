@@ -135,7 +135,7 @@ export default async function PortalBuilderOverview({
       </p>
 
       {(ok === "live" || ok === "betaald" || ok === "gestopt") && (
-        <p className="mt-4 rounded-md bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-300">
+        <p className="mt-4 rounded-md bg-green-100 px-3 py-2 text-xs font-semibold text-green-900 dark:bg-green-900 dark:text-green-50">
           {ok === "gestopt"
             ? locale === "fr"
               ? "Abonnement résilié."
@@ -156,7 +156,7 @@ export default async function PortalBuilderOverview({
         </p>
       )}
       {fout && !(fout === "abo" && subActive) && (
-        <p className="mt-4 rounded-md bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300">
+        <p className="mt-4 rounded-md bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-50">
           {fout === "abo"
             ? locale === "fr"
               ? "Un abonnement actif est requis pour publier."
