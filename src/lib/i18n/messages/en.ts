@@ -31,7 +31,7 @@ const en: Messages = {
       "Restaurants, studios, photographers and SMEs — a site that loads before your visitor leaves.",
       "One clean Next.js codebase instead of thirty plugins fighting each other.",
       "Built around conversion: lightning fast, findable on Google and simple to manage yourself.",
-      "No lock-in, no mandatory subscriptions. You own everything I deliver.",
+      "No code lock-in: you own everything I deliver. Maintenance is required, but you freely pick the level.",
       "I migrate your existing site while keeping your Google rankings. Zero downtime.",
     ],
     ctaWerk: "See work",
@@ -57,8 +57,8 @@ const en: Messages = {
   ctaBanner: {
     eyebrow: "Ready to start?",
     title: "A site that actually works for you.",
-    sub: "No plugin spaghetti, no surprises afterwards. First a no-obligation chat — I think along for free.",
-    button: "Let's talk",
+    sub: "No plugin spaghetti, no surprises afterwards. Build your package and see your exact fixed price right away.",
+    button: "Build your package",
   },
   testimonials: {
     eyebrow: "Clients",

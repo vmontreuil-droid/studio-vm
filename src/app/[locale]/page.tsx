@@ -30,7 +30,7 @@ const X: Record<
     outcome: [
       "Volledig herbouwd in 1–2 weken",
       "Code + eigen admin van jou",
-      "Geen abonnementsval, geen lock-in",
+      "Geen code-lock-in — je bezit code + data",
     ],
     riskEyebrow: "Zonder risico",
     riskTitle: "Eerst zien, dan beslissen",
@@ -39,7 +39,7 @@ const X: Record<
     risk: [
       { t: "Gratis site-scan", d: "Eerlijk rapport van je huidige site — snelheid, SEO, valkuilen. Geen account, geen verkooptrechter.", href: "/scan", cta: "Scan mijn site" },
       { t: "Bouw zelf je voorontwerp", d: "Klik je site in elkaar in de builder — pagina's, secties, je eigen teksten. Ik werk 'm daarna af.", href: "/builder", cta: "Open de builder" },
-      { t: "Alles blijft van jou", d: "Code én eigen admin in jouw handen. Geen abonnementsval — je kan altijd zelf verder.", href: "/pricing", cta: "Bekijk de prijzen" },
+      { t: "Alles blijft van jou", d: "Code én eigen admin in jouw handen. Geen lock-in op je code — je bezit alles wat ik oplever.", href: "/offerte", cta: "Stel je pakket samen" },
       { t: "Live in 1–2 weken", d: "Strak herbouwd in Next.js + Supabase. Timing hangt enkel af van domeinvrijgave en fotomateriaal.", href: "/aanpak", cta: "Zo werk ik" },
     ],
     werkEyebrow: "Realisaties",
@@ -51,7 +51,7 @@ const X: Record<
     outcome: [
       "Entièrement reconstruit en 1–2 semaines",
       "Code + admin propre à vous",
-      "Pas de piège d'abonnement, pas de lock-in",
+      "Pas de lock-in sur le code — vous possédez code + data",
     ],
     riskEyebrow: "Sans risque",
     riskTitle: "D'abord voir, puis décider",
@@ -60,7 +60,7 @@ const X: Record<
     risk: [
       { t: "Scan gratuit du site", d: "Rapport honnête de votre site actuel — vitesse, SEO, pièges. Sans compte, sans entonnoir de vente.", href: "/scan", cta: "Scanner mon site" },
       { t: "Construisez votre maquette", d: "Composez votre site dans le builder — pages, sections, vos textes. Je le finalise ensuite.", href: "/builder", cta: "Ouvrir le builder" },
-      { t: "Tout reste à vous", d: "Le code et un admin propre entre vos mains. Pas de piège d'abonnement — vous gardez la main.", href: "/pricing", cta: "Voir les tarifs" },
+      { t: "Tout reste à vous", d: "Le code et un admin propre entre vos mains. Pas de lock-in sur le code — vous possédez tout ce que je livre.", href: "/offerte", cta: "Composez votre forfait" },
       { t: "En ligne en 1–2 semaines", d: "Reconstruit proprement en Next.js + Supabase. Le délai dépend juste du domaine et des photos.", href: "/aanpak", cta: "Ma méthode" },
     ],
     werkEyebrow: "Réalisations",
@@ -72,7 +72,7 @@ const X: Record<
     outcome: [
       "Fully rebuilt in 1–2 weeks",
       "Code + own admin, yours",
-      "No subscription trap, no lock-in",
+      "No code lock-in — you own code + data",
     ],
     riskEyebrow: "Zero risk",
     riskTitle: "See it first, then decide",
@@ -81,7 +81,7 @@ const X: Record<
     risk: [
       { t: "Free site scan", d: "Honest report on your current site — speed, SEO, pitfalls. No account, no sales funnel.", href: "/scan", cta: "Scan my site" },
       { t: "Build your own draft", d: "Click your site together in the builder — pages, sections, your own copy. I finish it.", href: "/builder", cta: "Open the builder" },
-      { t: "It all stays yours", d: "Code and an own admin in your hands. No subscription trap — you can always continue yourself.", href: "/pricing", cta: "See pricing" },
+      { t: "It all stays yours", d: "Code and an own admin in your hands. No code lock-in — you own everything I deliver.", href: "/offerte", cta: "Build your package" },
       { t: "Live in 1–2 weeks", d: "Cleanly rebuilt in Next.js + Supabase. Timing only depends on domain release and photos.", href: "/aanpak", cta: "How I work" },
     ],
     werkEyebrow: "Work",
@@ -183,13 +183,17 @@ function Hero({
           {capacity}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a
-            href="#werk"
+          <Link
+            href={localePath(locale, "/offerte")}
             className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
-            {t.hero.ctaWerk}
+            {locale === "fr"
+              ? "Composez votre forfait"
+              : locale === "en"
+                ? "Build your package"
+                : "Stel je pakket samen"}
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </a>
+          </Link>
           <Link
             href={localePath(locale, "/pricing")}
             className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
@@ -198,11 +202,11 @@ function Hero({
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </Link>
           <a
-            href="#contact"
+            href="#werk"
             className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
           >
-            {t.hero.ctaContact}
-            <Mail className="h-4 w-4" strokeWidth={2} />
+            {t.hero.ctaWerk}
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </a>
         </div>
       </div>

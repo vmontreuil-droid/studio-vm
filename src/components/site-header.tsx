@@ -22,7 +22,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     {
       href: localePath(locale, "/offerte"),
       label:
-        locale === "fr" ? "Devis" : locale === "en" ? "Quote" : "Offerte",
+        locale === "fr"
+          ? "Configurez"
+          : locale === "en"
+            ? "Configure"
+            : "Configureer",
     },
     { href: localePath(locale, "/#contact"), label: t.nav.contact },
     {

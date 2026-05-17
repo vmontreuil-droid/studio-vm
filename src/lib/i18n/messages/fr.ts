@@ -31,7 +31,7 @@ const fr: Messages = {
       "Restaurants, ateliers, photographes et PME — un site qui charge avant que le visiteur ne parte.",
       "Une base de code Next.js propre au lieu de trente plugins qui se battent.",
       "Pensé pour la conversion : ultra-rapide, trouvable sur Google et simple à gérer soi-même.",
-      "Pas de lock-in, pas d'abonnement obligatoire. Vous possédez tout ce que je livre.",
+      "Pas de lock-in sur le code : vous possédez tout ce que je livre. La maintenance est obligatoire, mais vous choisissez librement le niveau.",
       "Je migre votre site existant en conservant vos positions Google. Sans interruption.",
     ],
     ctaWerk: "Voir les réalisations",
@@ -57,8 +57,8 @@ const fr: Messages = {
   ctaBanner: {
     eyebrow: "Prêt à démarrer ?",
     title: "Un site qui travaille vraiment pour vous.",
-    sub: "Sans usine à plugins, sans surprises. D'abord un échange sans engagement — je réfléchis gratuitement avec vous.",
-    button: "Discutons-en",
+    sub: "Sans usine à plugins, sans surprises. Composez votre forfait et voyez votre prix fixe exact immédiatement.",
+    button: "Composez votre forfait",
   },
   testimonials: {
     eyebrow: "Clients",

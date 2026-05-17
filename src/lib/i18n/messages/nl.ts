@@ -29,7 +29,7 @@ const nl = {
       "Restaurants, ateliers, fotografen en KMO's — een site die laadt vóór je bezoeker afhaakt.",
       "Eén schone Next.js-codebase in plaats van dertig plugins die elkaar om de oren slaan.",
       "Gebouwd rond conversie: razendsnel, vindbaar in Google en simpel om zelf te beheren.",
-      "Geen lock-in, geen verplichte abonnementen. Je bezit alles wat ik oplever.",
+      "Geen code-lock-in: je bezit alles wat ik oplever. Onderhoud is verplicht, maar je kiest vrij het niveau.",
       "Ik migreer je bestaande site mét behoud van je Google-posities. Zonder downtime.",
     ],
     ctaWerk: "Bekijk realisaties",
@@ -55,8 +55,8 @@ const nl = {
   ctaBanner: {
     eyebrow: "Klaar om te starten?",
     title: "Een site die wél voor je werkt.",
-    sub: "Geen plugin-spaghetti, geen verrassingen achteraf. Eerst een vrijblijvend gesprek — ik denk gratis mee.",
-    button: "Praat met me",
+    sub: "Geen plugin-spaghetti, geen verrassingen achteraf. Stel je pakket samen en zie meteen je exacte vaste prijs.",
+    button: "Stel je pakket samen",
   },
   testimonials: {
     eyebrow: "Klanten",
