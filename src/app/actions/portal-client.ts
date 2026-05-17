@@ -412,15 +412,15 @@ export async function upgradeSubscription(
   await sendMail(email, {
     subject: TR.subject,
     html: `<!DOCTYPE html><html lang="${loc}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0c0a09">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
+<body style="margin:0;padding:0;background:#f4f4f5">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-collapse:collapse"><tr><td align="center" style="padding:40px 16px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
-  <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;padding:38px 36px">
-    <p style="margin:0 0 22px;font:800 40px/1 ${font};letter-spacing:-2px;color:#1c1917">vm<span style="color:${accent}">.</span><span style="display:inline-block;margin-left:12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.22em;color:#a8a29e;vertical-align:middle">STUDIO&nbsp;VM</span></p>
+  <tr><td style="background:#ffffff;border:1px solid #e7e5e4;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:40px 38px">
+    <p style="margin:0 0 26px;font:800 66px/1 ${font};letter-spacing:-4px;color:#1c1917">vm<span style="color:${accent}">.</span></p>
     <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${TR.subject}</p>
     <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${font};color:#1c1917">${TR.hi}</h1>
     <p style="margin:0 0 24px;font:400 15px/1.65 ${font};color:#44403c">${TR.intro}</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:18px 22px">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#fafaf9;border:1px solid #e7e5e4;padding:18px 22px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>
         <tr><td style="padding:6px 18px 6px 0;font:400 13px/1.5 ${font};color:#78716c">${TR.from}</td><td style="padding:6px 0;font:600 14px/1.5 ${font};color:#1c1917">${prevTier?.name ?? "—"} · ${eur(prevTier?.cents ?? 0)}</td></tr>
         <tr><td style="padding:6px 18px 6px 0;font:400 13px/1.5 ${font};color:#78716c">${TR.to}</td><td style="padding:6px 0;font:700 14px/1.5 ${font};color:#1c1917">${tier.name} · ${eur(tier.cents)}</td></tr>
