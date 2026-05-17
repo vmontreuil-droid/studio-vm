@@ -925,6 +925,7 @@ export default function BuilderPage({
   const [impUrl, setImpUrl] = useState("");
   const [impBusy, setImpBusy] = useState(false);
   const [impErr, setImpErr] = useState("");
+  const asideRef = useRef<HTMLDivElement>(null);
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
@@ -1016,6 +1017,12 @@ export default function BuilderPage({
     pages,
     activeId,
   ]);
+
+  // Bij het openen van een sectie: scroll de zijbalk naar boven zodat
+  // de vastgezette editor meteen in beeld staat.
+  useEffect(() => {
+    if (openId) asideRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [openId]);
 
   const resetDraft = () => {
     try {
@@ -1330,7 +1337,76 @@ export default function BuilderPage({
               : "mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[340px_1fr]"
           }
         >
-          <aside className="space-y-6">
+          <aside
+            ref={asideRef}
+            className="space-y-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
+          >
+            {(() => {
+              const openSec = sections.find((x) => x.id === openId);
+              if (!openSec) return null;
+              return (
+                <div className="sticky top-0 z-20 rounded-xl border border-accent bg-card shadow-lg">
+                  <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <Pencil
+                        className="h-3.5 w-3.5 text-accent"
+                        strokeWidth={2}
+                      />
+                      {c.sectionLabels[openSec.kind]}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(null)}
+                      aria-label="x"
+                      className="rounded p-1 text-muted hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                  </div>
+                  <div className="max-h-[60vh] overflow-y-auto p-3">
+                    {openSec.kind !== "hero" && (
+                      <div className="mb-3">
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {c.sectBgLabel}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {SECT_TONES.map((tn) => {
+                            const sel =
+                              String(openSec.data._bg ?? "") === tn.k;
+                            return (
+                              <button
+                                key={tn.k || "def"}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _bg: tn.k })
+                                }
+                                title={tn.k || "standaard"}
+                                className="h-6 w-6 rounded-md border transition-transform hover:scale-110"
+                                style={{
+                                  background:
+                                    sectionToneBg(tn.k, theme) ?? theme.bg,
+                                  borderColor: sel
+                                    ? "var(--accent)"
+                                    : "var(--border)",
+                                  outline: sel
+                                    ? "2px solid var(--accent)"
+                                    : "none",
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    <SectionEditor
+                      section={openSec}
+                      c={c}
+                      patch={patchData}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.bizName}
@@ -1851,46 +1927,6 @@ export default function BuilderPage({
                         </button>
                       </div>
                     </div>
-                    {openId === s.id && (
-                      <div className="border-t p-3">
-                        {s.kind !== "hero" && (
-                          <div className="mb-3">
-                            <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
-                              {c.sectBgLabel}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {SECT_TONES.map((tn) => {
-                                const sel =
-                                  String(s.data._bg ?? "") === tn.k;
-                                return (
-                                  <button
-                                    key={tn.k || "def"}
-                                    type="button"
-                                    onClick={() =>
-                                      patchData(s.id, { _bg: tn.k })
-                                    }
-                                    title={tn.k || "standaard"}
-                                    className="h-6 w-6 rounded-md border transition-transform hover:scale-110"
-                                    style={{
-                                      background:
-                                        sectionToneBg(tn.k, theme) ??
-                                        theme.bg,
-                                      borderColor: sel
-                                        ? "var(--accent)"
-                                        : "var(--border)",
-                                      outline: sel
-                                        ? "2px solid var(--accent)"
-                                        : "none",
-                                    }}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        <SectionEditor section={s} c={c} patch={patchData} />
-                      </div>
-                    )}
                   </li>
                 ))}
               </ul>
