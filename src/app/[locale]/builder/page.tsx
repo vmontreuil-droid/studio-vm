@@ -5224,6 +5224,7 @@ function HeroPreview({
       : "seq";
   const [idx, setIdx] = useState(0);
   const [hover, setHover] = useState(false);
+  const [slidesOpen, setSlidesOpen] = useState(false);
   const dirRef = useRef(1);
   const cIdx = Math.min(idx, slides.length - 1);
   useEffect(() => {
@@ -5685,8 +5686,26 @@ function HeroPreview({
         </div>
       )}
 
-      {/* slide-beheer: thumbnails + per slide selecteren/verwijderen */}
-      <div className="absolute right-3 top-3 z-10 flex max-w-[62%] flex-wrap justify-end gap-1 opacity-0 transition-opacity group-hover/hero:opacity-100">
+      {/* slide-beheer: ingeklapt → kleine pill, zodat het de kaart niet
+          in de weg zit; klik om de thumbnails te tonen */}
+      <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-1.5 opacity-0 transition-opacity group-hover/hero:opacity-100">
+        <button
+          type="button"
+          onClick={() => setSlidesOpen((o) => !o)}
+          title={`slide ${cIdx + 1}/${slides.length}`}
+          className="pointer-events-auto flex items-center gap-1 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm"
+        >
+          <Layers className="h-3 w-3" strokeWidth={2} />
+          {slides.length}
+          <ChevronDown
+            className={`h-3 w-3 transition-transform ${
+              slidesOpen ? "rotate-180" : ""
+            }`}
+            strokeWidth={2.5}
+          />
+        </button>
+        {slidesOpen && (
+          <div className="pointer-events-auto flex max-w-[60vw] flex-wrap justify-end gap-1 gap-y-5 rounded-xl bg-black/45 p-2 pb-5 backdrop-blur-sm">
         {slides.map((s, i) => (
           <span key={i} className="relative">
             <button
@@ -5754,6 +5773,8 @@ function HeroPreview({
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
         </button>
+          </div>
+        )}
       </div>
 
 
