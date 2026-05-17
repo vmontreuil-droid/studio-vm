@@ -106,29 +106,67 @@ function BlockView({
   );
 
   switch (block.kind) {
-    case "hero":
+    case "hero": {
+      const heroBgs = Array.isArray(d.bgs)
+        ? (d.bgs as unknown[]).map(String).filter(Boolean)
+        : s(d.bg)
+          ? [s(d.bg)]
+          : [];
+      const hasHeroBg = heroBgs.length > 0;
       return (
-        <div className="px-6 py-12 text-center">
-          <p
-            className="font-mono text-[10px] uppercase tracking-widest"
-            style={{ color: accent }}
-          >
-            {s(d.eyebrow)}
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-            {s(d.heading) || s(d.title)}
-          </h2>
-          <p className="mt-2 text-sm opacity-70">{s(d.sub)}</p>
-          {s(d.button) && (
-            <span
-              className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
-              style={{ background: accent, color: bg }}
-            >
-              {s(d.button)}
-            </span>
+        <div
+          className="relative px-6 py-12 text-center"
+          style={
+            hasHeroBg
+              ? {
+                  backgroundImage: `url(${heroBgs[0]})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  color: "#ffffff",
+                }
+              : undefined
+          }
+        >
+          {hasHeroBg && (
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: "rgba(0,0,0,0.45)" }}
+            />
           )}
+          <div className="relative">
+            <p
+              className="font-mono text-[10px] uppercase tracking-widest"
+              style={hasHeroBg ? undefined : { color: accent }}
+            >
+              {s(d.eyebrow)}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+              {s(d.heading) || s(d.title)}
+            </h2>
+            <p
+              className={
+                hasHeroBg ? "mt-2 text-sm opacity-90" : "mt-2 text-sm opacity-70"
+              }
+            >
+              {s(d.sub)}
+            </p>
+            {s(d.button) && (
+              <span
+                className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
+                style={{ background: accent, color: bg }}
+              >
+                {s(d.button)}
+              </span>
+            )}
+            {heroBgs.length > 1 && (
+              <p className="mt-4 font-mono text-[10px] uppercase tracking-widest opacity-70">
+                slider · {heroBgs.length} foto&apos;s
+              </p>
+            )}
+          </div>
         </div>
       );
+    }
     case "features":
     case "steps":
     case "team":

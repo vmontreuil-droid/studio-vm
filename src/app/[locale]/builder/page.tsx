@@ -221,6 +221,8 @@ const T: Record<
       mapTitle: string;
       hoursSeed: { day: string; time: string }[];
       priceSeed: { name: string; price: string; desc: string }[];
+      heroDrop: string;
+      heroRemove: string;
     };
   }
 > = {
@@ -337,6 +339,8 @@ const T: Record<
         { name: "Dienst of product", price: "€ 0", desc: "Korte omschrijving." },
         { name: "Tweede item", price: "€ 0", desc: "Korte omschrijving." },
       ],
+      heroDrop: "Sleep hier een foto als achtergrond",
+      heroRemove: "Achtergrond weg",
     },
   },
   fr: {
@@ -452,6 +456,8 @@ const T: Record<
         { name: "Service ou produit", price: "€ 0", desc: "Brève description." },
         { name: "Deuxième élément", price: "€ 0", desc: "Brève description." },
       ],
+      heroDrop: "Glissez une photo ici comme arrière-plan",
+      heroRemove: "Retirer l'arrière-plan",
     },
   },
   en: {
@@ -567,6 +573,8 @@ const T: Record<
         { name: "Service or product", price: "€ 0", desc: "Short description." },
         { name: "Second item", price: "€ 0", desc: "Short description." },
       ],
+      heroDrop: "Drop a photo here as background",
+      heroRemove: "Remove background",
     },
   },
 };
@@ -592,7 +600,7 @@ function syncId(ps: Page[]) {
 function defaults(kind: SectionKind, p: Preview): SectionData {
   switch (kind) {
     case "hero":
-      return { eyebrow: p.welcome, heading: "", sub: p.tagline, button: p.discover };
+      return { eyebrow: p.welcome, heading: "", sub: p.tagline, button: p.discover, bgs: [] };
     case "features":
       return {
         title: p.featuresTitle,
@@ -1840,6 +1848,183 @@ function SectionEditor({
   );
 }
 
+function HeroPreview({
+  data,
+  edit,
+  theme,
+  businessName,
+  p,
+}: {
+  data: SectionData;
+  edit: (patch: SectionData) => void;
+  theme: Theme;
+  businessName: string;
+  p: Preview;
+}) {
+  const get = (k: string, fb = "") => {
+    const v = data[k];
+    return v == null || v === "" ? fb : String(v);
+  };
+  const bgs: string[] = Array.isArray(data.bgs)
+    ? (data.bgs as string[]).filter(Boolean)
+    : get("bg")
+      ? [get("bg")]
+      : [];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (bgs.length < 2) return;
+    const t = setInterval(
+      () => setIdx((i) => (i + 1) % bgs.length),
+      3500,
+    );
+    return () => clearInterval(t);
+  }, [bgs.length]);
+  const hasBg = bgs.length > 0;
+  const cur = hasBg ? bgs[Math.min(idx, bgs.length - 1)] : "";
+
+  const addImgs = (files?: FileList | null) => {
+    if (!files) return;
+    Array.from(files)
+      .slice(0, 8)
+      .forEach((file) => {
+        if (!file.type.startsWith("image/") || file.size > 3_000_000) return;
+        const r = new FileReader();
+        r.onload = () =>
+          edit({ bgs: [...bgs, String(r.result)].slice(0, 8), bg: "" });
+        r.readAsDataURL(file);
+      });
+  };
+  const removeAt = (i: number) =>
+    edit({ bgs: bgs.filter((_, j) => j !== i), bg: "" });
+
+  return (
+    <div
+      className="group/hero relative px-8 py-14 text-center"
+      style={
+        hasBg
+          ? {
+              backgroundImage: `url(${cur})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              color: "#ffffff",
+              transition: "background-image 0.5s ease",
+            }
+          : undefined
+      }
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addImgs(e.dataTransfer.files);
+      }}
+    >
+      {hasBg && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+        />
+      )}
+      <div className="relative">
+        <p
+          className="font-mono text-[10px] uppercase tracking-widest"
+          style={hasBg ? undefined : { color: theme.accent }}
+        >
+          <E
+            value={get("eyebrow", p.welcome)}
+            onChange={(v) => edit({ eyebrow: v })}
+          />
+        </p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+          <E
+            value={get("heading", businessName)}
+            onChange={(v) => edit({ heading: v })}
+          />
+        </h2>
+        <p
+          className={
+            hasBg ? "mt-3 text-sm opacity-90" : "mt-3 text-sm opacity-70"
+          }
+        >
+          <E value={get("sub", p.tagline)} onChange={(v) => edit({ sub: v })} />
+        </p>
+        <button
+          className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
+          style={{ background: theme.accent, color: theme.bg }}
+        >
+          <E
+            value={get("button", p.discover)}
+            onChange={(v) => edit({ button: v })}
+          />
+        </button>
+
+        {bgs.length > 1 && (
+          <div className="mt-6 flex justify-center gap-1.5">
+            {bgs.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIdx(i)}
+                aria-label={`slide ${i + 1}`}
+                className="h-1.5 rounded-full transition-all"
+                style={{
+                  width: i === idx ? 18 : 6,
+                  background:
+                    i === idx ? "#ffffff" : "rgba(255,255,255,0.5)",
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {hasBg && (
+        <div className="absolute right-3 top-3 z-10 flex max-w-[60%] flex-wrap justify-end gap-1 opacity-0 transition-opacity group-hover/hero:opacity-100">
+          {bgs.map((src, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => removeAt(i)}
+              title={p.heroRemove}
+              className="relative h-9 w-12 overflow-hidden rounded border border-white/40"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" className="h-full w-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/45">
+                <X className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <label
+        className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
+        style={
+          hasBg
+            ? { color: "rgba(255,255,255,0.85)", borderColor: "rgba(255,255,255,0.4)" }
+            : { color: "var(--muted)" }
+        }
+      >
+        <ImagePlus className="h-3.5 w-3.5" strokeWidth={2} />
+        {bgs.length ? `${p.heroDrop} (${bgs.length})` : p.heroDrop}
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            addImgs(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
 function E({
   value,
   onChange,
@@ -1920,35 +2105,13 @@ function PreviewSection({
   switch (kind) {
     case "hero":
       return (
-        <div className="px-8 py-14 text-center">
-          <p
-            className="font-mono text-[10px] uppercase tracking-widest"
-            style={accentText}
-          >
-            <E
-              value={g("eyebrow", p.welcome)}
-              onChange={(v) => edit({ eyebrow: v })}
-            />
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            <E
-              value={g("heading", businessName)}
-              onChange={(v) => edit({ heading: v })}
-            />
-          </h2>
-          <p className="mt-3 text-sm opacity-70">
-            <E value={g("sub", p.tagline)} onChange={(v) => edit({ sub: v })} />
-          </p>
-          <button
-            className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
-            style={{ background: theme.accent, color: theme.bg }}
-          >
-            <E
-              value={g("button", p.discover)}
-              onChange={(v) => edit({ button: v })}
-            />
-          </button>
-        </div>
+        <HeroPreview
+          data={data}
+          edit={edit}
+          theme={theme}
+          businessName={businessName}
+          p={p}
+        />
       );
     case "features":
       return (
