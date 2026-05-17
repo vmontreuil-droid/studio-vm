@@ -1127,10 +1127,10 @@ export default function OffertePage() {
           {paid ? (
             <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
               {locale === "fr"
-                ? "Merci ! Votre acompte est bien reçu. Votre composition est verrouillée — je vous recontacte rapidement pour le planning. Vous recevez aussi une confirmation par e-mail."
+                ? "Merci ! Votre demande est enregistrée et nous traitons votre paiement. Dès qu'il est confirmé, vous recevez une confirmation par e-mail — rien n'est définitif tant que le paiement n'est pas confirmé."
                 : locale === "en"
-                  ? "Thanks! Your deposit has been received. Your composition is locked in — I'll be in touch shortly about planning. You'll also get an email confirmation."
-                  : "Bedankt! Je aanbetaling is goed ontvangen. Je samenstelling ligt vast — ik neem snel contact op voor de planning. Je krijgt ook een bevestiging per e-mail."}
+                  ? "Thanks! Your request is registered and we're processing your payment. Once it's confirmed you'll get an email confirmation — nothing is final until the payment is confirmed."
+                  : "Bedankt! Je aanvraag is geregistreerd en we verwerken je betaling. Zodra ze bevestigd is, krijg je een bevestiging per e-mail — er ligt niets vast tot de betaling bevestigd is."}
             </p>
           ) : sent === "ok" || sent === "intake" ? (
             <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
