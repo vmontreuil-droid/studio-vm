@@ -109,6 +109,23 @@ type SectionKind =
   | "form";
 
 type SectionData = Record<string, unknown>;
+
+// Mobiel-onafhankelijk: elke instelling kan een parallelle "<sleutel>M"-
+// variant hebben die enkel op mobiel geldt. Is die niet gezet, dan erft
+// mobiel gewoon de desktop-waarde. resolveData levert de juiste set voor
+// het actieve toestel — zo wordt de hele render (sectie én items) in één
+// klap toestel-correct, zonder de ene weergave de andere te laten raken.
+function resolveData(d: SectionData, mob: boolean): SectionData {
+  if (!mob) return d;
+  const out: SectionData = { ...d };
+  for (const k of Object.keys(d)) {
+    if (k.endsWith("M")) continue;
+    const mk = k + "M";
+    if (mk in d && d[mk] !== undefined) out[k] = d[mk];
+  }
+  return out;
+}
+
 type Section = { id: string; kind: SectionKind; data: SectionData };
 type Page = {
   id: string;
@@ -1915,6 +1932,14 @@ export default function BuilderPage({
                 mob && openSec.data[base + "M"] !== undefined
                   ? String(openSec.data[base + "M"] ?? "")
                   : String(openSec.data[base] ?? "");
+              const dvRaw = (base: string): unknown =>
+                mob && openSec.data[base + "M"] !== undefined
+                  ? openSec.data[base + "M"]
+                  : openSec.data[base];
+              const dPatchV = (base: string, val: unknown) =>
+                patchData(openSec.id, {
+                  [mob ? base + "M" : base]: val,
+                });
               const dPatch = (base: string, val: string) =>
                 patchData(openSec.id, {
                   [mob ? base + "M" : base]: val,
@@ -2075,6 +2100,10 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Entrance animation"
                               : "Animatie bij verschijnen"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_anim" />
                         </p>
                         <div className="mb-2 grid grid-cols-4 gap-1.5">
                           {(
@@ -2085,15 +2114,12 @@ export default function BuilderPage({
                               ["zoom", "Zoom"],
                             ] as const
                           ).map(([k, lbl]) => {
-                            const selA =
-                              String(openSec.data._anim ?? "") === k;
+                            const selA = dv("_anim") === k;
                             return (
                               <button
                                 key={k || "none"}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _anim: k })
-                                }
+                                onClick={() => dPatch("_anim", k)}
                                 className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                                   selA
                                     ? "border-accent bg-accent/10 text-foreground"
@@ -2110,21 +2136,27 @@ export default function BuilderPage({
                             type="button"
                             onClick={() =>
                               patchData(openSec.id, {
-                                _hover: openSec.data._hover ? 0 : 1,
+                                [mob ? "_hoverM" : "_hover"]: dv("_hover") ===
+                                "1"
+                                  ? 0
+                                  : 1,
                               })
                             }
                             className={`flex-1 rounded-md border px-2 py-1 text-[11px] transition-colors ${
-                              openSec.data._hover
+                              dv("_hover") === "1"
                                 ? "border-accent bg-accent/10 text-foreground"
                                 : "border-border text-muted hover:bg-card-hover"
                             }`}
                           >
-                            {openSec.data._hover ? "✓ " : ""}
+                            {dv("_hover") === "1" ? "✓ " : ""}
                             {locale === "fr"
                               ? "Effet survol kaarten"
                               : locale === "en"
                                 ? "Card hover effect"
                                 : "Hover-effect kaarten"}
+                            {dOver("_hover") && (
+                              <span className="ml-1 text-accent">·m</span>
+                            )}
                           </button>
                           <button
                             type="button"
@@ -2156,6 +2188,12 @@ export default function BuilderPage({
                                 : locale === "en"
                                   ? "Layout"
                                   : "Lay-out"}
+                              {mob && (
+                                <span className="ml-1 text-accent">
+                                  · mobiel
+                                </span>
+                              )}
+                              <ResetChip base="_var" />
                             </p>
                             <div className="mb-3 grid grid-cols-3 gap-1.5">
                               {(openSec.kind === "features"
@@ -2169,15 +2207,12 @@ export default function BuilderPage({
                                     ["right", locale === "fr" ? "Image droite" : locale === "en" ? "Image right" : "Foto rechts"],
                                   ] as const)
                               ).map(([k, lbl]) => {
-                                const selV =
-                                  String(openSec.data._var ?? "") === k;
+                                const selV = dv("_var") === k;
                                 return (
                                   <button
                                     key={k || "def"}
                                     type="button"
-                                    onClick={() =>
-                                      patchData(openSec.id, { _var: k })
-                                    }
+                                    onClick={() => dPatch("_var", k)}
                                     className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                                       selV
                                         ? "border-accent bg-accent/10 text-foreground"
@@ -2272,28 +2307,39 @@ export default function BuilderPage({
                               : locale === "en"
                                 ? "Text colour"
                                 : "Tekstkleur"}
+                            {mob && (
+                              <span className="ml-1 text-accent">·m</span>
+                            )}
                           </span>
                           <input
                             type="color"
                             value={
-                              typeof openSec.data._tcol === "string" &&
-                              openSec.data._tcol
-                                ? (openSec.data._tcol as string)
+                              typeof dvRaw("_tcol") === "string" &&
+                              dvRaw("_tcol")
+                                ? (dvRaw("_tcol") as string)
                                 : theme.fg
                             }
                             onChange={(e) =>
-                              patchData(openSec.id, {
-                                _tcol: e.target.value,
-                              })
+                              dPatchV("_tcol", e.target.value)
                             }
                             className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
                           />
-                          {openSec.data._tcol ? (
+                          {dOver("_tcol") ? (
                             <button
                               type="button"
-                              onClick={() =>
-                                patchData(openSec.id, { _tcol: "" })
-                              }
+                              onClick={() => dReset("_tcol")}
+                              className="font-mono text-[10px] text-accent underline"
+                            >
+                              {locale === "fr"
+                                ? "= desktop"
+                                : locale === "en"
+                                  ? "= desktop"
+                                  : "= desktop"}
+                            </button>
+                          ) : dv("_tcol") ? (
+                            <button
+                              type="button"
+                              onClick={() => dPatchV("_tcol", "")}
                               className="font-mono text-[10px] text-muted underline"
                             >
                               reset
@@ -2306,23 +2352,25 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Background photo"
                               : "Achtergrondfoto"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_bgimg" />
                         </p>
                         <div className="mb-3 flex items-center gap-2">
-                          {openSec.data._bgimg ? (
+                          {dvRaw("_bgimg") ? (
                             <>
                               <span className="h-9 flex-1 overflow-hidden rounded-lg border">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                  src={String(openSec.data._bgimg)}
+                                  src={String(dvRaw("_bgimg"))}
                                   alt=""
                                   className="h-full w-full object-cover"
                                 />
                               </span>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _bgimg: "" })
-                                }
+                                onClick={() => dPatchV("_bgimg", "")}
                                 className="rounded-lg border p-2 text-muted hover:text-red-500"
                                 aria-label="x"
                               >
@@ -2354,9 +2402,7 @@ export default function BuilderPage({
                                     return;
                                   const r = new FileReader();
                                   r.onload = () =>
-                                    patchData(openSec.id, {
-                                      _bgimg: String(r.result),
-                                    });
+                                    dPatchV("_bgimg", String(r.result));
                                   r.readAsDataURL(f);
                                   e.target.value = "";
                                 }}
@@ -2366,13 +2412,11 @@ export default function BuilderPage({
                           {mediaLib.length > 0 && (
                             <MediaPicker
                               lib={mediaLib}
-                              onPick={(u) =>
-                                patchData(openSec.id, { _bgimg: u })
-                              }
+                              onPick={(u) => dPatchV("_bgimg", u)}
                             />
                           )}
                         </div>
-                        {!!openSec.data._bgimg && (
+                        {!!dvRaw("_bgimg") && (
                           <div className="mb-3 flex items-center gap-2">
                             <span className="text-[11px] text-muted">
                               {locale === "fr"
@@ -2387,20 +2431,18 @@ export default function BuilderPage({
                               max={75}
                               step={5}
                               value={
-                                typeof openSec.data._bgdim === "number"
-                                  ? (openSec.data._bgdim as number)
+                                typeof dvRaw("_bgdim") === "number"
+                                  ? (dvRaw("_bgdim") as number)
                                   : 35
                               }
                               onChange={(e) =>
-                                patchData(openSec.id, {
-                                  _bgdim: Number(e.target.value),
-                                })
+                                dPatchV("_bgdim", Number(e.target.value))
                               }
                               className="h-1 flex-1 cursor-pointer accent-accent"
                             />
                             <span className="w-8 text-right font-mono text-[11px] tabular-nums">
-                              {typeof openSec.data._bgdim === "number"
-                                ? (openSec.data._bgdim as number)
+                              {typeof dvRaw("_bgdim") === "number"
+                                ? (dvRaw("_bgdim") as number)
                                 : 35}
                               %
                             </span>
@@ -2408,18 +2450,19 @@ export default function BuilderPage({
                         )}
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_bg" />
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {SECT_TONES.map((tn) => {
-                            const sel =
-                              String(openSec.data._bg ?? "") === tn.k;
+                            const sel = dv("_bg") === tn.k;
                             return (
                               <button
                                 key={tn.k || "def"}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _bg: tn.k })
-                                }
+                                onClick={() => dPatch("_bg", tn.k)}
                                 title={tn.k || "standaard"}
                                 className="h-6 w-6 rounded-md border transition-transform hover:scale-110"
                                 style={{
@@ -2442,18 +2485,22 @@ export default function BuilderPage({
                             : locale === "en"
                               ? "Background pattern"
                               : "Achtergrond-patroon"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_pat" />
                         </p>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {PATTERNS.map((pt) => {
                             const sel =
-                              String(openSec.data._pat ?? "none") === pt;
+                              (dv("_pat") || "none") === pt;
                             const pc =
                               pt === "none"
                                 ? null
                                 : patternCss(
                                     {
                                       _pat: pt,
-                                      _patC: openSec.data._patC,
+                                      _patC: dvRaw("_patC"),
                                       _patO: 0.5,
                                     },
                                     theme,
@@ -2462,9 +2509,7 @@ export default function BuilderPage({
                               <button
                                 key={pt}
                                 type="button"
-                                onClick={() =>
-                                  patchData(openSec.id, { _pat: pt })
-                                }
+                                onClick={() => dPatch("_pat", pt)}
                                 title={pt}
                                 className="h-7 w-7 rounded-md border transition-transform hover:scale-110"
                                 style={{
@@ -2483,15 +2528,13 @@ export default function BuilderPage({
                           <input
                             type="color"
                             value={
-                              typeof openSec.data._patC === "string" &&
-                              openSec.data._patC
-                                ? (openSec.data._patC as string)
+                              typeof dvRaw("_patC") === "string" &&
+                              dvRaw("_patC")
+                                ? (dvRaw("_patC") as string)
                                 : theme.fg
                             }
                             onChange={(e) =>
-                              patchData(openSec.id, {
-                                _patC: e.target.value,
-                              })
+                              dPatchV("_patC", e.target.value)
                             }
                             title="kleur"
                             className="h-7 w-7 cursor-pointer rounded-md border-0 bg-transparent p-0"
@@ -2502,14 +2545,12 @@ export default function BuilderPage({
                             max={0.3}
                             step={0.01}
                             value={
-                              typeof openSec.data._patO === "number"
-                                ? (openSec.data._patO as number)
+                              typeof dvRaw("_patO") === "number"
+                                ? (dvRaw("_patO") as number)
                                 : 0.08
                             }
                             onChange={(e) =>
-                              patchData(openSec.id, {
-                                _patO: Number(e.target.value),
-                              })
+                              dPatchV("_patO", Number(e.target.value))
                             }
                             className="h-1 w-20 cursor-pointer accent-accent"
                           />
@@ -3941,7 +3982,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-frame[data-dev="mobile"] [data-sp-m="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame[data-dev="mobile"] [data-sp-m="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame[data-dev="mobile"] [data-sp-m="norm"]>div{padding-top:2.5rem;padding-bottom:2.5rem}.bldr-frame[data-dev="mobile"] [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame[data-dev="mobile"] [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame[data-dev="mobile"] [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-frame[data-dev="mobile"] [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-frame[data-dev="mobile"] [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame[data-dev="mobile"] [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame[data-dev="mobile"] [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame[data-dev="mobile"] [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:${align}}.bldr-frame[data-dev="mobile"] [data-hhm="s"]{min-height:200px!important}.bldr-frame[data-dev="mobile"] [data-hhm="m"]{min-height:340px!important}.bldr-frame[data-dev="mobile"] [data-hhm="l"]{min-height:480px!important}.bldr-frame[data-dev="mobile"] [data-hhm="xl"]{min-height:640px!important}.bldr-frame[data-dev="mobile"] [data-hhm="full"]{min-height:85vh!important}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}.bldr-frame [data-anim="fade"],.bldr-frame [data-anim="up"],.bldr-frame [data-anim="zoom"]{animation-play-state:paused}.bldr-frame [data-anim].svm-seen{animation-play-state:running}.bldr-frame [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-frame [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-frame [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-frame [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-frame [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-frame [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -3993,30 +4034,17 @@ export default function BuilderPage({
                   <p>{c.emptyPreview}</p>
                 </div>
               ) : (
-                sections.map((s) => (
+                sections.map((s) => {
+                  const rd = resolveData(s.data, device === "mobile");
+                  return (
                   <div
                     key={s.id}
-                    data-sp={String(s.data._sp ?? "")}
-                    data-anim={String(s.data._anim ?? "")}
-                    data-hover={s.data._hover ? "1" : ""}
+                    data-sp={String(rd._sp ?? "")}
+                    data-anim={String(rd._anim ?? "")}
+                    data-hover={rd._hover ? "1" : ""}
                     data-hidem={s.data._hideM ? "1" : ""}
-                    data-talign={String(s.data._talign ?? "")}
-                    data-tsc={String(s.data._tsc ?? "")}
-                    data-sp-m={
-                      s.data._spM !== undefined
-                        ? String(s.data._spM ?? "") || "norm"
-                        : ""
-                    }
-                    data-talign-m={
-                      s.data._talignM !== undefined
-                        ? String(s.data._talignM ?? "") || "auto"
-                        : ""
-                    }
-                    data-tsc-m={
-                      s.data._tscM !== undefined
-                        ? String(s.data._tscM ?? "") || "norm"
-                        : ""
-                    }
+                    data-talign={String(rd._talign ?? "")}
+                    data-tsc={String(rd._tsc ?? "")}
                     className={`group/sec relative cursor-pointer transition-shadow ${
                       openId === s.id
                         ? "ring-2 ring-inset ring-accent"
@@ -4026,27 +4054,27 @@ export default function BuilderPage({
                       if (openId !== s.id) setOpenId(s.id);
                     }}
                     style={{
-                      backgroundColor: sectionToneBg(s.data._bg, theme),
-                      ...(patternCss(s.data, theme) || {}),
-                      ...(typeof s.data._tcol === "string" && s.data._tcol
-                        ? { color: s.data._tcol as string }
+                      backgroundColor: sectionToneBg(rd._bg, theme),
+                      ...(patternCss(rd, theme) || {}),
+                      ...(typeof rd._tcol === "string" && rd._tcol
+                        ? { color: rd._tcol as string }
                         : {}),
-                      ...(typeof s.data._bgimg === "string" && s.data._bgimg
+                      ...(typeof rd._bgimg === "string" && rd._bgimg
                         ? {
-                            backgroundImage: `url(${s.data._bgimg})`,
+                            backgroundImage: `url(${rd._bgimg})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                           }
                         : {}),
                     }}
                   >
-                    {typeof s.data._bgimg === "string" && s.data._bgimg && (
+                    {typeof rd._bgimg === "string" && rd._bgimg && (
                       <div
                         className="pointer-events-none absolute inset-0 z-0"
                         style={{
                           background: `rgba(0,0,0,${
-                            (typeof s.data._bgdim === "number"
-                              ? s.data._bgdim
+                            (typeof rd._bgdim === "number"
+                              ? rd._bgdim
                               : 35) / 100
                           })`,
                         }}
@@ -4055,7 +4083,7 @@ export default function BuilderPage({
                     <div className="relative z-[1]">
                       <PreviewSection
                         kind={s.kind}
-                        data={s.data}
+                        data={rd}
                         theme={theme}
                         businessName={businessName}
                         images={images}
@@ -4065,13 +4093,14 @@ export default function BuilderPage({
                       />
                     </div>
                     <SectionOverlays
-                      data={s.data}
+                      data={rd}
                       theme={theme}
                       p={c.preview}
                       edit={(patch) => patchData(s.id, patch)}
                     />
                   </div>
-                ))
+                  );
+                })
               )}
               </div>
             </div>

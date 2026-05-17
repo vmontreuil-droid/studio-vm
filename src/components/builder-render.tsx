@@ -95,6 +95,55 @@ function patternCss(
   }
 }
 
+// Mobiel-onafhankelijke stijl-overrides voor de publieke render: enkel
+// als een blok een "<sleutel>M" heeft, zetten we die via @media (max
+// 640px) met !important over de inline desktop-stijl. Zo blijven desktop
+// en mobiel volledig los van elkaar.
+function mobBlockDecl(
+  bd: Record<string, unknown>,
+  bg: string,
+  fg: string,
+  accent: string,
+): string {
+  const d: string[] = [];
+  if (bd._bgM !== undefined) {
+    const tb = toneBg(bd._bgM, bg, fg, accent);
+    d.push(`background-color:${tb ?? bg}!important`);
+  }
+  if (bd._tcolM !== undefined)
+    d.push(
+      `color:${
+        typeof bd._tcolM === "string" && bd._tcolM ? bd._tcolM : fg
+      }!important`,
+    );
+  if (bd._bgimgM !== undefined) {
+    if (typeof bd._bgimgM === "string" && bd._bgimgM)
+      d.push(
+        `background-image:url(${bd._bgimgM})!important;background-size:cover!important;background-position:center!important`,
+      );
+    else d.push(`background-image:none!important`);
+  }
+  if (
+    bd._patM !== undefined ||
+    bd._patCM !== undefined ||
+    bd._patOM !== undefined
+  ) {
+    const pc = patternCss(
+      {
+        _pat: bd._patM ?? bd._pat,
+        _patC: bd._patCM ?? bd._patC,
+        _patO: bd._patOM ?? bd._patO,
+      },
+      fg,
+    );
+    if (pc)
+      d.push(
+        `background-image:${pc.backgroundImage}!important;background-size:${pc.backgroundSize}!important`,
+      );
+  }
+  return d.join(";");
+}
+
 function radiusPx(label?: string): string {
   const l = (label ?? "").toLowerCase();
   if (/strak|net|sharp/.test(l)) return "2px";
@@ -128,7 +177,7 @@ export function BuilderRender({ snap }: { snap: Snap }) {
 
   return (
     <div className="bldr-ro mt-5 space-y-6">
-      <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}.bldr-ro [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}@media (max-width:640px){.bldr-ro [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-ro [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-ro [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:start}.bldr-ro [data-hhm="s"]{min-height:200px!important}.bldr-ro [data-hhm="m"]{min-height:340px!important}.bldr-ro [data-hhm="l"]{min-height:480px!important}.bldr-ro [data-hhm="xl"]{min-height:640px!important}.bldr-ro [data-hhm="full"]{min-height:85vh!important}}`}</style>
+      <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}.bldr-ro [data-talign="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-tsc="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}@media (max-width:640px){.bldr-ro [data-anim-m="none"]{animation:none!important}.bldr-ro [data-anim-m="fade"]{animation:svmIn .7s ease both!important}.bldr-ro [data-anim-m="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both!important}.bldr-ro [data-anim-m="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both!important}.bldr-ro [data-tsc-m="s"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:.86em}.bldr-ro [data-tsc-m="l"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.15em}.bldr-ro [data-tsc-m="xl"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1.32em}.bldr-ro [data-tsc-m="norm"] :is(h1,h2,h3,h4,p,li,blockquote){font-size:1em}.bldr-ro [data-talign-m="left"] :is(h1,h2,h3,h4,p,li){text-align:left}.bldr-ro [data-talign-m="center"] :is(h1,h2,h3,h4,p,li){text-align:center}.bldr-ro [data-talign-m="right"] :is(h1,h2,h3,h4,p,li){text-align:right}.bldr-ro [data-talign-m="auto"] :is(h1,h2,h3,h4,p,li){text-align:start}.bldr-ro [data-hhm="s"]{min-height:200px!important}.bldr-ro [data-hhm="m"]{min-height:340px!important}.bldr-ro [data-hhm="l"]{min-height:480px!important}.bldr-ro [data-hhm="xl"]{min-height:640px!important}.bldr-ro [data-hhm="full"]{min-height:85vh!important}}`}</style>
       {snap.pages.map((page, pi) => (
         <div key={pi}>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -182,15 +231,25 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                     size?: number;
                   }[])
                 : [];
+              const bcls = `bmb-${pi}-${bi}`;
+              const mDecl = mobBlockDecl(bd, bg, fg, accent);
               return (
                 <div
                   key={bi}
-                  className="relative overflow-hidden"
+                  className={`relative overflow-hidden ${bcls}`}
                   data-anim={String(bd._anim ?? "")}
                   data-hover={bd._hover ? "1" : ""}
                   data-hidem={bd._hideM ? "1" : ""}
                   data-talign={String(bd._talign ?? "")}
                   data-tsc={String(bd._tsc ?? "")}
+                  data-anim-m={
+                    bd._animM !== undefined
+                      ? String(bd._animM ?? "") || "none"
+                      : ""
+                  }
+                  data-hover-m={
+                    bd._hoverM !== undefined ? (bd._hoverM ? "1" : "0") : ""
+                  }
                   data-talign-m={
                     bd._talignM !== undefined
                       ? String(bd._talignM ?? "") || "auto"
@@ -216,6 +275,9 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                       : {}),
                   }}
                 >
+                  {mDecl && (
+                    <style>{`@media (max-width:640px){.bldr-ro .${bcls}{${mDecl}}}`}</style>
+                  )}
                   {typeof bd._bgimg === "string" && bd._bgimg && (
                     <div
                       className="pointer-events-none absolute inset-0 z-0"
