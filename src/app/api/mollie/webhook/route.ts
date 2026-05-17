@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { monitorConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { getMolliePayment } from "@/lib/mollie";
 import { sendMail } from "@/lib/monitor";
+import { siteUrl } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,9 @@ export async function POST(req: NextRequest) {
       const db = getSupabaseAdmin();
       const { data } = await db
         .from("quotes")
-        .select("id, name, email, locale, deposit_status, deposit_cents")
+        .select(
+          "id, name, email, locale, deposit_status, base, plan, modules, one_off_cents, discount_cents, deposit_cents, term, monthly_install_cents, subscription_cents, monthly_total_cents",
+        )
         .eq("id", quoteId)
         .maybeSingle();
       const q = data as {
@@ -59,7 +62,16 @@ export async function POST(req: NextRequest) {
         email: string;
         locale: string | null;
         deposit_status: string;
+        base: string | null;
+        plan: string | null;
+        modules: string[] | null;
+        one_off_cents: number | null;
+        discount_cents: number | null;
         deposit_cents: number | null;
+        term: number | null;
+        monthly_install_cents: number | null;
+        subscription_cents: number | null;
+        monthly_total_cents: number | null;
       } | null;
       // Idempotent: enkel de eerste keer mailen.
       if (q && q.deposit_status !== "betaald") {
@@ -84,27 +96,178 @@ export async function POST(req: NextRequest) {
           subject: `Aanbetaling ontvangen — ${q.name}`,
           html: `<div style="font-family:system-ui,sans-serif;color:#111;line-height:1.6"><p><strong>${q.name}</strong> (${q.email}) heeft de aanbetaling van ${amt} betaald. De scope ligt vast — klaar om op te starten.</p></div>`,
         }).catch(() => {});
-        const loc = q.locale === "fr" || q.locale === "en" ? q.locale : "nl";
-        const cm = {
+        const loc =
+          q.locale === "fr" || q.locale === "en" ? q.locale : "nl";
+
+        const eur = (c: number | null | undefined) =>
+          "€ " + Math.round((c ?? 0) / 100).toLocaleString("nl-BE");
+        const payable =
+          (q.one_off_cents ?? 0) - (q.discount_cents ?? 0);
+        const depIncl = Math.round((q.deposit_cents ?? 0) * 1.21);
+        const baseName =
+          ({
+            onepager: "One-pager",
+            starter: "Starter",
+            pro: "Pro",
+            webshop: "Webshop",
+          } as Record<string, string>)[q.base ?? ""] ??
+          q.base ??
+          "—";
+        const mods = (q.modules ?? []).filter(Boolean);
+
+        const TR = {
           nl: {
-            subject: "Je aanbetaling is ontvangen — we starten op",
-            l1: `Bedankt! We ontvingen je aanbetaling van <strong>${amt}</strong>.`,
-            l2: "Je samenstelling ligt nu vast. Ik neem snel contact op om de planning af te spreken. Vanaf oplevering start je maandfactuur.",
+            subject: "Bevestiging — je aanbetaling is ontvangen",
+            hi: `Dag ${q.name},`,
+            thanks: `Bedankt voor je vertrouwen. We ontvingen je aanbetaling van <strong>${amt}</strong> in goede orde — je project bij Studio VM ligt nu vast. Geen sterretjes, geen verrassingen.`,
+            sumHead: "Jouw samenstelling",
+            lPkg: "Pakket",
+            lSub: "Onderhoud (verplicht)",
+            lExtra: "Gekozen opties",
+            lOnce: "Eenmalig (excl. btw)",
+            lDisc: "Vastlegkorting",
+            lDep: "Aanbetaling betaald (incl. 21% btw)",
+            lBal: "Saldo",
+            lMonth: "Maandfactuur vanaf oplevering",
+            balOnce: `${eur(payable - (q.deposit_cents ?? 0))} bij oplevering`,
+            balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / maand vanaf oplevering`,
+            perMonth: "/ maand",
+            stepsHead: "Wat nu? — de volgende stappen",
+            steps: [
+              "Ik neem binnen één werkdag persoonlijk contact op om de planning en jouw input (teksten, beeldmateriaal, toegang) af te spreken.",
+              "Je krijgt een korte, heldere briefing-checklist in je klantenportaal — alles op één plek.",
+              "Ik bouw je site (uitvoering 1–2 weken zodra het materiaal er is); je volgt de voortgang live in je portaal.",
+              "Oplevering op een staging-omgeving — jij keurt goed.",
+              "Live-gang op je domein. Vanaf oplevering start je maandfactuur (onderhoud); domein & e-mail bespreken we apart, rustig samen.",
+            ],
+            portal:
+              "Alles — je offerte, voortgang, facturen en support — staat in je persoonlijke klantenportaal. Je krijgt een login-link per e-mail.",
+            reassure:
+              "Vragen tussendoor? Antwoord gerust gewoon op deze mail — je krijgt mij, geen bot.",
+            sign: "Tot snel,<br>Vincent — Studio VM",
           },
           fr: {
-            subject: "Votre acompte est reçu — on démarre",
-            l1: `Merci ! Nous avons reçu votre acompte de <strong>${amt}</strong>.`,
-            l2: "Votre composition est verrouillée. Je vous recontacte vite pour le planning. Dès la livraison, votre facture mensuelle démarre.",
+            subject: "Confirmation — votre acompte est reçu",
+            hi: `Bonjour ${q.name},`,
+            thanks: `Merci pour votre confiance. Nous avons bien reçu votre acompte de <strong>${amt}</strong> — votre projet chez Studio VM est verrouillé. Sans astérisques, sans surprises.`,
+            sumHead: "Votre composition",
+            lPkg: "Forfait",
+            lSub: "Maintenance (obligatoire)",
+            lExtra: "Options choisies",
+            lOnce: "Unique (HTVA)",
+            lDisc: "Remise verrouillage",
+            lDep: "Acompte payé (TVA 21% incl.)",
+            lBal: "Solde",
+            lMonth: "Facture mensuelle dès la livraison",
+            balOnce: `${eur(payable - (q.deposit_cents ?? 0))} à la livraison`,
+            balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / mois dès la livraison`,
+            perMonth: "/ mois",
+            stepsHead: "Et maintenant ? — les prochaines étapes",
+            steps: [
+              "Je vous recontacte personnellement sous un jour ouvré pour le planning et vos éléments (textes, visuels, accès).",
+              "Vous recevez une checklist de briefing claire dans votre espace client — tout au même endroit.",
+              "Je construis votre site (réalisation 1–2 semaines dès réception du matériel) ; vous suivez l'avancement en direct.",
+              "Livraison sur un environnement de staging — vous validez.",
+              "Mise en ligne sur votre domaine. Dès la livraison, votre facture mensuelle démarre (maintenance) ; domaine & e-mail, on en parle séparément, tranquillement.",
+            ],
+            portal:
+              "Tout — votre devis, l'avancement, les factures et le support — se trouve dans votre espace client. Vous recevez un lien de connexion par e-mail.",
+            reassure:
+              "Une question entre-temps ? Répondez simplement à cet e-mail — vous m'avez, moi, pas un bot.",
+            sign: "À bientôt,<br>Vincent — Studio VM",
           },
           en: {
-            subject: "Your deposit is received — we're starting",
-            l1: `Thanks! We received your deposit of <strong>${amt}</strong>.`,
-            l2: "Your composition is locked in. I'll be in touch shortly about planning. From delivery, your monthly invoice starts.",
+            subject: "Confirmation — your deposit is received",
+            hi: `Hi ${q.name},`,
+            thanks: `Thanks for your trust. We've received your deposit of <strong>${amt}</strong> — your project with Studio VM is locked in. No asterisks, no surprises.`,
+            sumHead: "Your composition",
+            lPkg: "Package",
+            lSub: "Maintenance (required)",
+            lExtra: "Chosen options",
+            lOnce: "One-off (excl. VAT)",
+            lDisc: "Lock-in discount",
+            lDep: "Deposit paid (incl. 21% VAT)",
+            lBal: "Balance",
+            lMonth: "Monthly invoice from delivery",
+            balOnce: `${eur(payable - (q.deposit_cents ?? 0))} on delivery`,
+            balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / month from delivery`,
+            perMonth: "/ month",
+            stepsHead: "What's next? — the next steps",
+            steps: [
+              "I personally reach out within one working day to agree the planning and your input (texts, visuals, access).",
+              "You get a short, clear briefing checklist in your client portal — all in one place.",
+              "I build your site (1–2 weeks once the material is in); you follow progress live in your portal.",
+              "Delivery on a staging environment — you approve.",
+              "Go-live on your domain. From delivery your monthly invoice starts (maintenance); domain & email we discuss separately, calmly together.",
+            ],
+            portal:
+              "Everything — your quote, progress, invoices and support — is in your personal client portal. You'll get a login link by email.",
+            reassure:
+              "A question in between? Just reply to this email — you get me, not a bot.",
+            sign: "Talk soon,<br>Vincent — Studio VM",
           },
         }[loc];
+
+        const accent = "#e08214";
+        const font =
+          "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+        const row = (k: string, v: string) =>
+          `<tr><td style="padding:7px 16px 7px 0;font:400 13px/1.5 ${font};color:#78716c;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:7px 0;font:600 14px/1.5 ${font};color:#1c1917">${v}</td></tr>`;
+        const summaryRows =
+          row(TR.lPkg, baseName) +
+          (q.subscription_cents
+            ? row(
+                TR.lSub,
+                `${eur(q.subscription_cents)}${TR.perMonth}`,
+              )
+            : "") +
+          (mods.length
+            ? row(TR.lExtra, mods.join(" · "))
+            : "") +
+          row(TR.lOnce, eur(q.one_off_cents)) +
+          (q.discount_cents
+            ? row(TR.lDisc, `− ${eur(q.discount_cents)}`)
+            : "") +
+          row(TR.lDep, `<span style="color:${accent}">${amt}</span>`) +
+          row(
+            TR.lBal,
+            q.term && q.term > 0 ? TR.balSplit : TR.balOnce,
+          ) +
+          row(
+            TR.lMonth,
+            `${eur(q.monthly_total_cents)}${TR.perMonth}`,
+          );
+        const stepsHtml = TR.steps
+          .map(
+            (s, i) =>
+              `<tr><td valign="top" style="padding:0 12px 14px 0"><span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:${accent};color:#fff;font:700 12px/22px ${font};text-align:center">${i + 1}</span></td><td style="padding:0 0 14px;font:400 14px/1.6 ${font};color:#44403c">${s}</td></tr>`,
+          )
+          .join("");
+
         await sendMail(q.email, {
-          subject: cm.subject,
-          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">${cm.l1}</p><p style="margin:0 0 8px">${cm.l2}</p></div>`,
+          subject: TR.subject,
+          html: `<!DOCTYPE html><html lang="${loc}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0a09">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
+  <tr><td style="padding:0 4px 22px"><img src="${siteUrl}/email-logo" width="200" height="75" alt="Studio VM" style="display:block;border:0;outline:none;width:200px;height:auto;max-width:62%"></td></tr>
+  <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:18px;padding:34px">
+    <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${TR.subject}</p>
+    <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${font};color:#1c1917">${TR.hi}</h1>
+    <p style="margin:0 0 22px;font:400 15px/1.65 ${font};color:#44403c">${TR.thanks}</p>
+
+    <p style="margin:0 0 10px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.sumHead}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#fff;border:1px solid #e7e5e4;border-radius:12px;padding:6px 16px"><tbody>${summaryRows}</tbody></table>
+
+    <p style="margin:26px 0 12px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.stepsHead}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${stepsHtml}</table>
+
+    <p style="margin:8px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.portal}</p>
+    <p style="margin:18px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.reassure}</p>
+    <p style="margin:22px 0 0;font:400 15px/1.6 ${font};color:#1c1917">${TR.sign}</p>
+  </td></tr>
+  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">Studio VM · Vincent Montreuil · Nieuwpoortstraat 14-301, 8570 Anzegem · info@studio-vm.be · BE 0672.960.066</td></tr>
+</table></td></tr></table></body></html>`,
         }).catch(() => {});
       }
     } catch {
