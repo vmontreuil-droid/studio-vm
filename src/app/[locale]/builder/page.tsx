@@ -4393,10 +4393,10 @@ export default function BuilderPage({
               </span>
             </div>
             <div
-              className={`overflow-hidden rounded-b-2xl ${
+              className={`rounded-b-2xl ${
                 device === "mobile"
-                  ? "flex justify-center bg-card-hover p-4"
-                  : ""
+                  ? "flex justify-center overflow-hidden bg-card-hover p-4"
+                  : "max-h-[74vh] overflow-y-auto"
               }`}
             >
               <div
@@ -4439,7 +4439,10 @@ export default function BuilderPage({
                     } ${hb("sticky") ? "sticky top-0 z-20" : ""}`}
                     style={{
                       borderColor: `${theme.fg}1a`,
-                      background: hBg,
+                      // Sticky zonder eigen achtergrond → frame-bg zodat
+                      // inhoud er niet doorheen schemert bij het scrollen.
+                      background:
+                        hb("sticky") && !hs("bg") ? theme.bg : hBg,
                       color: hFg,
                       backdropFilter: hb("blur")
                         ? "blur(8px)"
