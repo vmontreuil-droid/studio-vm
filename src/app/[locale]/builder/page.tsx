@@ -1240,6 +1240,7 @@ export default function BuilderPage({
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
+  const [copied, setCopied] = useState(false);
   const [pending, startSend] = useTransition();
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [hydrated, setHydrated] = useState(false);
@@ -3228,6 +3229,40 @@ export default function BuilderPage({
                   </button>
                   {sent === "err" && (
                     <p className="mt-2 text-xs text-red-500">{c.buildErr}</p>
+                  )}
+                  {designId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          void navigator.clipboard.writeText(
+                            `${location.origin}/${locale}/preview/${designId}`,
+                          );
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        } catch {
+                          /* clipboard niet beschikbaar */
+                        }
+                      }}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+                    >
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                      ) : (
+                        <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+                      )}
+                      {copied
+                        ? locale === "fr"
+                          ? "Lien copié"
+                          : locale === "en"
+                            ? "Link copied"
+                            : "Link gekopieerd"
+                        : locale === "fr"
+                          ? "Copier le lien d'aperçu"
+                          : locale === "en"
+                            ? "Copy preview link"
+                            : "Kopieer voorbeeld-link"}
+                    </button>
                   )}
                 </form>
               ) : (
