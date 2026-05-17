@@ -226,13 +226,53 @@ const sectionKinds: SectionKind[] = [
   "contact",
 ];
 
-const fontStacks = {
+// Ruime set lettertypes op breed-beschikbare families (geen externe
+// lading nodig). Naam wordt in zijn eigen lettertype getoond.
+const fontStacks: Record<string, string> = {
   sans: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  inter: "'Inter', system-ui, sans-serif",
+  helvetica: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  arial: "Arial, 'Helvetica Neue', sans-serif",
+  verdana: "Verdana, Geneva, sans-serif",
+  tahoma: "Tahoma, Geneva, sans-serif",
+  trebuchet: "'Trebuchet MS', 'Segoe UI', sans-serif",
+  calibri: "Calibri, 'Segoe UI', sans-serif",
+  segoe: "'Segoe UI', system-ui, sans-serif",
+  gillsans: "'Gill Sans', 'Gill Sans MT', Calibri, sans-serif",
+  optima: "Optima, Segoe, Candara, sans-serif",
+  futura: "Futura, 'Century Gothic', sans-serif",
+  centurygothic: "'Century Gothic', AppleGothic, sans-serif",
+  bahnschrift: "Bahnschrift, 'DIN Alternate', sans-serif",
   serif: "Georgia, 'Times New Roman', serif",
+  times: "'Times New Roman', Times, serif",
+  garamond: "Garamond, 'EB Garamond', serif",
+  baskerville: "Baskerville, 'Baskerville Old Face', serif",
+  palatino: "'Palatino Linotype', Palatino, 'Book Antiqua', serif",
+  cambria: "Cambria, Georgia, serif",
+  didot: "Didot, 'Bodoni MT', 'Times New Roman', serif",
+  rockwell: "Rockwell, 'Courier Bold', Courier, serif",
+  copperplate: "'Copperplate', 'Copperplate Gothic Light', serif",
+  lucida: "'Lucida Bright', Georgia, serif",
   mono: "ui-monospace, 'Cascadia Code', Menlo, monospace",
-  display: "'Trebuchet MS', 'Segoe UI', sans-serif",
-} as const;
-type FontKey = keyof typeof fontStacks;
+  consolas: "Consolas, 'Lucida Console', monospace",
+  courier: "'Courier New', Courier, monospace",
+  brush: "'Brush Script MT', 'Segoe Script', cursive",
+  segoescript: "'Segoe Script', 'Bradley Hand', cursive",
+  comic: "'Comic Sans MS', 'Comic Neue', cursive",
+  impact: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
+};
+const FONT_NAMES: Record<string, string> = {
+  sans: "Systeem", inter: "Inter", helvetica: "Helvetica", arial: "Arial",
+  verdana: "Verdana", tahoma: "Tahoma", trebuchet: "Trebuchet", calibri: "Calibri",
+  segoe: "Segoe UI", gillsans: "Gill Sans", optima: "Optima", futura: "Futura",
+  centurygothic: "Century Gothic", bahnschrift: "Bahnschrift", serif: "Georgia",
+  times: "Times", garamond: "Garamond", baskerville: "Baskerville",
+  palatino: "Palatino", cambria: "Cambria", didot: "Didot", rockwell: "Rockwell",
+  copperplate: "Copperplate", lucida: "Lucida", mono: "Mono",
+  consolas: "Consolas", courier: "Courier", brush: "Brush Script",
+  segoescript: "Segoe Script", comic: "Comic Sans", impact: "Impact",
+};
+type FontKey = string;
 
 const radiusPx = { strak: "2px", zacht: "12px", rond: "24px" } as const;
 type RadiusKey = keyof typeof radiusPx;
@@ -915,6 +955,8 @@ export type BuilderSnapshot = {
   theme?: Theme;
   font?: FontKey;
   radius?: RadiusKey;
+  align?: "left" | "center" | "right";
+  scale?: number;
   pages?: Page[];
   activeId?: string;
   locale?: string;
@@ -938,6 +980,8 @@ export default function BuilderPage({
   );
   const [font, setFont] = useState<FontKey>("sans");
   const [radius, setRadius] = useState<RadiusKey>("zacht");
+  const [align, setAlign] = useState<"left" | "center" | "right">("center");
+  const [scale, setScale] = useState(1);
   const [images, setImages] = useState<string[]>([]);
   const pg = PG[locale];
   const [pages, setPages] = useState<Page[]>(() => [
@@ -992,20 +1036,15 @@ export default function BuilderPage({
       const d = fromServer
         ? initialSnapshot!
         : raw
-          ? (JSON.parse(raw) as {
-              businessName?: string;
-              theme?: Theme;
-              font?: FontKey;
-              radius?: RadiusKey;
-              pages?: Page[];
-              activeId?: string;
-            })
+          ? (JSON.parse(raw) as BuilderSnapshot)
           : null;
       if (d) {
         if (d.businessName) setBusinessName(d.businessName);
         if (d.theme) setTheme(d.theme);
         if (d.font) setFont(d.font);
         if (d.radius) setRadius(d.radius);
+        if (d.align) setAlign(d.align);
+        if (typeof d.scale === "number") setScale(d.scale);
         if (d.pages && d.pages.length) {
           syncId(d.pages);
           setPages(d.pages);
@@ -1024,7 +1063,16 @@ export default function BuilderPage({
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ businessName, theme, font, radius, pages, activeId }),
+        JSON.stringify({
+          businessName,
+          theme,
+          font,
+          radius,
+          align,
+          scale,
+          pages,
+          activeId,
+        }),
       );
       setSavedTick(true);
       const t = setTimeout(() => setSavedTick(false), 1200);
@@ -1032,7 +1080,7 @@ export default function BuilderPage({
     } catch {
       /* quota → stil negeren */
     }
-  }, [hydrated, businessName, theme, font, radius, pages, activeId]);
+  }, [hydrated, businessName, theme, font, radius, align, scale, pages, activeId]);
 
   // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
   // klant op elk toestel kan hervatten en jij elke versie ziet.
@@ -1046,6 +1094,8 @@ export default function BuilderPage({
         theme,
         font,
         radius,
+        align,
+        scale,
         pages,
         activeId,
         locale,
@@ -1062,6 +1112,8 @@ export default function BuilderPage({
     theme,
     font,
     radius,
+    align,
+    scale,
     pages,
     activeId,
   ]);
@@ -1094,6 +1146,8 @@ export default function BuilderPage({
     setTheme(themes[0]);
     setFont("sans");
     setRadius("zacht");
+    setAlign("center");
+    setScale(1);
     setImages([]);
     setBusinessName(
       locale === "fr"
@@ -1631,7 +1685,7 @@ export default function BuilderPage({
               <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.fontLabel}
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid max-h-52 grid-cols-2 gap-1.5 overflow-y-auto pr-1">
                 {(Object.keys(fontStacks) as FontKey[]).map((f) => (
                   <button
                     key={f}
@@ -1644,7 +1698,7 @@ export default function BuilderPage({
                         : "border-border hover:bg-card-hover"
                     }`}
                   >
-                    {c.fonts[f]}
+                    {FONT_NAMES[f] ?? f}
                   </button>
                 ))}
               </div>
@@ -1668,6 +1722,67 @@ export default function BuilderPage({
                   </button>
                 ))}
               </div>
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Alignement du texte"
+                  : locale === "en"
+                    ? "Text alignment"
+                    : "Tekst-uitlijning"}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["left", "center", "right"] as const).map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => setAlign(a)}
+                    className={`rounded-lg border p-2 text-xs transition-colors ${
+                      align === a
+                        ? "border-accent"
+                        : "border-border hover:bg-card-hover"
+                    }`}
+                    style={{ textAlign: a }}
+                  >
+                    {a === "left" ? "≡" : a === "center" ? "≣" : "≡"}{" "}
+                    {a === "left"
+                      ? locale === "fr"
+                        ? "Gauche"
+                        : locale === "en"
+                          ? "Left"
+                          : "Links"
+                      : a === "center"
+                        ? locale === "fr"
+                          ? "Centre"
+                          : "Midden"
+                        : locale === "fr"
+                          ? "Droite"
+                          : locale === "en"
+                            ? "Right"
+                            : "Rechts"}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Échelle"
+                  : locale === "en"
+                    ? "Scale"
+                    : "Grootte / schaal"}
+              </p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={0.8}
+                  max={1.4}
+                  step={0.05}
+                  value={scale}
+                  onChange={(e) => setScale(Number(e.target.value))}
+                  className="h-1 flex-1 cursor-pointer accent-accent"
+                />
+                <span className="w-10 text-right font-mono text-[11px] tabular-nums text-muted">
+                  {Math.round(scale * 100)}%
+                </span>
+              </div>
+
               <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.imagesLabel}
               </p>
@@ -2144,7 +2259,7 @@ export default function BuilderPage({
                         theme:
                           c.themeLabels[theme.slug] ??
                           `${theme.bg} / ${theme.fg} / ${theme.accent}`,
-                        font: c.fonts[font],
+                        font: FONT_NAMES[font] ?? font,
                         radius: c.radii[radius],
                         colors: {
                           bg: theme.bg,
@@ -2278,7 +2393,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
