@@ -19,7 +19,7 @@ export function SiteChrome({
   children: React.ReactNode;
 }) {
   const path = usePathname() || "";
-  const bare = /\/(portail|admin|builder)(\/|$)/.test(path);
+  const bare = /\/(portail|admin|builder|preview)(\/|$)/.test(path);
 
   if (bare) {
     return (

@@ -17,10 +17,13 @@ export const metadata: Metadata = {
 // service-role (bypassed RLS) en tonen enkel de visuele render.
 export default async function DesignPreview({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ p?: string }>;
 }) {
   const { locale, id } = await params;
+  const { p } = await searchParams;
   if (!isValidLocale(locale)) notFound();
   if (!supabaseConfigured) notFound();
   if (!/^[0-9a-f-]{16,40}$/i.test(id)) notFound();
@@ -34,25 +37,18 @@ export default async function DesignPreview({
   if (!row || !row.snapshot) notFound();
 
   const snap = row.snapshot as Parameters<typeof BuilderRender>[0]["snap"];
-  const t =
-    locale === "fr"
-      ? { eb: "Aperçu", made: "Construit avec le builder de Studio VM" }
-      : locale === "en"
-        ? { eb: "Preview", made: "Built with the Studio VM builder" }
-        : { eb: "Voorbeeld", made: "Gemaakt met de Studio VM-builder" };
+  const pageIndex = Number.parseInt(p ?? "0", 10);
 
+  // Schone, los-staande weergave — exact zoals de gepubliceerde site
+  // (geen studio-vm-chrome, geen debuglabels). Zo komt de deel-link
+  // overeen met wat de klant in de builder ziet.
   return (
-    <main className="mx-auto max-w-5xl px-5 py-10">
-      <div className="mb-5">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-          {t.eb}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          {row.title || "—"}
-        </h1>
-        <p className="mt-1 text-xs text-muted">{t.made}</p>
-      </div>
-      <BuilderRender snap={snap} />
+    <main>
+      <BuilderRender
+        snap={snap}
+        live
+        pageIndex={Number.isFinite(pageIndex) ? pageIndex : 0}
+      />
     </main>
   );
 }
