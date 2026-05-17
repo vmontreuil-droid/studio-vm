@@ -4192,6 +4192,162 @@ function Txt({
   );
 }
 
+function Rng({
+  label,
+  value,
+  def,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: unknown;
+  def: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (n: number) => void;
+}) {
+  const v = typeof value === "number" ? value : def;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex-1 text-[11px] text-muted">{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={v}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-1 w-28 cursor-pointer accent-accent"
+      />
+      <span className="w-8 text-right font-mono text-[11px] tabular-nums">
+        {v}
+      </span>
+    </div>
+  );
+}
+
+// Editor voor de herbruikbare sectiekop: ondertekst, streep, icoon in
+// het midden van de streep en alle tussenruimtes.
+function HeadEditor({
+  d,
+  set,
+  locale,
+  accent,
+}: {
+  d: SectionData;
+  set: (k: string, v: unknown) => void;
+  locale: Locale;
+  accent: string;
+}) {
+  const sv = (k: string) => (d[k] == null ? "" : String(d[k]));
+  const showDiv = d._div === 1 || d._div === true;
+  const L =
+    locale === "fr"
+      ? {
+          sub: "Sous-titre",
+          div: "Ligne de séparation",
+          icon: "Icône au milieu",
+          padT: "Espace au-dessus",
+          gap: "Sous le titre",
+          dgap: "Autour de la ligne",
+          below: "Avant le contenu",
+        }
+      : locale === "en"
+        ? {
+            sub: "Subtitle",
+            div: "Divider line",
+            icon: "Icon in the middle",
+            padT: "Space above",
+            gap: "Below title",
+            dgap: "Around the line",
+            below: "Before content",
+          }
+        : {
+            sub: "Ondertekst",
+            div: "Streep / scheidingslijn",
+            icon: "Icoon in het midden",
+            padT: "Ruimte boven",
+            gap: "Onder titel",
+            dgap: "Rond de streep",
+            below: "Voor de inhoud",
+          };
+  return (
+    <div className="space-y-2 rounded-lg border border-dashed p-3">
+      <Txt
+        label={L.sub}
+        value={sv("_sub")}
+        area
+        onChange={(v) => set("_sub", v)}
+      />
+      <button
+        type="button"
+        onClick={() => set("_div", showDiv ? 0 : 1)}
+        className={`flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
+          showDiv
+            ? "border-accent bg-accent/10 text-foreground"
+            : "border-border text-muted hover:bg-card-hover"
+        }`}
+      >
+        {showDiv ? "✓ " : ""}
+        {L.div}
+      </button>
+      {showDiv && (
+        <div>
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+            {L.icon}
+          </p>
+          <IconField
+            value={sv("_divIcon")}
+            onPick={(k) => set("_divIcon", k)}
+            accent={accent}
+          />
+        </div>
+      )}
+      <Rng
+        label={L.padT}
+        value={d._hPadT}
+        def={0}
+        min={0}
+        max={80}
+        step={2}
+        onChange={(n) => set("_hPadT", n)}
+      />
+      <Rng
+        label={L.gap}
+        value={d._hGap}
+        def={8}
+        min={0}
+        max={40}
+        step={2}
+        onChange={(n) => set("_hGap", n)}
+      />
+      {showDiv && (
+        <Rng
+          label={L.dgap}
+          value={d._hDivGap}
+          def={16}
+          min={0}
+          max={48}
+          step={2}
+          onChange={(n) => set("_hDivGap", n)}
+        />
+      )}
+      <Rng
+        label={L.below}
+        value={d._hBelow}
+        def={0}
+        min={0}
+        max={64}
+        step={2}
+        onChange={(n) => set("_hBelow", n)}
+      />
+    </div>
+  );
+}
+
 type LinkVal = { k: "none" | "page" | "section" | "url"; v: string };
 
 // Herbruikbare link-kiezer: koppel een knop/foto/balk aan een
@@ -4719,27 +4875,326 @@ function SectionEditor({
             onChange={(v) => set(k, v)}
           />
         ))}
+        {section.kind === "gallery" && (
+          <HeadEditor
+            d={d}
+            set={set}
+            locale={locale}
+            accent={theme.accent}
+          />
+        )}
         {LinkBlock}
       </div>
     );
   }
 
   if (section.kind === "contact") {
+    const cf: Record<string, string>[] = items.length
+      ? items
+      : [
+          { label: "Je naam", type: "text", req: "1" },
+          { label: "E-mail", type: "email", req: "1" },
+          { label: "Je bericht", type: "textarea", req: "1" },
+        ];
+    const setF = (i: number, patch: Record<string, string>) =>
+      setItems(cf.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+    const sideCard = d._card === 1 || d._card === true;
+    const L =
+      locale === "fr"
+        ? {
+            info: "Coordonnées",
+            fields: "Champs du formulaire",
+            add: "Champ +",
+            req: "Obligatoire",
+            box: "Couleur du champ",
+            shape: "Forme",
+            btn: "Bouton",
+            btnC: "Couleur bouton",
+            btnT: "Texte bouton",
+            card: "Carte à côté du formulaire",
+            cardT: "Titre carte",
+            cardTx: "Texte carte",
+            cardBg: "Fond carte",
+            ok: "Bericht — succès",
+            okC: "Couleur succès",
+            err: "Bericht — erreur",
+            errC: "Couleur erreur",
+            soft: "Doux",
+            round: "Rond",
+            sharp: "Droit",
+          }
+        : locale === "en"
+          ? {
+              info: "Contact details",
+              fields: "Form fields",
+              add: "Field +",
+              req: "Required",
+              box: "Field colour",
+              shape: "Shape",
+              btn: "Button",
+              btnC: "Button colour",
+              btnT: "Button text colour",
+              card: "Card beside the form",
+              cardT: "Card title",
+              cardTx: "Card text",
+              cardBg: "Card background",
+              ok: "Message — success",
+              okC: "Success colour",
+              err: "Message — error",
+              errC: "Error colour",
+              soft: "Soft",
+              round: "Round",
+              sharp: "Square",
+            }
+          : {
+              info: "Contactgegevens",
+              fields: "Formuliervelden",
+              add: "Veld +",
+              req: "Verplicht",
+              box: "Kleur veld",
+              shape: "Vorm",
+              btn: "Knop",
+              btnC: "Kleur knop",
+              btnT: "Tekstkleur knop",
+              card: "Kaart naast het formulier",
+              cardT: "Titel kaart",
+              cardTx: "Tekst kaart",
+              cardBg: "Achtergrond kaart",
+              ok: "Melding — verzonden",
+              okC: "Kleur 'verzonden'",
+              err: "Melding — fout",
+              errC: "Kleur 'fout'",
+              soft: "Zacht",
+              round: "Rond",
+              sharp: "Recht",
+            };
+    const ColorRow = ({
+      label,
+      k,
+      fallback,
+    }: {
+      label: string;
+      k: string;
+      fallback: string;
+    }) => (
+      <div className="flex items-center gap-2">
+        <span className="flex-1 text-[11px] text-muted">{label}</span>
+        <input
+          type="color"
+          value={str(k) || fallback}
+          onChange={(e) => set(k, e.target.value)}
+          className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+        />
+        {str(k) && (
+          <button
+            type="button"
+            onClick={() => set(k, "")}
+            className="font-mono text-[10px] text-muted underline"
+          >
+            reset
+          </button>
+        )}
+      </div>
+    );
+    const shapeSeg = (k: string, def: string) => (
+      <div className="grid grid-cols-3 gap-1.5">
+        {(
+          [
+            ["zacht", L.soft],
+            ["rond", L.round],
+            ["recht", L.sharp],
+          ] as const
+        ).map(([val, lbl]) => {
+          const cur = (str(k) || def) === val;
+          return (
+            <button
+              key={val}
+              type="button"
+              onClick={() => set(k, val)}
+              className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                cur
+                  ? "border-accent bg-accent/10 text-foreground"
+                  : "border-border text-muted hover:bg-card-hover"
+              }`}
+            >
+              {lbl}
+            </button>
+          );
+        })}
+      </div>
+    );
     return (
       <div className="space-y-3">
-        <Txt label={f.title} value={str("title")} onChange={(v) => set("title", v)} />
+        <Txt
+          label={f.title}
+          value={str("title")}
+          onChange={(v) => set("title", v)}
+        />
+        <HeadEditor d={d} set={set} locale={locale} accent={theme.accent} />
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.info}
+        </p>
         <Txt
           label={f.emailAddr}
           value={str("emailAddr")}
           onChange={(v) => set("emailAddr", v)}
         />
-        <Txt label={f.phone} value={str("phone")} onChange={(v) => set("phone", v)} />
+        <Txt
+          label={f.phone}
+          value={str("phone")}
+          onChange={(v) => set("phone", v)}
+        />
         <Txt
           label={f.address}
           value={str("address")}
           onChange={(v) => set("address", v)}
           area
         />
+
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.fields}
+        </p>
+        {cf.map((fl, i) => (
+          <div key={i} className="space-y-2 rounded-lg border p-2.5">
+            <div className="flex items-center gap-1.5">
+              <input
+                value={fl.label || ""}
+                onChange={(e) => setF(i, { label: e.target.value })}
+                placeholder={`Veld ${i + 1}`}
+                className={fieldCls}
+              />
+              <button
+                type="button"
+                onClick={() => setItems(cf.filter((_, j) => j !== i))}
+                className="rounded p-1 text-muted hover:text-red-500"
+                aria-label="x"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={fl.type || "text"}
+                onChange={(e) => setF(i, { type: e.target.value })}
+                className={fieldCls}
+              >
+                <option value="text">Tekst</option>
+                <option value="email">E-mail</option>
+                <option value="tel">Telefoon</option>
+                <option value="number">Getal</option>
+                <option value="textarea">Tekstvak</option>
+              </select>
+              <button
+                type="button"
+                onClick={() =>
+                  setF(i, { req: fl.req === "1" ? "0" : "1" })
+                }
+                className={`shrink-0 rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
+                  fl.req === "1"
+                    ? "border-accent bg-accent/10 text-foreground"
+                    : "border-border text-muted hover:bg-card-hover"
+                }`}
+              >
+                {fl.req === "1" ? "✓ " : ""}
+                {L.req}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="flex-1 text-[11px] text-muted">{L.box}</span>
+              <input
+                type="color"
+                value={fl.bg || "#ffffff"}
+                onChange={(e) => setF(i, { bg: e.target.value })}
+                className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+              />
+              {fl.bg && (
+                <button
+                  type="button"
+                  onClick={() => setF(i, { bg: "" })}
+                  className="font-mono text-[10px] text-muted underline"
+                >
+                  reset
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            setItems([...cf, { label: "", type: "text", req: "0" }])
+          }
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-2 text-[11px] text-muted transition-colors hover:bg-card-hover"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+          {L.add}
+        </button>
+
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.shape}
+        </p>
+        {shapeSeg("_fldShape", "zacht")}
+
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.btn}
+        </p>
+        <Txt
+          label={L.btn}
+          value={str("button")}
+          onChange={(v) => set("button", v)}
+        />
+        {shapeSeg("_btnShape", "rond")}
+        <ColorRow label={L.btnC} k="_btnColor" fallback={theme.accent} />
+        <ColorRow label={L.btnT} k="_btnTxt" fallback={theme.bg} />
+
+        <button
+          type="button"
+          onClick={() => set("_card", sideCard ? 0 : 1)}
+          className={`flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
+            sideCard
+              ? "border-accent bg-accent/10 text-foreground"
+              : "border-border text-muted hover:bg-card-hover"
+          }`}
+        >
+          {sideCard ? "✓ " : ""}
+          {L.card}
+        </button>
+        {sideCard && (
+          <div className="space-y-2 rounded-lg border border-dashed p-3">
+            <Txt
+              label={L.cardT}
+              value={str("_cardTitle")}
+              onChange={(v) => set("_cardTitle", v)}
+            />
+            <Txt
+              label={L.cardTx}
+              value={str("_cardText")}
+              onChange={(v) => set("_cardText", v)}
+              area
+            />
+            <ColorRow
+              label={L.cardBg}
+              k="_cardBg"
+              fallback="#f5f5f5"
+            />
+          </div>
+        )}
+
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.ok}
+        </p>
+        <Txt
+          label={L.ok}
+          value={str("_okText")}
+          onChange={(v) => set("_okText", v)}
+        />
+        <ColorRow label={L.okC} k="_okColor" fallback="#16a34a" />
+        <Txt
+          label={L.err}
+          value={str("_errText")}
+          onChange={(v) => set("_errText", v)}
+        />
+        <ColorRow label={L.errC} k="_errColor" fallback="#ef4444" />
       </div>
     );
   }
@@ -4977,6 +5432,7 @@ function SectionEditor({
   return (
     <div className="space-y-3">
       <Txt label={f.title} value={str("title")} onChange={(v) => set("title", v)} />
+      <HeadEditor d={d} set={set} locale={locale} accent={theme.accent} />
       {items.map((it, idx) => (
         <div key={idx} className="rounded-lg border p-2.5">
           <div className="mb-1.5 flex items-center justify-between">
@@ -6346,6 +6802,84 @@ function E({
   );
 }
 
+function hnum(v: unknown, d: number): number {
+  return typeof v === "number" ? v : d;
+}
+
+// Herbruikbare sectiekop: titel + optionele ondertekst + optionele
+// streep met (optioneel) icoon in het midden. Alle tussenruimtes zijn
+// regelbaar via _h*-sleutels op de sectie-data.
+function SectionHead({
+  data,
+  edit,
+  theme,
+  titleValue,
+  onTitle,
+}: {
+  data: SectionData;
+  edit: (p: SectionData) => void;
+  theme: Theme;
+  titleValue: string;
+  onTitle: (v: string) => void;
+}) {
+  const sub = data._sub == null ? "" : String(data._sub);
+  const showDiv = data._div === 1 || data._div === true;
+  const dIcon =
+    typeof data._divIcon === "string" ? (data._divIcon as string) : "";
+  const DI = dIcon && ICONS[dIcon] ? ICONS[dIcon] : null;
+  const padT = hnum(data._hPadT, 0);
+  const gap = hnum(data._hGap, 8);
+  const divGap = hnum(data._hDivGap, 16);
+  const below = hnum(data._hBelow, 0);
+  const line = `${theme.fg}33`;
+  return (
+    <div
+      className="text-center"
+      style={{ paddingTop: padT, marginBottom: below }}
+    >
+      <h3 className="text-xl font-semibold tracking-tight">
+        <E value={titleValue} onChange={onTitle} />
+      </h3>
+      {sub && (
+        <p
+          className="mx-auto max-w-2xl text-sm opacity-70"
+          style={{ marginTop: gap }}
+        >
+          <E value={sub} onChange={(v) => edit({ _sub: v })} multiline />
+        </p>
+      )}
+      {showDiv && (
+        <div
+          className="flex items-center justify-center gap-3"
+          style={{ marginTop: divGap, marginBottom: divGap }}
+        >
+          <span
+            className="h-px w-full max-w-[120px]"
+            style={{ background: line }}
+          />
+          {DI ? (
+            <span
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+              style={{ background: `${theme.accent}1a`, color: theme.accent }}
+            >
+              <DI className="h-3.5 w-3.5" strokeWidth={2} />
+            </span>
+          ) : (
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ background: theme.accent }}
+            />
+          )}
+          <span
+            className="h-px w-full max-w-[120px]"
+            style={{ background: line }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PreviewSection({
   kind,
   data,
@@ -6405,12 +6939,13 @@ function PreviewSection({
     case "features":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.featuresTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.featuresTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr([
               { title: `${p.feature} 1`, desc: p.featureDesc },
@@ -6487,9 +7022,13 @@ function PreviewSection({
     case "steps":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E value={g("title")} onChange={(v) => edit({ title: v })} />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title")}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr([
               { title: "1.", desc: "" },
@@ -6531,9 +7070,13 @@ function PreviewSection({
     case "team":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E value={g("title")} onChange={(v) => edit({ title: v })} />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title")}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr([
               { title: "", desc: "" },
@@ -6574,9 +7117,13 @@ function PreviewSection({
     case "logos":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E value={g("title")} onChange={(v) => edit({ title: v })} />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title")}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr([
               { title: "" },
@@ -6612,12 +7159,13 @@ function PreviewSection({
     case "testimonials":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.testiTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.testiTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(
               p.testi.map((t) => ({ quote: t.q, who: t.w })),
@@ -6668,12 +7216,13 @@ function PreviewSection({
     case "pricing":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.pricingTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.pricingTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(
               p.tiers.map((t) => ({ name: t.n, price: t.p, per: p.perMonth })),
@@ -6765,12 +7314,13 @@ function PreviewSection({
     case "gallery":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.galleryTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.galleryTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(
               [1, 2, 3, 4, 5, 6, 7, 8].map(() => ({ title: "" })),
@@ -6839,12 +7389,13 @@ function PreviewSection({
     case "stats":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.statsTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.statsTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(
               p.statsItems.map((s) => ({ value: s.v, label: s.l })),
@@ -6875,12 +7426,13 @@ function PreviewSection({
     case "faq":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.faqTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.faqTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(p.faqs.map((x) => ({ q: x.q, a: x.a })));
             return (
@@ -6914,12 +7466,13 @@ function PreviewSection({
     case "pricelist":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.pricelistTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.pricelistTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(p.priceSeed);
             return (
@@ -6963,13 +7516,13 @@ function PreviewSection({
     case "hours":
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="flex items-center justify-center gap-2 text-center text-xl font-semibold tracking-tight">
-            <Clock className="h-5 w-5" strokeWidth={1.75} style={accentText} />
-            <E
-              value={g("title", p.hoursTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.hoursTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           {(() => {
             const rows = rowsOr(p.hoursSeed);
             return (
@@ -7228,15 +7781,122 @@ function PreviewSection({
           </button>
         </div>
       );
-    case "contact":
+    case "contact": {
+      const cFields = Array.isArray(data.items)
+        ? (data.items as Record<string, string>[])
+        : [];
+      const rows =
+        cFields.length > 0
+          ? cFields
+          : [
+              { label: p.name, type: "text", req: "1" },
+              { label: p.email, type: "email", req: "1" },
+              { label: p.message, type: "textarea", req: "1" },
+            ];
+      const btnShape =
+        g("_btnShape") === "recht"
+          ? "2px"
+          : g("_btnShape") === "zacht"
+            ? "12px"
+            : "9999px";
+      const btnBg = g("_btnColor") || theme.accent;
+      const fieldRadius =
+        g("_fldShape") === "recht"
+          ? "2px"
+          : g("_fldShape") === "rond"
+            ? "9999px"
+            : "8px";
+      const sideCard = data._card === 1 || data._card === true;
+      const okCol = g("_okColor") || "#16a34a";
+      const errCol = g("_errColor") || "#ef4444";
+      const FormCol = (
+        <div
+          className={`space-y-2 text-xs ${sideCard ? "" : "mx-auto max-w-sm"}`}
+        >
+          {rows.map((fl, i) => {
+            const lbl = fl.label || `Veld ${i + 1}`;
+            const req = fl.req === "1" || fl.req === "true";
+            const fStyle = {
+              ...border,
+              ...(fl.bg ? { background: fl.bg } : {}),
+              borderRadius: fieldRadius,
+            };
+            return (
+              <div key={i}>
+                <label className="mb-1 block opacity-70">
+                  {lbl}
+                  {req && <span style={{ color: theme.accent }}> *</span>}
+                </label>
+                {fl.type === "textarea" ? (
+                  <textarea
+                    rows={3}
+                    readOnly
+                    placeholder={lbl}
+                    className="w-full border bg-transparent px-3 py-2"
+                    style={fStyle}
+                  />
+                ) : (
+                  <input
+                    type={fl.type || "text"}
+                    readOnly
+                    placeholder={lbl}
+                    className="w-full border bg-transparent px-3 py-2"
+                    style={fStyle}
+                  />
+                )}
+              </div>
+            );
+          })}
+          <button
+            className="bldr-btn w-full px-4 py-2 text-xs font-medium"
+            style={{
+              background: btnBg,
+              color: g("_btnTxt") || theme.bg,
+              borderRadius: btnShape,
+            }}
+          >
+            <E
+              value={g("button", p.send)}
+              onChange={(v) => edit({ button: v })}
+            />
+          </button>
+          <div className="space-y-1 pt-1">
+            <p
+              className="rounded px-3 py-1.5 text-[11px]"
+              style={{ background: `${okCol}1f`, color: okCol }}
+            >
+              <E
+                value={g(
+                  "_okText",
+                  "Bedankt! We nemen snel contact met je op.",
+                )}
+                onChange={(v) => edit({ _okText: v })}
+              />
+            </p>
+            <p
+              className="rounded px-3 py-1.5 text-[11px]"
+              style={{ background: `${errCol}1f`, color: errCol }}
+            >
+              <E
+                value={g(
+                  "_errText",
+                  "Oeps — er liep iets fout. Probeer opnieuw.",
+                )}
+                onChange={(v) => edit({ _errText: v })}
+              />
+            </p>
+          </div>
+        </div>
+      );
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.contactTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.contactTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           <p className="mt-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-center text-xs opacity-70">
             <E
               value={g("emailAddr", "jouw@email.be")}
@@ -7253,47 +7913,57 @@ function PreviewSection({
               onChange={(v) => edit({ address: v })}
             />
           </p>
-          <div className="mx-auto mt-6 max-w-sm space-y-2 text-xs">
-            <input
-              placeholder={p.name}
-              className="w-full rounded border bg-transparent px-3 py-2"
-              style={border}
-              readOnly
-            />
-            <input
-              placeholder={p.email}
-              className="w-full rounded border bg-transparent px-3 py-2"
-              style={border}
-              readOnly
-            />
-            <textarea
-              placeholder={p.message}
-              rows={3}
-              className="w-full rounded border bg-transparent px-3 py-2"
-              style={border}
-              readOnly
-            />
-            <button
-              className="w-full rounded-full px-4 py-2 text-xs font-medium"
-              style={{ background: theme.accent, color: theme.bg }}
-            >
-              {p.send}
-            </button>
+          <div
+            className={
+              sideCard
+                ? "mx-auto mt-6 grid max-w-2xl gap-5 md:grid-cols-2"
+                : "mt-6"
+            }
+          >
+            {FormCol}
+            {sideCard && (
+              <div
+                className="rounded-xl border p-4 text-xs"
+                style={{
+                  ...border,
+                  background: g("_cardBg") || `${theme.fg}08`,
+                }}
+              >
+                <p className="mb-2 text-sm font-semibold">
+                  <E
+                    value={g("_cardTitle", "Contactgegevens")}
+                    onChange={(v) => edit({ _cardTitle: v })}
+                  />
+                </p>
+                <p className="whitespace-pre-line opacity-80">
+                  <E
+                    value={g(
+                      "_cardText",
+                      "Bel of mail ons gerust — we helpen je snel verder.",
+                    )}
+                    onChange={(v) => edit({ _cardText: v })}
+                    multiline
+                  />
+                </p>
+              </div>
+            )}
           </div>
         </div>
       );
+    }
     case "form": {
       const fields = Array.isArray(data.items)
         ? (data.items as Record<string, string>[])
         : [];
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <h3 className="text-center text-xl font-semibold tracking-tight">
-            <E
-              value={g("title", p.contactTitle)}
-              onChange={(v) => edit({ title: v })}
-            />
-          </h3>
+          <SectionHead
+            data={data}
+            edit={edit}
+            theme={theme}
+            titleValue={g("title", p.contactTitle)}
+            onTitle={(v) => edit({ title: v })}
+          />
           <div className="mx-auto mt-6 max-w-md space-y-3 text-xs">
             {fields.map((fl, i) => (
               <div key={i}>
