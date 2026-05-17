@@ -133,6 +133,9 @@ export function PortalShell({
 
   const [open, setOpen] = useState(false);
   const path = usePathname();
+  // De visuele builder heeft de volle breedte nodig (klant moet
+  // overzicht hebben); de sidebar blijft uiteraard staan.
+  const wide = path.includes("/builder/editor");
 
   useEffect(() => {
     if (!open) return;
@@ -273,8 +276,14 @@ export function PortalShell({
         {Inner}
       </aside>
 
-      <main className="min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:px-10 md:pt-10">
-        <div className="mx-auto max-w-4xl">{children}</div>
+      <main
+        className={
+          wide
+            ? "min-w-0 flex-1 pb-16 pt-16 md:pt-0"
+            : "min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:px-10 md:pt-10"
+        }
+      >
+        <div className={wide ? "w-full" : "mx-auto max-w-4xl"}>{children}</div>
       </main>
     </div>
   );

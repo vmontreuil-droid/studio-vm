@@ -1016,20 +1016,28 @@ export default function BuilderPage({
 
   return (
     <main>
-      <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-            {c.eyebrow}
-          </p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            {c.title}
-          </h1>
-          <p className="mt-4 max-w-2xl text-muted">{c.intro}</p>
-        </div>
-      </section>
+      {!designId && (
+        <section className="border-b">
+          <div className="mx-auto max-w-7xl px-6 py-16">
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+              {c.eyebrow}
+            </p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+              {c.title}
+            </h1>
+            <p className="mt-4 max-w-2xl text-muted">{c.intro}</p>
+          </div>
+        </section>
+      )}
 
-      <section className="border-b">
-        <div className="mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[340px_1fr]">
+      <section className={designId ? "" : "border-b"}>
+        <div
+          className={
+            designId
+              ? "grid w-full gap-6 px-4 py-6 lg:grid-cols-[360px_1fr] xl:px-8"
+              : "mx-auto grid max-w-7xl gap-6 px-6 py-12 lg:grid-cols-[340px_1fr]"
+          }
+        >
           <aside className="space-y-6">
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -1706,21 +1714,23 @@ export default function BuilderPage({
         </div>
       </section>
 
-      <section className="border-b">
-        <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-          <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
-            {c.ctaTitle}
-          </h2>
-          <p className="mt-3 text-muted">{c.ctaText}</p>
-          <Link
-            href={localePath(locale, "/pricing")}
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            {c.ctaButton}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-        </div>
-      </section>
+      {!designId && (
+        <section className="border-b">
+          <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+            <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
+              {c.ctaTitle}
+            </h2>
+            <p className="mt-3 text-muted">{c.ctaText}</p>
+            <Link
+              href={localePath(locale, "/pricing")}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              {c.ctaButton}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
