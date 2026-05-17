@@ -372,6 +372,48 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
     // Kolommen van 0016 nog niet gedraaid? Val terug op de basisvelden
     // zodat de offerte sowieso in het portaal verschijnt.
     if (offerIns.error) await db.from("offers").insert(offerBase);
+
+    // Startfase + onboarding-checklist zodat het portaal meteen leeft
+    // (niet leeg). Bestaande rijen blijven ongemoeid.
+    await db
+      .from("project_progress")
+      .upsert(
+        { client_email: email, step: "briefing" },
+        { onConflict: "client_email", ignoreDuplicates: true },
+      );
+    const { count: clCount } = await db
+      .from("checklist_items")
+      .select("id", { count: "exact", head: true })
+      .eq("client_email", email);
+    if (!clCount) {
+      const cl = {
+        nl: [
+          "Teksten / inhoud aanleveren",
+          "Beeldmateriaal & logo aanleveren",
+          "Voorbeeldsites die je mooi vindt doorsturen",
+          "Kickoff-gesprek inplannen",
+        ],
+        fr: [
+          "Fournir les textes / le contenu",
+          "Fournir visuels & logo",
+          "Envoyer des sites exemples que vous aimez",
+          "Planifier l'entretien de lancement",
+        ],
+        en: [
+          "Provide texts / content",
+          "Provide visuals & logo",
+          "Send example sites you like",
+          "Schedule the kickoff call",
+        ],
+      }[locale === "fr" || locale === "en" ? locale : "nl"];
+      await db.from("checklist_items").insert(
+        cl.map((label, i) => ({
+          client_email: email,
+          label,
+          sort: i,
+        })),
+      );
+    }
   } catch {
     // Niet-kritisch voor de aanvraag zelf — de quote staat sowieso
     // bewaard en is zichtbaar in /admin/aanvragen.

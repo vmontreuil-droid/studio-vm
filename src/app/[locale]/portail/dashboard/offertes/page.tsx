@@ -182,11 +182,45 @@ export default async function PortalOffers({
                 {statusLabel(o.status, locale)}
               </span>
             </div>
-            {o.body && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
-                {o.body}
-              </p>
-            )}
+            {o.body &&
+              (() => {
+                const lines = o.body
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+                const rows = lines.map((line) => {
+                  const m = line.match(/^([^:]{2,48}):\s*(.+)$/);
+                  return m
+                    ? { label: m[1], value: m[2] }
+                    : { label: null, value: line };
+                });
+                return (
+                  <div className="mt-4 overflow-hidden rounded-xl border bg-background">
+                    <dl className="divide-y text-sm">
+                      {rows.map((r, i) =>
+                        r.label ? (
+                          <div
+                            key={i}
+                            className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1 px-4 py-2.5"
+                          >
+                            <dt className="text-muted">{r.label}</dt>
+                            <dd className="text-right font-medium">
+                              {r.value}
+                            </dd>
+                          </div>
+                        ) : (
+                          <p
+                            key={i}
+                            className="bg-card-hover px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-muted"
+                          >
+                            {r.value}
+                          </p>
+                        ),
+                      )}
+                    </dl>
+                  </div>
+                );
+              })()}
             {o.status === "open" && (
               <div className="mt-4 flex gap-2">
                 <form action={decideOffer.bind(null, o.id, "akkoord")}>
