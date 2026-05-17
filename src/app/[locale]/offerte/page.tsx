@@ -1252,6 +1252,45 @@ export default function OffertePage() {
               {sent === "err" && (
                 <p className="text-sm text-red-500">{c.err}</p>
               )}
+              <p className="px-1 text-xs leading-relaxed text-muted">
+                {locale === "fr" ? (
+                  <>
+                    En envoyant, vous acceptez que vos données soient
+                    traitées pour cette demande, conformément à notre{" "}
+                    <Link
+                      href={localePath(locale, "/privacy")}
+                      className="text-accent underline"
+                    >
+                      politique de confidentialité
+                    </Link>
+                    .
+                  </>
+                ) : locale === "en" ? (
+                  <>
+                    By submitting, you agree that your data is processed
+                    for this request, per our{" "}
+                    <Link
+                      href={localePath(locale, "/privacy")}
+                      className="text-accent underline"
+                    >
+                      privacy policy
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    Door te versturen ga je akkoord dat je gegevens
+                    verwerkt worden voor deze aanvraag, conform ons{" "}
+                    <Link
+                      href={localePath(locale, "/privacy")}
+                      className="text-accent underline"
+                    >
+                      privacybeleid
+                    </Link>
+                    .
+                  </>
+                )}
+              </p>
               <button
                 type="submit"
                 name="intent"

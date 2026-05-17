@@ -265,7 +265,7 @@ export function TcoChart() {
           </h2>
           <p className="mt-4 text-muted">{t.ctaText}</p>
           <Link
-            href={localePath(locale, "/#contact")}
+            href={localePath(locale, "/offerte")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             {t.ctaButton}
