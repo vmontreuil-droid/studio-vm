@@ -202,6 +202,9 @@ function BlockView({
         d.hCapPos === "tr"
           ? String(d.hCapPos)
           : "bl";
+      const capX = typeof d.capX === "number" ? d.capX : null;
+      const capY = typeof d.capY === "number" ? d.capY : null;
+      const capFree = capX !== null && capY !== null;
       return (
         <div>
           {heroSlides.map((sl, si) => {
@@ -289,13 +292,19 @@ function BlockView({
                   <div
                     className="absolute z-[4] max-w-[280px] text-left"
                     style={
-                      hCapPos === "br"
-                        ? { right: 16, bottom: 16 }
-                        : hCapPos === "tl"
-                          ? { left: 16, top: 16 }
-                          : hCapPos === "tr"
-                            ? { right: 16, top: 16 }
-                            : { left: 16, bottom: 16 }
+                      capFree
+                        ? {
+                            left: `${capX}%`,
+                            top: `${capY}%`,
+                            transform: "translate(-50%, -50%)",
+                          }
+                        : hCapPos === "br"
+                          ? { right: 16, bottom: 16 }
+                          : hCapPos === "tl"
+                            ? { left: 16, top: 16 }
+                            : hCapPos === "tr"
+                              ? { right: 16, top: 16 }
+                              : { left: 16, bottom: 16 }
                     }
                   >
                     <div

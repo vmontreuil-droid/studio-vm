@@ -13,6 +13,7 @@ import {
   type SectorKey,
   type PageKey,
 } from "@/lib/builder-presets";
+import { importSite } from "@/app/actions/import-site";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -897,6 +898,9 @@ export default function BuilderPage({
     "offer",
     "contact",
   ]);
+  const [impUrl, setImpUrl] = useState("");
+  const [impBusy, setImpBusy] = useState(false);
+  const [impErr, setImpErr] = useState("");
   const [buildEmail, setBuildEmail] = useState("");
   const [currentSite, setCurrentSite] = useState("");
   const [sent, setSent] = useState<"idle" | "ok" | "err">("idle");
@@ -1151,6 +1155,98 @@ export default function BuilderPage({
         kind: s.kind as SectionKind,
         data: s.data as SectionData,
       })),
+    }));
+    setPages(np);
+    setActiveId(np[0].id);
+    setOpenId(null);
+  };
+
+  // Bestaande site ruw inlezen en in het scaffold gieten.
+  const importFromUrl = async () => {
+    if (!impUrl.trim() || impBusy) return;
+    setImpBusy(true);
+    setImpErr("");
+    let r;
+    try {
+      r = await importSite(impUrl.trim());
+    } catch {
+      setImpBusy(false);
+      setImpErr(
+        locale === "fr"
+          ? "Échec de l'import."
+          : locale === "en"
+            ? "Import failed."
+            : "Inlezen mislukt.",
+      );
+      return;
+    }
+    setImpBusy(false);
+    if (!r.ok) {
+      setImpErr(r.error);
+      return;
+    }
+    const warn =
+      locale === "fr"
+        ? "Ceci remplace les pages actuelles. Continuer ?"
+        : locale === "en"
+          ? "This replaces the current pages. Continue?"
+          : "Dit vervangt de huidige pagina's. Doorgaan?";
+    if (pages.some((pp) => pp.sections.length > 0) && !window.confirm(warn))
+      return;
+    const st = r.site;
+    if (st.businessName) setBusinessName(st.businessName);
+    if (/^#[0-9a-f]{3,8}$/i.test(st.accent))
+      setTheme((t) => ({ ...t, slug: "custom", accent: st.accent }));
+    const scaff = buildSiteScaffold(
+      sector,
+      tone,
+      locale,
+      st.businessName || businessName || "Mijn Zaak",
+      pageSel,
+    );
+    if (!scaff.length) return;
+    const np: Page[] = scaff.map((sp) => ({
+      id: uid(),
+      name: sp.name,
+      sections: sp.sections.map((sec) => {
+        const d = { ...sec.data } as Record<string, unknown>;
+        if (sec.kind === "hero") {
+          const origBtn =
+            (Array.isArray(d.slides) &&
+              (d.slides[0] as { button?: string })?.button) ||
+            "";
+          const head = st.heading || st.businessName;
+          d.slides = st.images.length
+            ? st.images.map((im, i) => ({
+                eyebrow: "",
+                heading: i === 0 ? head : st.businessName,
+                sub: st.tagline,
+                button: origBtn,
+                bg: im,
+              }))
+            : [
+                {
+                  eyebrow: "",
+                  heading: head,
+                  sub: st.tagline,
+                  button: origBtn,
+                },
+              ];
+        }
+        if (sec.kind === "about" && st.about) d.text = st.about;
+        if (sec.kind === "features" && st.features.length)
+          d.items = st.features.map((f) => ({ ...f }));
+        if (sec.kind === "contact") {
+          if (st.email) d.emailAddr = st.email;
+          if (st.phone) d.phone = st.phone;
+          if (st.address) d.address = st.address;
+        }
+        return {
+          id: uid(),
+          kind: sec.kind as SectionKind,
+          data: d as SectionData,
+        };
+      }),
     }));
     setPages(np);
     setActiveId(np[0].id);
@@ -1508,6 +1604,57 @@ export default function BuilderPage({
                     ? "Or: only fill the empty fields"
                     : "Of: enkel lege velden invullen"}
               </button>
+
+              <div className="mt-4 border-t pt-4">
+                <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {locale === "fr"
+                    ? "Ou : depuis mon site actuel"
+                    : locale === "en"
+                      ? "Or: from my current site"
+                      : "Of: vanuit mijn huidige site"}
+                </p>
+                <p className="mb-2 text-[11px] text-muted">
+                  {locale === "fr"
+                    ? "On reprend nom, baseline, intro, photos et contact comme première ébauche."
+                    : locale === "en"
+                      ? "We pull name, tagline, intro, photos and contact as a rough first draft."
+                      : "We halen naam, baseline, intro, foto's en contact op als ruwe eerste opzet."}
+                </p>
+                <input
+                  type="url"
+                  inputMode="url"
+                  value={impUrl}
+                  onChange={(e) => setImpUrl(e.target.value)}
+                  placeholder="https://mijnsite.be"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                />
+                <button
+                  type="button"
+                  onClick={importFromUrl}
+                  disabled={impBusy || !impUrl.trim()}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-accent px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
+                >
+                  {impBusy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+                  ) : (
+                    <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                  )}
+                  {impBusy
+                    ? locale === "fr"
+                      ? "Lecture…"
+                      : locale === "en"
+                        ? "Reading…"
+                        : "Bezig met inlezen…"
+                    : locale === "fr"
+                      ? "Importer mon site"
+                      : locale === "en"
+                        ? "Import my site"
+                        : "Lees mijn site in"}
+                </button>
+                {impErr && (
+                  <p className="mt-2 text-[11px] text-red-500">{impErr}</p>
+                )}
+              </div>
             </Panel>
 
             <Panel icon={<Layers className="h-4 w-4" />} title={pg.panel}>
@@ -2514,6 +2661,9 @@ function HeroPreview({
     data.hCapPos === "tr"
       ? String(data.hCapPos)
       : "bl";
+  const capX = typeof data.capX === "number" ? data.capX : null;
+  const capY = typeof data.capY === "number" ? data.capY : null;
+  const capFree = capX !== null && capY !== null;
   const hexToRgba = (hex: string, a: number) => {
     const m = hex.replace("#", "");
     const n =
@@ -2543,6 +2693,31 @@ function HeroPreview({
         Math.max(8, ((ev.clientY - r.top) / r.height) * 100),
       );
       edit({ hx: Math.round(nx), hy: Math.round(ny) });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  const startCapDrag = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = heroRef.current;
+    if (!el) return;
+    const move = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const nx = Math.min(
+        96,
+        Math.max(4, ((ev.clientX - r.left) / r.width) * 100),
+      );
+      const ny = Math.min(
+        96,
+        Math.max(4, ((ev.clientY - r.top) / r.height) * 100),
+      );
+      edit({ capX: Math.round(nx), capY: Math.round(ny) });
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
@@ -2703,18 +2878,25 @@ function HeroPreview({
 
       {hCap && (
         <div
-          className="absolute z-[4] max-w-[300px] text-left"
+          className="group/cap absolute z-[5] max-w-[300px] text-left"
           style={
-            hCapPos === "br"
-              ? { right: 18, bottom: 18 }
-              : hCapPos === "tl"
-                ? { left: 18, top: 18 }
-                : hCapPos === "tr"
-                  ? { right: 18, top: 18 }
-                  : { left: 18, bottom: 18 }
+            capFree
+              ? {
+                  left: `${capX}%`,
+                  top: `${capY}%`,
+                  transform: "translate(-50%, -50%)",
+                }
+              : hCapPos === "br"
+                ? { right: 18, bottom: 18 }
+                : hCapPos === "tl"
+                  ? { left: 18, top: 18 }
+                  : hCapPos === "tr"
+                    ? { right: 18, top: 18 }
+                    : { left: 18, bottom: 18 }
           }
         >
           <div
+            className="relative"
             style={{
               background: hexToRgba(
                 cardBase,
@@ -2730,6 +2912,14 @@ function HeroPreview({
               padding: "12px 16px",
             }}
           >
+            <button
+              type="button"
+              onPointerDown={startCapDrag}
+              title={p.heroMove}
+              className="absolute -top-3 left-1/2 flex h-6 w-6 -translate-x-1/2 cursor-move items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover/cap:opacity-100"
+            >
+              <Move className="h-3 w-3" strokeWidth={2.5} />
+            </button>
             <p className="text-xs font-semibold tracking-tight">
               <E
                 key={`ct-${cIdx}`}
