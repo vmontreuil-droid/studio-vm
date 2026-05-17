@@ -125,7 +125,7 @@ export async function sendMagicLink(
       html: `<!DOCTYPE html><html><body style="margin:0;background:#0c0a09">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:560px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 20px"><img src="${origin}/email-logo" width="200" height="75" alt="Studio VM" style="display:block;border:0;outline:none;width:200px;height:auto;max-width:62%"></td></tr>
+  <tr><td style="padding:0 4px 22px;font:800 38px/1 ${font};letter-spacing:-2px;color:#fafaf9">vm<span style="color:${accent}">.</span><span style="display:inline-block;margin-left:12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.22em;color:#78716c;vertical-align:middle">STUDIO&nbsp;VM</span></td></tr>
   <tr><td style="background:#161210;border:1px solid #2c2521;border-radius:18px;padding:32px">
     <h1 style="margin:0 0 14px;font:700 21px/1.3 ${font};color:#fafaf9">${t.title}</h1>
     <p style="margin:0 0 24px;font:400 15px/1.65 ${font};color:#a8a29e">${t.intro}</p>

@@ -288,8 +288,8 @@ export async function POST(req: NextRequest) {
 <body style="margin:0;padding:0;background:#0c0a09">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 22px"><img src="${siteUrl}/email-logo" width="200" height="75" alt="Studio VM" style="display:block;border:0;outline:none;width:200px;height:auto;max-width:62%"></td></tr>
   <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;padding:38px 36px">
+    <p style="margin:0 0 22px;font:800 40px/1 ${font};letter-spacing:-2px;color:#1c1917">vm<span style="color:${accent}">.</span><span style="display:inline-block;margin-left:12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.22em;color:#a8a29e;vertical-align:middle">STUDIO&nbsp;VM</span></p>
     <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${TR.subject}</p>
     <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${font};color:#1c1917">${TR.hi}</h1>
     <p style="margin:0 0 26px;font:400 15px/1.65 ${font};color:#44403c">${TR.thanks}</p>

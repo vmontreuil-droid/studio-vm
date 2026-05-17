@@ -206,7 +206,7 @@ async function sendPortalMail(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse">
 <tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 22px"><img src="${siteUrl}/email-logo" width="200" height="75" alt="Studio VM" style="display:block;border:0;outline:none;width:200px;height:auto;max-width:62%"></td></tr>
+  <tr><td style="padding:0 4px 22px;font:800 38px/1 ${font};letter-spacing:-2px;color:#fafaf9">vm<span style="color:${accent}">.</span><span style="display:inline-block;margin-left:12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.22em;color:#78716c;vertical-align:middle">STUDIO&nbsp;VM</span></td></tr>
   <tr><td style="background:#161210;border:1px solid #2c2521;border-radius:18px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
       <tr><td style="padding:32px 32px 0">
