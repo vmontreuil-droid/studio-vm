@@ -359,10 +359,106 @@ ${userMsg ? `<p style="margin-top:14px;white-space:pre-wrap">${userMsg.replace(/
         .eq("id", (subRow as { id: string }).id);
     else await db.from("subscriptions").insert(subPayload);
 
+    const oloc: "nl" | "fr" | "en" =
+      locale === "fr" || locale === "en" ? locale : "nl";
+    const OT = {
+      nl: {
+        head: "Samenstelling via de online configurator:",
+        pkg: "Pakket",
+        extra: "Extra opties",
+        none: "—",
+        once: (o: string, d: string, p: string) =>
+          `Eenmalig: ${o} − vastlegkorting ${d} = ${p} (excl. btw)`,
+        dep: (v: string) => `Aanbetaling 30% project: ${v} excl. btw`,
+        depVat: (v: string) => `Nu te betalen incl. 21% btw: ${v}`,
+        balOnce: (v: string) => `Saldo: ${v} bij oplevering`,
+        balSplit: (n: number, v: string) =>
+          `Saldo gespreid: ${n}× ${v}/maand`,
+        sub: (n: string, v: string) =>
+          `Onderhoud (verplicht): ${n} — ${v}/maand`,
+        domain:
+          "Domein & e-mail: nog te bespreken — niet in deze prijs (project start op een Vercel-adres)",
+        during: (v: string, n: number) =>
+          `Maandtotaal tijdens afbetaling: ${v}/maand (afbetaling + onderhoud) — ${n} maanden`,
+        after: (v: string) =>
+          `Maandtotaal daarna: ${v}/maand (enkel onderhoud)`,
+        monthly: (v: string) =>
+          `Maandfactuur vanaf oplevering: ${v}/maand (onderhoud)`,
+        msg: "Bericht van de klant",
+      },
+      fr: {
+        head: "Composition via le configurateur en ligne :",
+        pkg: "Forfait",
+        extra: "Options supplémentaires",
+        none: "—",
+        once: (o: string, d: string, p: string) =>
+          `Unique : ${o} − remise verrouillage ${d} = ${p} (HTVA)`,
+        dep: (v: string) => `Acompte 30% projet : ${v} HTVA`,
+        depVat: (v: string) => `À payer maintenant (TVA 21% incl.) : ${v}`,
+        balOnce: (v: string) => `Solde : ${v} à la livraison`,
+        balSplit: (n: number, v: string) =>
+          `Solde échelonné : ${n}× ${v}/mois`,
+        sub: (n: string, v: string) =>
+          `Maintenance (obligatoire) : ${n} — ${v}/mois`,
+        domain:
+          "Domaine & e-mail : à voir ensemble — hors de ce prix (le projet démarre sur une adresse Vercel)",
+        during: (v: string, n: number) =>
+          `Total mensuel pendant l'échelonnement : ${v}/mois (échéance + maintenance) — ${n} mois`,
+        after: (v: string) =>
+          `Total mensuel ensuite : ${v}/mois (maintenance seule)`,
+        monthly: (v: string) =>
+          `Facture mensuelle dès la livraison : ${v}/mois (maintenance)`,
+        msg: "Message du client",
+      },
+      en: {
+        head: "Composition via the online configurator:",
+        pkg: "Package",
+        extra: "Extra options",
+        none: "—",
+        once: (o: string, d: string, p: string) =>
+          `One-off: ${o} − lock-in discount ${d} = ${p} (excl. VAT)`,
+        dep: (v: string) => `30% project deposit: ${v} excl. VAT`,
+        depVat: (v: string) => `To pay now (incl. 21% VAT): ${v}`,
+        balOnce: (v: string) => `Balance: ${v} on delivery`,
+        balSplit: (n: number, v: string) =>
+          `Balance split: ${n}× ${v}/month`,
+        sub: (n: string, v: string) =>
+          `Maintenance (required): ${n} — ${v}/month`,
+        domain:
+          "Domain & email: to discuss together — not in this price (project starts on a Vercel address)",
+        during: (v: string, n: number) =>
+          `Monthly total during repayment: ${v}/month (instalment + maintenance) — ${n} months`,
+        after: (v: string) =>
+          `Monthly total after: ${v}/month (maintenance only)`,
+        monthly: (v: string) =>
+          `Monthly invoice from delivery: ${v}/month (maintenance)`,
+        msg: "Message from the client",
+      },
+    }[oloc];
+    const clientLines = [
+      `${OT.pkg}: ${base.name}`,
+      paidExtras.length
+        ? `${OT.extra}: ${paidExtras.map((a) => `${a.name} (${cents(a.cents)})`).join(", ")}`
+        : `${OT.extra}: ${OT.none}`,
+      OT.once(cents(eenmalig), cents(discount), cents(payable)),
+      OT.dep(cents(deposit)),
+      OT.depVat(cents(Math.round(deposit * (1 + VAT_RATE)))),
+      term === 0
+        ? OT.balOnce(cents(rest))
+        : OT.balSplit(term, cents(monthlyInstall)),
+      OT.sub(subTier.name, cents(subTier.cents)),
+      OT.domain,
+      ...(term > 0
+        ? [
+            OT.during(cents(monthlyTotal), term),
+            OT.after(cents(subTier.cents)),
+          ]
+        : [OT.monthly(cents(subTier.cents))]),
+    ];
     const offerBase = {
       client_email: email,
       title: `Configurator — ${base.name}`,
-      body: `Samenstelling via de online configurator:\n\n${breakdown.join("\n")}${userMsg ? `\n\nBericht van de klant:\n${userMsg}` : ""}`,
+      body: `${OT.head}\n\n${clientLines.join("\n")}${userMsg ? `\n\n${OT.msg}:\n${userMsg}` : ""}`,
       amount_cents: payable,
       status: "open",
       valid_until: new Date(Date.now() + 14 * 86400000)

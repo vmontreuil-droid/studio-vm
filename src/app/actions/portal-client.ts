@@ -37,9 +37,13 @@ function notifyStudio(subject: string, lines: string[]) {
 export async function decideOffer(
   id: string,
   decision: "akkoord" | "afgewezen",
+  formData?: FormData,
 ): Promise<void> {
   const email = await authedEmail();
   if (!email) return;
+  const rawLoc = String(formData?.get("locale") ?? "nl");
+  const dloc: "nl" | "fr" | "en" =
+    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
   const sb = await getSupabaseServer();
   const { error } = await sb
     .from("offers")
@@ -103,13 +107,27 @@ export async function decideOffer(
           .from("offers")
           .update({ invoiced_at: new Date().toISOString() })
           .eq("id", o.id);
+        const amount = `€ ${((o.amount_cents ?? 0) / 100).toFixed(2)}`;
+        const im = {
+          nl: {
+            subject: `Je factuur ${invNo} staat klaar`,
+            l1: `Bedankt voor je akkoord op <strong>${o.title}</strong>.`,
+            l2: `Factuur <strong>${invNo}</strong> (${amount}) staat klaar in je portaal, betaalbaar tegen ${dueAt}.`,
+          },
+          fr: {
+            subject: `Votre facture ${invNo} est prête`,
+            l1: `Merci pour votre accord sur <strong>${o.title}</strong>.`,
+            l2: `La facture <strong>${invNo}</strong> (${amount}) est disponible dans votre espace client, payable pour le ${dueAt}.`,
+          },
+          en: {
+            subject: `Your invoice ${invNo} is ready`,
+            l1: `Thanks for approving <strong>${o.title}</strong>.`,
+            l2: `Invoice <strong>${invNo}</strong> (${amount}) is ready in your portal, payable by ${dueAt}.`,
+          },
+        }[dloc];
         await sendMail(email, {
-          subject: `Je factuur ${invNo} staat klaar`,
-          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">Bedankt voor je akkoord op <strong>${o.title}</strong>.</p><p style="margin:0 0 8px">Factuur <strong>${invNo}</strong> (€ ${(
-            (o.amount_cents ?? 0) / 100
-          ).toFixed(
-            2,
-          )}) staat klaar in je portaal, betaalbaar tegen ${dueAt}.</p></div>`,
+          subject: im.subject,
+          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">${im.l1}</p><p style="margin:0 0 8px">${im.l2}</p></div>`,
         }).catch(() => {});
       }
     }

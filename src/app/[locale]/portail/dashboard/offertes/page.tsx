@@ -225,11 +225,13 @@ export default async function PortalOffers({
             {o.status === "open" && (
               <div className="mt-4 flex gap-2">
                 <form action={decideOffer.bind(null, o.id, "akkoord")}>
+                  <input type="hidden" name="locale" value={locale} />
                   <SubmitButton className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
                     {l.accept}
                   </SubmitButton>
                 </form>
                 <form action={decideOffer.bind(null, o.id, "afgewezen")}>
+                  <input type="hidden" name="locale" value={locale} />
                   <SubmitButton className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
                     {l.reject}
                   </SubmitButton>
