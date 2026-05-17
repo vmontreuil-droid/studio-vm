@@ -37,9 +37,9 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Prijs & betaling",
         items: [
-          { q: "Hoe verloopt de facturatie?", a: "30% bij start, 40% halverwege, 30% bij oplevering. Voor abonnementen: maandelijks via SEPA-opdracht." },
-          { q: "Kan ik later upgraden van een Starter naar Pro?", a: "Ja. Je betaalt enkel het verschil + de tijd voor de extra functies." },
-          { q: "Wat als ik geen abonnement neem?", a: "Dan staat je site rustig op Vercel + Supabase free tier. Wil je later support of updates? Dan factureer ik per uur (€95/u)." },
+          { q: "Hoe verloopt de facturatie?", a: "Je stelt alles samen in de configurator en ziet meteen je exacte vaste prijs (excl. btw). Je betaalt 30% aanbetaling via Mollie (incl. 21% btw) om je scope vast te leggen; het saldo ineens bij oplevering of gespreid in 3, 6, 12 of 24 maanden zonder enige toeslag. Het abonnement loopt maandelijks." },
+          { q: "Kan ik later upgraden van een Starter naar Pro?", a: "Ja. Je betaalt enkel het verschil + de tijd voor de extra functies. Je onderhoudsabonnement graad je zelf op in je klantenportaal." },
+          { q: "Is een onderhoudsabonnement verplicht?", a: "Ja, één abonnement (Care/Plus/Scale/Partner) is verplicht vanaf maand 1 — dat houdt je site veilig, up-to-date en gehost. Je kiest vrij het niveau, niet gekoppeld aan je pakket, en kan later zelf opgraden. Geen lock-in op je code." },
         ],
       },
       {
@@ -54,7 +54,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Na oplevering",
         items: [
-          { q: "Wat als er iets stuk gaat?", a: "Eerste 30 dagen na launch los ik bugs gratis op. Daarna via abonnement of per uur." },
+          { q: "Wat als er iets stuk gaat?", a: "Eerste 30 dagen na launch los ik bugs gratis op. Daarna zit support in je onderhoudsabonnement (verplicht vanaf maand 1)." },
           { q: "Kan ik content zelf wijzigen?", a: "Ja — de admin is gemaakt voor jou. Menu's, foto's, teksten, openingsuren, alles wijzig je zelf zonder ontwikkelaar." },
           { q: "Wat als ik nieuwe features wil?", a: "Twee opties: Plus/Scale abonnement met inbegrepen development uren, of per kwartaal een mini-project boeken." },
         ],
@@ -82,9 +82,9 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Prix & paiement",
         items: [
-          { q: "Comment se passe la facturation ?", a: "30 % au début, 40 % à mi-parcours, 30 % à la livraison. Pour les abonnements : mensuellement par mandat SEPA." },
-          { q: "Puis-je passer plus tard d'un Starter à Pro ?", a: "Oui. Vous payez seulement la différence + le temps des fonctions supplémentaires." },
-          { q: "Et si je ne prends pas d'abonnement ?", a: "Votre site reste tranquillement sur Vercel + Supabase free tier. Besoin de support ou de mises à jour plus tard ? Je facture à l'heure (€95/h)." },
+          { q: "Comment se passe la facturation ?", a: "Vous composez tout dans le configurateur et voyez votre prix fixe exact (HTVA). Vous payez 30 % d'acompte via Mollie (TVA 21 % incl.) pour verrouiller votre scope ; le solde en une fois à la livraison ou échelonné en 3, 6, 12 ou 24 mois sans aucun supplément. L'abonnement est mensuel." },
+          { q: "Puis-je passer plus tard d'un Starter à Pro ?", a: "Oui. Vous payez seulement la différence + le temps des fonctions supplémentaires. Votre abonnement de maintenance, vous l'augmentez vous-même depuis votre espace client." },
+          { q: "L'abonnement de maintenance est-il obligatoire ?", a: "Oui, un abonnement (Care/Plus/Scale/Partner) est obligatoire dès le 1er mois — votre site reste sûr, à jour et hébergé. Vous choisissez librement le niveau, non lié au forfait, et pouvez évoluer plus tard. Pas de lock-in sur le code." },
         ],
       },
       {
@@ -99,7 +99,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Après la livraison",
         items: [
-          { q: "Et si quelque chose casse ?", a: "Les 30 premiers jours après le lancement, je corrige les bugs gratuitement. Ensuite via abonnement ou à l'heure." },
+          { q: "Et si quelque chose casse ?", a: "Les 30 premiers jours après le lancement, je corrige les bugs gratuitement. Ensuite, le support est inclus dans votre abonnement de maintenance (obligatoire dès le 1er mois)." },
           { q: "Puis-je modifier le contenu moi-même ?", a: "Oui — l'admin est fait pour vous. Cartes, photos, textes, heures d'ouverture, vous modifiez tout sans développeur." },
           { q: "Et si je veux de nouvelles fonctions ?", a: "Deux options : abonnement Plus/Scale avec heures de développement incluses, ou réserver un mini-projet par trimestre." },
         ],
@@ -127,9 +127,9 @@ const copy: Record<Locale, Copy> = {
       {
         title: "Price & payment",
         items: [
-          { q: "How does invoicing work?", a: "30% at start, 40% halfway, 30% on delivery. For subscriptions: monthly via SEPA mandate." },
-          { q: "Can I upgrade from Starter to Pro later?", a: "Yes. You only pay the difference + the time for the extra features." },
-          { q: "What if I don't take a subscription?", a: "Your site sits quietly on Vercel + Supabase free tier. Want support or updates later? I bill by the hour (€95/h)." },
+          { q: "How does invoicing work?", a: "You compose everything in the configurator and see your exact fixed price (excl. VAT). You pay a 30% deposit via Mollie (incl. 21% VAT) to lock your scope; the balance in full on delivery or split over 3, 6, 12 or 24 months without any surcharge. The subscription runs monthly." },
+          { q: "Can I upgrade from Starter to Pro later?", a: "Yes. You only pay the difference + the time for the extra features. Your maintenance subscription you upgrade yourself from your client portal." },
+          { q: "Is a maintenance subscription required?", a: "Yes, one subscription (Care/Plus/Scale/Partner) is required from month 1 — it keeps your site secure, up to date and hosted. You freely pick the level, not tied to your package, and can upgrade later. No lock-in on your code." },
         ],
       },
       {
@@ -144,7 +144,7 @@ const copy: Record<Locale, Copy> = {
       {
         title: "After delivery",
         items: [
-          { q: "What if something breaks?", a: "The first 30 days after launch I fix bugs for free. After that via subscription or by the hour." },
+          { q: "What if something breaks?", a: "The first 30 days after launch I fix bugs for free. After that, support is included in your maintenance subscription (required from month 1)." },
           { q: "Can I edit content myself?", a: "Yes — the admin is built for you. Menus, photos, text, opening hours, you change it all without a developer." },
           { q: "What if I want new features?", a: "Two options: Plus/Scale subscription with included development hours, or book a mini-project per quarter." },
         ],

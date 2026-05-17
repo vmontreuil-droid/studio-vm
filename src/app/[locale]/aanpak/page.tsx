@@ -41,11 +41,11 @@ const copy: Record<Locale, Copy> = {
     phasesTitle: "De zes fases",
     phases: [
       { n: "01", title: "Kennismaking", what: "Een vrijblijvend gesprek (digitaal of bij jou). Ik luister meer dan ik praat: wat heb je, wat wil je bereiken, wat is het budget en de tijdlijn.", you: "Vertel eerlijk over je zaak en je verwachtingen. Geen voorbereiding nodig.", deliver: "Een helder beeld of we een match zijn — en zo niet, eerlijk advies waar je wél terecht kan.", duration: "~45 min", risk: "Geen risico: dit is gratis en bindt je tot niets." },
-      { n: "02", title: "Scope + offerte", what: "Ik zet schriftelijk wat ik bouw, wat ik níet bouw, wat het kost en wanneer het klaar is. Eén document, geen sterretjes.", you: "Lees kritisch. Vraag door op alles wat onduidelijk is — dat is precies het moment.", deliver: "Een vaste offerte met scope, prijs en planning. 30 dagen geldig.", duration: "2–4 dagen", risk: "Te dure scope? We schrappen samen tot het past. Beter een kleiner project dat klopt dan een groot dat ontspoort." },
+      { n: "02", title: "Samenstellen + vastleggen", what: "Je stelt je pakket samen in de configurator en ziet meteen je exacte vaste prijs — geen sterretjes. Je legt vast met 30% aanbetaling (via Mollie).", you: "Kies pakket en onderhoud; bij twijfel kijken we het samen na.", deliver: "Een vaste prijs en een vastgelegde scope na de aanbetaling.", duration: "meteen", risk: "Te dure scope? Je past je samenstelling gewoon aan tot het past." },
       { n: "03", title: "Design", what: "Geen statische mockups die er nooit zo uitzien. Een eerste klikbare versie op een staging-omgeving, iteratief verfijnd met jouw input.", you: "Klik erdoor, geef feedback. Je hoeft geen designer te zijn — 'dit voelt niet goed' is bruikbare input.", deliver: "Een werkende, klikbare versie op je eigen staging-URL.", duration: "enkele dagen", risk: "Smaakverschil is normaal. We werken in rondes; het pakket bepaalt hoeveel rondes inbegrepen zijn." },
       { n: "04", title: "Development", what: "De echte bouw: site + admin + integraties. Tussentijdse demo's zodat je niet vier weken in het ongewisse zit.", you: "Lever content aan (teksten, foto's) en test tussentijds op staging. Hoe sneller jouw input, hoe sneller de oplevering.", deliver: "Een complete, geteste site op staging — door jou zelf te testen.", duration: "1–2 weken", risk: "Vertraging door ontbrekende content schuift de deadline evenredig — daarom plannen we content-aanlevering expliciet in." },
       { n: "05", title: "Lancering", what: "Geen sprong in het diepe. Soft launch: redirects live, sitemap ingediend, ranking gemonitord. Bij migraties: geen seconde downtime.", you: "Eén laatste akkoord. Daarna gaat het live op jouw domein.", deliver: "Live site, oude URL's permanent doorverwezen, monitoring actief.", duration: "1 dag", risk: "Iets mis na launch? De eerste 30 dagen los ik bugs gratis op." },
-      { n: "06", title: "Nazorg", what: "Een site is niet 'af' bij lancering. 30 dagen gratis bug-fix, daarna optioneel een Care/Plus/Scale abonnement of per uur.", you: "Beslis of je onderhoud zelf doet, een abonnement neemt, of per uur werkt. Geen verplichting.", deliver: "Een werkende site, de code in jouw GitHub-repo, en een duidelijke onderhoudsafspraak.", duration: "doorlopend of stopt — jouw keuze", risk: "Geen lock-in: de code is van jou. Stoppen we ooit, dan blijft alles werken." },
+      { n: "06", title: "Nazorg", what: "Een site is niet 'af' bij lancering. 30 dagen gratis bug-fix, daarna loopt je onderhoudsabonnement (Care/Plus/Scale/Partner) — hosting, beveiliging, updates en support, verplicht vanaf maand 1.", you: "Kies het abonnementsniveau dat past; je kan later zelf opgraden in je portaal.", deliver: "Een werkende site, de code in jouw GitHub-repo, en een lopend onderhoudsabonnement.", duration: "doorlopend (abonnement vanaf maand 1)", risk: "Geen lock-in op je code: de code is van jou. Het abonnement zegt je op met 1 maand opzeg." },
     ],
     labels: { what: "Wat er gebeurt", you: "Wat jij doet", deliver: "Wat je krijgt", duration: "Duur", risk: "Wat als het misloopt" },
     principlesTitle: "Onderliggende principes",
@@ -55,8 +55,8 @@ const copy: Record<Locale, Copy> = {
       { t: "Eerlijk over risico's", d: "Ik benoem vooraf wat kan mislopen. Een verrassing achteraf is altijd duurder dan een gesprek vooraf." },
     ],
     ctaTitle: "Klinkt dit als een proces waar je gerust in bent?",
-    ctaText: "Het begint met een vrijblijvend gesprek. Geen offerte-druk, geen verkooppraatje.",
-    ctaButton: "Plan een gesprek",
+    ctaText: "Stel je pakket samen en zie meteen je exacte vaste prijs. Geen offerte-druk, geen verkooppraatje.",
+    ctaButton: "Stel je pakket samen",
   },
   fr: {
     metaTitle: "Approche — Studio VM",
@@ -68,11 +68,11 @@ const copy: Record<Locale, Copy> = {
     phasesTitle: "Les six phases",
     phases: [
       { n: "01", title: "Rencontre", what: "Un entretien sans engagement (en ligne ou chez vous). J'écoute plus que je ne parle : ce que vous avez, ce que vous voulez atteindre, le budget et le délai.", you: "Parlez honnêtement de votre activité et de vos attentes. Aucune préparation nécessaire.", deliver: "Une vision claire si on est compatibles — sinon, un conseil honnête vers qui s'adresser.", duration: "~45 min", risk: "Aucun risque : c'est gratuit et ne vous engage à rien." },
-      { n: "02", title: "Périmètre + devis", what: "Je mets par écrit ce que je construis, ce que je ne construis pas, le coût et le délai. Un document, sans astérisques.", you: "Lisez de façon critique. Posez des questions sur tout point flou — c'est le moment.", deliver: "Un devis fixe avec scope, prix et planning. Valable 30 jours.", duration: "2–4 jours", risk: "Scope trop cher ? On élague ensemble jusqu'à ce que ça colle. Mieux vaut un petit projet juste qu'un grand qui dérape." },
+      { n: "02", title: "Composer + verrouiller", what: "Vous composez votre forfait dans le configurateur et voyez votre prix fixe exact — sans astérisques. Vous verrouillez avec 30 % d'acompte (via Mollie).", you: "Choisissez forfait et maintenance ; en cas de doute, on regarde ensemble.", deliver: "Un prix fixe et un scope verrouillé après l'acompte.", duration: "immédiat", risk: "Scope trop cher ? Vous ajustez simplement votre composition jusqu'à ce que ça colle." },
       { n: "03", title: "Design", what: "Pas de maquettes statiques jamais conformes. Une première version cliquable sur un staging, affinée itérativement avec vos retours.", you: "Cliquez, donnez votre avis. Pas besoin d'être designer — « ça ne va pas » est un retour utile.", deliver: "Une version fonctionnelle et cliquable sur votre propre URL de staging.", duration: "quelques jours", risk: "Les différences de goût sont normales. On travaille en rondes ; le forfait définit combien sont incluses." },
       { n: "04", title: "Développement", what: "La vraie construction : site + admin + intégrations. Démos intermédiaires pour ne pas rester quatre semaines dans le flou.", you: "Fournissez le contenu (textes, photos) et testez sur staging. Plus votre input est rapide, plus la livraison l'est.", deliver: "Un site complet et testé sur staging — à tester vous-même.", duration: "1–2 semaines", risk: "Un retard dû à du contenu manquant décale le délai proportionnellement — d'où la planification explicite de l'apport de contenu." },
       { n: "05", title: "Lancement", what: "Pas de saut dans le vide. Soft launch : redirections en ligne, sitemap soumis, classement monitoré. Pour les migrations : zéro downtime.", you: "Un dernier accord. Ensuite ça passe en ligne sur votre domaine.", deliver: "Site en ligne, anciennes URL redirigées en permanence, monitoring actif.", duration: "1 jour", risk: "Un souci après le lancement ? Les 30 premiers jours, je corrige les bugs gratuitement." },
-      { n: "06", title: "Suivi", what: "Un site n'est pas 'fini' au lancement. 30 jours de correction gratuite, ensuite un abonnement Care/Plus/Scale en option ou à l'heure.", you: "Décidez si vous faites la maintenance vous-même, prenez un abonnement, ou à l'heure. Sans obligation.", deliver: "Un site qui marche, le code dans votre dépôt GitHub, et un accord de maintenance clair.", duration: "continu ou stoppé — votre choix", risk: "Pas de lock-in : le code est à vous. Si on arrête, tout continue de marcher." },
+      { n: "06", title: "Suivi", what: "Un site n'est pas 'fini' au lancement. 30 jours de correction gratuite, ensuite votre abonnement de maintenance (Care/Plus/Scale/Partner) — hébergement, sécurité, mises à jour et support, obligatoire dès le 1er mois.", you: "Choisissez le niveau d'abonnement qui convient ; vous pouvez évoluer plus tard via votre espace.", deliver: "Un site qui marche, le code dans votre dépôt GitHub, et un abonnement de maintenance actif.", duration: "continu (abonnement dès le 1er mois)", risk: "Pas de lock-in sur le code : le code est à vous. L'abonnement se résilie avec 1 mois de préavis." },
     ],
     labels: { what: "Ce qui se passe", you: "Ce que vous faites", deliver: "Ce que vous obtenez", duration: "Durée", risk: "Si ça dérape" },
     principlesTitle: "Principes sous-jacents",
@@ -82,8 +82,8 @@ const copy: Record<Locale, Copy> = {
       { t: "Honnête sur les risques", d: "Je nomme à l'avance ce qui peut déraper. Une surprise après coup coûte toujours plus cher qu'une conversation avant." },
     ],
     ctaTitle: "Ça ressemble à un processus qui vous rassure ?",
-    ctaText: "Ça commence par un entretien sans engagement. Pas de pression de devis, pas de baratin commercial.",
-    ctaButton: "Planifier un entretien",
+    ctaText: "Composez votre forfait et voyez votre prix fixe exact immédiatement. Sans pression, sans baratin commercial.",
+    ctaButton: "Composez votre forfait",
   },
   en: {
     metaTitle: "Approach — Studio VM",
@@ -95,11 +95,11 @@ const copy: Record<Locale, Copy> = {
     phasesTitle: "The six phases",
     phases: [
       { n: "01", title: "First meeting", what: "A no-obligation chat (online or at your place). I listen more than I talk: what you have, what you want to achieve, the budget and timeline.", you: "Speak honestly about your business and expectations. No preparation needed.", deliver: "A clear picture of whether we're a match — and if not, honest advice on where to go.", duration: "~45 min", risk: "No risk: it's free and binds you to nothing." },
-      { n: "02", title: "Scope + quote", what: "I put in writing what I build, what I don't, what it costs and when it's ready. One document, no asterisks.", you: "Read critically. Question anything unclear — that's exactly the moment.", deliver: "A fixed quote with scope, price and schedule. Valid 30 days.", duration: "2–4 days", risk: "Scope too expensive? We trim together until it fits. Better a small project that's right than a big one that derails." },
+      { n: "02", title: "Compose + lock in", what: "You compose your package in the configurator and see your exact fixed price — no asterisks. You lock in with a 30% deposit (via Mollie).", you: "Pick package and maintenance; if in doubt, we review it together.", deliver: "A fixed price and a locked scope after the deposit.", duration: "immediate", risk: "Scope too expensive? You simply adjust your composition until it fits." },
       { n: "03", title: "Design", what: "No static mockups that never look like that. A first clickable version on a staging environment, iteratively refined with your input.", you: "Click through, give feedback. You don't need to be a designer — 'this feels off' is usable input.", deliver: "A working, clickable version on your own staging URL.", duration: "a few days", risk: "Taste differences are normal. We work in rounds; the package defines how many are included." },
       { n: "04", title: "Development", what: "The real build: site + admin + integrations. Interim demos so you're not in the dark for four weeks.", you: "Provide content (text, photos) and test on staging. The faster your input, the faster delivery.", deliver: "A complete, tested site on staging — for you to test yourself.", duration: "1–2 weeks", risk: "Delay due to missing content shifts the deadline proportionally — which is why we plan content delivery explicitly." },
       { n: "05", title: "Launch", what: "No leap in the dark. Soft launch: redirects live, sitemap submitted, ranking monitored. For migrations: zero downtime.", you: "One final approval. Then it goes live on your domain.", deliver: "Live site, old URLs permanently redirected, monitoring active.", duration: "1 day", risk: "Something wrong after launch? The first 30 days I fix bugs for free." },
-      { n: "06", title: "Aftercare", what: "A site isn't 'done' at launch. 30 days free bug fixing, then an optional Care/Plus/Scale subscription or by the hour.", you: "Decide whether you do maintenance yourself, take a subscription, or work by the hour. No obligation.", deliver: "A working site, the code in your GitHub repo, and a clear maintenance agreement.", duration: "ongoing or stopped — your choice", risk: "No lock-in: the code is yours. If we ever stop, everything keeps working." },
+      { n: "06", title: "Aftercare", what: "A site isn't 'done' at launch. 30 days free bug fixing, then your maintenance subscription (Care/Plus/Scale/Partner) — hosting, security, updates and support, required from month 1.", you: "Pick the subscription level that fits; you can upgrade later from your portal.", deliver: "A working site, the code in your GitHub repo, and an active maintenance subscription.", duration: "ongoing (subscription from month 1)", risk: "No lock-in on your code: the code is yours. The subscription cancels with 1 month notice." },
     ],
     labels: { what: "What happens", you: "What you do", deliver: "What you get", duration: "Duration", risk: "If it goes wrong" },
     principlesTitle: "Underlying principles",
@@ -109,8 +109,8 @@ const copy: Record<Locale, Copy> = {
       { t: "Honest about risks", d: "I name up front what can go wrong. A surprise afterwards always costs more than a conversation before." },
     ],
     ctaTitle: "Sound like a process you can be confident in?",
-    ctaText: "It starts with a no-obligation chat. No quote pressure, no sales pitch.",
-    ctaButton: "Schedule a chat",
+    ctaText: "Build your package and see your exact fixed price right away. No quote pressure, no sales pitch.",
+    ctaButton: "Build your package",
   },
 };
 
@@ -209,7 +209,7 @@ export default async function AanpakPage({
           </h2>
           <p className="mt-4 text-muted">{c.ctaText}</p>
           <Link
-            href={localePath(locale, "/#contact")}
+            href={localePath(locale, "/offerte")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             {c.ctaButton}

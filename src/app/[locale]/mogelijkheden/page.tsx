@@ -28,7 +28,7 @@ const copy: Record<
     ctaTitle: "Niet zeker wat je nodig hebt?",
     ctaText:
       "Vertel me kort over je zaak. Ik zeg eerlijk welke modules zinvol zijn — en welke je (nog) niet nodig hebt.",
-    ctaButton: "Praat met me",
+    ctaButton: "Stel je pakket samen",
   },
   fr: {
     metaTitle: "Capacités — Studio VM",
@@ -40,7 +40,7 @@ const copy: Record<
     ctaTitle: "Pas sûr de ce dont vous avez besoin ?",
     ctaText:
       "Parlez-moi brièvement de votre activité. Je dis honnêtement quels modules sont utiles — et lesquels vous n'avez pas (encore) besoin.",
-    ctaButton: "Discutons-en",
+    ctaButton: "Composez votre forfait",
   },
   en: {
     metaTitle: "Capabilities — Studio VM",
@@ -52,7 +52,7 @@ const copy: Record<
     ctaTitle: "Not sure what you need?",
     ctaText:
       "Tell me briefly about your business. I'll honestly say which modules make sense — and which you don't need (yet).",
-    ctaButton: "Let's talk",
+    ctaButton: "Build your package",
   },
 };
 
@@ -131,7 +131,7 @@ export default async function MogelijkhedenPage({
           </h2>
           <p className="mt-4 text-muted">{c.ctaText}</p>
           <Link
-            href={localePath(locale, "/#contact")}
+            href={localePath(locale, "/offerte")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             {c.ctaButton}
