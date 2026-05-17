@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Check, Send, Loader2, AlertTriangle } from "lucide-react";
@@ -443,6 +443,16 @@ export default function OffertePage() {
     );
   }
   const [pending, startSend] = useTransition();
+  const [paid, setPaid] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("betaald") === "1") {
+      setPaid(true);
+      document
+        .getElementById("aanvraag")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
 
   const base = bases.find((b) => b.slug === baseSlug);
   const inc = baseSlug ? OFFER_INCLUDED[baseSlug] : undefined;
@@ -1114,7 +1124,15 @@ export default function OffertePage() {
           </h2>
           <p className="mt-3 text-muted">{c.sendText}</p>
 
-          {sent === "ok" || sent === "intake" ? (
+          {paid ? (
+            <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
+              {locale === "fr"
+                ? "Merci ! Votre acompte est bien reçu. Votre composition est verrouillée — je vous recontacte rapidement pour le planning. Vous recevez aussi une confirmation par e-mail."
+                : locale === "en"
+                  ? "Thanks! Your deposit has been received. Your composition is locked in — I'll be in touch shortly about planning. You'll also get an email confirmation."
+                  : "Bedankt! Je aanbetaling is goed ontvangen. Je samenstelling ligt vast — ik neem snel contact op voor de planning. Je krijgt ook een bevestiging per e-mail."}
+            </p>
+          ) : sent === "ok" || sent === "intake" ? (
             <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-sm font-medium text-accent">
               {sent === "intake" ? c.intakeOk : c.sent}
             </p>
