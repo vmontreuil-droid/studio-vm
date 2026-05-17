@@ -69,8 +69,8 @@ export default async function AdminKlanten({
       .limit(2000),
     getSupabaseAdmin()
       .from("quotes")
-      .select("email, name, company, created_at")
-      .eq("source", "offerte-configurator")
+      .select("email, name, company, created_at, source")
+      .in("source", ["offerte-configurator", "builder"])
       .order("created_at", { ascending: false })
       .limit(2000),
   ]);
@@ -89,7 +89,13 @@ export default async function AdminKlanten({
     });
   }
   for (const c of (cfgData as
-    | { email: string; name: string; company: string | null; created_at: string }[]
+    | {
+        email: string;
+        name: string;
+        company: string | null;
+        created_at: string;
+        source: string | null;
+      }[]
     | null) ?? []) {
     const key = c.email?.toLowerCase().trim();
     if (!key || byEmail.has(key)) continue;
@@ -97,7 +103,10 @@ export default async function AdminKlanten({
       email: key,
       scans: 0,
       lastAt: c.created_at,
-      host: c.company || c.name || "Via configurator",
+      host:
+        c.company ||
+        c.name ||
+        (c.source === "builder" ? "Via builder" : "Via configurator"),
       grade: null,
       score: null,
     });

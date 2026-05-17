@@ -22,7 +22,7 @@ const STATUS_COLOR: Record<string, string> = {
 type Block = { kind: string; data: Record<string, unknown> };
 type SnapPage = { name: string; blocks: Block[] };
 type Snapshot = {
-  theme?: string;
+  theme?: string | { bg?: string; fg?: string; accent?: string } | null;
   font?: string;
   radius?: string;
   colors?: { bg?: string; fg?: string; accent?: string };
@@ -30,9 +30,17 @@ type Snapshot = {
   aboutText?: string;
   ctaText?: string;
   sections?: string[];
-  pages?: SnapPage[];
+  pages?: (SnapPage & { sections?: Block[] })[];
   imageCount?: number;
 };
+
+function themeLabel(
+  t: string | { bg?: string; fg?: string; accent?: string } | null | undefined,
+): string {
+  if (!t) return "—";
+  if (typeof t === "string") return t;
+  return [t.bg, t.fg, t.accent].filter(Boolean).join(" · ") || "—";
+}
 
 type Quote = {
   id: string;
@@ -409,7 +417,7 @@ export default async function QuoteDetail({
             Builder-ontwerp
           </p>
           <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-            <Field label="Thema" value={snap.theme} />
+            <Field label="Thema" value={themeLabel(snap.theme)} />
             <Field label="Font" value={snap.font} />
             <Field label="Hoeken" value={snap.radius} />
             <Field

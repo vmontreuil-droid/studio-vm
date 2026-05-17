@@ -2,10 +2,16 @@
 // maakte. Server-component (geen hooks/events) — gebruikt in de admin.
 
 type Block = { kind: string; data: Record<string, unknown> };
-type SnapPage = { name: string; blocks: Block[] };
+// Tolereert beide vormen: cfg-shape (pages[].blocks, theme=label,
+// colors{}) én het portaal-snapshot (pages[].sections, theme-object).
+type SnapPage = { name: string; blocks?: Block[]; sections?: Block[] };
 type Snap = {
   businessName?: string;
   colors?: { bg?: string; fg?: string; accent?: string };
+  theme?:
+    | string
+    | { bg?: string; fg?: string; accent?: string }
+    | null;
   radius?: string;
   pages?: SnapPage[];
 };
@@ -99,12 +105,20 @@ function arr(v: unknown): Record<string, string>[] {
 
 export function BuilderRender({ snap }: { snap: Snap }) {
   if (!snap.pages || snap.pages.length === 0) return null;
-  const bg = snap.colors?.bg || "#ffffff";
-  const fg = snap.colors?.fg || "#111111";
-  const accent = snap.colors?.accent || "#b45309";
+  const themeObj =
+    snap.theme && typeof snap.theme === "object" ? snap.theme : null;
+  const bg = snap.colors?.bg || themeObj?.bg || "#ffffff";
+  const fg = snap.colors?.fg || themeObj?.fg || "#111111";
+  const accent = snap.colors?.accent || themeObj?.accent || "#b45309";
   const rad = radiusPx(snap.radius);
   const soft = `${fg}1a`;
   const businessName = snap.businessName || "Website";
+  const blocksOf = (p: SnapPage): Block[] =>
+    Array.isArray(p.blocks)
+      ? p.blocks
+      : Array.isArray(p.sections)
+        ? p.sections
+        : [];
 
   return (
     <div className="mt-5 space-y-6">
@@ -139,7 +153,7 @@ export function BuilderRender({ snap }: { snap: Snap }) {
               </span>
             </nav>
 
-            {page.blocks.map((b, bi) => {
+            {blocksOf(page).map((b, bi) => {
               const bd = (b.data as Record<string, unknown>) || {};
               const ovs = Array.isArray(bd._ov)
                 ? (bd._ov as {

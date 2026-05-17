@@ -29,6 +29,13 @@ type Cfg = {
   snapshot?: Record<string, unknown>;
 };
 
+// Base64-/data-URL's nooit als tekst dumpen (onleesbaar + enorm).
+function clip(x: unknown): string {
+  const s = String(x);
+  if (/^data:|^https?:\/\/[^ ]{120,}/.test(s)) return "[afbeelding]";
+  return s.length > 240 ? s.slice(0, 240) + "…" : s;
+}
+
 function val(v: unknown): string {
   if (v == null) return "";
   if (Array.isArray(v))
@@ -37,12 +44,13 @@ function val(v: unknown): string {
         x && typeof x === "object"
           ? Object.values(x as Record<string, unknown>)
               .filter(Boolean)
+              .map(clip)
               .join(" — ")
-          : String(x),
+          : clip(x),
       )
       .filter(Boolean)
       .join(" | ");
-  return String(v);
+  return clip(v);
 }
 
 function summarizeBlock(b: Block): string {
