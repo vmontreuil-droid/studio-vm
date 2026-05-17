@@ -11,6 +11,7 @@ export const allNav: NavItem[] = [
   { href: "/", label: "Home", group: "Studio" },
   { href: "/#werk", label: "Realisaties", group: "Studio" },
   { href: "/mogelijkheden", label: "Mogelijkheden", group: "Studio" },
+  { href: "/zelf-bouwen", label: "Zelf bouwen", group: "Studio" },
   { href: "/pricing", label: "Pricing", group: "Studio" },
   { href: "/journal", label: "Journal", group: "Studio" },
   { href: "/diensten", label: "Diensten", group: "Diensten" },

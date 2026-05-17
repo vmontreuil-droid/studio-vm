@@ -14,6 +14,15 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const items = [
     { href: localePath(locale, "/#werk"), label: t.nav.werk },
     { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
+    {
+      href: localePath(locale, "/zelf-bouwen"),
+      label:
+        locale === "fr"
+          ? "Construire"
+          : locale === "en"
+            ? "Build it"
+            : "Zelf bouwen",
+    },
     { href: localePath(locale, "/pricing"), label: t.nav.pricing },
     {
       href: localePath(locale, "/scan"),
