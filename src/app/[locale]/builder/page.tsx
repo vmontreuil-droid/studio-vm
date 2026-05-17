@@ -223,6 +223,11 @@ const T: Record<
       priceSeed: { name: string; price: string; desc: string }[];
       heroDrop: string;
       heroRemove: string;
+      heroDur: string;
+      heroTrans: string;
+      transFade: string;
+      transSlide: string;
+      transNone: string;
     };
   }
 > = {
@@ -341,6 +346,11 @@ const T: Record<
       ],
       heroDrop: "Sleep hier een foto als achtergrond",
       heroRemove: "Achtergrond weg",
+      heroDur: "Duur per slide",
+      heroTrans: "Overgang",
+      transFade: "Vloeiend",
+      transSlide: "Schuiven",
+      transNone: "Direct",
     },
   },
   fr: {
@@ -458,6 +468,11 @@ const T: Record<
       ],
       heroDrop: "Glissez une photo ici comme arrière-plan",
       heroRemove: "Retirer l'arrière-plan",
+      heroDur: "Durée par diapo",
+      heroTrans: "Transition",
+      transFade: "Fondu",
+      transSlide: "Glissement",
+      transNone: "Direct",
     },
   },
   en: {
@@ -575,6 +590,11 @@ const T: Record<
       ],
       heroDrop: "Drop a photo here as background",
       heroRemove: "Remove background",
+      heroDur: "Duration per slide",
+      heroTrans: "Transition",
+      transFade: "Fade",
+      transSlide: "Slide",
+      transNone: "Instant",
     },
   },
 };
@@ -1919,17 +1939,24 @@ function HeroPreview({
     : get("bg")
       ? [get("bg")]
       : [];
+  const hasBg = bgs.length > 0;
+  const slideSec =
+    typeof data.slideSec === "number" && data.slideSec >= 2 ? data.slideSec : 4;
+  const trans =
+    data.trans === "slide" || data.trans === "none"
+      ? (data.trans as "slide" | "none")
+      : "fade";
+  const transMs = trans === "none" ? 0 : 700;
+
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     if (bgs.length < 2) return;
     const t = setInterval(
       () => setIdx((i) => (i + 1) % bgs.length),
-      3500,
+      slideSec * 1000,
     );
     return () => clearInterval(t);
-  }, [bgs.length]);
-  const hasBg = bgs.length > 0;
-  const cur = hasBg ? bgs[Math.min(idx, bgs.length - 1)] : "";
+  }, [bgs.length, slideSec]);
 
   const addImgs = (files?: FileList | null) => {
     if (!files) return;
@@ -1948,18 +1975,8 @@ function HeroPreview({
 
   return (
     <div
-      className="group/hero relative px-8 py-14 text-center"
-      style={
-        hasBg
-          ? {
-              backgroundImage: `url(${cur})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              color: "#ffffff",
-              transition: "background-image 0.5s ease",
-            }
-          : undefined
-      }
+      className="group/hero relative overflow-hidden px-8 py-14 text-center"
+      style={hasBg ? { color: "#ffffff" } : undefined}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1970,13 +1987,34 @@ function HeroPreview({
         addImgs(e.dataTransfer.files);
       }}
     >
+      {hasBg &&
+        bgs.map((src, i) => (
+          <div
+            key={i}
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: `url(${src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              transitionProperty: trans === "slide" ? "transform" : "opacity",
+              transitionDuration: `${transMs}ms`,
+              transitionTimingFunction: "ease",
+              opacity: trans === "slide" ? 1 : i === idx ? 1 : 0,
+              transform:
+                trans === "slide"
+                  ? `translateX(${(i - idx) * 100}%)`
+                  : undefined,
+              zIndex: i === idx ? 1 : 0,
+            }}
+          />
+        ))}
       {hasBg && (
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: "rgba(0,0,0,0.45)" }}
+          style={{ background: "rgba(0,0,0,0.45)", zIndex: 2 }}
         />
       )}
-      <div className="relative">
+      <div className="relative" style={{ zIndex: 3 }}>
         <p
           className="font-mono text-[10px] uppercase tracking-widest"
           style={hasBg ? undefined : { color: theme.accent }}
@@ -2049,8 +2087,51 @@ function HeroPreview({
         </div>
       )}
 
+      {bgs.length > 1 && (
+        <div
+          className="absolute inset-x-0 bottom-9 z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 px-4 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
+          style={{ color: "rgba(255,255,255,0.9)" }}
+        >
+          <label
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {p.heroDur}
+            <input
+              type="range"
+              min={2}
+              max={10}
+              step={0.5}
+              value={slideSec}
+              onChange={(e) =>
+                edit({ slideSec: Number(e.target.value) })
+              }
+              className="h-1 w-24 cursor-pointer accent-white"
+            />
+            <span className="font-mono tabular-nums">
+              {slideSec.toFixed(1)}s
+            </span>
+          </label>
+          <label
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {p.heroTrans}
+            <select
+              value={trans}
+              onChange={(e) => edit({ trans: e.target.value })}
+              className="rounded border border-white/40 bg-black/40 px-1.5 py-0.5 text-[11px] text-white outline-none"
+            >
+              <option value="fade">{p.transFade}</option>
+              <option value="slide">{p.transSlide}</option>
+              <option value="none">{p.transNone}</option>
+            </select>
+          </label>
+        </div>
+      )}
+
       <label
-        className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
+        className="absolute inset-x-0 bottom-0 z-10 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
         style={
           hasBg
             ? { color: "rgba(255,255,255,0.85)", borderColor: "rgba(255,255,255,0.4)" }
