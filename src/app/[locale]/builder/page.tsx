@@ -4851,7 +4851,13 @@ function PreviewSection({
                         onChange={(v) => setItem(rows, i, "name", v)}
                       />
                     </p>
-                    <p className="mt-1 text-lg" style={accentText}>
+                    <p className="mt-0.5 text-[11px] opacity-60">
+                      <E
+                        value={tier.sub || ""}
+                        onChange={(v) => setItem(rows, i, "sub", v)}
+                      />
+                    </p>
+                    <p className="mt-2 text-lg" style={accentText}>
                       <E
                         value={tier.price}
                         onChange={(v) => setItem(rows, i, "price", v)}
@@ -4863,6 +4869,32 @@ function PreviewSection({
                         onChange={(v) => setItem(rows, i, "per", v)}
                       />
                     </p>
+                    <ul className="mt-3 space-y-1 text-left">
+                      {(tier.feats || "")
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((ln, li) => (
+                          <li
+                            key={li}
+                            className="flex items-start gap-1.5"
+                          >
+                            <Check
+                              className="mt-0.5 h-3 w-3 shrink-0"
+                              strokeWidth={3}
+                              style={accentText}
+                            />
+                            <span>{ln}</span>
+                          </li>
+                        ))}
+                    </ul>
+                    <div className="mt-2 border-t pt-2" style={border}>
+                      <E
+                        value={tier.feats || ""}
+                        onChange={(v) => setItem(rows, i, "feats", v)}
+                        multiline
+                        className="text-[10px] opacity-50"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -4879,27 +4911,32 @@ function PreviewSection({
               onChange={(v) => edit({ title: v })}
             />
           </h3>
-          <div className="mt-6 grid grid-cols-4 gap-2">
-            {images.length > 0
-              ? images.slice(0, 8).map((src, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="aspect-square w-full rounded-md object-cover"
-                  />
-                ))
-              : [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-md"
-                    style={{
-                      background: `linear-gradient(${i * 45}deg, ${theme.accent}33, ${theme.fg}11)`,
-                    }}
-                  />
+          {(() => {
+            const rows = rowsOr(
+              [1, 2, 3, 4, 5, 6, 7, 8].map(() => ({ title: "" })),
+            );
+            return (
+              <div className="mt-6 grid grid-cols-4 gap-3">
+                {rows.map((it, i) => (
+                  <div key={i}>
+                    <ItemImg
+                      it={it}
+                      onPatch={(pt) => patchRow(rows, i, pt)}
+                      accent={theme.accent}
+                      fg={theme.fg}
+                      variant="banner"
+                    />
+                    <p className="mt-1 text-center text-[11px] opacity-70">
+                      <E
+                        value={it.title || ""}
+                        onChange={(v) => setItem(rows, i, "title", v)}
+                      />
+                    </p>
+                  </div>
                 ))}
-          </div>
+              </div>
+            );
+          })()}
         </div>
       );
     case "about":
