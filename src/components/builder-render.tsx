@@ -34,6 +34,55 @@ function toneBg(
   return `color-mix(in srgb, ${col} ${pct}%, ${bg})`;
 }
 
+function patternCss(
+  d: Record<string, unknown>,
+  fg: string,
+): { backgroundImage: string; backgroundSize: string } | null {
+  const t = String(d._pat ?? "none");
+  if (!t || t === "none") return null;
+  const hex = typeof d._patC === "string" && d._patC ? d._patC : fg;
+  const op =
+    typeof d._patO === "number"
+      ? Math.max(0, Math.min(1, d._patO))
+      : 0.08;
+  const m = hex.replace("#", "");
+  const n =
+    m.length === 3 ? m.split("").map((x) => x + x).join("") : m.padEnd(6, "0");
+  const r = parseInt(n.slice(0, 2), 16) || 0;
+  const g = parseInt(n.slice(2, 4), 16) || 0;
+  const b = parseInt(n.slice(4, 6), 16) || 0;
+  const c = `rgba(${r}, ${g}, ${b}, ${op})`;
+  switch (t) {
+    case "dots":
+      return {
+        backgroundImage: `radial-gradient(${c} 1.5px, transparent 1.6px)`,
+        backgroundSize: "18px 18px",
+      };
+    case "stripes":
+      return {
+        backgroundImage: `repeating-linear-gradient(45deg, ${c} 0 2px, transparent 2px 12px)`,
+        backgroundSize: "auto",
+      };
+    case "grid":
+      return {
+        backgroundImage: `linear-gradient(${c} 1px, transparent 1px), linear-gradient(90deg, ${c} 1px, transparent 1px)`,
+        backgroundSize: "24px 24px",
+      };
+    case "diagonal":
+      return {
+        backgroundImage: `repeating-linear-gradient(-45deg, ${c} 0 1px, transparent 1px 14px)`,
+        backgroundSize: "auto",
+      };
+    case "cross":
+      return {
+        backgroundImage: `linear-gradient(${c} 1.5px, transparent 1.5px), linear-gradient(90deg, ${c} 1.5px, transparent 1.5px)`,
+        backgroundSize: "26px 26px, 26px 26px",
+      };
+    default:
+      return null;
+  }
+}
+
 function radiusPx(label?: string): string {
   const l = (label ?? "").toLowerCase();
   if (/strak|net|sharp/.test(l)) return "2px";
@@ -109,7 +158,10 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                 <div
                   key={bi}
                   className="relative overflow-hidden"
-                  style={{ background: toneBg(bd._bg, bg, fg, accent) }}
+                  style={{
+                    backgroundColor: toneBg(bd._bg, bg, fg, accent),
+                    ...(patternCss(bd, fg) || {}),
+                  }}
                 >
                   <BlockView
                     block={b}

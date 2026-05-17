@@ -155,6 +155,54 @@ function sectionToneBg(
   return `color-mix(in srgb, ${mixCol} ${pct}%, ${th.bg})`;
 }
 
+const PATTERNS = ["none", "dots", "stripes", "grid", "diagonal", "cross"];
+function patternCss(
+  data: SectionData,
+  th: Theme,
+): { backgroundImage: string; backgroundSize: string } | null {
+  const t = String(data._pat ?? "none");
+  if (!t || t === "none" || !PATTERNS.includes(t)) return null;
+  const hex = typeof data._patC === "string" && data._patC ? data._patC : th.fg;
+  const op =
+    typeof data._patO === "number" ? Math.max(0, Math.min(1, data._patO)) : 0.08;
+  const m = hex.replace("#", "");
+  const n =
+    m.length === 3 ? m.split("").map((x) => x + x).join("") : m.padEnd(6, "0");
+  const r = parseInt(n.slice(0, 2), 16) || 0;
+  const g = parseInt(n.slice(2, 4), 16) || 0;
+  const b = parseInt(n.slice(4, 6), 16) || 0;
+  const c = `rgba(${r}, ${g}, ${b}, ${op})`;
+  switch (t) {
+    case "dots":
+      return {
+        backgroundImage: `radial-gradient(${c} 1.5px, transparent 1.6px)`,
+        backgroundSize: "18px 18px",
+      };
+    case "stripes":
+      return {
+        backgroundImage: `repeating-linear-gradient(45deg, ${c} 0 2px, transparent 2px 12px)`,
+        backgroundSize: "auto",
+      };
+    case "grid":
+      return {
+        backgroundImage: `linear-gradient(${c} 1px, transparent 1px), linear-gradient(90deg, ${c} 1px, transparent 1px)`,
+        backgroundSize: "24px 24px",
+      };
+    case "diagonal":
+      return {
+        backgroundImage: `repeating-linear-gradient(-45deg, ${c} 0 1px, transparent 1px 14px)`,
+        backgroundSize: "auto",
+      };
+    case "cross":
+      return {
+        backgroundImage: `linear-gradient(${c} 1.5px, transparent 1.5px), linear-gradient(90deg, ${c} 1.5px, transparent 1.5px)`,
+        backgroundSize: "26px 26px, 26px 26px",
+      };
+    default:
+      return null;
+  }
+}
+
 const sectionKinds: SectionKind[] = [
   "hero",
   "features",
@@ -1396,6 +1444,84 @@ export default function BuilderPage({
                             );
                           })}
                         </div>
+                        <p className="mb-1.5 mt-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Motif de fond"
+                            : locale === "en"
+                              ? "Background pattern"
+                              : "Achtergrond-patroon"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {PATTERNS.map((pt) => {
+                            const sel =
+                              String(openSec.data._pat ?? "none") === pt;
+                            const pc =
+                              pt === "none"
+                                ? null
+                                : patternCss(
+                                    {
+                                      _pat: pt,
+                                      _patC: openSec.data._patC,
+                                      _patO: 0.5,
+                                    },
+                                    theme,
+                                  );
+                            return (
+                              <button
+                                key={pt}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _pat: pt })
+                                }
+                                title={pt}
+                                className="h-7 w-7 rounded-md border transition-transform hover:scale-110"
+                                style={{
+                                  backgroundColor: theme.bg,
+                                  ...(pc || {}),
+                                  borderColor: sel
+                                    ? "var(--accent)"
+                                    : "var(--border)",
+                                  outline: sel
+                                    ? "2px solid var(--accent)"
+                                    : "none",
+                                }}
+                              />
+                            );
+                          })}
+                          <input
+                            type="color"
+                            value={
+                              typeof openSec.data._patC === "string" &&
+                              openSec.data._patC
+                                ? (openSec.data._patC as string)
+                                : theme.fg
+                            }
+                            onChange={(e) =>
+                              patchData(openSec.id, {
+                                _patC: e.target.value,
+                              })
+                            }
+                            title="kleur"
+                            className="h-7 w-7 cursor-pointer rounded-md border-0 bg-transparent p-0"
+                          />
+                          <input
+                            type="range"
+                            min={0}
+                            max={0.3}
+                            step={0.01}
+                            value={
+                              typeof openSec.data._patO === "number"
+                                ? (openSec.data._patO as number)
+                                : 0.08
+                            }
+                            onChange={(e) =>
+                              patchData(openSec.id, {
+                                _patO: Number(e.target.value),
+                              })
+                            }
+                            className="h-1 w-20 cursor-pointer accent-accent"
+                          />
+                        </div>
                       </div>
                     )}
                     <SectionEditor
@@ -2191,7 +2317,10 @@ export default function BuilderPage({
                   <div
                     key={s.id}
                     className="group/sec relative"
-                    style={{ background: sectionToneBg(s.data._bg, theme) }}
+                    style={{
+                      backgroundColor: sectionToneBg(s.data._bg, theme),
+                      ...(patternCss(s.data, theme) || {}),
+                    }}
                   >
                     <PreviewSection
                       kind={s.kind}
