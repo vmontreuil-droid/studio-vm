@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight, PenTool, Check } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { BuilderTour } from "@/components/builder-tour";
 
 type Copy = {
   metaTitle: string;
@@ -301,104 +302,7 @@ export default async function ZelfBouwenPage({
         </div>
       </section>
 
-      {/* Geannoteerde rondleiding: gestileerde builder-mock met
-          genummerde aanduidingen + commentaar ernaast. */}
-      <section className="border-b">
-        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-          <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
-            {c.tourTitle}
-          </h2>
-          <p className="mt-3 max-w-2xl text-muted">{c.tourLead}</p>
-
-          <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-            <div className="relative overflow-hidden rounded-2xl border bg-card shadow-sm">
-              <div className="flex items-center gap-1.5 border-b bg-background px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 font-mono text-[11px] text-muted">
-                  builder · jouw-zaak.be
-                </span>
-              </div>
-              <div className="grid grid-cols-[34%_1fr] gap-0">
-                <div className="relative space-y-2 border-r p-3">
-                  <Mark n="1" cls="-right-3 top-3" />
-                  <div className="h-2 w-2/3 rounded bg-foreground/15" />
-                  <div className="h-7 rounded-lg bg-accent/15" />
-                  <div className="h-7 rounded-lg bg-foreground/10" />
-                  <div className="h-7 rounded-lg bg-foreground/10" />
-                  <div className="mt-3 h-2 w-1/2 rounded bg-foreground/15" />
-                  <div className="grid grid-cols-4 gap-1">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-4 rounded bg-foreground/10"
-                      />
-                    ))}
-                  </div>
-                  <Mark n="5" cls="-right-3 bottom-6" />
-                </div>
-                <div className="relative">
-                  <div className="relative flex h-28 items-center justify-center bg-gradient-to-br from-accent/25 to-foreground/10">
-                    <div className="text-center">
-                      <div className="mx-auto h-2 w-16 rounded bg-foreground/30" />
-                      <div className="mx-auto mt-2 h-4 w-28 rounded bg-foreground/40" />
-                      <div className="mx-auto mt-2 h-5 w-20 rounded-full bg-accent/70" />
-                    </div>
-                    <Mark n="3" cls="left-3 top-3" />
-                    <Mark n="4" cls="right-3 bottom-3" />
-                  </div>
-                  <div className="relative grid grid-cols-3 gap-2 p-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="rounded-lg border p-2"
-                      >
-                        <div className="h-8 rounded bg-foreground/10" />
-                        <div className="mt-1.5 h-1.5 w-3/4 rounded bg-foreground/20" />
-                        <div className="mt-1 h-1.5 w-full rounded bg-foreground/10" />
-                      </div>
-                    ))}
-                    <Mark n="2" cls="-left-3 -top-2" />
-                    <Mark n="6" cls="-right-3 bottom-2" />
-                  </div>
-                  <div className="flex items-center justify-between border-t px-3 py-2">
-                    <span className="font-mono text-[10px] text-muted">
-                      ✓ bewaard
-                    </span>
-                    <span className="rounded-full bg-foreground px-3 py-1 text-[10px] font-medium text-background">
-                      ➤
-                    </span>
-                    <Mark n="7" cls="-left-3 top-1" />
-                    <Mark n="8" cls="-right-3 top-1" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <ol className="space-y-3">
-              {c.tour.map((s) => (
-                <li
-                  key={s.n}
-                  className="flex gap-3 rounded-xl border bg-card p-4"
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-background">
-                    {s.n}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold tracking-tight">
-                      {s.t}
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted">
-                      {s.d}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </section>
+      <BuilderTour title={c.tourTitle} lead={c.tourLead} steps={c.tour} />
 
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
@@ -468,15 +372,5 @@ export default async function ZelfBouwenPage({
         </div>
       </section>
     </main>
-  );
-}
-
-function Mark({ n, cls }: { n: string; cls: string }) {
-  return (
-    <span
-      className={`absolute z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-accent text-xs font-bold text-background shadow ${cls}`}
-    >
-      {n}
-    </span>
   );
 }
