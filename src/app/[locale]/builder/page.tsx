@@ -4271,6 +4271,124 @@ function SectionOverlays({
   );
 }
 
+// Foto-slot per item-kaart: klik of sleep een foto, grootte + blur
+// instelbaar, verwijderen. Opgeslagen op het item (_img/_ih/_ib).
+function ItemImg({
+  it,
+  onPatch,
+  accent,
+  fg,
+  variant,
+}: {
+  it: Record<string, string>;
+  onPatch: (patch: Record<string, string>) => void;
+  accent: string;
+  fg: string;
+  variant: "avatar" | "banner";
+}) {
+  const img = it._img || "";
+  const round = variant === "avatar";
+  const def = round ? 56 : 120;
+  const h = Number(it._ih) || def;
+  const blur = Number(it._ib) || 0;
+  const sizes = round ? [48, 64, 88, 120] : [90, 120, 170, 240];
+  const read = (file?: File | null) => {
+    if (!file || !file.type.startsWith("image/") || file.size > 4_000_000)
+      return;
+    const r = new FileReader();
+    r.onload = () => onPatch({ _img: String(r.result) });
+    r.readAsDataURL(file);
+  };
+  return (
+    <div
+      className={`group/ii relative ${round ? "mx-auto" : ""} mb-2`}
+      style={{ width: round ? h : "100%", maxWidth: round ? h : undefined }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        read(e.dataTransfer.files?.[0]);
+      }}
+    >
+      <label
+        className="block cursor-pointer overflow-hidden"
+        style={{
+          height: h,
+          borderRadius: round ? 9999 : 12,
+          background: img
+            ? undefined
+            : `linear-gradient(135deg, ${accent}55, ${fg}11)`,
+        }}
+      >
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={img}
+            alt=""
+            className="h-full w-full object-cover"
+            style={{
+              filter: blur ? `blur(${blur}px)` : undefined,
+              borderRadius: round ? 9999 : 12,
+            }}
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-[10px] text-muted opacity-0 transition-opacity group-hover/ii:opacity-100">
+            + foto
+          </span>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            read(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      </label>
+      {img && (
+        <span className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover/ii:opacity-100">
+          <button
+            type="button"
+            onClick={() =>
+              onPatch({
+                _ih: String(
+                  sizes[(sizes.indexOf(h) + 1) % sizes.length] || def,
+                ),
+              })
+            }
+            title="grootte"
+            className="rounded-full bg-black/60 px-1.5 text-[10px] leading-5 text-white"
+          >
+            ⤢
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onPatch({ _ib: String(blur + 3 > 9 ? 0 : blur + 3) })
+            }
+            title="blur"
+            className="rounded-full bg-black/60 px-1.5 text-[10px] leading-5 text-white"
+          >
+            ◐
+          </button>
+          <button
+            type="button"
+            onClick={() => onPatch({ _img: "", _ih: "", _ib: "" })}
+            title="x"
+            className="rounded-full bg-black/70 px-1.5 text-[10px] leading-5 text-white"
+          >
+            ✕
+          </button>
+        </span>
+      )}
+    </div>
+  );
+}
+
 function E({
   value,
   onChange,
@@ -4347,6 +4465,14 @@ function PreviewSection({
     field: string,
     v: string,
   ) => edit({ items: rows.map((r, j) => (j === i ? { ...r, [field]: v } : r)) });
+  const patchRow = (
+    rows: Record<string, string>[],
+    i: number,
+    patch: Record<string, string>,
+  ) =>
+    edit({
+      items: rows.map((r, j) => (j === i ? { ...r, ...patch } : r)),
+    });
 
   switch (kind) {
     case "hero":
@@ -4382,9 +4508,12 @@ function PreviewSection({
                     className="rounded-lg border p-4 text-xs"
                     style={border}
                   >
-                    <div
-                      className="mb-2 h-6 w-6 rounded-full"
-                      style={{ background: theme.accent, opacity: 0.2 }}
+                    <ItemImg
+                      it={it}
+                      onPatch={(pt) => patchRow(rows, i, pt)}
+                      accent={theme.accent}
+                      fg={theme.fg}
+                      variant="banner"
                     />
                     <p className="font-semibold">
                       <E
@@ -4466,11 +4595,12 @@ function PreviewSection({
               <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                 {rows.map((it, i) => (
                   <div key={i}>
-                    <div
-                      className="mx-auto mb-2 h-14 w-14 rounded-full"
-                      style={{
-                        background: `linear-gradient(135deg, ${theme.accent}55, ${theme.fg}11)`,
-                      }}
+                    <ItemImg
+                      it={it}
+                      onPatch={(pt) => patchRow(rows, i, pt)}
+                      accent={theme.accent}
+                      fg={theme.fg}
+                      variant="avatar"
                     />
                     <p className="text-sm font-semibold">
                       <E

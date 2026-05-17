@@ -469,22 +469,43 @@ function BlockView({
         <div className="border-t px-6 py-10" style={border}>
           <H>{s(d.title)}</H>
           <div className="mx-auto mt-5 grid max-w-xl gap-3 sm:grid-cols-2">
-            {items.map((it, i) => (
-              <div
-                key={i}
-                className="rounded-lg border p-3 text-xs"
-                style={border}
-              >
-                {Object.entries(it).map(([k, v]) =>
-                  v ? (
-                    <p key={k} className="leading-relaxed">
-                      <span className="opacity-50">{k}: </span>
-                      {String(v)}
-                    </p>
-                  ) : null,
-                )}
-              </div>
-            ))}
+            {items.map((it, i) => {
+              const im = String(
+                (it as Record<string, unknown>)._img ?? "",
+              );
+              const ih =
+                Number((it as Record<string, unknown>)._ih) || 120;
+              const ib =
+                Number((it as Record<string, unknown>)._ib) || 0;
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg border p-3 text-xs"
+                  style={border}
+                >
+                  {im && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={im}
+                      alt=""
+                      className="mb-2 w-full rounded-md object-cover"
+                      style={{
+                        height: ih,
+                        filter: ib ? `blur(${ib}px)` : undefined,
+                      }}
+                    />
+                  )}
+                  {Object.entries(it).map(([k, v]) =>
+                    v && !k.startsWith("_") ? (
+                      <p key={k} className="leading-relaxed">
+                        <span className="opacity-50">{k}: </span>
+                        {String(v)}
+                      </p>
+                    ) : null,
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       );
