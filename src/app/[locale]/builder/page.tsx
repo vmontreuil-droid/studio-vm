@@ -2179,6 +2179,65 @@ export default function BuilderPage({
                                 : "Verberg op gsm"}
                           </button>
                         </div>
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Ombre"
+                            : locale === "en"
+                              ? "Shadow"
+                              : "Schaduw"}
+                          {mob && (
+                            <span className="ml-1 text-accent">· mobiel</span>
+                          )}
+                          <ResetChip base="_shadow" />
+                        </p>
+                        <div className="mb-3 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              dPatchV(
+                                "_shadow",
+                                dv("_shadow") === "1" ? 0 : 1,
+                              )
+                            }
+                            className={`rounded-md border px-2.5 py-1 text-[11px] transition-colors ${
+                              dv("_shadow") === "1"
+                                ? "border-accent bg-accent/10 text-foreground"
+                                : "border-border text-muted hover:bg-card-hover"
+                            }`}
+                          >
+                            {dv("_shadow") === "1"
+                              ? "✓ "
+                              : ""}
+                            {locale === "fr"
+                              ? "Activer"
+                              : locale === "en"
+                                ? "On"
+                                : "Aan"}
+                          </button>
+                          <input
+                            type="range"
+                            min={4}
+                            max={48}
+                            step={2}
+                            value={
+                              typeof dvRaw("_shadowStr") === "number"
+                                ? (dvRaw("_shadowStr") as number)
+                                : 18
+                            }
+                            onChange={(e) =>
+                              dPatchV(
+                                "_shadowStr",
+                                Number(e.target.value),
+                              )
+                            }
+                            className="h-1 flex-1 cursor-pointer accent-accent"
+                          />
+                          <span className="w-7 text-right font-mono text-[11px] tabular-nums">
+                            {typeof dvRaw("_shadowStr") === "number"
+                              ? (dvRaw("_shadowStr") as number)
+                              : 18}
+                          </span>
+                        </div>
                         {(openSec.kind === "features" ||
                           openSec.kind === "about") && (
                           <>
@@ -4070,6 +4129,19 @@ export default function BuilderPage({
                             backgroundPosition: "center",
                           }
                         : {}),
+                      ...(rd._shadow
+                        ? {
+                            boxShadow: `0 ${
+                              (typeof rd._shadowStr === "number"
+                                ? rd._shadowStr
+                                : 18) / 2
+                            }px ${
+                              typeof rd._shadowStr === "number"
+                                ? rd._shadowStr * 1.6
+                                : 30
+                            }px rgba(0,0,0,.18)`,
+                          }
+                        : {}),
                     }}
                   >
                     {typeof rd._bgimg === "string" && rd._bgimg && (
@@ -4303,6 +4375,8 @@ function HeadEditor({
             value={sv("_divIcon")}
             onPick={(k) => set("_divIcon", k)}
             accent={accent}
+            size={Number(d._divIconSz) || 0}
+            onSize={(n) => set("_divIconSz", n)}
           />
         </div>
       )}
@@ -4832,7 +4906,9 @@ function SectionEditor({
         locale={locale}
       />
     );
-  const linkable = ["cta", "newsletter", "banner"].includes(section.kind);
+  const linkable = ["cta", "newsletter", "banner", "richtext"].includes(
+    section.kind,
+  );
   const LinkBlock = linkable ? (
     <LinkField
       value={d._lnk}
@@ -4855,13 +4931,197 @@ function SectionEditor({
   const simple: Record<string, string[]> = {
     about: ["title", "text"],
     cta: ["title", "text", "button"],
-    richtext: ["title", "text"],
     banner: ["text"],
     newsletter: ["title", "text", "button"],
     gallery: ["title"],
     map: ["title", "address", "embed"],
   };
   const areaKeys = new Set(["text", "sub", "address"]);
+
+  if (section.kind === "richtext") {
+    const L =
+      locale === "fr"
+        ? {
+            width: "Largeur",
+            narrow: "Étroit",
+            normal: "Normal",
+            wide: "Large",
+            full: "Pleine largeur",
+            align: "Alignement",
+            left: "Gauche",
+            center: "Centre",
+            right: "Droite",
+            justify: "Justifié",
+            cols: "Colonnes",
+            one: "1 colonne",
+            two: "2 colonnes",
+            btn: "Bouton (laisser vide = aucun)",
+            shape: "Forme du bouton",
+            soft: "Doux",
+            round: "Rond",
+            sharp: "Droit",
+            bcol: "Couleur bouton",
+          }
+        : locale === "en"
+          ? {
+              width: "Width",
+              narrow: "Narrow",
+              normal: "Normal",
+              wide: "Wide",
+              full: "Full width",
+              align: "Alignment",
+              left: "Left",
+              center: "Center",
+              right: "Right",
+              justify: "Justify",
+              cols: "Columns",
+              one: "1 column",
+              two: "2 columns",
+              btn: "Button (empty = none)",
+              shape: "Button shape",
+              soft: "Soft",
+              round: "Round",
+              sharp: "Square",
+              bcol: "Button colour",
+            }
+          : {
+              width: "Breedte",
+              narrow: "Smal",
+              normal: "Normaal",
+              wide: "Breed",
+              full: "Volle breedte",
+              align: "Uitlijning",
+              left: "Links",
+              center: "Midden",
+              right: "Rechts",
+              justify: "Uitvullen",
+              cols: "Kolommen",
+              one: "1 kolom",
+              two: "2 kolommen",
+              btn: "Knop (leeg = geen)",
+              shape: "Knopvorm",
+              soft: "Zacht",
+              round: "Rond",
+              sharp: "Recht",
+              bcol: "Knopkleur",
+            };
+    const seg = (
+      k: string,
+      def: string,
+      opts: [string, string][],
+      cols = 4,
+    ) => (
+      <div
+        className="grid gap-1.5"
+        style={{ gridTemplateColumns: `repeat(${cols},minmax(0,1fr))` }}
+      >
+        {opts.map(([val, lbl]) => {
+          const cur = (str(k) || def) === val;
+          return (
+            <button
+              key={val}
+              type="button"
+              onClick={() => set(k, val)}
+              className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                cur
+                  ? "border-accent bg-accent/10 text-foreground"
+                  : "border-border text-muted hover:bg-card-hover"
+              }`}
+            >
+              {lbl}
+            </button>
+          );
+        })}
+      </div>
+    );
+    return (
+      <div className="space-y-3">
+        <Txt
+          label={f.title}
+          value={str("title")}
+          onChange={(v) => set("title", v)}
+        />
+        <HeadEditor d={d} set={set} locale={locale} accent={theme.accent} />
+        <Txt
+          label={f.text ?? "Tekst"}
+          value={str("text")}
+          area
+          onChange={(v) => set("text", v)}
+        />
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.width}
+        </p>
+        {seg("_w", "normaal", [
+          ["smal", L.narrow],
+          ["normaal", L.normal],
+          ["breed", L.wide],
+          ["vol", L.full],
+        ])}
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.align}
+        </p>
+        {seg("_txtAlign", "left", [
+          ["left", L.left],
+          ["center", L.center],
+          ["right", L.right],
+          ["justify", L.justify],
+        ])}
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {L.cols}
+        </p>
+        {seg(
+          "_cols",
+          "1",
+          [
+            ["1", L.one],
+            ["2", L.two],
+          ],
+          2,
+        )}
+        <Txt
+          label={L.btn}
+          value={str("button")}
+          onChange={(v) => set("button", v)}
+        />
+        {str("button") && (
+          <>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              {L.shape}
+            </p>
+            {seg(
+              "_btnShape",
+              "rond",
+              [
+                ["zacht", L.soft],
+                ["rond", L.round],
+                ["recht", L.sharp],
+              ],
+              3,
+            )}
+            <div className="flex items-center gap-2">
+              <span className="flex-1 text-[11px] text-muted">{L.bcol}</span>
+              <input
+                type="color"
+                value={str("_btnColor") || theme.accent}
+                onChange={(e) => set("_btnColor", e.target.value)}
+                className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+              />
+              {str("_btnColor") && (
+                <button
+                  type="button"
+                  onClick={() => set("_btnColor", "")}
+                  className="font-mono text-[10px] text-muted underline"
+                >
+                  reset
+                </button>
+              )}
+            </div>
+            {LinkBlock}
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (simple[section.kind]) {
     return (
@@ -5433,6 +5693,54 @@ function SectionEditor({
     <div className="space-y-3">
       <Txt label={f.title} value={str("title")} onChange={(v) => set("title", v)} />
       <HeadEditor d={d} set={set} locale={locale} accent={theme.accent} />
+      {(section.kind === "team" ||
+        section.kind === "features" ||
+        section.kind === "steps") && (
+        <div>
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+            {locale === "fr"
+              ? "Forme des photos"
+              : locale === "en"
+                ? "Photo shape"
+                : "Fotovorm"}
+          </p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(
+              [
+                ["", locale === "fr" ? "Auto" : "Auto"],
+                [
+                  "rond",
+                  locale === "fr" ? "Rond" : locale === "en" ? "Round" : "Rond",
+                ],
+                [
+                  "vierkant",
+                  locale === "fr"
+                    ? "Carré"
+                    : locale === "en"
+                      ? "Square"
+                      : "Vierkant",
+                ],
+              ] as const
+            ).map(([val, lbl]) => {
+              const cur = str("_imgShape") === val;
+              return (
+                <button
+                  key={val || "auto"}
+                  type="button"
+                  onClick={() => set("_imgShape", val)}
+                  className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                    cur
+                      ? "border-accent bg-accent/10 text-foreground"
+                      : "border-border text-muted hover:bg-card-hover"
+                  }`}
+                >
+                  {lbl}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {items.map((it, idx) => (
         <div key={idx} className="rounded-lg border p-2.5">
           <div className="mb-1.5 flex items-center justify-between">
@@ -6550,6 +6858,7 @@ function ItemImg({
   fg,
   variant,
   lib,
+  shape,
 }: {
   it: Record<string, string>;
   onPatch: (patch: Record<string, string>) => void;
@@ -6557,9 +6866,15 @@ function ItemImg({
   fg: string;
   variant: "avatar" | "banner";
   lib?: string[];
+  shape?: string;
 }) {
   const img = it._img || "";
-  const round = variant === "avatar";
+  const round =
+    shape === "rond"
+      ? true
+      : shape === "vierkant"
+        ? false
+        : variant === "avatar";
   const def = round ? 56 : 120;
   const h = Number(it._ih) || def;
   const blur = Number(it._ib) || 0;
@@ -6698,31 +7013,68 @@ function IconField({
   value,
   onPick,
   accent,
+  size,
+  onSize,
 }: {
   value: string;
   onPick: (k: string) => void;
   accent: string;
+  size?: number;
+  onSize?: (n: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const Cur = value && ICONS[value] ? ICONS[value] : null;
+  const sz = typeof size === "number" && size > 0 ? size : 16;
+  const box = Math.max(36, sz + 16);
   return (
-    <div className="relative mb-2 inline-block">
+    <div className="relative mb-2 inline-flex items-center gap-2">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         title="Icoon"
-        className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-card-hover"
+        className="flex items-center justify-center rounded-full border transition-colors hover:bg-card-hover"
         style={{
+          width: box,
+          height: box,
           borderColor: Cur ? accent : "var(--border)",
           color: accent,
         }}
       >
         {Cur ? (
-          <Cur className="h-4 w-4" strokeWidth={2} />
+          <Cur
+            strokeWidth={2}
+            className="shrink-0"
+            // grootte instelbaar — icoon mag fors de hoogte in
+            {...{ style: { width: sz, height: sz } }}
+          />
         ) : (
           <Plus className="h-3.5 w-3.5 text-muted" strokeWidth={2} />
         )}
       </button>
+      {Cur && onSize && (
+        <span className="inline-flex overflow-hidden rounded-md border">
+          {([
+            ["S", 16],
+            ["M", 24],
+            ["L", 36],
+            ["XL", 52],
+            ["2XL", 72],
+          ] as const).map(([lbl, n]) => (
+            <button
+              key={lbl}
+              type="button"
+              onClick={() => onSize(n)}
+              className={`px-1.5 py-0.5 text-[10px] transition-colors ${
+                sz === n
+                  ? "bg-accent/15 text-accent"
+                  : "text-muted hover:bg-card-hover"
+              }`}
+            >
+              {lbl}
+            </button>
+          ))}
+        </span>
+      )}
       {open && (
         <div className="absolute left-0 top-11 z-30 w-56 rounded-xl border bg-card p-2 shadow-lg">
           <div className="grid grid-cols-7 gap-1">
@@ -6827,6 +7179,7 @@ function SectionHead({
   const dIcon =
     typeof data._divIcon === "string" ? (data._divIcon as string) : "";
   const DI = dIcon && ICONS[dIcon] ? ICONS[dIcon] : null;
+  const dSz = hnum(data._divIconSz, 14);
   const padT = hnum(data._hPadT, 0);
   const gap = hnum(data._hGap, 8);
   const divGap = hnum(data._hDivGap, 16);
@@ -6859,10 +7212,18 @@ function SectionHead({
           />
           {DI ? (
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-              style={{ background: `${theme.accent}1a`, color: theme.accent }}
+              className="flex shrink-0 items-center justify-center rounded-full"
+              style={{
+                width: Math.max(28, dSz + 14),
+                height: Math.max(28, dSz + 14),
+                background: `${theme.accent}1a`,
+                color: theme.accent,
+              }}
             >
-              <DI className="h-3.5 w-3.5" strokeWidth={2} />
+              <DI
+                strokeWidth={2}
+                style={{ width: dSz, height: dSz }}
+              />
             </span>
           ) : (
             <span
@@ -6990,6 +7351,10 @@ function PreviewSection({
                       value={it._icon || ""}
                       onPick={(k) => setItem(rows, i, "_icon", k)}
                       accent={theme.accent}
+                      size={Number(it._iconSz) || 0}
+                      onSize={(n) =>
+                        setItem(rows, i, "_iconSz", String(n))
+                      }
                     />
                     <ItemImg
                       it={it}
@@ -6997,6 +7362,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="banner"
+                      shape={g("_imgShape")}
                     lib={lib}
                     />
                     <p className="font-semibold">
@@ -7045,7 +7411,25 @@ function PreviewSection({
                     >
                       {i + 1}
                     </span>
-                    <div className="text-xs">
+                    <div className="min-w-0 flex-1 text-xs">
+                      <ItemImg
+                        it={it}
+                        onPatch={(pt) => patchRow(rows, i, pt)}
+                        accent={theme.accent}
+                        fg={theme.fg}
+                        variant="banner"
+                      shape={g("_imgShape")}
+                        lib={lib}
+                      />
+                      <IconField
+                        value={it._icon || ""}
+                        onPick={(k) => setItem(rows, i, "_icon", k)}
+                        accent={theme.accent}
+                        size={Number(it._iconSz) || 0}
+                        onSize={(n) =>
+                          setItem(rows, i, "_iconSz", String(n))
+                        }
+                      />
                       <p className="font-semibold">
                         <E
                           value={it.title}
@@ -7093,8 +7477,20 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="avatar"
-                    lib={lib}
+                      shape={g("_imgShape")}
+                      lib={lib}
                     />
+                    <div className="flex justify-center">
+                      <IconField
+                        value={it._icon || ""}
+                        onPick={(k) => setItem(rows, i, "_icon", k)}
+                        accent={theme.accent}
+                        size={Number(it._iconSz) || 0}
+                        onSize={(n) =>
+                          setItem(rows, i, "_iconSz", String(n))
+                        }
+                      />
+                    </div>
                     <p className="text-sm font-semibold">
                       <E
                         value={it.title}
@@ -7335,6 +7731,7 @@ function PreviewSection({
                       accent={theme.accent}
                       fg={theme.fg}
                       variant="banner"
+                      shape={g("_imgShape")}
                     lib={lib}
                     />
                     <p className="mt-1 text-center text-[11px] opacity-70">
@@ -7366,7 +7763,8 @@ function PreviewSection({
               accent={theme.accent}
               fg={theme.fg}
               variant="banner"
-            lib={lib}
+              shape={g("_imgShape")}
+              lib={lib}
             />
             <div>
               <h3 className="text-xl font-semibold tracking-tight">
@@ -7626,23 +8024,72 @@ function PreviewSection({
         </div>
       );
     }
-    case "richtext":
+    case "richtext": {
+      const wv = g("_w");
+      const wCls =
+        wv === "smal"
+          ? "max-w-xl"
+          : wv === "breed"
+            ? "max-w-4xl"
+            : wv === "vol"
+              ? "max-w-none"
+              : "max-w-2xl";
+      const ta = (g("_txtAlign") ||
+        "left") as React.CSSProperties["textAlign"];
+      const two = g("_cols") === "2";
+      const btnTxt = g("button");
+      const bShape =
+        g("_btnShape") === "recht"
+          ? "2px"
+          : g("_btnShape") === "zacht"
+            ? "12px"
+            : "9999px";
+      const bBg = g("_btnColor") || theme.accent;
       return (
         <div className="border-t px-8 py-12" style={border}>
-          <div className="mx-auto max-w-2xl">
-            <h3 className="text-xl font-semibold tracking-tight">
-              <E value={g("title")} onChange={(v) => edit({ title: v })} />
-            </h3>
-            <p className="mt-3 whitespace-pre-wrap text-sm opacity-70">
+          <div className={`mx-auto ${wCls}`}>
+            <SectionHead
+              data={data}
+              edit={edit}
+              theme={theme}
+              titleValue={g("title")}
+              onTitle={(v) => edit({ title: v })}
+            />
+            <p
+              className="mt-3 whitespace-pre-wrap text-sm opacity-80"
+              style={{
+                textAlign: ta,
+                columnCount: two ? 2 : undefined,
+                columnGap: two ? "2rem" : undefined,
+              }}
+            >
               <E
                 value={g("text")}
                 onChange={(v) => edit({ text: v })}
                 multiline
               />
             </p>
+            {btnTxt && (
+              <div className="mt-5" style={{ textAlign: ta }}>
+                <button
+                  className="bldr-btn px-5 py-2 text-xs font-medium"
+                  style={{
+                    background: bBg,
+                    color: g("_btnTxt") || theme.bg,
+                    borderRadius: bShape,
+                  }}
+                >
+                  <E
+                    value={btnTxt}
+                    onChange={(v) => edit({ button: v })}
+                  />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
+    }
     case "banner":
       return (
         <div
@@ -7698,8 +8145,27 @@ function PreviewSection({
         });
       return (
         <div className="border-t px-8 py-10" style={border}>
-          <div className="mx-auto grid max-w-3xl gap-8 sm:grid-cols-[1.4fr_repeat(auto-fit,minmax(0,1fr))]">
+          <div
+            className="mx-auto grid max-w-3xl gap-8"
+            style={{
+              gridTemplateColumns: `1.4fr repeat(${Math.max(
+                1,
+                fcols.length,
+              )}, minmax(0,1fr))`,
+            }}
+          >
             <div className="text-sm">
+              <div className="mb-2 max-w-[160px]">
+                <ItemImg
+                  it={data as unknown as Record<string, string>}
+                  onPatch={(pt) => edit(pt)}
+                  accent={theme.accent}
+                  fg={theme.fg}
+                  variant="banner"
+                  shape={g("_imgShape")}
+                  lib={lib}
+                />
+              </div>
               <p className="font-semibold tracking-tight">{businessName}</p>
               <p className="mt-2 text-xs leading-relaxed opacity-70">
                 <E

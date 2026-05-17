@@ -273,6 +273,19 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                           backgroundPosition: "center",
                         }
                       : {}),
+                    ...(bd._shadow
+                      ? {
+                          boxShadow: `0 ${
+                            (typeof bd._shadowStr === "number"
+                              ? bd._shadowStr
+                              : 18) / 2
+                          }px ${
+                            typeof bd._shadowStr === "number"
+                              ? bd._shadowStr * 1.6
+                              : 30
+                          }px rgba(0,0,0,.18)`,
+                        }
+                      : {}),
                   }}
                 >
                   {mDecl && (
