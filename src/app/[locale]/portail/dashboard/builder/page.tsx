@@ -25,7 +25,7 @@ import {
   cancelPublishSubscription,
 } from "@/app/actions/subscription";
 import {
-  PUBLISH_SETUP_CENTS,
+  publishSetupCents,
   PUBLISH_BASE_MONTHLY_CENTS,
 } from "@/lib/pricing";
 import { SubmitButton } from "@/components/submit-button";
@@ -210,18 +210,18 @@ export default async function PortalBuilderOverview({
             <p className="mt-1 max-w-xl text-sm text-muted">
               {locale === "fr"
                 ? `Hébergement, entretien et mises à jour inclus. ${euroFmt(
-                    PUBLISH_SETUP_CENTS,
+                    publishSetupCents(),
                   )} € de démarrage, puis ${euroFmt(
                     PUBLISH_BASE_MONTHLY_CENTS,
                   )} €/mois. Résiliable à tout moment.`
                 : locale === "en"
                   ? `Hosting, maintenance and updates included. €${euroFmt(
-                      PUBLISH_SETUP_CENTS,
+                      publishSetupCents(),
                     )} setup, then €${euroFmt(
                       PUBLISH_BASE_MONTHLY_CENTS,
                     )}/month. Cancel anytime.`
                   : `Hosting, onderhoud en updates inbegrepen. €${euroFmt(
-                      PUBLISH_SETUP_CENTS,
+                      publishSetupCents(),
                     )} opstart, daarna €${euroFmt(
                       PUBLISH_BASE_MONTHLY_CENTS,
                     )}/maand. Maandelijks opzegbaar.`}

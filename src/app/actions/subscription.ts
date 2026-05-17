@@ -5,7 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseConfigured, siteUrl } from "@/lib/supabase/config";
 import {
-  PUBLISH_SETUP_CENTS,
+  publishSetupCents,
   PUBLISH_BASE_MONTHLY_CENTS,
 } from "@/lib/pricing";
 import {
@@ -83,7 +83,7 @@ export async function startPublishSubscription(
 
   const pay = await mollieFirstPayment({
     customerId: customerId!,
-    amountCents: PUBLISH_SETUP_CENTS,
+    amountCents: publishSetupCents(),
     description: "Website — opstart (incl. eerste maand-mandaat)",
     redirectUrl: `${siteUrl}/${locale}/portail/dashboard/builder?ok=betaald`,
     metadata: { sub_email: email },

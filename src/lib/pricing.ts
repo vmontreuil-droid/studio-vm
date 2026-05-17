@@ -280,6 +280,13 @@ export const OFFER_INCLUDED: Record<
 // Bedragen in eurocent.
 export const PUBLISH_SETUP_CENTS = 19900; // €199 eenmalige opstart
 export const PUBLISH_BASE_MONTHLY_CENTS = 3900; // €39 / maand
+
+// Veilige €1-testschakelaar: enkel zolang env PUBLISH_TEST=1 gezet is,
+// kost de opstart €1 (voor de end-to-end Mollie-test). Env weghalen →
+// automatisch terug €199. Niets in de code terug te draaien.
+export function publishSetupCents(): number {
+  return process.env.PUBLISH_TEST === "1" ? 100 : PUBLISH_SETUP_CENTS;
+}
 export const PUBLISH_BASE_YEARLY_CENTS = PUBLISH_BASE_MONTHLY_CENTS * 10;
 
 export type ModuleKey =
