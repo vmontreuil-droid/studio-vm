@@ -1480,10 +1480,25 @@ export default function BuilderPage({
       n.splice(to, 0, moved);
       return n;
     });
+  // Gekoppelde blokken: heeft het blok een _gid, dan stroomt elke
+  // wijziging door naar álle blokken met datzelfde _gid op elke pagina.
   const patchData = (id: string, patch: SectionData) =>
-    setSections((s) =>
-      s.map((x) => (x.id === id ? { ...x, data: { ...x.data, ...patch } } : x)),
-    );
+    setPages((ps) => {
+      let gid: unknown;
+      for (const pg of ps)
+        for (const x of pg.sections)
+          if (x.id === id) gid = (x.data as SectionData)._gid;
+      const linked = typeof gid === "string" && gid;
+      return ps.map((pg) => ({
+        ...pg,
+        sections: pg.sections.map((x) =>
+          x.id === id ||
+          (linked && (x.data as SectionData)._gid === gid)
+            ? { ...x, data: { ...x.data, ...patch } }
+            : x,
+        ),
+      }));
+    });
 
   // Inhoud-assistentie: vult enkel lege velden — bestaande tekst blijft.
   const fillPreset = () => {
@@ -1880,6 +1895,41 @@ export default function BuilderPage({
                     </button>
                   </div>
                   <div className="max-h-[60vh] overflow-y-auto p-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        patchData(openSec.id, {
+                          _gid: openSec.data._gid
+                            ? ""
+                            : `g${Date.now().toString(36)}`,
+                        })
+                      }
+                      className={`mb-3 flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors ${
+                        openSec.data._gid
+                          ? "border-accent bg-accent/10 text-foreground"
+                          : "border-border text-muted hover:bg-card-hover"
+                      }`}
+                      title={
+                        locale === "fr"
+                          ? "Un bloc lié se synchronise sur toutes les pages où il apparaît"
+                          : locale === "en"
+                            ? "A linked block syncs across every page it appears on"
+                            : "Een gekoppeld blok synchroniseert op elke pagina waar het staat"
+                      }
+                    >
+                      <Layers className="h-3.5 w-3.5" strokeWidth={2} />
+                      {openSec.data._gid
+                        ? locale === "fr"
+                          ? "✓ Bloc lié (ontkoppelen)"
+                          : locale === "en"
+                            ? "✓ Linked block (unlink)"
+                            : "✓ Gekoppeld blok (ontkoppel)"
+                        : locale === "fr"
+                          ? "Lier ce bloc sur toutes les pages"
+                          : locale === "en"
+                            ? "Link this block across pages"
+                            : "Koppel dit blok over pagina's"}
+                    </button>
                     {openSec.kind !== "hero" && (
                       <div className="mb-3">
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
