@@ -36,7 +36,7 @@ const L: Record<
   }
 > = {
   nl: {
-    title: "Maak je ontwerp",
+    title: "Mijn ontwerpen",
     sub: "Bouw je website helemaal zelf op. Werk in meerdere concepten, sla op en hervat later op om het even welk toestel — en stuur het naar Studio VM zodra je tevreden bent.",
     none: "Nog geen ontwerp. Start je eerste hieronder.",
     nieuw: "Nieuw ontwerp",
@@ -47,7 +47,7 @@ const L: Record<
     upd: "bijgewerkt",
   },
   fr: {
-    title: "Créez votre maquette",
+    title: "Mes maquettes",
     sub: "Construisez votre site vous-même. Travaillez en plusieurs concepts, enregistrez et reprenez sur n'importe quel appareil — puis envoyez-le à Studio VM.",
     none: "Aucune maquette. Démarrez la première ci-dessous.",
     nieuw: "Nouvelle maquette",
@@ -58,7 +58,7 @@ const L: Record<
     upd: "mis à jour",
   },
   en: {
-    title: "Build your draft",
+    title: "My drafts",
     sub: "Build your website yourself. Work in multiple drafts, save and resume on any device — then send it to Studio VM when you're happy.",
     none: "No draft yet. Start your first one below.",
     nieuw: "New draft",

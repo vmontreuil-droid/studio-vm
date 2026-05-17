@@ -177,16 +177,46 @@ function BlockView({
               },
             ];
       const multi = heroSlides.length > 1;
+      const HH: Record<string, string> = {
+        s: "200px",
+        m: "340px",
+        l: "480px",
+        xl: "640px",
+        full: "85vh",
+      };
+      const hHeight =
+        typeof d.hH === "string" && HH[String(d.hH)]
+          ? HH[String(d.hH)]
+          : "340px";
+      const hx = typeof d.hx === "number" ? d.hx : 50;
+      const hy = typeof d.hy === "number" ? d.hy : 50;
+      const hCard = d.hCard === 1 || d.hCard === true;
+      const hBlur = typeof d.hBlur === "number" ? d.hBlur : 0;
+      const showCard = hCard || hBlur > 0;
       return (
         <div>
           {heroSlides.map((sl, si) => {
             const hb = !!sl.bg;
+            const cStyle: React.CSSProperties = showCard
+              ? {
+                  background: hb ? "rgba(0,0,0,0.34)" : `${fg}0f`,
+                  backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                  WebkitBackdropFilter:
+                    hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                  padding: "26px 30px",
+                  borderRadius: 18,
+                  border: hb
+                    ? "1px solid rgba(255,255,255,0.18)"
+                    : `1px solid ${fg}1f`,
+                }
+              : {};
             return (
               <div
                 key={si}
-                className="relative border-t px-6 py-12 text-center first:border-t-0"
+                className="relative overflow-hidden border-t text-center first:border-t-0"
                 style={{
                   borderColor: soft,
+                  minHeight: hHeight,
                   ...(hb
                     ? {
                         backgroundImage: `url(${sl.bg})`,
@@ -197,44 +227,54 @@ function BlockView({
                     : {}),
                 }}
               >
-                {hb && (
+                {hb && !showCard && (
                   <div
                     className="pointer-events-none absolute inset-0"
                     style={{ background: "rgba(0,0,0,0.45)" }}
                   />
                 )}
-                <div className="relative">
-                  {multi && (
-                    <p className="mb-3 font-mono text-[10px] uppercase tracking-widest opacity-70">
-                      slide {si + 1}/{heroSlides.length}
-                    </p>
-                  )}
-                  <p
-                    className="font-mono text-[10px] uppercase tracking-widest"
-                    style={hb ? undefined : { color: accent }}
-                  >
-                    {s(sl.eyebrow)}
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-                    {s(sl.heading)}
-                  </h2>
-                  <p
-                    className={
-                      hb
-                        ? "mt-2 text-sm opacity-90"
-                        : "mt-2 text-sm opacity-70"
-                    }
-                  >
-                    {s(sl.sub)}
-                  </p>
-                  {s(sl.button) && (
-                    <span
-                      className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
-                      style={{ background: accent, color: bg }}
+                <div
+                  className="absolute"
+                  style={{
+                    left: `${hx}%`,
+                    top: `${hy}%`,
+                    transform: "translate(-50%, -50%)",
+                    width: "min(86%, 620px)",
+                  }}
+                >
+                  <div style={cStyle}>
+                    {multi && (
+                      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest opacity-70">
+                        slide {si + 1}/{heroSlides.length}
+                      </p>
+                    )}
+                    <p
+                      className="font-mono text-[10px] uppercase tracking-widest"
+                      style={hb ? undefined : { color: accent }}
                     >
-                      {s(sl.button)}
-                    </span>
-                  )}
+                      {s(sl.eyebrow)}
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                      {s(sl.heading)}
+                    </h2>
+                    <p
+                      className={
+                        hb
+                          ? "mt-2 text-sm opacity-90"
+                          : "mt-2 text-sm opacity-70"
+                      }
+                    >
+                      {s(sl.sub)}
+                    </p>
+                    {s(sl.button) && (
+                      <span
+                        className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
+                        style={{ background: accent, color: bg }}
+                      >
+                        {s(sl.button)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             );

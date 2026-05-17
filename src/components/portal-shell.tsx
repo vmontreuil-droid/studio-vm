@@ -78,10 +78,10 @@ export function PortalShell({
           href: `${base}/builder`,
           label:
             locale === "fr"
-              ? "Créez votre maquette"
+              ? "Mes maquettes"
               : locale === "en"
-                ? "Build your draft"
-                : "Maak je ontwerp",
+                ? "My drafts"
+                : "Mijn ontwerpen",
           icon: PenTool,
         },
         { href: `${base}/domein`, label: t.domain, icon: Network },

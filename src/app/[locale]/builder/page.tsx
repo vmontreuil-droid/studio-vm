@@ -34,6 +34,8 @@ import {
   Smartphone,
   RotateCcw,
   Wand2,
+  Move,
+  Square,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -265,6 +267,10 @@ const T: Record<
       transFade: string;
       transSlide: string;
       transNone: string;
+      heroHeight: string;
+      heroCard: string;
+      heroBlur: string;
+      heroMove: string;
     };
   }
 > = {
@@ -390,6 +396,10 @@ const T: Record<
       transFade: "Vloeiend",
       transSlide: "Schuiven",
       transNone: "Direct",
+      heroHeight: "Hoogte",
+      heroCard: "Kaart achter tekst",
+      heroBlur: "Wazig",
+      heroMove: "Versleep de tekst",
     },
   },
   fr: {
@@ -514,6 +524,10 @@ const T: Record<
       transFade: "Fondu",
       transSlide: "Glissement",
       transNone: "Direct",
+      heroHeight: "Hauteur",
+      heroCard: "Carte derrière le texte",
+      heroBlur: "Flou",
+      heroMove: "Déplacez le texte",
     },
   },
   en: {
@@ -638,6 +652,10 @@ const T: Record<
       transFade: "Fade",
       transSlide: "Slide",
       transNone: "Instant",
+      heroHeight: "Height",
+      heroCard: "Card behind text",
+      heroBlur: "Blur",
+      heroMove: "Drag the text",
     },
   },
 };
@@ -2167,10 +2185,68 @@ function HeroPreview({
   const curHasBg = !!cur.bg;
   const anyBg = slides.some((s) => s.bg);
 
+  const HEIGHTS: Record<string, string> = {
+    s: "200px",
+    m: "340px",
+    l: "480px",
+    xl: "640px",
+    full: "85vh",
+  };
+  const hH =
+    typeof data.hH === "string" && HEIGHTS[data.hH] ? String(data.hH) : "m";
+  const hx = typeof data.hx === "number" ? data.hx : 50;
+  const hy = typeof data.hy === "number" ? data.hy : 50;
+  const hCard = data.hCard === 1 || data.hCard === true;
+  const hBlur = typeof data.hBlur === "number" ? data.hBlur : 0;
+  const showCard = hCard || hBlur > 0;
+
+  const heroRef = useRef<HTMLDivElement>(null);
+  const startDrag = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = heroRef.current;
+    if (!el) return;
+    const move = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const nx = Math.min(
+        92,
+        Math.max(8, ((ev.clientX - r.left) / r.width) * 100),
+      );
+      const ny = Math.min(
+        92,
+        Math.max(8, ((ev.clientY - r.top) / r.height) * 100),
+      );
+      edit({ hx: Math.round(nx), hy: Math.round(ny) });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  const cardStyle: React.CSSProperties = showCard
+    ? {
+        background: curHasBg ? "rgba(0,0,0,0.34)" : `${theme.fg}0f`,
+        backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+        WebkitBackdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+        padding: "30px 34px",
+        borderRadius: 18,
+        border: curHasBg
+          ? "1px solid rgba(255,255,255,0.18)"
+          : `1px solid ${theme.fg}1f`,
+      }
+    : {};
+
   return (
     <div
-      className="group/hero relative overflow-hidden px-8 py-14 text-center"
-      style={curHasBg ? { color: "#ffffff" } : undefined}
+      ref={heroRef}
+      className="group/hero relative overflow-hidden text-center"
+      style={{
+        minHeight: HEIGHTS[hH],
+        ...(curHasBg ? { color: "#ffffff" } : {}),
+      }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onDragOver={(e) => {
@@ -2207,76 +2283,95 @@ function HeroPreview({
             />
           ) : null,
         )}
-      {curHasBg && (
+      {curHasBg && !showCard && (
         <div
           className="pointer-events-none absolute inset-0"
           style={{ background: "rgba(0,0,0,0.45)", zIndex: 2 }}
         />
       )}
-      <div className="relative" style={{ zIndex: 3 }}>
-        <p
-          className="font-mono text-[10px] uppercase tracking-widest"
-          style={curHasBg ? undefined : { color: theme.accent }}
-        >
-          <E
-            key={`eb-${cIdx}`}
-            value={cur.eyebrow || p.welcome}
-            onChange={(v) => patchSlide(cIdx, { eyebrow: v })}
-          />
-        </p>
-        <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-          <E
-            key={`hd-${cIdx}`}
-            value={cur.heading || businessName}
-            onChange={(v) => patchSlide(cIdx, { heading: v })}
-          />
-        </h2>
-        <p
-          className={
-            curHasBg ? "mt-3 text-sm opacity-90" : "mt-3 text-sm opacity-70"
-          }
-        >
-          <E
-            key={`sb-${cIdx}`}
-            value={cur.sub || p.tagline}
-            onChange={(v) => patchSlide(cIdx, { sub: v })}
-          />
-        </p>
-        <button
-          className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
-          style={{ background: theme.accent, color: theme.bg }}
-        >
-          <E
-            key={`bt-${cIdx}`}
-            value={cur.button || p.discover}
-            onChange={(v) => patchSlide(cIdx, { button: v })}
-          />
-        </button>
+      <div
+        className="absolute"
+        style={{
+          left: `${hx}%`,
+          top: `${hy}%`,
+          transform: "translate(-50%, -50%)",
+          width: "min(86%, 640px)",
+          zIndex: 3,
+        }}
+      >
+        <div className="relative" style={cardStyle}>
+          <button
+            type="button"
+            onPointerDown={startDrag}
+            title={p.heroMove}
+            className="absolute -top-3 left-1/2 flex h-6 w-6 -translate-x-1/2 cursor-move items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover/hero:opacity-100"
+          >
+            <Move className="h-3 w-3" strokeWidth={2.5} />
+          </button>
+          <p
+            className="font-mono text-[10px] uppercase tracking-widest"
+            style={curHasBg ? undefined : { color: theme.accent }}
+          >
+            <E
+              key={`eb-${cIdx}`}
+              value={cur.eyebrow || p.welcome}
+              onChange={(v) => patchSlide(cIdx, { eyebrow: v })}
+            />
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+            <E
+              key={`hd-${cIdx}`}
+              value={cur.heading || businessName}
+              onChange={(v) => patchSlide(cIdx, { heading: v })}
+            />
+          </h2>
+          <p
+            className={
+              curHasBg ? "mt-3 text-sm opacity-90" : "mt-3 text-sm opacity-70"
+            }
+          >
+            <E
+              key={`sb-${cIdx}`}
+              value={cur.sub || p.tagline}
+              onChange={(v) => patchSlide(cIdx, { sub: v })}
+            />
+          </p>
+          <button
+            className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
+            style={{ background: theme.accent, color: theme.bg }}
+          >
+            <E
+              key={`bt-${cIdx}`}
+              value={cur.button || p.discover}
+              onChange={(v) => patchSlide(cIdx, { button: v })}
+            />
+          </button>
 
-        {slides.length > 1 && (
-          <div className="mt-6 flex justify-center gap-1.5">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIdx(i)}
-                aria-label={`slide ${i + 1}`}
-                className="h-1.5 rounded-full transition-all"
-                style={{
-                  width: i === cIdx ? 18 : 6,
-                  background:
-                    i === cIdx
-                      ? curHasBg
-                        ? "#ffffff"
-                        : theme.accent
-                      : curHasBg
-                        ? "rgba(255,255,255,0.5)"
-                        : `${theme.fg}44`,
-                }}
-              />
-            ))}
-          </div>
-        )}
+          {slides.length > 1 && (
+            <div className="mt-6 flex justify-center gap-1.5">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setIdx(i)}
+                  aria-label={`slide ${i + 1}`}
+                  className="h-1.5 rounded-full transition-all"
+                  style={{
+                    width: i === cIdx ? 18 : 6,
+                    background:
+                      i === cIdx
+                        ? curHasBg
+                          ? "#ffffff"
+                          : theme.accent
+                        : curHasBg
+                          ? "rgba(255,255,255,0.5)"
+                          : `${theme.fg}44`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* slide-beheer: thumbnails + per slide selecteren/verwijderen */}
@@ -2328,53 +2423,106 @@ function HeroPreview({
         </button>
       </div>
 
-      {slides.length > 1 && (
-        <div
-          className="absolute inset-x-0 bottom-9 z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 px-4 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
-          style={{ color: curHasBg ? "rgba(255,255,255,0.9)" : theme.fg }}
-        >
-          <label
-            className="flex items-center gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {p.heroDur}
-            <input
-              type="range"
-              min={2}
-              max={10}
-              step={0.5}
-              value={slideSec}
-              onChange={(e) => edit({ slideSec: Number(e.target.value) })}
-              className="h-1 w-24 cursor-pointer accent-current"
-            />
-            <span className="font-mono tabular-nums">
-              {slideSec.toFixed(1)}s
-            </span>
-          </label>
-          <label
-            className="flex items-center gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {p.heroTrans}
-            <select
-              value={trans}
-              onChange={(e) => edit({ trans: e.target.value })}
-              className="rounded border px-1.5 py-0.5 text-[11px] outline-none"
+      <div
+        className="absolute inset-x-0 bottom-9 z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 px-4 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
+        style={{ color: curHasBg ? "rgba(255,255,255,0.9)" : theme.fg }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="flex items-center gap-1.5">
+          {p.heroHeight}
+          {(["s", "m", "l", "xl", "full"] as const).map((hk) => (
+            <button
+              key={hk}
+              type="button"
+              onClick={() => edit({ hH: hk })}
+              className="rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
               style={{
-                borderColor: curHasBg
-                  ? "rgba(255,255,255,0.4)"
-                  : `${theme.fg}33`,
-                background: curHasBg ? "rgba(0,0,0,0.4)" : theme.bg,
-                color: curHasBg ? "#ffffff" : theme.fg,
+                background:
+                  hH === hk
+                    ? theme.accent
+                    : curHasBg
+                      ? "rgba(255,255,255,0.18)"
+                      : `${theme.fg}14`,
+                color:
+                  hH === hk
+                    ? theme.bg
+                    : curHasBg
+                      ? "#ffffff"
+                      : theme.fg,
               }}
             >
-              <option value="fade">{p.transFade}</option>
-              <option value="slide">{p.transSlide}</option>
-              <option value="none">{p.transNone}</option>
-            </select>
-          </label>
-        </div>
-      )}
+              {hk === "full" ? "▣" : hk}
+            </button>
+          ))}
+        </span>
+        <button
+          type="button"
+          onClick={() => edit({ hCard: hCard ? 0 : 1 })}
+          className="flex items-center gap-1.5 rounded px-1.5 py-0.5"
+          style={{
+            background: hCard
+              ? theme.accent
+              : curHasBg
+                ? "rgba(255,255,255,0.18)"
+                : `${theme.fg}14`,
+            color: hCard ? theme.bg : curHasBg ? "#ffffff" : theme.fg,
+          }}
+        >
+          <Square className="h-3 w-3" strokeWidth={2.5} />
+          {p.heroCard}
+        </button>
+        <label className="flex items-center gap-2">
+          {p.heroBlur}
+          <input
+            type="range"
+            min={0}
+            max={16}
+            step={1}
+            value={hBlur}
+            onChange={(e) => edit({ hBlur: Number(e.target.value) })}
+            className="h-1 w-20 cursor-pointer accent-current"
+          />
+          <span className="font-mono tabular-nums">{hBlur}px</span>
+        </label>
+        {slides.length > 1 && (
+          <>
+            <label className="flex items-center gap-2">
+              {p.heroDur}
+              <input
+                type="range"
+                min={2}
+                max={10}
+                step={0.5}
+                value={slideSec}
+                onChange={(e) => edit({ slideSec: Number(e.target.value) })}
+                className="h-1 w-20 cursor-pointer accent-current"
+              />
+              <span className="font-mono tabular-nums">
+                {slideSec.toFixed(1)}s
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              {p.heroTrans}
+              <select
+                value={trans}
+                onChange={(e) => edit({ trans: e.target.value })}
+                className="rounded border px-1.5 py-0.5 text-[11px] outline-none"
+                style={{
+                  borderColor: curHasBg
+                    ? "rgba(255,255,255,0.4)"
+                    : `${theme.fg}33`,
+                  background: curHasBg ? "rgba(0,0,0,0.4)" : theme.bg,
+                  color: curHasBg ? "#ffffff" : theme.fg,
+                }}
+              >
+                <option value="fade">{p.transFade}</option>
+                <option value="slide">{p.transSlide}</option>
+                <option value="none">{p.transNone}</option>
+              </select>
+            </label>
+          </>
+        )}
+      </div>
 
       <label
         className="absolute inset-x-0 bottom-0 z-10 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
