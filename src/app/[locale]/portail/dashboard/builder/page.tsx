@@ -189,12 +189,12 @@ export default async function PortalBuilderOverview({
             </p>
             <form action={cancelPublishSubscription}>
               <input type="hidden" name="locale" value={locale} />
-              <SubmitButton className="rounded-full border px-4 py-2 text-xs text-muted transition-colors hover:text-red-500">
+              <SubmitButton className="rounded-full border border-green-700 bg-white px-4 py-2 text-xs font-semibold text-green-900 transition-colors hover:border-red-500 hover:text-red-600 dark:border-green-200 dark:bg-green-950 dark:text-green-50 dark:hover:text-red-400">
                 {locale === "fr"
-                  ? "Résilier"
+                  ? "Résilier l'abonnement"
                   : locale === "en"
-                    ? "Cancel"
-                    : "Opzeggen"}
+                    ? "Cancel subscription"
+                    : "Abonnement opzeggen"}
               </SubmitButton>
             </form>
           </div>
