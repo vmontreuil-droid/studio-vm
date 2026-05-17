@@ -383,6 +383,11 @@ const T: Record<
       linkUrl: string;
       linkNew: string;
       linkNewPh: string;
+      heroCardStyle: string;
+      heroRotation: string;
+      optSeq: string;
+      optRand: string;
+      optPong: string;
       footerColLinks: string;
       footerAbout: string;
       footerColTitle: string;
@@ -539,6 +544,11 @@ const T: Record<
       linkUrl: "Webadres",
       linkNew: "Nieuwe pagina",
       linkNewPh: "Naam nieuwe pagina",
+      heroCardStyle: "Kaart-stijl",
+      heroRotation: "Rotatie-volgorde",
+      optSeq: "Op volgorde",
+      optRand: "Willekeurig",
+      optPong: "Heen en weer",
       footerColLinks: "Links",
       footerAbout: "Korte tekst / bedrijfslijn",
       footerColTitle: "Kolomtitel",
@@ -694,6 +704,11 @@ const T: Record<
       linkUrl: "Adresse web",
       linkNew: "Nouvelle page",
       linkNewPh: "Nom de la nouvelle page",
+      heroCardStyle: "Style de carte",
+      heroRotation: "Ordre de rotation",
+      optSeq: "Dans l'ordre",
+      optRand: "Aléatoire",
+      optPong: "Va-et-vient",
       footerColLinks: "Liens",
       footerAbout: "Texte court / ligne entreprise",
       footerColTitle: "Titre de colonne",
@@ -849,6 +864,11 @@ const T: Record<
       linkUrl: "Web address",
       linkNew: "New page",
       linkNewPh: "New page name",
+      heroCardStyle: "Card style",
+      heroRotation: "Rotation order",
+      optSeq: "In order",
+      optRand: "Random",
+      optPong: "Back and forth",
       footerColLinks: "Links",
       footerAbout: "Short text / company line",
       footerColTitle: "Column title",
@@ -3155,6 +3175,56 @@ function HeroSettings({
           ))}
       </div>
 
+      {showCard && (
+        <>
+          <Lbl>{p.heroCardStyle}</Lbl>
+          <div className="flex flex-wrap gap-1.5">
+            {(
+              [
+                ["glass", "Glas"],
+                ["solid", "Vol"],
+                ["outline", "Lijn"],
+                ["soft", "Zacht"],
+                ["flat", "Plat"],
+              ] as const
+            ).map(([k, lbl]) => {
+              const cur =
+                (typeof data.hCardStyle === "string" && data.hCardStyle) ||
+                "glass";
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => edit({ hCardStyle: k })}
+                  className={seg(cur === k)}
+                >
+                  {lbl}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {nSlides > 1 && (
+        <>
+          <Lbl>{p.heroRotation}</Lbl>
+          <select
+            value={
+              data.slideOrder === "rand" || data.slideOrder === "pong"
+                ? String(data.slideOrder)
+                : "seq"
+            }
+            onChange={(e) => edit({ slideOrder: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
+          >
+            <option value="seq">{p.optSeq}</option>
+            <option value="rand">{p.optRand}</option>
+            <option value="pong">{p.optPong}</option>
+          </select>
+        </>
+      )}
+
       <LinkField
         value={data._lnk}
         onChange={(l) => edit({ _lnk: l })}
@@ -3538,17 +3608,39 @@ function HeroPreview({
     typeof data.hTransMs === "number" ? data.hTransMs : 700;
   const transMs = trans === "none" ? 0 : hTransMs;
 
+  const slideOrder =
+    data.slideOrder === "rand" || data.slideOrder === "pong"
+      ? String(data.slideOrder)
+      : "seq";
   const [idx, setIdx] = useState(0);
   const [hover, setHover] = useState(false);
+  const dirRef = useRef(1);
   const cIdx = Math.min(idx, slides.length - 1);
   useEffect(() => {
     if (slides.length < 2 || hover) return;
+    const n = slides.length;
     const t = setInterval(
-      () => setIdx((i) => (i + 1) % slides.length),
+      () =>
+        setIdx((i) => {
+          if (slideOrder === "rand") {
+            if (n < 2) return 0;
+            let r = i;
+            while (r === i) r = Math.floor(Math.random() * n);
+            return r;
+          }
+          if (slideOrder === "pong") {
+            let d = dirRef.current;
+            if (i + d >= n) d = -1;
+            else if (i + d < 0) d = 1;
+            dirRef.current = d;
+            return i + d;
+          }
+          return (i + 1) % n;
+        }),
       slideSec * 1000,
     );
     return () => clearInterval(t);
-  }, [slides.length, slideSec, hover]);
+  }, [slides.length, slideSec, hover, slideOrder]);
 
   // Schrijf altijd het slides-model en ruim de oude velden op.
   const commit = (next: HeroSlide[]) =>
@@ -3713,17 +3805,52 @@ function HeroPreview({
   };
 
   const cardBase = hCardColor || (curHasBg ? "#000000" : theme.fg);
+  const cStyleKind =
+    typeof data.hCardStyle === "string" &&
+    ["glass", "solid", "outline", "soft", "flat"].includes(data.hCardStyle)
+      ? String(data.hCardStyle)
+      : "glass";
+  const baseBorder = curHasBg
+    ? "rgba(255,255,255,0.18)"
+    : `${theme.fg}1f`;
   const cardStyle: React.CSSProperties = showCard
-    ? {
-        background: hexToRgba(cardBase, hCardA / 100),
-        backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
-        WebkitBackdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
-        padding: "30px 34px",
-        borderRadius: 18,
-        border: curHasBg
-          ? "1px solid rgba(255,255,255,0.18)"
-          : `1px solid ${theme.fg}1f`,
-      }
+    ? cStyleKind === "solid"
+      ? {
+          background: hexToRgba(cardBase, Math.max(hCardA, 80) / 100),
+          padding: "30px 34px",
+          borderRadius: 14,
+        }
+      : cStyleKind === "outline"
+        ? {
+            background: "transparent",
+            padding: "28px 32px",
+            borderRadius: 14,
+            border: `1.5px solid ${curHasBg ? "rgba(255,255,255,0.5)" : theme.fg}`,
+          }
+        : cStyleKind === "soft"
+          ? {
+              background: hexToRgba(cardBase, hCardA / 100),
+              backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+              WebkitBackdropFilter:
+                hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+              padding: "34px 40px",
+              borderRadius: 28,
+              boxShadow: "0 14px 40px rgba(0,0,0,0.18)",
+            }
+          : cStyleKind === "flat"
+            ? {
+                background: hexToRgba(cardBase, hCardA / 100),
+                padding: "26px 30px",
+              }
+            : {
+                background: hexToRgba(cardBase, hCardA / 100),
+                backdropFilter: hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                WebkitBackdropFilter:
+                  hBlur > 0 ? `blur(${hBlur}px)` : undefined,
+                padding: "30px 34px",
+                borderRadius: 18,
+                border: `1px solid ${baseBorder}`,
+              }
     : {};
 
   return (
