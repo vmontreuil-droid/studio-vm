@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { submitBuild } from "@/app/actions/build-lead";
-import { saveDesign } from "@/app/actions/builder-designs";
+import { saveDesign, sendDesign } from "@/app/actions/builder-designs";
 import {
   buildPreset,
   SECTOR_LABELS,
@@ -1437,6 +1437,55 @@ export default function BuilderPage({
                   <Check className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
                   {c.buildSent}
                 </p>
+              ) : designId ? (
+                <form
+                  className="mt-3"
+                  action={() =>
+                    startSend(async () => {
+                      try {
+                        await saveDesign(
+                          designId,
+                          {
+                            businessName,
+                            theme,
+                            font,
+                            radius,
+                            pages,
+                            activeId,
+                            locale,
+                          },
+                          businessName,
+                        );
+                        const fd = new FormData();
+                        fd.set("id", designId);
+                        fd.set("locale", locale);
+                        await sendDesign(fd);
+                        setSent("ok");
+                      } catch {
+                        setSent("err");
+                      }
+                    })
+                  }
+                >
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+                  >
+                    {pending ? (
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      <Send className="h-4 w-4" strokeWidth={2} />
+                    )}
+                    {pending ? c.buildSending : c.buildSend}
+                  </button>
+                  {sent === "err" && (
+                    <p className="mt-2 text-xs text-red-500">{c.buildErr}</p>
+                  )}
+                </form>
               ) : (
                 <form
                   className="mt-3 space-y-2"
