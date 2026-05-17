@@ -196,13 +196,15 @@ export function PortalShell({
   const Inner = (
     <div className="flex h-full flex-col">
       <div
-        className={`flex items-center gap-2 px-5 py-6 ${
-          rail ? "md:justify-center md:px-2" : ""
+        className={`flex px-5 py-6 ${
+          rail
+            ? "md:flex-col md:items-center md:gap-3 md:px-2 md:pb-4 md:pt-5"
+            : "items-center gap-2"
         }`}
       >
         <p
-          className={`text-3xl font-extrabold lowercase tracking-tighter ${
-            rail ? "md:text-2xl" : ""
+          className={`font-extrabold lowercase leading-none tracking-tighter ${
+            rail ? "text-3xl md:text-2xl" : "text-3xl"
           }`}
         >
           vm<span className="text-accent">.</span>
@@ -217,8 +219,8 @@ export function PortalShell({
           onClick={toggleRail}
           aria-label="Balk in-/uitklappen"
           title="Balk in-/uitklappen"
-          className={`ml-auto hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:block ${
-            rail ? "md:ml-0" : ""
+          className={`hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:block ${
+            rail ? "md:mt-1" : "ml-auto"
           }`}
         >
           <PanelLeft className="h-4 w-4" strokeWidth={2} />
