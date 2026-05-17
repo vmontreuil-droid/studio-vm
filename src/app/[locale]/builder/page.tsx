@@ -1108,6 +1108,82 @@ export default function BuilderPage({
       ),
     );
   const sections = active.sections;
+
+  // Versies: undo/redo over de pagina's (max 40 stappen).
+  const histRef = useRef<Page[][]>([]);
+  const redoRef = useRef<Page[][]>([]);
+  const skipHist = useRef(false);
+  const prevPagesRef = useRef<Page[]>(pages);
+  const [histTick, setHistTick] = useState(0);
+  useEffect(() => {
+    if (skipHist.current) {
+      skipHist.current = false;
+      prevPagesRef.current = pages;
+      return;
+    }
+    if (prevPagesRef.current !== pages) {
+      histRef.current.push(prevPagesRef.current);
+      if (histRef.current.length > 40) histRef.current.shift();
+      redoRef.current = [];
+      prevPagesRef.current = pages;
+      setHistTick((t) => t + 1);
+    }
+  }, [pages]);
+  const undo = () => {
+    const prev = histRef.current.pop();
+    if (!prev) return;
+    redoRef.current.push(pages);
+    skipHist.current = true;
+    setPages(prev);
+    setHistTick((t) => t + 1);
+  };
+  const redo = () => {
+    const nx = redoRef.current.pop();
+    if (!nx) return;
+    histRef.current.push(pages);
+    skipHist.current = true;
+    setPages(nx);
+    setHistTick((t) => t + 1);
+  };
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+    };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pages]);
+
+  // Herbruikbare blokken: kopieer een sectie en plak ze op een
+  // andere pagina, of voeg ze meteen op alle pagina's toe.
+  const [clip, setClip] = useState<Section | null>(null);
+  const copySection = (sec: Section) =>
+    setClip({ ...sec, data: structuredClone(sec.data) });
+  const pasteSection = () => {
+    if (!clip) return;
+    setSections((arr) => [
+      ...arr,
+      { ...clip, id: uid(), data: structuredClone(clip.data) },
+    ]);
+  };
+  const sectionToAllPages = (sec: Section) =>
+    setPages((ps) =>
+      ps.map((pp) =>
+        pp.id === active.id
+          ? pp
+          : {
+              ...pp,
+              sections: [
+                ...pp.sections,
+                { ...sec, id: uid(), data: structuredClone(sec.data) },
+              ],
+            },
+      ),
+    );
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragIx, setDragIx] = useState<number | null>(null);
   const [sector, setSector] = useState<SectorKey>("services");
@@ -2706,6 +2782,38 @@ export default function BuilderPage({
                         </button>
                         <button
                           type="button"
+                          onClick={() => copySection(s)}
+                          aria-label="kopieer"
+                          title={
+                            locale === "fr"
+                              ? "Copier le bloc"
+                              : locale === "en"
+                                ? "Copy block"
+                                : "Blok kopiëren"
+                          }
+                          className={`rounded p-1 hover:text-foreground ${
+                            clip?.id === s.id ? "text-accent" : ""
+                          }`}
+                        >
+                          <Send className="h-3.5 w-3.5 rotate-180" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => sectionToAllPages(s)}
+                          aria-label="alle pagina's"
+                          title={
+                            locale === "fr"
+                              ? "Vers toutes les pages"
+                              : locale === "en"
+                                ? "To all pages"
+                                : "Naar alle pagina's"
+                          }
+                          className="rounded p-1 hover:text-foreground"
+                        >
+                          <Layers className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => removeSection(s.id)}
                           aria-label="x"
                           className="rounded p-1 hover:text-foreground"
@@ -2925,6 +3033,64 @@ export default function BuilderPage({
                     <Smartphone className="h-3.5 w-3.5" strokeWidth={2} />
                   </button>
                 </span>
+                <span
+                  className="flex items-center overflow-hidden rounded-full border"
+                  data-h={histTick}
+                >
+                  <button
+                    type="button"
+                    onClick={undo}
+                    disabled={histRef.current.length === 0}
+                    aria-label="Ongedaan maken"
+                    title={
+                      locale === "fr"
+                        ? "Annuler (Ctrl+Z)"
+                        : locale === "en"
+                          ? "Undo (Ctrl+Z)"
+                          : "Ongedaan (Ctrl+Z)"
+                    }
+                    className="px-2.5 py-1 text-muted transition-colors hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5 -rotate-90" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redo}
+                    disabled={redoRef.current.length === 0}
+                    aria-label="Opnieuw"
+                    title={
+                      locale === "fr"
+                        ? "Rétablir (Ctrl+Maj+Z)"
+                        : locale === "en"
+                          ? "Redo (Ctrl+Shift+Z)"
+                          : "Opnieuw (Ctrl+Shift+Z)"
+                    }
+                    className="border-l px-2.5 py-1 text-muted transition-colors hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5 rotate-90" strokeWidth={2} />
+                  </button>
+                </span>
+                {clip && (
+                  <button
+                    type="button"
+                    onClick={pasteSection}
+                    title={
+                      locale === "fr"
+                        ? "Coller le bloc copié"
+                        : locale === "en"
+                          ? "Paste copied block"
+                          : "Gekopieerd blok plakken"
+                    }
+                    className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] text-accent transition-colors hover:bg-accent/10"
+                  >
+                    <Copy className="h-3 w-3" strokeWidth={2} />
+                    {locale === "fr"
+                      ? "Coller"
+                      : locale === "en"
+                        ? "Paste"
+                        : "Plakken"}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={resetDraft}
