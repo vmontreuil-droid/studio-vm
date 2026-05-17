@@ -132,7 +132,7 @@ export default async function PortalBuilderOverview({
       </p>
 
       {(ok === "live" || ok === "betaald" || ok === "gestopt") && (
-        <p className="mt-4 rounded-xl border border-green-500/60 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 dark:bg-green-950/40 dark:text-green-300">
+        <p className="mt-4 rounded-xl border border-green-600 bg-green-100 px-4 py-3 text-sm font-semibold text-green-900 dark:border-green-700 dark:bg-green-900 dark:text-green-100">
           {ok === "gestopt"
             ? locale === "fr"
               ? "Abonnement résilié."

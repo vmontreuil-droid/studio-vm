@@ -24,6 +24,7 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/site/") ||
     pathname.startsWith("/auth/") ||
     pathname === "/security-txt" ||
     pathname.startsWith("/.well-known/") ||
@@ -54,7 +55,7 @@ export function middleware(req: NextRequest) {
     // Enkel één-labels subdomeinen (geen geneste hosts, geen www).
     if (label && label !== "www" && !label.includes(".")) {
       const url = req.nextUrl.clone();
-      url.pathname = `/_site/${label}`;
+      url.pathname = `/site/${label}`;
       return NextResponse.rewrite(url);
     }
   }
