@@ -1371,10 +1371,15 @@ export default function BuilderPage({
   // Serverzijde autosave op het account-ontwerp (gedebouncet), zodat de
   // klant op elk toestel kan hervatten en jij elke versie ziet.
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Onbewaarde wijzigingen + de actuele opslag-functie, zodat een vaste
+  // 5-sec-interval óók tijdens nonstop bouwen serverzijde bewaart (de
+  // 1,5s-debounce alleen vuurt pas als je even pauzeert).
+  const dirtyRef = useRef(false);
+  const doSaveRef = useRef<() => void>(() => {});
   useEffect(() => {
     if (!hydrated || !designId) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
+    const run = () => {
+      dirtyRef.current = false;
       void saveDesign(designId, {
         businessName,
         theme,
@@ -1391,7 +1396,11 @@ export default function BuilderPage({
         activeId,
         locale,
       });
-    }, 1500);
+    };
+    doSaveRef.current = run;
+    dirtyRef.current = true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(run, 1500);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
@@ -1413,6 +1422,16 @@ export default function BuilderPage({
     pages,
     activeId,
   ]);
+
+  // Harde garantie: minstens elke 5 sec serverzijde opslaan zolang er
+  // onbewaarde wijzigingen zijn — ook tijdens ononderbroken bouwen.
+  useEffect(() => {
+    if (!hydrated || !designId) return;
+    const iv = setInterval(() => {
+      if (dirtyRef.current) doSaveRef.current();
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [hydrated, designId]);
 
   // Bij het openen van een sectie: scroll de zijbalk naar boven zodat
   // de vastgezette editor meteen in beeld staat.
@@ -4263,7 +4282,14 @@ export default function BuilderPage({
               <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
               <span className="ml-2 font-mono text-xs text-muted">
-                {businessName.toLowerCase().replace(/\s+/g, "-")}.be
+                {(businessName || "mijn-site")
+                  .toLowerCase()
+                  .normalize("NFD")
+                  .replace(/[̀-ͯ]/g, "")
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-+|-+$/g, "")
+                  .slice(0, 40) || "mijn-site"}
+                .studio-vm.be
               </span>
               <span className="ml-auto flex items-center gap-2">
                 {savedTick && (
