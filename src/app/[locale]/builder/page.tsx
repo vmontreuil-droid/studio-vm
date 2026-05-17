@@ -1855,6 +1855,84 @@ export default function BuilderPage({
                           })}
                         </div>
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Animation à l'arrivée"
+                            : locale === "en"
+                              ? "Entrance animation"
+                              : "Animatie bij verschijnen"}
+                        </p>
+                        <div className="mb-2 grid grid-cols-4 gap-1.5">
+                          {(
+                            [
+                              ["", locale === "fr" ? "Aucune" : locale === "en" ? "None" : "Geen"],
+                              ["fade", "Fade"],
+                              ["up", locale === "fr" ? "Monte" : locale === "en" ? "Up" : "Omhoog"],
+                              ["zoom", "Zoom"],
+                            ] as const
+                          ).map(([k, lbl]) => {
+                            const selA =
+                              String(openSec.data._anim ?? "") === k;
+                            return (
+                              <button
+                                key={k || "none"}
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _anim: k })
+                                }
+                                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                                  selA
+                                    ? "border-accent bg-accent/10 text-foreground"
+                                    : "border-border text-muted hover:bg-card-hover"
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mb-3 flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              patchData(openSec.id, {
+                                _hover: openSec.data._hover ? 0 : 1,
+                              })
+                            }
+                            className={`flex-1 rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                              openSec.data._hover
+                                ? "border-accent bg-accent/10 text-foreground"
+                                : "border-border text-muted hover:bg-card-hover"
+                            }`}
+                          >
+                            {openSec.data._hover ? "✓ " : ""}
+                            {locale === "fr"
+                              ? "Effet survol kaarten"
+                              : locale === "en"
+                                ? "Card hover effect"
+                                : "Hover-effect kaarten"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              patchData(openSec.id, {
+                                _hideM: openSec.data._hideM ? 0 : 1,
+                              })
+                            }
+                            className={`flex-1 rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                              openSec.data._hideM
+                                ? "border-accent bg-accent/10 text-foreground"
+                                : "border-border text-muted hover:bg-card-hover"
+                            }`}
+                          >
+                            {openSec.data._hideM ? "✓ " : ""}
+                            {locale === "fr"
+                              ? "Cacher sur mobile"
+                              : locale === "en"
+                                ? "Hide on mobile"
+                                : "Verberg op gsm"}
+                          </button>
+                        </div>
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -3109,6 +3187,7 @@ export default function BuilderPage({
               }
             >
               <div
+                data-dev={device}
                 style={{
                   background: theme.bg,
                   color: theme.fg,
@@ -3120,7 +3199,7 @@ export default function BuilderPage({
                     : ""
                 }`}
               >
-              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}`}</style>
+              <style>{`.bldr-frame [class*="rounded"]{border-radius:${radiusPx[radius]} !important}.bldr-frame{zoom:${scale}}.bldr-frame h1,.bldr-frame h2,.bldr-frame h3,.bldr-frame h4,.bldr-frame p,.bldr-frame li{text-align:${align}}.bldr-frame [data-sp="compact"]>div{padding-top:1.25rem;padding-bottom:1.25rem}.bldr-frame [data-sp="ruim"]>div{padding-top:5rem;padding-bottom:5rem}.bldr-frame .bldr-btn{border-radius:${btnShape === "recht" ? "2px" : btnShape === "zacht" ? "12px" : "9999px"} !important;${btnColor ? `background:${btnColor} !important;` : ""}}@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-frame [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-frame [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-frame [data-hover="1"] [class*="rounded-lg"],.bldr-frame [data-hover="1"] [class*="rounded-2xl"]{transition:transform .25s ease,box-shadow .25s ease}.bldr-frame [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-frame [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}.bldr-frame[data-dev="mobile"] [data-hidem="1"]{display:none}`}</style>
               <nav
                 className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-8 py-4"
                 style={{ borderColor: `${theme.fg}1a` }}
@@ -3176,6 +3255,9 @@ export default function BuilderPage({
                   <div
                     key={s.id}
                     data-sp={String(s.data._sp ?? "")}
+                    data-anim={String(s.data._anim ?? "")}
+                    data-hover={s.data._hover ? "1" : ""}
+                    data-hidem={s.data._hideM ? "1" : ""}
                     className={`group/sec relative cursor-pointer transition-shadow ${
                       openId === s.id
                         ? "ring-2 ring-inset ring-accent"

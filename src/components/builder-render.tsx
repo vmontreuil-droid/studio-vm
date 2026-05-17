@@ -121,7 +121,8 @@ export function BuilderRender({ snap }: { snap: Snap }) {
         : [];
 
   return (
-    <div className="mt-5 space-y-6">
+    <div className="bldr-ro mt-5 space-y-6">
+      <style>{`@keyframes svmIn{from{opacity:0}to{opacity:1}}@keyframes svmInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}@keyframes svmInZoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}.bldr-ro [data-anim="fade"]{animation:svmIn .7s ease both}.bldr-ro [data-anim="up"]{animation:svmInUp .7s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-anim="zoom"]{animation:svmInZoom .6s cubic-bezier(.2,.7,.2,1) both}.bldr-ro [data-hover="1"] [class*="rounded-lg"]:hover,.bldr-ro [data-hover="1"] [class*="rounded-2xl"]:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);transition:all .25s ease}.bldr-ro [data-hidem="1"]{outline:1px dashed currentColor;outline-offset:-4px}`}</style>
       {snap.pages.map((page, pi) => (
         <div key={pi}>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -172,6 +173,9 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                 <div
                   key={bi}
                   className="relative overflow-hidden"
+                  data-anim={String(bd._anim ?? "")}
+                  data-hover={bd._hover ? "1" : ""}
+                  data-hidem={bd._hideM ? "1" : ""}
                   style={{
                     backgroundColor: toneBg(bd._bg, bg, fg, accent),
                     ...(patternCss(bd, fg) || {}),
