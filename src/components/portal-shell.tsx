@@ -62,6 +62,7 @@ export function PortalShell({
       icon: typeof LayoutDashboard;
       exact?: boolean;
       badge?: number;
+      green?: boolean;
     }[];
   }[] = [
     {
@@ -120,6 +121,8 @@ export function PortalShell({
           href: `${base}/abonnement`,
           label: t.subscription,
           icon: RefreshCcw,
+          badge: counts.sites,
+          green: true,
         },
         { href: `${base}/documenten`, label: t.documents, icon: FolderOpen },
       ],
@@ -262,13 +265,21 @@ export function PortalShell({
                     <span className={`flex-1 ${lbl}`}>{label}</span>
                     {n > 0 && (
                       <span
-                        className={`rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] font-medium text-accent ${lbl}`}
+                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ${lbl} ${
+                          rest.green
+                            ? "bg-green-600 text-white"
+                            : "bg-accent/15 text-accent"
+                        }`}
                       >
                         {n}
                       </span>
                     )}
                     {n > 0 && rail && (
-                      <span className="absolute right-2 hidden h-1.5 w-1.5 rounded-full bg-accent md:block" />
+                      <span
+                        className={`absolute right-2 hidden h-1.5 w-1.5 rounded-full md:block ${
+                          rest.green ? "bg-green-600" : "bg-accent"
+                        }`}
+                      />
                     )}
                   </Link>
                 );

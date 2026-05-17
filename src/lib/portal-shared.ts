@@ -144,6 +144,7 @@ export type PortalCounts = {
   offers: number;
   invoices: number;
   tickets: number;
+  sites: number; // aantal actieve site-abonnementen (= sites toegelaten)
 };
 
 export const PORTAL_T: Record<

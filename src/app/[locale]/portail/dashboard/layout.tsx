@@ -45,15 +45,20 @@ export default async function DashboardLayout({
   }
 
   const head = { count: "exact" as const, head: true };
-  const [oR, iR, tR] = await Promise.all([
+  const [oR, iR, tR, sR] = await Promise.all([
     sb.from("offers").select("id", head).eq("status", "open"),
     sb.from("invoices").select("id", head).eq("status", "open"),
     sb.from("tickets").select("id", head).neq("status", "gesloten"),
+    sb
+      .from("subscriptions")
+      .select("id", head)
+      .eq("status", "actief"),
   ]);
   const counts: PortalCounts = {
     offers: oR.count ?? 0,
     invoices: iR.count ?? 0,
     tickets: tR.count ?? 0,
+    sites: sR.count ?? 0,
   };
 
   async function doSignOut() {

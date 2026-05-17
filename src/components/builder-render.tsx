@@ -273,7 +273,21 @@ export function BuilderRender({
                   style={{
                     padding: pad,
                     color: hFg,
-                    background: hStr("bg") || undefined,
+                    // Sticky werkt enkel op de échte gepubliceerde site
+                    // (in de admin-preview zit de nav in een kader).
+                    ...(live && hOn("sticky")
+                      ? {
+                          position: "sticky",
+                          top: 0,
+                          zIndex: 50,
+                        }
+                      : {}),
+                    background:
+                      hStr("bg") ||
+                      (live && hOn("sticky") ? bg : undefined),
+                    backdropFilter: hOn("blur")
+                      ? "blur(8px)"
+                      : undefined,
                     borderBottom: hOn("border", true)
                       ? `1px solid ${soft}`
                       : undefined,

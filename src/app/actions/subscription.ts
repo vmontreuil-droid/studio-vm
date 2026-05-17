@@ -11,6 +11,7 @@ import {
 import {
   mollieCreateCustomer,
   mollieFirstPayment,
+  mollieCreateSubscription,
   mollieCancelSubscription,
 } from "@/lib/mollie-sub";
 
@@ -132,4 +133,51 @@ export async function cancelPublishSubscription(
     .eq("client_email", email)
     .eq("published", true);
   redirect(`${back}?ok=gestopt`);
+}
+
+// Extra site bijkopen: extra €39/m-abonnement op dezelfde Mollie-klant
+// (hergebruikt het bestaande mandaat — geen nieuwe opstartkost, geen
+// betaalscherm). Verhoogt het aantal sites dat online mag.
+export async function addExtraSite(formData: FormData): Promise<void> {
+  const email = await authed();
+  const locale = String(formData.get("locale") ?? "nl");
+  const back = `/${locale}/portail/dashboard/builder`;
+  if (!email) redirect(back);
+
+  const admin = getSupabaseAdmin();
+  const { data } = await admin
+    .from("subscriptions")
+    .select("mollie_customer_id")
+    .eq("client_email", email)
+    .eq("status", "actief")
+    .not("mollie_customer_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const customerId =
+    (data as { mollie_customer_id: string | null } | null)
+      ?.mollie_customer_id ?? null;
+  // Geen bestaand betalend abonnement → eerst het gewone startproces.
+  if (!customerId) redirect(`${back}?fout=abo`);
+
+  const subId = await mollieCreateSubscription({
+    customerId: customerId!,
+    amountCents: PUBLISH_BASE_MONTHLY_CENTS,
+    description: "Website — extra site (maandabonnement)",
+    metadata: { sub_email: email },
+  });
+  if (!subId) redirect(`${back}?fout=mollie`);
+
+  await admin.from("subscriptions").insert({
+    client_email: email,
+    plan: "Website (extra site)",
+    price_cents: PUBLISH_BASE_MONTHLY_CENTS,
+    currency: "EUR",
+    period: "maand",
+    status: "actief",
+    setup_paid: true,
+    mollie_customer_id: customerId,
+    mollie_subscription_id: subId,
+  });
+  redirect(`${back}?ok=extra`);
 }

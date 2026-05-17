@@ -201,27 +201,25 @@ export async function publishDesign(formData: FormData): Promise<void> {
   } | null;
   if (!row) redirect(back);
 
-  // Poort: publiceren mag enkel met een actief abonnement.
-  const { data: sub } = await getSupabaseAdmin()
+  // Poort: aantal sites online = aantal actieve abonnementen. Geen
+  // abonnement → niet publiceren; al evenveel sites online als
+  // abonnementen → eerst één offline of een extra abonnement.
+  const adm = getSupabaseAdmin();
+  const { count: subCount } = await adm
     .from("subscriptions")
-    .select("status")
+    .select("id", { count: "exact", head: true })
     .eq("client_email", email)
-    .eq("status", "actief")
-    .limit(1)
-    .maybeSingle();
-  if (!sub) redirect(`${back}?fout=abo`);
+    .eq("status", "actief");
+  const allowed = subCount ?? 0;
+  if (allowed < 1) redirect(`${back}?fout=abo`);
 
-  // Eén gepubliceerde site per abonnement. Staat er al een andere
-  // online, dan eerst die offline halen (of een extra abonnement).
-  const { data: other } = await getSupabaseAdmin()
+  const { count: liveCount } = await adm
     .from("builder_designs")
-    .select("id")
+    .select("id", { count: "exact", head: true })
     .eq("client_email", email)
     .eq("published", true)
-    .neq("id", id)
-    .limit(1)
-    .maybeSingle();
-  if (other) redirect(`${back}?fout=onesite`);
+    .neq("id", id);
+  if ((liveCount ?? 0) >= allowed) redirect(`${back}?fout=onesite`);
 
   const slug =
     row!.slug ||

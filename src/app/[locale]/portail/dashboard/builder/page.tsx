@@ -23,6 +23,7 @@ import {
 import {
   startPublishSubscription,
   cancelPublishSubscription,
+  addExtraSite,
 } from "@/app/actions/subscription";
 import {
   publishSetupCents,
@@ -113,14 +114,13 @@ export default async function PortalBuilderOverview({
     .order("updated_at", { ascending: false });
   const designs = (data as Design[]) ?? [];
 
-  const { data: subRow } = await sb
+  const { count: subCount } = await sb
     .from("subscriptions")
-    .select("status")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const subActive = (subRow as { status?: string } | null)?.status ===
-    "actief";
+    .select("id", { count: "exact", head: true })
+    .eq("status", "actief");
+  const allowedSites = subCount ?? 0;
+  const subActive = allowedSites > 0;
+  const liveSites = designs.filter((d) => d.published).length;
 
   return (
     <>
@@ -207,7 +207,35 @@ export default async function PortalBuilderOverview({
               </SubmitButton>
             </form>
           </div>
-        ) : (
+        ) : null}
+        {subActive && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-green-700/40 pt-4 dark:border-green-200/30">
+            <p className="text-sm text-green-900 dark:text-green-100">
+              {locale === "fr"
+                ? `${liveSites} site(s) en ligne · ${allowedSites} autorisé(s). 1 site par abonnement — besoin d'un site en plus ?`
+                : locale === "en"
+                  ? `${liveSites} site(s) online · ${allowedSites} allowed. 1 site per subscription — need another site?`
+                  : `${liveSites} site(s) online · ${allowedSites} toegelaten. 1 site per abonnement — extra site nodig?`}
+            </p>
+            <form action={addExtraSite}>
+              <input type="hidden" name="locale" value={locale} />
+              <SubmitButton className="rounded-full border border-green-700 bg-white px-4 py-2 text-xs font-semibold text-green-900 transition-colors hover:opacity-80 dark:border-green-200 dark:bg-green-950 dark:text-green-50">
+                {locale === "fr"
+                  ? `+ Site supplémentaire (+€${Math.round(
+                      PUBLISH_BASE_MONTHLY_CENTS / 100,
+                    )}/m)`
+                  : locale === "en"
+                    ? `+ Extra site (+€${Math.round(
+                        PUBLISH_BASE_MONTHLY_CENTS / 100,
+                      )}/m)`
+                    : `+ Extra site bijkopen (+€${Math.round(
+                        PUBLISH_BASE_MONTHLY_CENTS / 100,
+                      )}/m)`}
+              </SubmitButton>
+            </form>
+          </div>
+        )}
+        {!subActive && (
           <>
             <p className="text-lg font-semibold tracking-tight">
               {locale === "fr"
