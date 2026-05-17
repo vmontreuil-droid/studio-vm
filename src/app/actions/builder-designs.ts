@@ -211,6 +211,18 @@ export async function publishDesign(formData: FormData): Promise<void> {
     .maybeSingle();
   if (!sub) redirect(`${back}?fout=abo`);
 
+  // Eén gepubliceerde site per abonnement. Staat er al een andere
+  // online, dan eerst die offline halen (of een extra abonnement).
+  const { data: other } = await getSupabaseAdmin()
+    .from("builder_designs")
+    .select("id")
+    .eq("client_email", email)
+    .eq("published", true)
+    .neq("id", id)
+    .limit(1)
+    .maybeSingle();
+  if (other) redirect(`${back}?fout=onesite`);
+
   const slug =
     row!.slug ||
     (await freeSlug(

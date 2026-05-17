@@ -161,7 +161,16 @@ export default async function PortalBuilderOverview({
               : "Publiceren kan enkel met een actief abonnement. Zie ‘Abonnement’."}
         </p>
       )}
-      {fout && fout !== "abo" && (
+      {fout === "onesite" && (
+        <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
+          {locale === "fr"
+            ? "Vous avez déjà un site en ligne. Mettez-le d'abord hors ligne, ou prenez un abonnement supplémentaire pour un second site."
+            : locale === "en"
+              ? "You already have a site online. Take it offline first, or add another subscription for a second site."
+              : "Je hebt al een site online. Haal die eerst offline, of neem een extra abonnement voor een tweede site."}
+        </p>
+      )}
+      {fout && fout !== "abo" && fout !== "onesite" && (
         <p className="mt-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-600/70 dark:bg-amber-950/50 dark:text-amber-200">
           {locale === "fr"
             ? "Impossible de créer la maquette pour l'instant. Réessayez plus tard."
@@ -182,10 +191,10 @@ export default async function PortalBuilderOverview({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-green-900 dark:text-green-100">
               {locale === "fr"
-                ? "Abonnement actif — vos sites restent en ligne."
+                ? "Abonnement actif — votre site reste en ligne."
                 : locale === "en"
-                  ? "Subscription active — your sites stay online."
-                  : "Abonnement actief — je sites blijven online."}
+                  ? "Subscription active — your site stays online."
+                  : "Abonnement actief — je site blijft online."}
             </p>
             <form action={cancelPublishSubscription}>
               <input type="hidden" name="locale" value={locale} />
