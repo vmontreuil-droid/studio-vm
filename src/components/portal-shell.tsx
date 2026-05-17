@@ -149,21 +149,22 @@ export function PortalShell({
   // overzicht hebben); de sidebar blijft uiteraard staan.
   const wide = path.includes("/builder/editor");
 
-  // Inklapbare admin-balk (desktop): enkel icoontjes. Voorkeur wordt
-  // onthouden; in de builder-editor standaard ingeklapt zodat de klant
-  // meteen maximaal scherm heeft om te bouwen.
-  const [rail, setRail] = useState(false);
+  // Inklapbare admin-balk (desktop): enkel icoontjes. PortalShell zit
+  // in de layout en blijft staan bij client-navigatie, dus we reageren
+  // op het pad: in de builder-editor ALTIJD ingeklapt (max scherm om te
+  // bouwen); daarbuiten de onthouden voorkeur (standaard uitgeklapt).
+  const [rail, setRail] = useState(wide);
   useEffect(() => {
-    try {
-      const v = localStorage.getItem("vm_portal_rail");
-      if (v === "1") setRail(true);
-      else if (v === "0") setRail(false);
-      else if (path.includes("/builder/editor")) setRail(true);
-    } catch {
-      /* geen storage → standaard uitgeklapt */
+    if (wide) {
+      setRail(true);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      setRail(localStorage.getItem("vm_portal_rail") === "1");
+    } catch {
+      setRail(false);
+    }
+  }, [wide]);
   const toggleRail = () =>
     setRail((r) => {
       const n = !r;
