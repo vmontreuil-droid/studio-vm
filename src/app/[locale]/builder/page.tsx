@@ -1917,6 +1917,14 @@ function SectionEditor({
   );
 }
 
+type HeroSlide = {
+  bg?: string;
+  eyebrow?: string;
+  heading?: string;
+  sub?: string;
+  button?: string;
+};
+
 function HeroPreview({
   data,
   edit,
@@ -1930,16 +1938,39 @@ function HeroPreview({
   businessName: string;
   p: Preview;
 }) {
-  const get = (k: string, fb = "") => {
+  const flat = (k: string) => {
     const v = data[k];
-    return v == null || v === "" ? fb : String(v);
+    return v == null ? "" : String(v);
   };
-  const bgs: string[] = Array.isArray(data.bgs)
+  // Migratie: nieuw model = slides[]. Val terug op oude bgs[]/platte velden.
+  const rawSlides =
+    Array.isArray(data.slides) && data.slides.length
+      ? (data.slides as HeroSlide[])
+      : null;
+  const legacyBgs: string[] = Array.isArray(data.bgs)
     ? (data.bgs as string[]).filter(Boolean)
-    : get("bg")
-      ? [get("bg")]
+    : flat("bg")
+      ? [flat("bg")]
       : [];
-  const hasBg = bgs.length > 0;
+  const slides: HeroSlide[] = rawSlides
+    ? rawSlides
+    : legacyBgs.length
+      ? legacyBgs.map((b) => ({
+          bg: b,
+          eyebrow: flat("eyebrow"),
+          heading: flat("heading"),
+          sub: flat("sub"),
+          button: flat("button"),
+        }))
+      : [
+          {
+            eyebrow: flat("eyebrow"),
+            heading: flat("heading"),
+            sub: flat("sub"),
+            button: flat("button"),
+          },
+        ];
+
   const slideSec =
     typeof data.slideSec === "number" && data.slideSec >= 2 ? data.slideSec : 4;
   const trans =
@@ -1949,34 +1980,78 @@ function HeroPreview({
   const transMs = trans === "none" ? 0 : 700;
 
   const [idx, setIdx] = useState(0);
+  const [hover, setHover] = useState(false);
+  const cIdx = Math.min(idx, slides.length - 1);
   useEffect(() => {
-    if (bgs.length < 2) return;
+    if (slides.length < 2 || hover) return;
     const t = setInterval(
-      () => setIdx((i) => (i + 1) % bgs.length),
+      () => setIdx((i) => (i + 1) % slides.length),
       slideSec * 1000,
     );
     return () => clearInterval(t);
-  }, [bgs.length, slideSec]);
+  }, [slides.length, slideSec, hover]);
 
+  // Schrijf altijd het slides-model en ruim de oude velden op.
+  const commit = (next: HeroSlide[]) =>
+    edit({
+      slides: next,
+      bgs: [],
+      bg: "",
+      eyebrow: "",
+      heading: "",
+      sub: "",
+      button: "",
+    });
+  const patchSlide = (i: number, patch: Partial<HeroSlide>) =>
+    commit(slides.map((s, j) => (j === i ? { ...s, ...patch } : s)));
+  const addBlank = () => {
+    commit([...slides, {}]);
+    setIdx(slides.length);
+  };
+  const removeSlide = (i: number) => {
+    if (slides.length <= 1) {
+      commit([{ ...slides[0], bg: "" }]);
+      return;
+    }
+    commit(slides.filter((_, j) => j !== i));
+    setIdx((v) => Math.max(0, Math.min(v, slides.length - 2)));
+  };
   const addImgs = (files?: FileList | null) => {
     if (!files) return;
-    Array.from(files)
-      .slice(0, 8)
-      .forEach((file) => {
-        if (!file.type.startsWith("image/") || file.size > 3_000_000) return;
-        const r = new FileReader();
-        r.onload = () =>
-          edit({ bgs: [...bgs, String(r.result)].slice(0, 8), bg: "" });
-        r.readAsDataURL(file);
-      });
+    const fresh = Array.from(files).filter(
+      (f) => f.type.startsWith("image/") && f.size <= 3_000_000,
+    );
+    if (!fresh.length) return;
+    Promise.all(
+      fresh.slice(0, 8).map(
+        (file) =>
+          new Promise<string>((res) => {
+            const r = new FileReader();
+            r.onload = () => res(String(r.result));
+            r.readAsDataURL(file);
+          }),
+      ),
+    ).then((urls) => {
+      const onlyEmpty =
+        slides.length === 1 && !slides[0].bg && !slides[0].heading;
+      const base = onlyEmpty ? [] : slides;
+      const added = urls.map((u, n) =>
+        onlyEmpty && n === 0 ? { ...slides[0], bg: u } : { bg: u },
+      );
+      commit([...base, ...added].slice(0, 8));
+    });
   };
-  const removeAt = (i: number) =>
-    edit({ bgs: bgs.filter((_, j) => j !== i), bg: "" });
+
+  const cur = slides[cIdx] ?? {};
+  const curHasBg = !!cur.bg;
+  const anyBg = slides.some((s) => s.bg);
 
   return (
     <div
       className="group/hero relative overflow-hidden px-8 py-14 text-center"
-      style={hasBg ? { color: "#ffffff" } : undefined}
+      style={curHasBg ? { color: "#ffffff" } : undefined}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1987,28 +2062,31 @@ function HeroPreview({
         addImgs(e.dataTransfer.files);
       }}
     >
-      {hasBg &&
-        bgs.map((src, i) => (
-          <div
-            key={i}
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage: `url(${src})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              transitionProperty: trans === "slide" ? "transform" : "opacity",
-              transitionDuration: `${transMs}ms`,
-              transitionTimingFunction: "ease",
-              opacity: trans === "slide" ? 1 : i === idx ? 1 : 0,
-              transform:
-                trans === "slide"
-                  ? `translateX(${(i - idx) * 100}%)`
-                  : undefined,
-              zIndex: i === idx ? 1 : 0,
-            }}
-          />
-        ))}
-      {hasBg && (
+      {anyBg &&
+        slides.map((s, i) =>
+          s.bg ? (
+            <div
+              key={i}
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: `url(${s.bg})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                transitionProperty:
+                  trans === "slide" ? "transform" : "opacity",
+                transitionDuration: `${transMs}ms`,
+                transitionTimingFunction: "ease",
+                opacity: trans === "slide" ? 1 : i === cIdx ? 1 : 0,
+                transform:
+                  trans === "slide"
+                    ? `translateX(${(i - cIdx) * 100}%)`
+                    : undefined,
+                zIndex: i === cIdx ? 1 : 0,
+              }}
+            />
+          ) : null,
+        )}
+      {curHasBg && (
         <div
           className="pointer-events-none absolute inset-0"
           style={{ background: "rgba(0,0,0,0.45)", zIndex: 2 }}
@@ -2017,39 +2095,46 @@ function HeroPreview({
       <div className="relative" style={{ zIndex: 3 }}>
         <p
           className="font-mono text-[10px] uppercase tracking-widest"
-          style={hasBg ? undefined : { color: theme.accent }}
+          style={curHasBg ? undefined : { color: theme.accent }}
         >
           <E
-            value={get("eyebrow", p.welcome)}
-            onChange={(v) => edit({ eyebrow: v })}
+            key={`eb-${cIdx}`}
+            value={cur.eyebrow || p.welcome}
+            onChange={(v) => patchSlide(cIdx, { eyebrow: v })}
           />
         </p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight">
           <E
-            value={get("heading", businessName)}
-            onChange={(v) => edit({ heading: v })}
+            key={`hd-${cIdx}`}
+            value={cur.heading || businessName}
+            onChange={(v) => patchSlide(cIdx, { heading: v })}
           />
         </h2>
         <p
           className={
-            hasBg ? "mt-3 text-sm opacity-90" : "mt-3 text-sm opacity-70"
+            curHasBg ? "mt-3 text-sm opacity-90" : "mt-3 text-sm opacity-70"
           }
         >
-          <E value={get("sub", p.tagline)} onChange={(v) => edit({ sub: v })} />
+          <E
+            key={`sb-${cIdx}`}
+            value={cur.sub || p.tagline}
+            onChange={(v) => patchSlide(cIdx, { sub: v })}
+          />
         </p>
         <button
           className="mt-6 rounded-full px-5 py-2 text-xs font-medium"
           style={{ background: theme.accent, color: theme.bg }}
         >
           <E
-            value={get("button", p.discover)}
-            onChange={(v) => edit({ button: v })}
+            key={`bt-${cIdx}`}
+            value={cur.button || p.discover}
+            onChange={(v) => patchSlide(cIdx, { button: v })}
           />
         </button>
 
-        {bgs.length > 1 && (
+        {slides.length > 1 && (
           <div className="mt-6 flex justify-center gap-1.5">
-            {bgs.map((_, i) => (
+            {slides.map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -2057,9 +2142,15 @@ function HeroPreview({
                 aria-label={`slide ${i + 1}`}
                 className="h-1.5 rounded-full transition-all"
                 style={{
-                  width: i === idx ? 18 : 6,
+                  width: i === cIdx ? 18 : 6,
                   background:
-                    i === idx ? "#ffffff" : "rgba(255,255,255,0.5)",
+                    i === cIdx
+                      ? curHasBg
+                        ? "#ffffff"
+                        : theme.accent
+                      : curHasBg
+                        ? "rgba(255,255,255,0.5)"
+                        : `${theme.fg}44`,
                 }}
               />
             ))}
@@ -2067,30 +2158,59 @@ function HeroPreview({
         )}
       </div>
 
-      {hasBg && (
-        <div className="absolute right-3 top-3 z-10 flex max-w-[60%] flex-wrap justify-end gap-1 opacity-0 transition-opacity group-hover/hero:opacity-100">
-          {bgs.map((src, i) => (
+      {/* slide-beheer: thumbnails + per slide selecteren/verwijderen */}
+      <div className="absolute right-3 top-3 z-10 flex max-w-[62%] flex-wrap justify-end gap-1 opacity-0 transition-opacity group-hover/hero:opacity-100">
+        {slides.map((s, i) => (
+          <span key={i} className="relative">
             <button
-              key={i}
               type="button"
-              onClick={() => removeAt(i)}
-              title={p.heroRemove}
-              className="relative h-9 w-12 overflow-hidden rounded border border-white/40"
+              onClick={() => setIdx(i)}
+              title={`slide ${i + 1}`}
+              className="relative block h-9 w-12 overflow-hidden rounded border"
+              style={{
+                borderColor:
+                  i === cIdx ? theme.accent : "rgba(255,255,255,0.45)",
+                borderWidth: i === cIdx ? 2 : 1,
+                background: s.bg ? undefined : "rgba(0,0,0,0.35)",
+              }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="h-full w-full object-cover" />
-              <span className="absolute inset-0 flex items-center justify-center bg-black/45">
-                <X className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
-              </span>
+              {s.bg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={s.bg}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center font-mono text-[9px] text-white/80">
+                  {i + 1}
+                </span>
+              )}
             </button>
-          ))}
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => removeSlide(i)}
+              title={p.heroRemove}
+              className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-white"
+            >
+              <X className="h-2.5 w-2.5" strokeWidth={3} />
+            </button>
+          </span>
+        ))}
+        <button
+          type="button"
+          onClick={addBlank}
+          title="slide +"
+          className="flex h-9 w-9 items-center justify-center rounded border border-dashed border-white/50 text-white/80"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+        </button>
+      </div>
 
-      {bgs.length > 1 && (
+      {slides.length > 1 && (
         <div
           className="absolute inset-x-0 bottom-9 z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 px-4 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
-          style={{ color: "rgba(255,255,255,0.9)" }}
+          style={{ color: curHasBg ? "rgba(255,255,255,0.9)" : theme.fg }}
         >
           <label
             className="flex items-center gap-2"
@@ -2103,10 +2223,8 @@ function HeroPreview({
               max={10}
               step={0.5}
               value={slideSec}
-              onChange={(e) =>
-                edit({ slideSec: Number(e.target.value) })
-              }
-              className="h-1 w-24 cursor-pointer accent-white"
+              onChange={(e) => edit({ slideSec: Number(e.target.value) })}
+              className="h-1 w-24 cursor-pointer accent-current"
             />
             <span className="font-mono tabular-nums">
               {slideSec.toFixed(1)}s
@@ -2120,7 +2238,14 @@ function HeroPreview({
             <select
               value={trans}
               onChange={(e) => edit({ trans: e.target.value })}
-              className="rounded border border-white/40 bg-black/40 px-1.5 py-0.5 text-[11px] text-white outline-none"
+              className="rounded border px-1.5 py-0.5 text-[11px] outline-none"
+              style={{
+                borderColor: curHasBg
+                  ? "rgba(255,255,255,0.4)"
+                  : `${theme.fg}33`,
+                background: curHasBg ? "rgba(0,0,0,0.4)" : theme.bg,
+                color: curHasBg ? "#ffffff" : theme.fg,
+              }}
             >
               <option value="fade">{p.transFade}</option>
               <option value="slide">{p.transSlide}</option>
@@ -2133,13 +2258,16 @@ function HeroPreview({
       <label
         className="absolute inset-x-0 bottom-0 z-10 flex cursor-pointer items-center justify-center gap-2 border-t border-dashed py-2 text-[11px] opacity-0 transition-opacity group-hover/hero:opacity-100"
         style={
-          hasBg
-            ? { color: "rgba(255,255,255,0.85)", borderColor: "rgba(255,255,255,0.4)" }
+          curHasBg
+            ? {
+                color: "rgba(255,255,255,0.85)",
+                borderColor: "rgba(255,255,255,0.4)",
+              }
             : { color: "var(--muted)" }
         }
       >
         <ImagePlus className="h-3.5 w-3.5" strokeWidth={2} />
-        {bgs.length ? `${p.heroDrop} (${bgs.length})` : p.heroDrop}
+        {`${p.heroDrop} — slide ${cIdx + 1}/${slides.length}`}
         <input
           type="file"
           accept="image/*"

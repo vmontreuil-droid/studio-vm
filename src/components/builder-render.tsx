@@ -107,63 +107,103 @@ function BlockView({
 
   switch (block.kind) {
     case "hero": {
-      const heroBgs = Array.isArray(d.bgs)
+      type HSlide = {
+        bg?: string;
+        eyebrow?: string;
+        heading?: string;
+        sub?: string;
+        button?: string;
+      };
+      const rawSl =
+        Array.isArray(d.slides) && d.slides.length
+          ? (d.slides as HSlide[])
+          : null;
+      const legacy = Array.isArray(d.bgs)
         ? (d.bgs as unknown[]).map(String).filter(Boolean)
         : s(d.bg)
           ? [s(d.bg)]
           : [];
-      const hasHeroBg = heroBgs.length > 0;
+      const heroSlides: HSlide[] = rawSl
+        ? rawSl
+        : legacy.length
+          ? legacy.map((b) => ({
+              bg: b,
+              eyebrow: s(d.eyebrow),
+              heading: s(d.heading) || s(d.title),
+              sub: s(d.sub),
+              button: s(d.button),
+            }))
+          : [
+              {
+                eyebrow: s(d.eyebrow),
+                heading: s(d.heading) || s(d.title),
+                sub: s(d.sub),
+                button: s(d.button),
+              },
+            ];
+      const multi = heroSlides.length > 1;
       return (
-        <div
-          className="relative px-6 py-12 text-center"
-          style={
-            hasHeroBg
-              ? {
-                  backgroundImage: `url(${heroBgs[0]})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  color: "#ffffff",
-                }
-              : undefined
-          }
-        >
-          {hasHeroBg && (
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{ background: "rgba(0,0,0,0.45)" }}
-            />
-          )}
-          <div className="relative">
-            <p
-              className="font-mono text-[10px] uppercase tracking-widest"
-              style={hasHeroBg ? undefined : { color: accent }}
-            >
-              {s(d.eyebrow)}
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-              {s(d.heading) || s(d.title)}
-            </h2>
-            <p
-              className={
-                hasHeroBg ? "mt-2 text-sm opacity-90" : "mt-2 text-sm opacity-70"
-              }
-            >
-              {s(d.sub)}
-            </p>
-            {s(d.button) && (
-              <span
-                className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
-                style={{ background: accent, color: bg }}
+        <div>
+          {heroSlides.map((sl, si) => {
+            const hb = !!sl.bg;
+            return (
+              <div
+                key={si}
+                className="relative border-t px-6 py-12 text-center first:border-t-0"
+                style={{
+                  borderColor: soft,
+                  ...(hb
+                    ? {
+                        backgroundImage: `url(${sl.bg})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        color: "#ffffff",
+                      }
+                    : {}),
+                }}
               >
-                {s(d.button)}
-              </span>
-            )}
-            {heroBgs.length > 1 && (
-              <p className="mt-4 font-mono text-[10px] uppercase tracking-widest opacity-70">
-                slider · {heroBgs.length} foto&apos;s
-              </p>
-            )}
-          </div>
+                {hb && (
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{ background: "rgba(0,0,0,0.45)" }}
+                  />
+                )}
+                <div className="relative">
+                  {multi && (
+                    <p className="mb-3 font-mono text-[10px] uppercase tracking-widest opacity-70">
+                      slide {si + 1}/{heroSlides.length}
+                    </p>
+                  )}
+                  <p
+                    className="font-mono text-[10px] uppercase tracking-widest"
+                    style={hb ? undefined : { color: accent }}
+                  >
+                    {s(sl.eyebrow)}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                    {s(sl.heading)}
+                  </h2>
+                  <p
+                    className={
+                      hb
+                        ? "mt-2 text-sm opacity-90"
+                        : "mt-2 text-sm opacity-70"
+                    }
+                  >
+                    {s(sl.sub)}
+                  </p>
+                  {s(sl.button) && (
+                    <span
+                      className="mt-5 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
+                      style={{ background: accent, color: bg }}
+                    >
+                      {s(sl.button)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
     }
