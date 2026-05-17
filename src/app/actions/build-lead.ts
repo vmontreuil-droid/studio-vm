@@ -104,13 +104,19 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
     return { ok: false, error: "not_configured", mailto: mailtoFor(clean) };
 
   const db = getSupabaseAdmin();
-  const { data, error } = await db
+  const msg = summarize(clean).slice(0, 8000);
+  const minimal = {
+    locale: clean.locale,
+    name: businessName,
+    email,
+    message: msg,
+  };
+  // Drie-traps insert: een builder-aanvraag mag NOOIT verloren gaan,
+  // ook al ontbreken nieuwere kolommen (source/snapshot/base/...).
+  let ins = await db
     .from("quotes")
     .insert({
-      locale: clean.locale,
-      name: businessName,
-      email,
-      message: summarize(clean).slice(0, 8000),
+      ...minimal,
       base: "builder",
       modules: clean.sections,
       plan: clean.theme,
@@ -119,7 +125,28 @@ export async function submitBuild(cfg: Cfg): Promise<BuildState> {
     })
     .select("id")
     .maybeSingle();
-  if (error) return { ok: false, error: "store", mailto: mailtoFor(clean) };
+  if (ins.error) {
+    ins = await db
+      .from("quotes")
+      .insert({
+        ...minimal,
+        base: "builder",
+        modules: clean.sections,
+        plan: clean.theme,
+      })
+      .select("id")
+      .maybeSingle();
+  }
+  if (ins.error) {
+    ins = await db
+      .from("quotes")
+      .insert(minimal)
+      .select("id")
+      .maybeSingle();
+  }
+  if (ins.error)
+    return { ok: false, error: "store", mailto: mailtoFor(clean) };
+  const data = ins.data;
 
   // Gaf de bezoeker een huidige site mee → scan ná de response, resultaat
   // bij déze aanvraag bewaren (geen mail).
