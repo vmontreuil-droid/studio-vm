@@ -85,22 +85,41 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", quoteId);
 
-        // deposit_cents staat excl. btw opgeslagen; betaald werd incl. 21%.
-        const amt =
+        const loc =
+          q.locale === "fr" || q.locale === "en" ? q.locale : "nl";
+        const eur = (c: number | null | undefined) =>
           "€ " +
-          (Math.round((q.deposit_cents ?? 0) * 1.21) / 100).toLocaleString(
-            "nl-BE",
-          ) +
-          " incl. btw";
+          ((c ?? 0) / 100).toLocaleString("nl-BE", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        // deposit_cents staat excl. btw opgeslagen; betaald werd incl. 21%.
+        const amt = `${eur(Math.round((q.deposit_cents ?? 0) * 1.21))} incl. btw`;
         await sendMail("info@studio-vm.be", {
           subject: `Aanbetaling ontvangen — ${q.name}`,
           html: `<div style="font-family:system-ui,sans-serif;color:#111;line-height:1.6"><p><strong>${q.name}</strong> (${q.email}) heeft de aanbetaling van ${amt} betaald. De scope ligt vast — klaar om op te starten.</p></div>`,
         }).catch(() => {});
-        const loc =
-          q.locale === "fr" || q.locale === "en" ? q.locale : "nl";
 
-        const eur = (c: number | null | undefined) =>
-          "€ " + Math.round((c ?? 0) / 100).toLocaleString("nl-BE");
+        // Magic-link zodat de klant meteen in zijn portaal kan (alles
+        // staat er klaar: bestelling, betaling, voortgang, support).
+        let portalUrl = `${siteUrl}/${loc}/portail`;
+        try {
+          const gen = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email: q.email,
+          });
+          const hashed = gen.data?.properties?.hashed_token;
+          if (!gen.error && hashed) {
+            portalUrl = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+              hashed,
+            )}&type=magiclink&next=${encodeURIComponent(
+              `/${loc}/portail/dashboard`,
+            )}`;
+          }
+        } catch {
+          // Val terug op de portaal-login (link blijft werken).
+        }
+
         const payable =
           (q.one_off_cents ?? 0) - (q.discount_cents ?? 0);
         const depIncl = Math.round((q.deposit_cents ?? 0) * 1.21);
@@ -113,7 +132,19 @@ export async function POST(req: NextRequest) {
           } as Record<string, string>)[q.base ?? ""] ??
           q.base ??
           "—";
-        const mods = (q.modules ?? []).filter(Boolean);
+        const mods = (q.modules ?? []).filter(
+          (m) =>
+            !!m &&
+            !/^Betaling:/i.test(m) &&
+            !/^Spreiding:/i.test(m) &&
+            !/Scope vastgelegd/i.test(m) &&
+            !/^Domein & e-mail/i.test(m),
+        );
+        const domainNote = {
+          nl: "Nog samen te bespreken — niet in deze prijs",
+          fr: "À voir ensemble — hors de ce prix",
+          en: "To discuss together — not in this price",
+        }[loc];
 
         const TR = {
           nl: {
@@ -129,6 +160,8 @@ export async function POST(req: NextRequest) {
             lDep: "Aanbetaling betaald (incl. 21% btw)",
             lBal: "Saldo",
             lMonth: "Maandfactuur vanaf oplevering",
+            lDomain: "Domein & e-mail",
+            ctaBtn: "Open je klantenportaal",
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} bij oplevering`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / maand vanaf oplevering`,
             perMonth: "/ maand",
@@ -159,6 +192,8 @@ export async function POST(req: NextRequest) {
             lDep: "Acompte payé (TVA 21% incl.)",
             lBal: "Solde",
             lMonth: "Facture mensuelle dès la livraison",
+            lDomain: "Domaine & e-mail",
+            ctaBtn: "Ouvrir votre espace client",
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} à la livraison`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / mois dès la livraison`,
             perMonth: "/ mois",
@@ -189,6 +224,8 @@ export async function POST(req: NextRequest) {
             lDep: "Deposit paid (incl. 21% VAT)",
             lBal: "Balance",
             lMonth: "Monthly invoice from delivery",
+            lDomain: "Domain & email",
+            ctaBtn: "Open your client portal",
             balOnce: `${eur(payable - (q.deposit_cents ?? 0))} on delivery`,
             balSplit: `${q.term}× ${eur(q.monthly_install_cents)} / month from delivery`,
             perMonth: "/ month",
@@ -212,7 +249,7 @@ export async function POST(req: NextRequest) {
         const font =
           "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
         const row = (k: string, v: string) =>
-          `<tr><td style="padding:7px 16px 7px 0;font:400 13px/1.5 ${font};color:#78716c;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:7px 0;font:600 14px/1.5 ${font};color:#1c1917">${v}</td></tr>`;
+          `<tr><td style="padding:8px 20px 8px 0;font:400 13px/1.5 ${font};color:#78716c;vertical-align:top;width:42%">${k}</td><td style="padding:8px 0;font:600 14px/1.5 ${font};color:#1c1917;vertical-align:top">${v}</td></tr>`;
         const summaryRows =
           row(TR.lPkg, baseName) +
           (q.subscription_cents
@@ -236,11 +273,12 @@ export async function POST(req: NextRequest) {
           row(
             TR.lMonth,
             `${eur(q.monthly_total_cents)}${TR.perMonth}`,
-          );
+          ) +
+          row(TR.lDomain, domainNote);
         const stepsHtml = TR.steps
           .map(
             (s, i) =>
-              `<tr><td valign="top" style="padding:0 12px 14px 0"><span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:${accent};color:#fff;font:700 12px/22px ${font};text-align:center">${i + 1}</span></td><td style="padding:0 0 14px;font:400 14px/1.6 ${font};color:#44403c">${s}</td></tr>`,
+              `<tr><td valign="top" style="padding:0 14px 16px 0"><span style="display:inline-block;width:24px;height:24px;background:${accent};color:#fff;font:700 13px/24px ${font};text-align:center">${i + 1}</span></td><td style="padding:0 0 16px;font:400 14px/1.6 ${font};color:#44403c">${s}</td></tr>`,
           )
           .join("");
 
@@ -251,19 +289,22 @@ export async function POST(req: NextRequest) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
   <tr><td style="padding:0 4px 22px"><img src="${siteUrl}/email-logo" width="200" height="75" alt="Studio VM" style="display:block;border:0;outline:none;width:200px;height:auto;max-width:62%"></td></tr>
-  <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:18px;padding:34px">
+  <tr><td style="background:#fafaf9;border:1px solid #e7e5e4;padding:38px 36px">
     <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${TR.subject}</p>
     <h1 style="margin:10px 0 14px;font:700 22px/1.3 ${font};color:#1c1917">${TR.hi}</h1>
-    <p style="margin:0 0 22px;font:400 15px/1.65 ${font};color:#44403c">${TR.thanks}</p>
+    <p style="margin:0 0 26px;font:400 15px/1.65 ${font};color:#44403c">${TR.thanks}</p>
 
     <p style="margin:0 0 10px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.sumHead}</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#fff;border:1px solid #e7e5e4;border-radius:12px;padding:6px 16px"><tbody>${summaryRows}</tbody></table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td style="background:#ffffff;border:1px solid #e7e5e4;padding:20px 24px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tbody>${summaryRows}</tbody></table>
+    </td></tr></table>
 
-    <p style="margin:26px 0 12px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.stepsHead}</p>
+    <p style="margin:30px 0 14px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78716c">${TR.stepsHead}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${stepsHtml}</table>
 
-    <p style="margin:8px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.portal}</p>
-    <p style="margin:18px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.reassure}</p>
+    <p style="margin:8px 0 20px;font:400 14px/1.65 ${font};color:#44403c">${TR.portal}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="${accent}" style="background:${accent}"><a href="${portalUrl}" style="display:inline-block;padding:14px 28px;font:700 14px/1 ${font};color:#ffffff;text-decoration:none">${TR.ctaBtn} &nbsp;→</a></td></tr></table>
+    <p style="margin:24px 0 0;font:400 14px/1.65 ${font};color:#44403c">${TR.reassure}</p>
     <p style="margin:22px 0 0;font:400 15px/1.6 ${font};color:#1c1917">${TR.sign}</p>
   </td></tr>
   <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">Studio VM · Vincent Montreuil · Nieuwpoortstraat 14-301, 8570 Anzegem · info@studio-vm.be · BE 0672.960.066</td></tr>
