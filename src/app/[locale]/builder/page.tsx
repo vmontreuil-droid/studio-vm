@@ -49,7 +49,11 @@ type SectionKind =
   | "pricelist"
   | "hours"
   | "map"
+  | "richtext"
+  | "banner"
+  | "newsletter"
   | "cta"
+  | "footer"
   | "contact";
 
 type SectionData = Record<string, unknown>;
@@ -117,7 +121,11 @@ const sectionKinds: SectionKind[] = [
   "pricelist",
   "hours",
   "map",
+  "richtext",
+  "banner",
+  "newsletter",
   "cta",
+  "footer",
   "contact",
 ];
 
@@ -217,7 +225,7 @@ const T: Record<
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
     panelSections: "Secties & inhoud",
-    sectionLabels: { hero: "Hero", features: "Features", steps: "Werkwijze", team: "Team", logos: "Klanten", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", cta: "Oproep", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Werkwijze", team: "Team", logos: "Klanten", about: "Over ons", stats: "Cijfers", testimonials: "Testimonials", pricing: "Pricing", gallery: "Galerij", faq: "FAQ", pricelist: "Prijslijst", hours: "Openingsuren", map: "Kaart", richtext: "Tekstblok", banner: "Aankondiging", newsletter: "Nieuwsbrief", cta: "Oproep", footer: "Footer", contact: "Contact" },
     add: "Voeg toe",
     panelReady: "Klaar?",
     readyText:
@@ -332,7 +340,7 @@ const T: Record<
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
     panelSections: "Sections & contenu",
-    sectionLabels: { hero: "Hero", features: "Atouts", steps: "Méthode", team: "Équipe", logos: "Clients", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", cta: "Appel", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Atouts", steps: "Méthode", team: "Équipe", logos: "Clients", about: "À propos", stats: "Chiffres", testimonials: "Témoignages", pricing: "Tarifs", gallery: "Galerie", faq: "FAQ", pricelist: "Tarifs liste", hours: "Horaires", map: "Carte", richtext: "Texte", banner: "Annonce", newsletter: "Newsletter", cta: "Appel", footer: "Pied de page", contact: "Contact" },
     add: "Ajouter",
     panelReady: "Prêt ?",
     readyText:
@@ -447,7 +455,7 @@ const T: Record<
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
     panelSections: "Sections & content",
-    sectionLabels: { hero: "Hero", features: "Features", steps: "Process", team: "Team", logos: "Clients", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", cta: "Call-out", contact: "Contact" },
+    sectionLabels: { hero: "Hero", features: "Features", steps: "Process", team: "Team", logos: "Clients", about: "About", stats: "Stats", testimonials: "Testimonials", pricing: "Pricing", gallery: "Gallery", faq: "FAQ", pricelist: "Price list", hours: "Opening hours", map: "Map", richtext: "Text", banner: "Announcement", newsletter: "Newsletter", cta: "Call-out", footer: "Footer", contact: "Contact" },
     add: "Add",
     panelReady: "Done?",
     readyText:
@@ -639,6 +647,14 @@ function defaults(kind: SectionKind, p: Preview): SectionData {
       };
     case "map":
       return { title: p.mapTitle, address: "" };
+    case "richtext":
+      return { title: "", text: "" };
+    case "banner":
+      return { text: "" };
+    case "newsletter":
+      return { title: "", text: "", button: "" };
+    case "footer":
+      return { text: "" };
     case "cta":
       return { title: p.ctaTitle2, text: p.ctaText2, button: p.ctaBtn2 };
     case "contact":
@@ -1552,6 +1568,10 @@ function SectionEditor({
     hero: ["eyebrow", "heading", "sub", "button"],
     about: ["title", "text"],
     cta: ["title", "text", "button"],
+    richtext: ["title", "text"],
+    banner: ["text"],
+    newsletter: ["title", "text", "button"],
+    footer: ["text"],
     gallery: ["title"],
     map: ["title", "address"],
   };
@@ -2281,6 +2301,80 @@ function PreviewSection({
         </div>
       );
     }
+    case "richtext":
+      return (
+        <div className="border-t px-8 py-12" style={border}>
+          <div className="mx-auto max-w-2xl">
+            <h3 className="text-xl font-semibold tracking-tight">
+              <E value={g("title")} onChange={(v) => edit({ title: v })} />
+            </h3>
+            <p className="mt-3 whitespace-pre-wrap text-sm opacity-70">
+              <E
+                value={g("text")}
+                onChange={(v) => edit({ text: v })}
+                multiline
+              />
+            </p>
+          </div>
+        </div>
+      );
+    case "banner":
+      return (
+        <div
+          className="border-t px-6 py-3 text-center text-xs font-medium"
+          style={{ ...border, background: theme.accent, color: theme.bg }}
+        >
+          <E value={g("text")} onChange={(v) => edit({ text: v })} />
+        </div>
+      );
+    case "newsletter":
+      return (
+        <div
+          className="border-t px-8 py-12 text-center"
+          style={{ ...border, background: `${theme.accent}0d` }}
+        >
+          <h3 className="text-xl font-semibold tracking-tight">
+            <E value={g("title")} onChange={(v) => edit({ title: v })} />
+          </h3>
+          <p className="mt-2 text-sm opacity-70">
+            <E
+              value={g("text")}
+              onChange={(v) => edit({ text: v })}
+              multiline
+            />
+          </p>
+          <div className="mx-auto mt-5 flex max-w-sm gap-2">
+            <span
+              className="flex-1 rounded-full border px-4 py-2 text-left text-xs opacity-60"
+              style={border}
+            >
+              jouw@email.be
+            </span>
+            <button
+              className="rounded-full px-4 py-2 text-xs font-medium"
+              style={{ background: theme.accent, color: theme.bg }}
+            >
+              <E
+                value={g("button")}
+                onChange={(v) => edit({ button: v })}
+              />
+            </button>
+          </div>
+        </div>
+      );
+    case "footer":
+      return (
+        <div
+          className="border-t px-8 py-8 text-center text-xs opacity-60"
+          style={border}
+        >
+          <E
+            value={g("text")}
+            onChange={(v) => edit({ text: v })}
+            multiline
+          />
+        </div>
+      );
     case "cta":
       return (
         <div

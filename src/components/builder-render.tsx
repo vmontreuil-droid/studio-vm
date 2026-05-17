@@ -249,6 +249,55 @@ function BlockView({
           </p>
         </div>
       );
+    case "richtext":
+      return (
+        <div className="border-t px-6 py-10" style={border}>
+          <div className="mx-auto max-w-2xl">
+            <h3 className="text-lg font-semibold tracking-tight">
+              {s(d.title)}
+            </h3>
+            <p className="mt-2 whitespace-pre-wrap text-sm opacity-70">
+              {s(d.text)}
+            </p>
+          </div>
+        </div>
+      );
+    case "banner":
+      return (
+        <div
+          className="border-t px-6 py-2.5 text-center text-xs font-medium"
+          style={{ background: accent, color: bg }}
+        >
+          {s(d.text) || "—"}
+        </div>
+      );
+    case "newsletter":
+      return (
+        <div
+          className="border-t px-6 py-10 text-center"
+          style={{ ...border, background: `${accent}0d` }}
+        >
+          <H>{s(d.title)}</H>
+          <p className="mt-2 text-sm opacity-70">{s(d.text)}</p>
+          {s(d.button) && (
+            <span
+              className="mt-4 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
+              style={{ background: accent, color: bg }}
+            >
+              {s(d.button)}
+            </span>
+          )}
+        </div>
+      );
+    case "footer":
+      return (
+        <div
+          className="border-t px-6 py-6 text-center text-xs opacity-60"
+          style={border}
+        >
+          {s(d.text) || "—"}
+        </div>
+      );
     default:
       return (
         <div className="border-t px-6 py-6 text-xs" style={border}>
