@@ -197,15 +197,36 @@ export function BuilderRender({ snap }: { snap: Snap }) {
                     ...(typeof bd._tcol === "string" && bd._tcol
                       ? { color: bd._tcol }
                       : {}),
+                    ...(typeof bd._bgimg === "string" && bd._bgimg
+                      ? {
+                          backgroundImage: `url(${bd._bgimg})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : {}),
                   }}
                 >
-                  <BlockView
-                    block={b}
-                    fg={fg}
-                    bg={bg}
-                    accent={accent}
-                    soft={soft}
-                  />
+                  {typeof bd._bgimg === "string" && bd._bgimg && (
+                    <div
+                      className="pointer-events-none absolute inset-0 z-0"
+                      style={{
+                        background: `rgba(0,0,0,${
+                          (typeof bd._bgdim === "number"
+                            ? bd._bgdim
+                            : 35) / 100
+                        })`,
+                      }}
+                    />
+                  )}
+                  <div className="relative z-[1]">
+                    <BlockView
+                      block={b}
+                      fg={fg}
+                      bg={bg}
+                      accent={accent}
+                      soft={soft}
+                    />
+                  </div>
                   {ovs.map((ov, oi) => (
                     <div
                       key={ov.id || oi}

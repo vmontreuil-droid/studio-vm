@@ -2198,6 +2198,104 @@ export default function BuilderPage({
                           ) : null}
                         </div>
                         <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {locale === "fr"
+                            ? "Photo de fond"
+                            : locale === "en"
+                              ? "Background photo"
+                              : "Achtergrondfoto"}
+                        </p>
+                        <div className="mb-3 flex items-center gap-2">
+                          {openSec.data._bgimg ? (
+                            <>
+                              <span className="h-9 flex-1 overflow-hidden rounded-lg border">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={String(openSec.data._bgimg)}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  patchData(openSec.id, { _bgimg: "" })
+                                }
+                                className="rounded-lg border p-2 text-muted hover:text-red-500"
+                                aria-label="x"
+                              >
+                                <X className="h-4 w-4" strokeWidth={2} />
+                              </button>
+                            </>
+                          ) : (
+                            <label className="flex h-9 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed text-[11px] text-muted transition-colors hover:bg-card-hover">
+                              <ImagePlus
+                                className="h-3.5 w-3.5"
+                                strokeWidth={2}
+                              />
+                              {locale === "fr"
+                                ? "Importer"
+                                : locale === "en"
+                                  ? "Upload"
+                                  : "Uploaden"}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (
+                                    !f ||
+                                    !f.type.startsWith("image/") ||
+                                    f.size > 4_000_000
+                                  )
+                                    return;
+                                  const r = new FileReader();
+                                  r.onload = () =>
+                                    patchData(openSec.id, {
+                                      _bgimg: String(r.result),
+                                    });
+                                  r.readAsDataURL(f);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                        {openSec.data._bgimg && (
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="text-[11px] text-muted">
+                              {locale === "fr"
+                                ? "Assombrir"
+                                : locale === "en"
+                                  ? "Darken"
+                                  : "Verdonkeren"}
+                            </span>
+                            <input
+                              type="range"
+                              min={0}
+                              max={75}
+                              step={5}
+                              value={
+                                typeof openSec.data._bgdim === "number"
+                                  ? (openSec.data._bgdim as number)
+                                  : 35
+                              }
+                              onChange={(e) =>
+                                patchData(openSec.id, {
+                                  _bgdim: Number(e.target.value),
+                                })
+                              }
+                              className="h-1 flex-1 cursor-pointer accent-accent"
+                            />
+                            <span className="w-8 text-right font-mono text-[11px] tabular-nums">
+                              {typeof openSec.data._bgdim === "number"
+                                ? (openSec.data._bgdim as number)
+                                : 35}
+                              %
+                            </span>
+                          </div>
+                        )}
+                        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                           {c.sectBgLabel}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -3667,17 +3765,38 @@ export default function BuilderPage({
                       ...(typeof s.data._tcol === "string" && s.data._tcol
                         ? { color: s.data._tcol as string }
                         : {}),
+                      ...(typeof s.data._bgimg === "string" && s.data._bgimg
+                        ? {
+                            backgroundImage: `url(${s.data._bgimg})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }
+                        : {}),
                     }}
                   >
-                    <PreviewSection
-                      kind={s.kind}
-                      data={s.data}
-                      theme={theme}
-                      businessName={businessName}
-                      images={images}
-                      p={c.preview}
-                      edit={(patch) => patchData(s.id, patch)}
-                    />
+                    {typeof s.data._bgimg === "string" && s.data._bgimg && (
+                      <div
+                        className="pointer-events-none absolute inset-0 z-0"
+                        style={{
+                          background: `rgba(0,0,0,${
+                            (typeof s.data._bgdim === "number"
+                              ? s.data._bgdim
+                              : 35) / 100
+                          })`,
+                        }}
+                      />
+                    )}
+                    <div className="relative z-[1]">
+                      <PreviewSection
+                        kind={s.kind}
+                        data={s.data}
+                        theme={theme}
+                        businessName={businessName}
+                        images={images}
+                        p={c.preview}
+                        edit={(patch) => patchData(s.id, patch)}
+                      />
+                    </div>
                     <SectionOverlays
                       data={s.data}
                       theme={theme}
@@ -4530,14 +4649,44 @@ function SectionEditor({
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
               #{idx + 1}
             </span>
-            <button
-              type="button"
-              onClick={() => setItems(items.filter((_, j) => j !== idx))}
-              className="rounded p-0.5 text-muted hover:text-red-500"
-              aria-label="x"
-            >
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
-            </button>
+            <div className="flex items-center gap-1 text-muted">
+              <button
+                type="button"
+                onClick={() => {
+                  if (idx === 0) return;
+                  const n = [...items];
+                  [n[idx - 1], n[idx]] = [n[idx], n[idx - 1]];
+                  setItems(n);
+                }}
+                disabled={idx === 0}
+                aria-label="↑"
+                className="rounded p-0.5 hover:text-foreground disabled:opacity-30"
+              >
+                <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (idx === items.length - 1) return;
+                  const n = [...items];
+                  [n[idx + 1], n[idx]] = [n[idx], n[idx + 1]];
+                  setItems(n);
+                }}
+                disabled={idx === items.length - 1}
+                aria-label="↓"
+                className="rounded p-0.5 hover:text-foreground disabled:opacity-30"
+              >
+                <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setItems(items.filter((_, j) => j !== idx))}
+                className="rounded p-0.5 hover:text-red-500"
+                aria-label="x"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             {Object.keys(labels).map((key) => (
