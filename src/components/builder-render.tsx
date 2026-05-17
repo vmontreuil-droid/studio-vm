@@ -4,7 +4,13 @@
 type Block = { kind: string; data: Record<string, unknown> };
 // Tolereert beide vormen: cfg-shape (pages[].blocks, theme=label,
 // colors{}) én het portaal-snapshot (pages[].sections, theme-object).
-type SnapPage = { name: string; blocks?: Block[]; sections?: Block[] };
+type SnapPage = {
+  name: string;
+  blocks?: Block[];
+  sections?: Block[];
+  seoTitle?: string;
+  seoDesc?: string;
+};
 type Snap = {
   businessName?: string;
   colors?: { bg?: string; fg?: string; accent?: string };
@@ -128,6 +134,13 @@ export function BuilderRender({ snap }: { snap: Snap }) {
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
             Pagina: {page.name || `#${pi + 1}`}
           </p>
+          {(page.seoTitle || page.seoDesc) && (
+            <p className="mb-2 rounded-lg bg-card p-2 text-[11px] text-muted">
+              <span className="opacity-60">SEO:</span>{" "}
+              <strong>{page.seoTitle || page.name}</strong>
+              {page.seoDesc ? ` — ${page.seoDesc}` : ""}
+            </p>
+          )}
           <div
             className="overflow-hidden border"
             style={{ background: bg, color: fg, borderRadius: rad }}

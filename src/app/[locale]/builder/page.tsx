@@ -110,7 +110,13 @@ type SectionKind =
 
 type SectionData = Record<string, unknown>;
 type Section = { id: string; kind: SectionKind; data: SectionData };
-type Page = { id: string; name: string; sections: Section[] };
+type Page = {
+  id: string;
+  name: string;
+  sections: Section[];
+  seoTitle?: string;
+  seoDesc?: string;
+};
 
 const PG: Record<
   Locale,
@@ -1804,6 +1810,8 @@ export default function BuilderPage({
   };
   const renamePage = (id: string, name: string) =>
     setPages((ps) => ps.map((p) => (p.id === id ? { ...p, name } : p)));
+  const setPageSeo = (id: string, patch: Partial<Page>) =>
+    setPages((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const deletePage = (id: string) =>
     setPages((ps) => {
       if (ps.length <= 1) return ps;
@@ -2895,6 +2903,80 @@ export default function BuilderPage({
                 <Plus className="h-3 w-3" strokeWidth={2.5} />
                 {pg.add}
               </button>
+            </Panel>
+
+            <Panel
+              icon={<Type className="h-4 w-4" />}
+              title={
+                locale === "fr"
+                  ? `SEO — ${active.name}`
+                  : locale === "en"
+                    ? `SEO — ${active.name}`
+                    : `SEO — ${active.name}`
+              }
+            >
+              <p className="mb-3 text-[11px] text-muted">
+                {locale === "fr"
+                  ? "Ce que Google montre voor deze pagina."
+                  : locale === "en"
+                    ? "What Google shows for this page."
+                    : "Wat Google toont voor deze pagina."}
+              </p>
+              <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Titre SEO"
+                  : locale === "en"
+                    ? "SEO title"
+                    : "SEO-titel"}{" "}
+                <span
+                  className={
+                    (active.seoTitle?.length ?? 0) > 60
+                      ? "text-amber-500"
+                      : "text-muted"
+                  }
+                >
+                  {active.seoTitle?.length ?? 0}/60
+                </span>
+              </label>
+              <input
+                value={active.seoTitle ?? ""}
+                onChange={(e) =>
+                  setPageSeo(active.id, { seoTitle: e.target.value })
+                }
+                placeholder={active.name}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+              <label className="mb-1 mt-3 block font-mono text-[10px] uppercase tracking-widest text-muted">
+                {locale === "fr"
+                  ? "Méta-description"
+                  : locale === "en"
+                    ? "Meta description"
+                    : "Meta-omschrijving"}{" "}
+                <span
+                  className={
+                    (active.seoDesc?.length ?? 0) > 160
+                      ? "text-amber-500"
+                      : "text-muted"
+                  }
+                >
+                  {active.seoDesc?.length ?? 0}/160
+                </span>
+              </label>
+              <textarea
+                value={active.seoDesc ?? ""}
+                onChange={(e) =>
+                  setPageSeo(active.id, { seoDesc: e.target.value })
+                }
+                rows={3}
+                placeholder={
+                  locale === "fr"
+                    ? "Une phrase accrocheuse…"
+                    : locale === "en"
+                      ? "One catchy sentence…"
+                      : "Eén pakkende zin…"
+                }
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+              />
             </Panel>
 
             <Panel
