@@ -433,13 +433,15 @@ export function OfferBuilder({
         </label>
         <label className="mt-3 block">
           <span className="mb-1 block text-xs font-medium text-muted">
-            Omschrijving voor de klant (optioneel)
+            Omschrijving voor de klant — laat leeg voor automatische
+            intro op maat (pakket + abonnement), in de taal van de
+            klant
           </span>
           <textarea
             name="body"
             rows={6}
             defaultValue={prefill.body ?? ""}
-            placeholder="Vrije toelichting bovenaan de offerte…"
+            placeholder="Leeg laten = automatische, op maat gegenereerde intro in de taal van de klant. Typ hier enkel als je een eigen tekst wil."
             className={field}
           />
         </label>

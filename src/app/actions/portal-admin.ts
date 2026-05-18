@@ -15,6 +15,7 @@ import {
 } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
 import { portalEmailHtml, offerPreviewHtml } from "@/lib/email";
+import { offerIntroText } from "@/lib/offer-intro";
 import { randomBytes } from "crypto";
 import { runScan } from "@/app/actions/scan";
 
@@ -250,9 +251,30 @@ export async function createOffer(formData: FormData): Promise<void> {
 
   // De vastleg-/betaal- én domein/e-mail-voorwaarden staan NIET
   // meer in de vrije klanttekst — die worden contextueel onder de
-  // bedragen in het offertedocument getoond (zie portaal). De
-  // klanttekst blijft dus zuiver de eigen toelichting.
-  const finalBody = body;
+  // bedragen in het offertedocument getoond (zie portaal).
+  // Laat de admin het omschrijvingsveld leeg, dan genereren we
+  // automatisch een op-maat-intro (pakket + abonnement) in de taal
+  // van de klant; typt hij zelf iets, dan wint zijn tekst.
+  let finalBody = body;
+  if (!finalBody) {
+    const introLoc = await clientLocale(email);
+    const baseName = base
+      ? base.name.split(/[—–-]/)[0].trim()
+      : null;
+    const introSubTier = sub
+      ? subscriptionTiers().find((tr) =>
+          (sub.name ?? "")
+            .toLowerCase()
+            .includes(tr.name.toLowerCase()),
+        )
+      : undefined;
+    finalBody = offerIntroText(
+      introLoc,
+      baseName,
+      introSubTier ? introSubTier.name : null,
+      lockin,
+    );
+  }
 
   // Offertenummer OFF-{jaar}-{volgnr}
   const year = new Date().getFullYear();
