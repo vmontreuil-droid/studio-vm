@@ -6,6 +6,7 @@ import { leadsConfigured, siteUrl } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
 import { unsubLink } from "@/lib/newsletter-token";
 import { ensurePortalUser } from "@/lib/portal-access";
+import { portalEmailHtml } from "@/lib/email";
 import type { ScanResult } from "@/app/actions/scan";
 
 export type ScanLeadState =
@@ -185,83 +186,56 @@ async function sendPortalMail(
   const accent = "#e08214";
   const safeHost = host.replace(/[<>&]/g, "");
   const pct = Math.max(0, Math.min(100, Math.round(score)));
-  const font =
+  const ff =
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   const items = t.items
     .map(
       (it) => `
       <tr>
-        <td valign="top" style="padding:0 12px 12px 0;font:700 15px/1.5 ${font};color:${accent}">✓</td>
-        <td valign="top" style="padding:0 0 12px 0;font:400 14px/1.55 ${font};color:#d6d3d1">${it}</td>
+        <td valign="top" style="padding:0 12px 12px 0;font:700 15px/1.5 ${ff};color:${accent}">&#10003;</td>
+        <td valign="top" style="padding:0 0 12px 0;font:400 14px/1.55 ${ff};color:#44403c">${it}</td>
       </tr>`,
     )
     .join("");
+  const extraHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-collapse:separate">
+      <tr><td style="padding:22px 24px">
+        <p style="margin:0 0 12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#78716c">${t.scoreLabel}</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
+          <td valign="middle" style="padding-right:18px;font:800 46px/1 ${ff};color:${accent}">${grade}</td>
+          <td valign="middle">
+            <div style="font:700 22px/1 ${ff};color:#1c1917">${pct}<span style="font:600 14px/1 ${ff};color:#78716c"> / 100</span></div>
+            <div style="margin-top:6px;font:600 13px/1 ${ff};color:${accent}">${t.verdict(pct)}</div>
+          </td>
+        </tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-collapse:separate;table-layout:fixed"><tr>
+          <td bgcolor="${accent}" height="6" width="${pct}%" style="font-size:0;line-height:0">&nbsp;</td>
+          <td bgcolor="#e7e5e4" height="6" width="${100 - pct}%" style="font-size:0;line-height:0">&nbsp;</td>
+        </tr></table>
+      </td></tr>
+    </table>
+    <p style="margin:24px 0 14px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#1c1917">${t.insideTitle}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${items}</table>
+    <p style="margin:20px 0 0;font:400 13px/1.6 ${ff};color:#78716c">${t.foot}</p>`;
 
   await sendMail(email, {
     subject: t.subject(safeHost),
-    html: `<!DOCTYPE html>
-<html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"></head>
-<body style="margin:0;padding:0;background:#0c0a09;-webkit-text-size-adjust:100%">
-<span style="display:none!important;opacity:0;color:#0c0a09;font-size:1px;line-height:1px;max-height:0;max-width:0;overflow:hidden">${t.preheader}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse">
-<tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 26px;font:800 64px/1 ${font};letter-spacing:-3px;color:#fafaf9">vm<span style="color:${accent}">.</span></td></tr>
-  <tr><td style="background:#161210;border:1px solid #2c2521;border-radius:18px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-      <tr><td style="padding:32px 32px 0">
-        <p style="margin:0 0 10px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:${accent}">${t.eyebrow}</p>
-        <h1 style="margin:0 0 14px;font:700 23px/1.3 ${font};color:#fafaf9">${t.headline(safeHost)}</h1>
-        <p style="margin:0 0 24px;font:400 15px/1.65 ${font};color:#a8a29e">${t.intro}</p>
-      </td></tr>
-      <tr><td style="padding:0 32px">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#211a14;border:1px solid #3a2f25;border-radius:14px;border-collapse:separate">
-          <tr><td style="padding:22px 24px">
-            <p style="margin:0 0 12px;font:700 11px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#a8a29e">${t.scoreLabel}</p>
-            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
-              <td valign="middle" style="padding-right:18px;font:800 46px/1 ${font};color:${accent}">${grade}</td>
-              <td valign="middle">
-                <div style="font:700 22px/1 ${font};color:#fafaf9">${pct}<span style="font:600 14px/1 ${font};color:#a8a29e"> / 100</span></div>
-                <div style="margin-top:6px;font:600 13px/1 ${font};color:${accent}">${t.verdict(pct)}</div>
-              </td>
-            </tr></table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-collapse:separate;table-layout:fixed"><tr>
-              <td bgcolor="${accent}" height="6" width="${pct}%" style="border-radius:3px;font-size:0;line-height:0">&nbsp;</td>
-              <td bgcolor="#3a2f25" height="6" width="${100 - pct}%" style="font-size:0;line-height:0">&nbsp;</td>
-            </tr></table>
-          </td></tr>
-        </table>
-      </td></tr>
-      <tr><td style="padding:28px 32px 0">
-        <p style="margin:0 0 16px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#fafaf9">${t.insideTitle}</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${items}</table>
-      </td></tr>
-      <tr><td style="padding:28px 32px 8px">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr>
-          <td align="center" bgcolor="#fafaf9" style="border-radius:9999px">
-            <a href="${portalUrl}" style="display:block;padding:16px 28px;font:700 15px/1 ${font};color:#0c0a09;text-decoration:none">${t.cta} &nbsp;→</a>
-          </td>
-        </tr></table>
-        <p style="margin:16px 0 0;text-align:center;font:400 12px/1.5 ${font};color:#78716c">${t.reassure}</p>
-      </td></tr>
-      <tr><td style="padding:24px 32px 30px">
-        <div style="border-top:1px solid #2c2521;padding-top:18px">
-          <p style="margin:0;font:400 13px/1.6 ${font};color:#a8a29e">${t.foot}</p>
-        </div>
-      </td></tr>
-    </table>
-  </td></tr>
-  <tr><td style="padding:22px 4px 0;text-align:center;font:400 11px/1.5 ${font};color:#57534e">© ${new Date().getFullYear()} Studio VM · Vincent Montreuil · <a href="https://studio-vm.be" style="color:#78716c;text-decoration:none">studio-vm.be</a><br><a href="${unsubLink(email)}" style="color:#57534e;text-decoration:underline">${
-    locale === "fr"
-      ? "Se désinscrire des updates"
-      : locale === "en"
-        ? "Unsubscribe from updates"
-        : "Uitschrijven voor updates"
-  }</a></td></tr>
-</table>
-</td></tr>
-</table>
-</body></html>`,
+    html: portalEmailHtml({
+      locale,
+      eyebrow: t.eyebrow,
+      title: t.headline(safeHost),
+      bodyLines: [t.intro],
+      extraHtml,
+      ctaLabel: t.cta,
+      ctaHref: portalUrl,
+      footnote: `${t.reassure}<br><a href="${unsubLink(email)}" style="color:#78716c;text-decoration:underline">${
+        locale === "fr"
+          ? "Se désinscrire des updates"
+          : locale === "en"
+            ? "Unsubscribe from updates"
+            : "Uitschrijven voor updates"
+      }</a>`,
+    }),
   });
 }
 

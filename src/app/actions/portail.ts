@@ -7,6 +7,7 @@ import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
+import { portalEmailHtml } from "@/lib/email";
 
 export type AuthState = { ok: boolean; message: string };
 
@@ -117,27 +118,21 @@ export async function sendMagicLink(
       `/${locale}/portail/dashboard`,
     )}`;
 
-    const accent = "#e08214";
-    const font =
-      "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+    const eyebrow =
+      { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[
+        locale
+      ] ?? "Je klantenportaal";
     await sendMail(email, {
       subject: t.subject,
-      html: `<!DOCTYPE html><html><body style="margin:0;background:#0c0a09">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:560px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 26px;font:800 64px/1 ${font};letter-spacing:-3px;color:#fafaf9">vm<span style="color:${accent}">.</span></td></tr>
-  <tr><td style="background:#161210;border:1px solid #2c2521;border-radius:18px;padding:32px">
-    <h1 style="margin:0 0 14px;font:700 21px/1.3 ${font};color:#fafaf9">${t.title}</h1>
-    <p style="margin:0 0 24px;font:400 15px/1.65 ${font};color:#a8a29e">${t.intro}</p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr>
-      <td align="center" bgcolor="#fafaf9" style="border-radius:9999px">
-        <a href="${link}" style="display:block;padding:16px 30px;font:700 15px/1 ${font};color:#0c0a09;text-decoration:none">${t.cta} &nbsp;→</a>
-      </td>
-    </tr></table>
-    <p style="margin:22px 0 0;font:400 12px/1.6 ${font};color:#78716c">${t.note}</p>
-  </td></tr>
-  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.5 ${font};color:#57534e">© ${new Date().getFullYear()} Studio VM · studio-vm.be</td></tr>
-</table></td></tr></table></body></html>`,
+      html: portalEmailHtml({
+        locale,
+        eyebrow,
+        title: t.title,
+        bodyLines: [t.intro],
+        ctaLabel: t.cta,
+        ctaHref: link,
+        footnote: t.note,
+      }),
     });
 
     return { ok: true, message: t.ok };

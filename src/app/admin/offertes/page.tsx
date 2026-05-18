@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { resendOffer, deleteOffer } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -119,14 +120,16 @@ export default async function AdminOffertes({
           </p>
         )}
         {offers.map((o) => (
-          <Link
+          <div
             key={o.id}
-            href={`/admin/klanten/${encodeURIComponent(
-              o.client_email,
-            )}?tab=offertes`}
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+            className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border bg-card p-5"
           >
-            <div className="min-w-0 flex-1">
+            <Link
+              href={`/admin/klanten/${encodeURIComponent(
+                o.client_email,
+              )}?tab=offertes`}
+              className="min-w-0 flex-1 transition-opacity hover:opacity-80"
+            >
               <p className="font-medium">
                 {o.offer_no ? `${o.offer_no} · ` : ""}
                 {o.title}{" "}
@@ -140,15 +143,35 @@ export default async function AdminOffertes({
                   timeZone: "Europe/Brussels",
                 })}
               </p>
+            </Link>
+            <div className="flex items-center gap-2">
+              <span
+                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                  o.status,
+                )}`}
+              >
+                {o.status}
+              </span>
+              <form action={resendOffer}>
+                <input type="hidden" name="id" value={o.id} />
+                <button
+                  type="submit"
+                  className="rounded-full border px-3 py-1.5 text-xs transition-colors hover:bg-card-hover"
+                >
+                  Herverstuur
+                </button>
+              </form>
+              <form action={deleteOffer}>
+                <input type="hidden" name="id" value={o.id} />
+                <button
+                  type="submit"
+                  className="rounded-full border border-red-500/40 px-3 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
+                >
+                  Verwijder
+                </button>
+              </form>
             </div>
-            <span
-              className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
-                o.status,
-              )}`}
-            >
-              {o.status}
-            </span>
-          </Link>
+          </div>
         ))}
       </div>
     </>

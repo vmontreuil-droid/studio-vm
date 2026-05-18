@@ -13,6 +13,7 @@ import {
   subscriptionTiers,
 } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
+import { portalEmailHtml } from "@/lib/email";
 import { randomBytes } from "crypto";
 import { runScan } from "@/app/actions/scan";
 
@@ -95,9 +96,6 @@ async function notifyClient(
   const locale = await clientLocale(email);
   const subject = SUBJECT[kind][locale] ?? SUBJECT[kind].nl;
   const portalUrl = `${siteUrl}/${locale}/portail`;
-  const accent = "#e08214";
-  const font =
-    "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   const eyebrow =
     { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[
       locale
@@ -111,25 +109,15 @@ async function notifyClient(
     "Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.";
   await sendMail(email, {
     subject,
-    html: `<!DOCTYPE html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-collapse:collapse"><tr><td align="center" style="padding:40px 16px">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:560px;max-width:100%;border-collapse:collapse">
-  <tr><td style="background:#ffffff;border:1px solid #e7e5e4;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:40px 38px">
-    <p style="margin:0 0 26px;font:800 56px/1 ${font};letter-spacing:-4px;color:#1c1917">vm<span style="color:${accent}">.</span></p>
-    <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${eyebrow}</p>
-    <h1 style="margin:8px 0 16px;font:700 22px/1.3 ${font};color:#1c1917">${subject}</h1>
-    ${bodyLines
-      .map(
-        (l) =>
-          `<p style="margin:0 0 14px;font:400 15px/1.65 ${font};color:#44403c">${l}</p>`,
-      )
-      .join("")}
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;border-collapse:separate"><tr><td bgcolor="${accent}" style="background:${accent}"><a href="${portalUrl}" style="display:inline-block;padding:14px 30px;font:700 14px/1 ${font};color:#ffffff;text-decoration:none">${CTA[locale] ?? CTA.nl} &nbsp;&rarr;</a></td></tr></table>
-    <p style="margin:24px 0 0;font:400 13px/1.6 ${font};color:#78716c">${signin}</p>
-  </td></tr>
-  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">&copy; ${new Date().getFullYear()} Studio VM &middot; studio-vm.be</td></tr>
-</table></td></tr></table></body></html>`,
+    html: portalEmailHtml({
+      locale,
+      eyebrow,
+      title: subject,
+      bodyLines,
+      ctaLabel: CTA[locale] ?? CTA.nl,
+      ctaHref: portalUrl,
+      footnote: signin,
+    }),
   }).catch(() => {});
 }
 
@@ -310,6 +298,49 @@ export async function createOffer(formData: FormData): Promise<void> {
   ]);
   revalidatePath("/admin/klanten", "layout");
   return;
+}
+
+export async function resendOffer(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const { data } = await getSupabaseAdmin()
+    .from("offers")
+    .select("client_email, offer_no, title, amount_cents, valid_until")
+    .eq("id", id)
+    .maybeSingle();
+  const o = data as {
+    client_email: string;
+    offer_no: string | null;
+    title: string;
+    amount_cents: number | null;
+    valid_until: string | null;
+  } | null;
+  if (!o?.client_email) return;
+  await ensurePortalUser(o.client_email);
+  await notifyClient(o.client_email, "offer", [
+    `Je offerte staat (opnieuw) voor je klaar: <strong>${o.title}</strong>${
+      o.offer_no ? ` (${o.offer_no})` : ""
+    }${
+      o.amount_cents
+        ? ` — € ${(o.amount_cents / 100).toFixed(2)}`
+        : ""
+    }.`,
+    `${
+      o.valid_until ? `Geldig tot ${o.valid_until}. ` : ""
+    }Bekijk 'm in je portaal en aanvaard of wijs af met één klik.`,
+  ]);
+  revalidatePath("/admin/klanten", "layout");
+  revalidatePath("/admin/offertes");
+}
+
+export async function deleteOffer(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin().from("offers").delete().eq("id", id);
+  revalidatePath("/admin/offertes");
+  revalidatePath("/admin/klanten", "layout");
 }
 
 export async function setOfferStatus(
