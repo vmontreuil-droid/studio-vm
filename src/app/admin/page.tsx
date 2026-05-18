@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { TrendChart } from "@/components/trend-chart";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -146,6 +147,21 @@ export default async function AdminDashboard() {
   const paidThisMonth = invoices
     .filter((i) => i.status === "betaald" && i.issued_at.startsWith(ymThis))
     .reduce((t, i) => t + i.amount_cents, 0);
+  // Betaalde omzet per maand, laatste 6 maanden (vloeiende trend).
+  const revMonths = Array.from({ length: 6 }, (_, k) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: d.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        invoices
+          .filter(
+            (i) => i.status === "betaald" && i.issued_at.startsWith(ym),
+          )
+          .reduce((t, i) => t + i.amount_cents, 0) / 100,
+      ),
+    };
+  });
   const openOfferValue = offers
     .filter((o) => o.status === "open")
     .reduce((t, o) => t + (o.amount_cents ?? 0), 0);
@@ -236,9 +252,7 @@ export default async function AdminDashboard() {
   ];
 
   const aanvraagWeeks = weekBuckets(quotes, (r) => r.created_at);
-  const aMax = Math.max(1, ...aanvraagWeeks.map((w) => w.count));
   const scanWeeks = weekBuckets(scanRows, (r) => r.created_at);
-  const sMax = Math.max(1, ...scanWeeks.map((w) => w.count));
 
   const SOURCES = [
     { key: "builder", label: "Builder" },
@@ -314,6 +328,27 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
+      <div className="mt-3 rounded-2xl border bg-card p-5">
+        <div className="flex items-center justify-between">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Betaalde omzet — laatste 6 maanden
+          </p>
+          <Link
+            href="/admin/facturen?status=betaald"
+            className="text-xs text-muted hover:text-foreground"
+          >
+            Facturen →
+          </Link>
+        </div>
+        <TrendChart
+          id="omzet"
+          color="var(--accent)"
+          height={150}
+          unit=" €"
+          points={revMonths}
+        />
+      </div>
+
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {stats.map((s) => (
           <Link
@@ -334,28 +369,17 @@ export default async function AdminDashboard() {
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Aanvragen per week
           </p>
-          <div className="mt-5 flex h-28 items-end gap-2">
-            {aanvraagWeeks.map((w, i) => (
-              <div
-                key={i}
-                className="flex flex-1 flex-col items-center gap-1.5"
-              >
-                <span className="font-mono text-[10px] text-muted">
-                  {w.count}
-                </span>
-                <div
-                  className="w-full rounded-t bg-accent/70"
-                  style={{ height: `${Math.max(2, (w.count / aMax) * 100)}%` }}
-                />
-                <span className="font-mono text-[9px] text-muted">
-                  {w.start.toLocaleDateString("nl-BE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </span>
-              </div>
-            ))}
-          </div>
+          <TrendChart
+            id="aanvragen"
+            color="var(--accent)"
+            points={aanvraagWeeks.map((w) => ({
+              label: w.start.toLocaleDateString("nl-BE", {
+                day: "2-digit",
+                month: "2-digit",
+              }),
+              value: w.count,
+            }))}
+          />
         </div>
 
         <div className="rounded-2xl border bg-card p-5">
@@ -386,28 +410,17 @@ export default async function AdminDashboard() {
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Scans per week
           </p>
-          <div className="mt-5 flex h-28 items-end gap-2">
-            {scanWeeks.map((w, i) => (
-              <div
-                key={i}
-                className="flex flex-1 flex-col items-center gap-1.5"
-              >
-                <span className="font-mono text-[10px] text-muted">
-                  {w.count}
-                </span>
-                <div
-                  className="w-full rounded-t bg-sky-500/60"
-                  style={{ height: `${Math.max(2, (w.count / sMax) * 100)}%` }}
-                />
-                <span className="font-mono text-[9px] text-muted">
-                  {w.start.toLocaleDateString("nl-BE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </span>
-              </div>
-            ))}
-          </div>
+          <TrendChart
+            id="scans"
+            color="#0ea5e9"
+            points={scanWeeks.map((w) => ({
+              label: w.start.toLocaleDateString("nl-BE", {
+                day: "2-digit",
+                month: "2-digit",
+              }),
+              value: w.count,
+            }))}
+          />
         </div>
 
         <div className="rounded-2xl border bg-card p-5">
