@@ -14,6 +14,7 @@ import type { ScanResult } from "@/app/actions/scan";
 import {
   createOffer,
   setOfferStatus,
+  createOfferInvoice,
   addInvoice,
   setInvoiceStatus,
   setSubscription,
@@ -571,6 +572,14 @@ export default async function AdminKlantDetail({
                     ✕
                   </button>
                 </form>
+                {o.status === "akkoord" && (
+                  <form action={createOfferInvoice}>
+                    <input type="hidden" name="id" value={o.id} />
+                    <button className="whitespace-nowrap rounded-full border border-accent px-3 py-1.5 text-xs font-medium text-accent hover:bg-card-hover">
+                      Voorschotfactuur aanmaken
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>

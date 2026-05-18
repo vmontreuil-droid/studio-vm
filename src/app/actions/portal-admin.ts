@@ -394,6 +394,96 @@ export async function deleteOffer(formData: FormData): Promise<void> {
   revalidatePath("/admin/klanten", "layout");
 }
 
+// Vangnet: maak handmatig de (voorschot)factuur voor een
+// goedgekeurde offerte. Idempotent op offer_id — bestaat er al een
+// factuur voor die offerte, dan gebeurt er niets.
+export async function createOfferInvoice(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("offers")
+    .select(
+      "id, client_email, offer_no, title, amount_cents, items",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  const o = data as {
+    id: string;
+    client_email: string;
+    offer_no: string | null;
+    title: string;
+    amount_cents: number | null;
+    items: { cents: number }[] | null;
+  } | null;
+  if (!o?.client_email || (o.amount_cents ?? 0) <= 0) return;
+
+  const { data: dup } = await db
+    .from("invoices")
+    .select("id")
+    .eq("offer_id", o.id)
+    .limit(1)
+    .maybeSingle();
+  if (dup) {
+    revalidatePath("/admin/klanten", "layout");
+    return;
+  }
+
+  const lockin = (o.items ?? []).some(
+    (it) => typeof it.cents === "number" && it.cents < 0,
+  );
+  const full = o.amount_cents ?? 0;
+  const invCents = lockin ? Math.round(full * 0.3) : full;
+  const invDesc = lockin
+    ? `Voorschot 30% — ${o.title}${
+        o.offer_no ? ` (${o.offer_no})` : ""
+      } · rest vóór livegang`
+    : `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`;
+  const year = new Date().getFullYear();
+  const { count } = await db
+    .from("invoices")
+    .select("id", { count: "exact", head: true });
+  const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
+    3,
+    "0",
+  )}`;
+  const dueAt = new Date(Date.now() + 14 * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const { error } = await db.from("invoices").insert({
+    client_email: o.client_email,
+    number: invNo,
+    description: invDesc,
+    amount_cents: invCents,
+    status: "open",
+    due_at: dueAt,
+    offer_id: o.id,
+  });
+  if (error) return;
+  await db
+    .from("offers")
+    .update({ invoiced_at: new Date().toISOString() })
+    .eq("id", o.id);
+  await ensurePortalUser(o.client_email);
+  await notifyClient(
+    o.client_email,
+    "invoice",
+    [
+      `Er staat een factuur voor je klaar: <strong>${invNo}</strong> — € ${(
+        invCents / 100
+      ).toFixed(2)}.`,
+      `Betaalbaar tegen ${dueAt}. Je vindt 'm in je portaal, met de keuze online via Mollie of via overschrijving.`,
+    ],
+    undefined,
+    "dashboard/facturen",
+  );
+  revalidatePath("/admin/klanten", "layout");
+  revalidatePath("/admin/facturen");
+}
+
 export async function setOfferStatus(
   id: string,
   status: "open" | "akkoord" | "afgewezen",
