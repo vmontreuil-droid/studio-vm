@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 type Item = { key: string; slug?: string; name: string; cents: number; desc?: string };
 type Included = Record<
@@ -70,6 +76,75 @@ export function OfferBuilder({
   const [vatName, setVatName] = useState<string | null>(null);
   const [subOverride, setSubOverride] = useState(prefill.sub ?? "");
   const [lockin, setLockin] = useState(prefill.lockin === "1");
+  const formRef = useRef<HTMLFormElement>(null);
+  const [, startTransition] = useTransition();
+  const [busy, setBusy] = useState<null | "offer" | "scan">(null);
+  const [notice, setNotice] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
+
+  function submitOffer() {
+    const form = formRef.current;
+    if (!form || busy) return;
+    const fd = new FormData(form);
+    if (!String(fd.get("client_email") ?? "").trim()) {
+      setNotice({ ok: false, text: "Vul eerst de klant-e-mail in." });
+      return;
+    }
+    setNotice(null);
+    setBusy("offer");
+    startTransition(async () => {
+      try {
+        await action(fd);
+        setNotice({
+          ok: true,
+          text: "Offerte aangemaakt en verstuurd naar de klant.",
+        });
+      } catch {
+        setNotice({
+          ok: false,
+          text: "Versturen mislukt — probeer opnieuw.",
+        });
+      } finally {
+        setBusy(null);
+      }
+    });
+  }
+
+  function submitScan() {
+    const form = formRef.current;
+    if (!form || !scanAction || busy) return;
+    const fd = new FormData(form);
+    if (
+      !String(fd.get("client_email") ?? "").trim() ||
+      !String(fd.get("url") ?? "").trim()
+    ) {
+      setNotice({
+        ok: false,
+        text: "Voor de scan: vul de klant-e-mail én de website in.",
+      });
+      return;
+    }
+    setNotice(null);
+    setBusy("scan");
+    startTransition(async () => {
+      try {
+        await scanAction(fd);
+        setNotice({
+          ok: true,
+          text: "Scan toegevoegd — staat in het portaal van de klant (zonder mail).",
+        });
+      } catch {
+        setNotice({
+          ok: false,
+          text: "Scan mislukt — controleer de URL en probeer opnieuw.",
+        });
+      } finally {
+        setBusy(null);
+      }
+    });
+  }
 
   const base = bases.find((b) => b.key === baseKey);
   const inc = base?.slug ? included[base.slug] : undefined;
@@ -184,7 +259,11 @@ export function OfferBuilder({
 
   return (
     <form
-      action={action}
+      ref={formRef}
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitOffer();
+      }}
       className="space-y-4 rounded-2xl border border-dashed bg-card/50 p-5"
     >
       {emailEditable ? (
@@ -286,6 +365,24 @@ export function OfferBuilder({
             placeholder="Straat nr, postcode gemeente"
             className={field}
           />
+        </label>
+        <label className="mt-3 block">
+          <span className="mb-1 block text-xs font-medium text-muted">
+            Omschrijving voor de klant (optioneel)
+          </span>
+          <textarea
+            name="body"
+            rows={6}
+            defaultValue={prefill.body ?? ""}
+            placeholder="Vrije toelichting bovenaan de offerte…"
+            className={field}
+          />
+          <span className="mt-1 block text-xs text-muted">
+            Onder deze tekst komt automatisch een standaard clausule
+            over domein &amp; e-mail
+            {lockin ? " en de vastleg-/betaalvoorwaarden" : ""} — die
+            hoef je hier niet zelf te typen.
+          </span>
         </label>
       </div>
 
@@ -427,7 +524,7 @@ export function OfferBuilder({
                 <span
                   className={`shrink-0 font-mono text-xs ${
                     l.sub
-                      ? "text-amber-600 dark:text-amber-400"
+                      ? "text-orange-600 dark:text-orange-400"
                       : l.incl
                         ? "text-accent"
                         : ""
@@ -449,7 +546,7 @@ export function OfferBuilder({
             <span className="font-mono">{eur(subtotal)}</span>
           </div>
           {lockin && (
-            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-100 px-2 py-1.5 font-semibold text-green-900 dark:bg-green-900 dark:text-green-50">
+            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
               <span>Vastlegkorting (directe ondertekening) −7%</span>
               <span className="font-mono">− {eur(discount)}</span>
             </div>
@@ -493,7 +590,7 @@ export function OfferBuilder({
             </div>
           )}
           {effectiveSub && (
-            <div className="flex items-center justify-between pt-1 text-amber-600 dark:text-amber-400">
+            <div className="flex items-center justify-between pt-1 text-orange-600 dark:text-orange-400">
               <span>
                 + {effectiveSub.name} maandelijks (excl. btw) · 12 mnd
                 minimum
@@ -504,7 +601,7 @@ export function OfferBuilder({
             </div>
           )}
           {lockin && effectiveSub && (
-            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-100 px-2 py-1.5 font-semibold text-green-900 dark:bg-green-900 dark:text-green-50">
+            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
               <span>Eerste 2 maanden abonnement gratis</span>
               <span className="font-mono">
                 − {eur(effectiveSub.cents * 2)}
@@ -538,22 +635,6 @@ export function OfferBuilder({
         />
       </div>
 
-      <div>
-        <textarea
-          name="body"
-          rows={6}
-          defaultValue={prefill.body ?? ""}
-          placeholder="Omschrijving voor de klant (optioneel)"
-          className={field}
-        />
-        <p className="mt-1 text-xs text-muted">
-          Onder deze tekst komt automatisch een standaard clausule
-          over domein &amp; e-mail
-          {" "}
-          {lockin ? "en de vastleg-/betaalvoorwaarden " : ""}
-          — die hoef je hier niet zelf te typen.
-        </p>
-      </div>
       {scanAction && (
         <div className="rounded-xl border border-dashed bg-background p-4">
           <p className={labelCls}>
@@ -571,20 +652,43 @@ export function OfferBuilder({
               className={field}
             />
             <button
-              type="submit"
-              formAction={scanAction}
-              formNoValidate
-              className="shrink-0 rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-card-hover"
+              type="button"
+              onClick={submitScan}
+              disabled={busy !== null}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-card-hover disabled:opacity-60"
             >
-              Scan toevoegen
+              {busy === "scan" && (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              )}
+              {busy === "scan" ? "Scan bezig…" : "Scan toevoegen"}
             </button>
           </div>
         </div>
       )}
 
-      <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
-        Offerte aanmaken &amp; versturen
+      <button
+        type="submit"
+        disabled={busy !== null}
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+      >
+        {busy === "offer" && (
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        )}
+        {busy === "offer"
+          ? "Bezig met versturen…"
+          : "Offerte aanmaken & versturen"}
       </button>
+
+      {notice && (
+        <p
+          className={`rounded-lg px-3 py-2 text-sm font-semibold text-white ${
+            notice.ok ? "bg-green-600" : "bg-red-600"
+          }`}
+        >
+          {notice.ok ? "✓ " : "✗ "}
+          {notice.text}
+        </p>
+      )}
 
       <div className="mt-2 border-t pt-4">
         <p className={labelCls}>
