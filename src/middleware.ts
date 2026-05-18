@@ -73,11 +73,17 @@ export function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers } });
   }
 
-  // No locale → redirect to /{locale}{path}
+  // No locale → redirect to /{locale}{path}. Deze redirect hangt af
+  // van de bezoeker (browsertaal + cookie); nooit gedeeld cachen,
+  // anders krijgt bv. een Franse bezoeker de NL-redirect van een
+  // eerdere bezoeker/bot te zien.
   const locale = pickLocale(req);
   const url = req.nextUrl.clone();
   url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.redirect(url);
+  const res = NextResponse.redirect(url);
+  res.headers.set("Cache-Control", "no-store, must-revalidate");
+  res.headers.set("Vary", "Accept-Language, Cookie");
+  return res;
 }
 
 export const config = {
