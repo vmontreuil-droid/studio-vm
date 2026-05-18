@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { payInvoice } from "@/app/actions/portal-client";
+import { BANK, structuredComm } from "@/lib/bank";
 import { SubmitButton } from "@/components/submit-button";
 import { PrintButton } from "@/components/print-button";
 import {
@@ -115,6 +116,18 @@ const L: Record<
     freeMonthsLine: string;
     offerTotal: string;
     thisInvoice: string;
+    choosePay: string;
+    recommended: string;
+    mollieName: string;
+    mollieDesc: string;
+    transferName: string;
+    noDiscount: string;
+    holder: string;
+    ibanL: string;
+    bicL: string;
+    commL: string;
+    amountL: string;
+    promoInv: string;
   }
 > = {
   nl: {
@@ -139,6 +152,21 @@ const L: Record<
     freeMonthsLine: "Eerste 2 maanden support gratis",
     offerTotal: "Totaal offerte (incl. btw)",
     thisInvoice: "Deze voorschotfactuur — nu te betalen",
+    choosePay: "Hoe wil je dit voorschot betalen?",
+    recommended: "Aanbevolen",
+    mollieName: "Online via Mollie",
+    mollieDesc:
+      "Direct & veilig (Bancontact, kaart…). Je betaling is meteen verwerkt en je project start zonder vertraging.",
+    transferName: "Via overschrijving",
+    noDiscount:
+      "Geen korting, geen gratis maanden. Trager: je project start pas zodra de overschrijving binnen is.",
+    holder: "Begunstigde",
+    ibanL: "IBAN",
+    bicL: "BIC",
+    commL: "Gestructureerde mededeling",
+    amountL: "Bedrag (incl. btw)",
+    promoInv:
+      "Je behield 7% korting + 2 maanden gratis support door tijdig te tekenen. Betaal dit voorschot om je project te starten.",
   },
   fr: {
     none: "Aucune facture.",
@@ -162,6 +190,21 @@ const L: Record<
     freeMonthsLine: "2 premiers mois de support offerts",
     offerTotal: "Total du devis (TVAC)",
     thisInvoice: "Cette facture d'acompte — à payer maintenant",
+    choosePay: "Comment payer cet acompte ?",
+    recommended: "Recommandé",
+    mollieName: "En ligne via Mollie",
+    mollieDesc:
+      "Direct & sécurisé (Bancontact, carte…). Paiement traité immédiatement, votre projet démarre sans délai.",
+    transferName: "Par virement",
+    noDiscount:
+      "Pas de remise, pas de mois offerts. Plus lent : le projet démarre une fois le virement reçu.",
+    holder: "Bénéficiaire",
+    ibanL: "IBAN",
+    bicL: "BIC",
+    commL: "Communication structurée",
+    amountL: "Montant (TVAC)",
+    promoInv:
+      "Vous avez conservé 7% de remise + 2 mois de support offerts en signant à temps. Payez cet acompte pour démarrer votre projet.",
   },
   en: {
     none: "No invoices.",
@@ -185,6 +228,21 @@ const L: Record<
     freeMonthsLine: "First 2 months of support free",
     offerTotal: "Quote total (incl. VAT)",
     thisInvoice: "This deposit invoice — to pay now",
+    choosePay: "How would you like to pay this deposit?",
+    recommended: "Recommended",
+    mollieName: "Online via Mollie",
+    mollieDesc:
+      "Instant & secure (Bancontact, card…). Payment is processed immediately and your project starts without delay.",
+    transferName: "By bank transfer",
+    noDiscount:
+      "No discount, no free months. Slower: your project starts once the transfer arrives.",
+    holder: "Beneficiary",
+    ibanL: "IBAN",
+    bicL: "BIC",
+    commL: "Structured reference",
+    amountL: "Amount (incl. VAT)",
+    promoInv:
+      "You kept 7% off + 2 months of support free by signing in time. Pay this deposit to start your project.",
   },
 };
 
@@ -505,17 +563,96 @@ export default async function PortalInvoices({
                 )}
               </div>
 
+              {/* Betaalkeuze — Mollie vs overschrijving */}
+              {!paid && (
+                <div className="mt-7">
+                  {oDiscount > 0 && (
+                    <div className="-mx-1 mb-4 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white">
+                      ⚡ {l.promoInv}
+                    </div>
+                  )}
+                  <p className="mb-3 text-sm font-semibold">
+                    {l.choosePay}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Online via Mollie */}
+                    <div className="flex flex-col rounded-xl border-2 border-accent bg-background p-5 shadow-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold">{l.mollieName}</p>
+                        <span className="rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white">
+                          {l.recommended}
+                        </span>
+                      </div>
+                      <p className="mt-2 flex-1 text-xs text-muted">
+                        {l.mollieDesc}
+                      </p>
+                      <p className="mt-3 font-mono text-lg font-bold">
+                        {eur(incl)}
+                      </p>
+                      {mollieConfigured && (
+                        <form
+                          action={payInvoice.bind(null, i.id)}
+                          className="no-print mt-3"
+                        >
+                          <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
+                            {l.pay}
+                            <span aria-hidden>&rarr;</span>
+                          </SubmitButton>
+                        </form>
+                      )}
+                    </div>
+                    {/* Via overschrijving */}
+                    <div className="rounded-xl border bg-background p-5 shadow-sm">
+                      <p className="font-semibold">{l.transferName}</p>
+                      <p className="mt-2 text-xs text-muted">
+                        {l.noDiscount}
+                      </p>
+                      <dl className="mt-3 space-y-2 border-t pt-3 text-sm">
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {l.holder}
+                          </dt>
+                          <dd className="font-medium">{BANK.holder}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {l.ibanL}
+                          </dt>
+                          <dd className="font-mono font-semibold tracking-wide">
+                            {BANK.iban}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {l.bicL}
+                          </dt>
+                          <dd className="font-mono">{BANK.bic}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {l.commL}
+                          </dt>
+                          <dd className="font-mono font-semibold text-accent">
+                            {structuredComm(i.number)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {l.amountL}
+                          </dt>
+                          <dd className="font-mono text-base font-bold">
+                            {eur(incl)}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Acties — gecentreerd, naast elkaar */}
               <div className="no-print mt-7 flex flex-wrap items-center justify-center gap-3 border-t pt-6">
                 <PrintButton label={l.print} />
-                {mollieConfigured && !paid && (
-                  <form action={payInvoice.bind(null, i.id)}>
-                    <SubmitButton className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]">
-                      {l.pay}
-                      <span aria-hidden>&rarr;</span>
-                    </SubmitButton>
-                  </form>
-                )}
                 {i.pdf_url && (
                   <a
                     href={i.pdf_url}
