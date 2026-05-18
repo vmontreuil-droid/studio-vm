@@ -141,9 +141,7 @@ export default async function AdminFacturen({
             className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
           >
             <Link
-              href={`/admin/klanten/${encodeURIComponent(
-                i.client_email,
-              )}?tab=facturen`}
+              href={`/admin/facturen/${i.id}`}
               className="min-w-0 flex-1"
             >
               <p className="font-medium">
