@@ -538,13 +538,13 @@ export default async function PortalOffers({
                           <div className="mt-3 space-y-1.5">
                             <div className="flex justify-between text-muted">
                               <span>{l.subtotal}</span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(gross)}
                               </span>
                             </div>
                             <div className="-mx-1 flex justify-between rounded-lg bg-green-600 px-2 py-1 font-semibold text-white">
                               <span>{l.discountLine}</span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 − {eur(discount)}
                               </span>
                             </div>
@@ -552,20 +552,20 @@ export default async function PortalOffers({
                               <span>
                                 {o.vat_reverse ? l.reverse : l.vat}
                               </span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(vat)}
                               </span>
                             </div>
                             <div className="flex justify-between border-t pt-2 text-base font-bold">
                               <span>{l.inclVat}</span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(incl)}
                               </span>
                             </div>
                             {freeMonths > 0 && (
                               <div className="-mx-1 flex justify-between rounded-lg bg-green-600 px-2 py-1 font-semibold text-white">
                                 <span>{l.freeMonthsLine}</span>
-                                <span className="font-mono">
+                                <span className="shrink-0 whitespace-nowrap font-mono">
                                   − {eur(freeMonths)}
                                 </span>
                               </div>
@@ -573,7 +573,7 @@ export default async function PortalOffers({
                             {molDeposit > 0 && (
                               <div className="-mx-1 mt-1 flex justify-between rounded-lg bg-foreground px-3 py-2 font-semibold text-background">
                                 <span>{l.deposit}</span>
-                                <span className="font-mono">
+                                <span className="shrink-0 whitespace-nowrap font-mono">
                                   {eur(molDeposit)}
                                 </span>
                               </div>
@@ -591,7 +591,7 @@ export default async function PortalOffers({
                           <div className="mt-3 space-y-1.5">
                             <div className="flex justify-between text-muted">
                               <span>{l.subtotal}</span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(gross)}
                               </span>
                             </div>
@@ -599,20 +599,20 @@ export default async function PortalOffers({
                               <span>
                                 {o.vat_reverse ? l.reverse : l.vat}
                               </span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(grossVat)}
                               </span>
                             </div>
                             <div className="flex justify-between border-t pt-2 text-base font-bold">
                               <span>{l.inclVat}</span>
-                              <span className="font-mono">
+                              <span className="shrink-0 whitespace-nowrap font-mono">
                                 {eur(grossIncl)}
                               </span>
                             </div>
                             {transDeposit > 0 && (
                               <div className="-mx-1 mt-1 flex justify-between rounded-lg border px-3 py-2 font-semibold">
                                 <span>{l.deposit}</span>
-                                <span className="font-mono">
+                                <span className="shrink-0 whitespace-nowrap font-mono">
                                   {eur(transDeposit)}
                                 </span>
                               </div>
@@ -626,7 +626,7 @@ export default async function PortalOffers({
                       {subItem && (
                         <div className="mt-3 flex justify-between text-orange-600 dark:text-orange-400">
                           <span>{subItem.label}</span>
-                          <span className="font-mono">{l.monthly}</span>
+                          <span className="shrink-0 whitespace-nowrap font-mono">{l.monthly}</span>
                         </div>
                       )}
                     </>
@@ -634,22 +634,22 @@ export default async function PortalOffers({
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-muted">
                         <span>{l.subtotal}</span>
-                        <span className="font-mono">{eur(amount)}</span>
+                        <span className="shrink-0 whitespace-nowrap font-mono">{eur(amount)}</span>
                       </div>
                       <div className="flex justify-between text-muted">
                         <span>
                           {o.vat_reverse ? l.reverse : l.vat}
                         </span>
-                        <span className="font-mono">{eur(vat)}</span>
+                        <span className="shrink-0 whitespace-nowrap font-mono">{eur(vat)}</span>
                       </div>
                       <div className="flex justify-between border-t pt-2.5 text-base font-semibold">
                         <span>{l.inclVat}</span>
-                        <span className="font-mono">{eur(incl)}</span>
+                        <span className="shrink-0 whitespace-nowrap font-mono">{eur(incl)}</span>
                       </div>
                       {subItem && (
                         <div className="flex justify-between text-orange-600 dark:text-orange-400">
                           <span>{subItem.label}</span>
-                          <span className="font-mono">{l.monthly}</span>
+                          <span className="shrink-0 whitespace-nowrap font-mono">{l.monthly}</span>
                         </div>
                       )}
                     </div>

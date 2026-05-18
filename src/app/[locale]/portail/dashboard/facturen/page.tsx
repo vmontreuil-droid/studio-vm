@@ -498,7 +498,7 @@ export default async function PortalInvoices({
                   <div className="mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm shadow-sm">
                     <div className="flex items-center justify-between text-muted">
                       <span>{l.subtotal}</span>
-                      <span className="font-mono">
+                      <span className="shrink-0 whitespace-nowrap font-mono">
                         {eur(oDiscount > 0 ? oGross : oFull)}
                       </span>
                     </div>
@@ -506,34 +506,34 @@ export default async function PortalInvoices({
                       <>
                         <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
                           <span>{l.discountLine}</span>
-                          <span className="font-mono">
+                          <span className="shrink-0 whitespace-nowrap font-mono">
                             − {eur(oDiscount)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-muted">
                           <span>{l.afterDiscount}</span>
-                          <span className="font-mono">{eur(oFull)}</span>
+                          <span className="shrink-0 whitespace-nowrap font-mono">{eur(oFull)}</span>
                         </div>
                       </>
                     )}
                     <div className="flex items-center justify-between text-muted">
                       <span>{reverse ? l.reverse : l.vat}</span>
-                      <span className="font-mono">{eur(oVat)}</span>
+                      <span className="shrink-0 whitespace-nowrap font-mono">{eur(oVat)}</span>
                     </div>
                     <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
                       <span>{l.offerTotal}</span>
-                      <span className="font-mono">{eur(oIncl)}</span>
+                      <span className="shrink-0 whitespace-nowrap font-mono">{eur(oIncl)}</span>
                     </div>
                     {oSubItem && (
                       <div className="flex items-center justify-between text-orange-600 dark:text-orange-400">
                         <span>{oSubItem.label}</span>
-                        <span className="font-mono">{l.monthly}</span>
+                        <span className="shrink-0 whitespace-nowrap font-mono">{l.monthly}</span>
                       </div>
                     )}
                     {oFreeMonths > 0 && (
                       <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
                         <span>{l.freeMonthsLine}</span>
-                        <span className="font-mono">
+                        <span className="shrink-0 whitespace-nowrap font-mono">
                           − {eur(oFreeMonths)}
                         </span>
                       </div>
@@ -549,15 +549,15 @@ export default async function PortalInvoices({
                 </p>
                 <div className="flex items-center justify-between text-muted">
                   <span>{l.subtotal}</span>
-                  <span className="font-mono">{eur(amount)}</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">{eur(amount)}</span>
                 </div>
                 <div className="mt-1.5 flex items-center justify-between text-muted">
                   <span>{reverse ? l.reverse : l.vat}</span>
-                  <span className="font-mono">{eur(vat)}</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">{eur(vat)}</span>
                 </div>
                 <div className="mt-2.5 flex items-center justify-between border-t pt-2.5 text-base font-semibold">
                   <span>{l.inclVat}</span>
-                  <span className="font-mono">{eur(incl)}</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">{eur(incl)}</span>
                 </div>
                 {i.due_at && !paid && (
                   <p className="mt-3 text-xs text-muted">
@@ -639,7 +639,7 @@ export default async function PortalInvoices({
                           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.ibanL}
                           </dt>
-                          <dd className="font-mono font-semibold tracking-wide">
+                          <dd className="shrink-0 whitespace-nowrap font-mono font-semibold tracking-wide">
                             {BANK.iban}
                           </dd>
                         </div>
@@ -647,7 +647,7 @@ export default async function PortalInvoices({
                           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.bicL}
                           </dt>
-                          <dd className="font-mono">{BANK.bic}</dd>
+                          <dd className="shrink-0 whitespace-nowrap font-mono">{BANK.bic}</dd>
                         </div>
                         <div>
                           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -661,7 +661,7 @@ export default async function PortalInvoices({
                           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.amountL}
                           </dt>
-                          <dd className="font-mono text-base font-bold">
+                          <dd className="shrink-0 whitespace-nowrap font-mono text-base font-bold">
                             {eur(incl)}
                           </dd>
                         </div>
