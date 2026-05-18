@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { PromoBar } from "@/components/promo-bar";
 
 // De [locale]-layout is gedeeld tussen de publieke site en het
 // portaal. Bij client-side navigatie wordt een gedeelde layout NIET
@@ -31,6 +32,7 @@ export function SiteChrome({
 
   return (
     <>
+      <PromoBar />
       {header}
       <div id="main" className="flex-1">
         {children}

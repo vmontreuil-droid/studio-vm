@@ -611,6 +611,24 @@ export default function OffertePage() {
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
             {c.intro}
           </p>
+          <p className="mt-5 text-sm text-muted">
+            {locale === "fr"
+              ? "Budget plus serré ou envie de le faire vous-même ? "
+              : locale === "en"
+                ? "Tighter budget or rather do it yourself? "
+                : "Kleiner budget of liever zelf doen? "}
+            <Link
+              href={localePath(locale, "/zelf-bouwen")}
+              className="font-medium text-accent underline underline-offset-2 hover:opacity-80"
+            >
+              {locale === "fr"
+                ? "Découvrez le forfait Construire soi-même (€39/mois)"
+                : locale === "en"
+                  ? "See the self-build package (€39/month)"
+                  : "Bekijk het zelfbouwpakket (€39/maand)"}
+              {" →"}
+            </Link>
+          </p>
         </div>
       </section>
 
