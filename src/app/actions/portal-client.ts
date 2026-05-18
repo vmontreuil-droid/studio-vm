@@ -77,7 +77,7 @@ export async function decideOffer(
     const { data } = await db
       .from("offers")
       .select(
-        "id, client_email, offer_no, title, amount_cents, invoiced_at",
+        "id, client_email, offer_no, title, amount_cents, invoiced_at, items",
       )
       .eq("id", id)
       .maybeSingle();
@@ -89,6 +89,7 @@ export async function decideOffer(
           title: string;
           amount_cents: number | null;
           invoiced_at: string | null;
+          items: { cents: number }[] | null;
         }
       | null;
     if (
@@ -97,6 +98,21 @@ export async function decideOffer(
       !o.invoiced_at &&
       (o.amount_cents ?? 0) > 0
     ) {
+      // Vastlegkorting aanwezig (negatieve lijn) = directe
+      // ondertekening → eerste factuur is het 30%-voorschot om te
+      // starten; de resterende 70% volgt vóór livegang.
+      const lockin = (o.items ?? []).some(
+        (it) => typeof it.cents === "number" && it.cents < 0,
+      );
+      const fullCents = o.amount_cents ?? 0;
+      const invCents = lockin
+        ? Math.round(fullCents * 0.3)
+        : fullCents;
+      const invDesc = lockin
+        ? `Voorschot 30% — ${o.title}${
+            o.offer_no ? ` (${o.offer_no})` : ""
+          } · rest vóór livegang`
+        : `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`;
       const year = new Date().getFullYear();
       const { count } = await db
         .from("invoices")
@@ -111,8 +127,8 @@ export async function decideOffer(
       const { error: invErr } = await db.from("invoices").insert({
         client_email: email,
         number: invNo,
-        description: `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`,
-        amount_cents: o.amount_cents,
+        description: invDesc,
+        amount_cents: invCents,
         status: "open",
         due_at: dueAt,
         offer_id: o.id,
@@ -122,7 +138,7 @@ export async function decideOffer(
           .from("offers")
           .update({ invoiced_at: new Date().toISOString() })
           .eq("id", o.id);
-        const amount = `€ ${((o.amount_cents ?? 0) / 100).toFixed(2)}`;
+        const amount = `€ ${(invCents / 100).toFixed(2)}`;
         const im = {
           nl: {
             subject: `Je factuur ${invNo} staat klaar`,
