@@ -8,6 +8,7 @@ import {
   PUBLISH_BASE_MONTHLY_CENTS,
 } from "@/lib/pricing";
 import { BuilderTour } from "@/components/builder-tour";
+import { TOUR_STEPS } from "@/lib/tour-steps";
 
 type Copy = {
   metaTitle: string;
@@ -388,7 +389,11 @@ export default async function ZelfBouwenPage({
         </div>
       </section>
 
-      <BuilderTour title={c.tourTitle} lead={c.tourLead} steps={c.tour} />
+      <BuilderTour
+        title={c.tourTitle}
+        lead={c.tourLead}
+        steps={TOUR_STEPS[locale]}
+      />
 
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">

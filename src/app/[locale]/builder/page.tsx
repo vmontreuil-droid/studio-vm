@@ -14,6 +14,7 @@ import {
   type PageKey,
 } from "@/lib/builder-presets";
 import { importSite } from "@/app/actions/import-site";
+import { BuilderOnboard } from "@/components/builder-onboard";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -1927,6 +1928,7 @@ export default function BuilderPage({
 
   return (
     <main className="min-h-dvh">
+      <BuilderOnboard />
       {!designId && (
         <section className="border-b">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 xl:px-6">
@@ -1957,7 +1959,7 @@ export default function BuilderPage({
           <aside
             ref={asideRef}
             className={
-              "space-y-6 lg:sticky lg:top-3 lg:max-h-[calc(100vh-1.5rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
+              "flex flex-col gap-6 lg:sticky lg:top-3 lg:max-h-[calc(100vh-1.5rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
             }
           >
             {(() => {
@@ -2003,7 +2005,7 @@ export default function BuilderPage({
                   </button>
                 ) : null;
               return (
-                <div className="sticky top-0 z-20 rounded-xl border border-accent bg-card shadow-lg">
+                <div className="order-first sticky top-0 z-20 rounded-xl border border-accent bg-card shadow-lg">
                   <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
                     <span className="flex items-center gap-2 text-sm font-medium">
                       <Pencil
@@ -3141,7 +3143,7 @@ export default function BuilderPage({
             </Panel>
 
             {!designId && (
-              <div className="rounded-2xl border border-accent bg-accent/5 p-3">
+              <div className="order-1 rounded-2xl border border-accent bg-accent/5 p-3">
                 <p className="mb-2 px-1 font-mono text-[10px] uppercase tracking-widest text-accent">
                   {locale === "fr"
                     ? "Démarrage rapide"
@@ -3176,7 +3178,7 @@ export default function BuilderPage({
               </div>
             )}
 
-            <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
+            <Panel order="order-4" icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.bizName}
               </label>
@@ -3386,7 +3388,7 @@ export default function BuilderPage({
               </div>
             </Panel>
 
-            <Panel icon={<Type className="h-4 w-4" />} title={c.panelStyle}>
+            <Panel order="order-5" icon={<Type className="h-4 w-4" />} title={c.panelStyle}>
               <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.fontLabel}
               </p>
@@ -3590,8 +3592,9 @@ export default function BuilderPage({
               )}
             </Panel>
 
-            <div id="vm-assist" className="scroll-mt-3" />
+            <div id="vm-assist" className="order-2 scroll-mt-3" />
             <Panel
+              order="order-2"
               icon={<Wand2 className="h-4 w-4" />}
               title={
                 locale === "fr"
@@ -3767,6 +3770,7 @@ export default function BuilderPage({
             </Panel>
 
             <Panel
+              order="order-9"
               icon={<Check className="h-4 w-4" />}
               title={
                 locale === "fr"
@@ -3838,7 +3842,7 @@ export default function BuilderPage({
               )}
             </Panel>
 
-            <Panel icon={<Layers className="h-4 w-4" />} title={pg.panel}>
+            <Panel order="order-7" icon={<Layers className="h-4 w-4" />} title={pg.panel}>
               <p className="mb-3 text-[11px] text-muted">{pg.menuHint}</p>
               <ul className="space-y-2">
                 {pages.map((p, i) => (
@@ -3919,6 +3923,7 @@ export default function BuilderPage({
             </Panel>
 
             <Panel
+              order="order-8"
               icon={<Type className="h-4 w-4" />}
               title={
                 locale === "fr"
@@ -3993,6 +3998,7 @@ export default function BuilderPage({
             </Panel>
 
             <Panel
+              order="order-6"
               icon={<Layers className="h-4 w-4" />}
               title={`${c.panelSections} — ${active.name}`}
             >
@@ -4137,8 +4143,8 @@ export default function BuilderPage({
               </div>
             </Panel>
 
-            <div id="vm-verzend" className="scroll-mt-3" />
-            <Panel icon={null} title={c.panelReady}>
+            <div id="vm-verzend" className="order-3 scroll-mt-3" />
+            <Panel order="order-3" icon={null} title={c.panelReady}>
               <p className="text-xs text-muted">{c.readyText}</p>
               {sent === "ok" ? (
                 <p className="mt-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs font-medium text-accent">
@@ -4688,13 +4694,15 @@ function Panel({
   icon,
   title,
   children,
+  order,
 }: {
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
+  order?: string;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className={`rounded-2xl border bg-card p-5 ${order ?? ""}`}>
       <div className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted">
         {icon}
         {title}
