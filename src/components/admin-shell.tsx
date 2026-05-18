@@ -70,7 +70,7 @@ const items = [
     badge: "formNieuw",
   },
   { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
-  { href: "/admin/sites", label: "Sites", icon: Globe },
+  { href: "/admin/sites", label: "Sites Studio-vm", icon: Globe },
   { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
   {
     href: "/admin/monitors",

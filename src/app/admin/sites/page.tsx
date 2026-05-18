@@ -42,35 +42,47 @@ export default async function AdminSites() {
         .select("scanned_at, score, grade, stack, cert_days_left, snapshot")
         .eq("monitor_id", m.id)
         .order("scanned_at", { ascending: false })
-        .limit(26);
+        .limit(400);
       scansByMon.set(m.id, (data as Scan[]) ?? []);
     }),
   );
 
+  const isPing = (sc: Scan) =>
+    (sc.snapshot as Record<string, unknown> | null)?.kind === "ping";
+
   const sites = MY_SITES.map((s) => {
     const mon = byUrl.get(s.url);
     const scans = mon ? (scansByMon.get(mon.id) ?? []) : [];
+    // Live status komt van de laatste check (vaak een lichte ping,
+    // elke 5 min). Score/SSL/stack/kritische punten blijven staan
+    // van de laatste echte diepe scan.
     const latest = scans[0] ?? null;
+    const lastDeep = scans.find((sc) => !isPing(sc)) ?? null;
     const snap = (latest?.snapshot ?? {}) as Record<string, unknown>;
+    const deepSnap = (lastDeep?.snapshot ?? {}) as Record<string, unknown>;
     const everScanned = scans.length > 0;
+    const everDeep = lastDeep != null;
     const down = everScanned && snap.ok === false;
     const checkedAt = latest?.scanned_at ?? mon?.last_scan_at ?? null;
+    const deepAt = lastDeep?.scanned_at ?? null;
     const stale =
       checkedAt != null &&
       Date.now() - new Date(checkedAt).getTime() > 9 * DAY;
     const sslDays =
-      typeof latest?.cert_days_left === "number"
-        ? latest.cert_days_left
+      typeof lastDeep?.cert_days_left === "number"
+        ? lastDeep.cert_days_left
         : null;
-    const score = down ? 0 : (latest?.score ?? null);
+    const score = down ? 0 : (lastDeep?.score ?? null);
     const responseMs =
       typeof snap.responseMs === "number"
         ? (snap.responseMs as number)
         : null;
     const hosting =
-      typeof snap.hosting === "string" ? (snap.hosting as string) : null;
-    const pitfalls = Array.isArray(snap.pitfalls)
-      ? (snap.pitfalls as unknown[]).map(String).filter(Boolean)
+      typeof deepSnap.hosting === "string"
+        ? (deepSnap.hosting as string)
+        : null;
+    const pitfalls = Array.isArray(deepSnap.pitfalls)
+      ? (deepSnap.pitfalls as unknown[]).map(String).filter(Boolean)
       : [];
     const error =
       typeof snap.error === "string" ? (snap.error as string) : null;
@@ -82,7 +94,9 @@ export default async function AdminSites() {
     if (!down && score != null && score < 45)
       alarms.push(`zwakke score (${score})`);
     if (stale && !down) alarms.push("check verouderd");
+    // Trend: enkel diepe scans (pings hebben geen score).
     const history = [...scans]
+      .filter((sc) => !isPing(sc) && sc.score != null)
       .reverse()
       .slice(-14)
       .map((sc) => ({
@@ -99,11 +113,13 @@ export default async function AdminSites() {
       ...s,
       down,
       everScanned,
+      everDeep,
       checkedAt,
+      deepAt,
       sslDays,
       score,
-      grade: latest?.grade ?? null,
-      stack: latest?.stack ?? null,
+      grade: lastDeep?.grade ?? null,
+      stack: lastDeep?.stack ?? null,
       hosting,
       responseMs,
       pitfalls,
@@ -128,7 +144,9 @@ export default async function AdminSites() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Sites</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Sites Studio-vm
+        </h1>
         <form action={scanAllSites}>
           <button
             type="submit"
@@ -140,7 +158,9 @@ export default async function AdminSites() {
       </div>
       <p className="mt-2 text-sm text-muted">
         Alle sites die ik gemaakt heb — uptime, SSL, score en alarmen.
-        De weekcron ververst dit automatisch; “Scan nu” forceert direct.
+        Uptime + responstijd worden elke 5 min gepingd; de diepe scan
+        (score, SSL, kritische punten) draait wekelijks. “Scan nu”
+        forceert meteen een volledige diepe scan.
       </p>
 
       {alarmSites.length > 0 ? (
@@ -213,7 +233,7 @@ export default async function AdminSites() {
                     Score
                   </p>
                   <p className="font-semibold">
-                    {ok && s.score != null
+                    {!s.down && s.everDeep && s.score != null
                       ? `${s.grade ?? "?"}·${s.score}`
                       : "—"}
                   </p>
@@ -257,6 +277,10 @@ export default async function AdminSites() {
                   {[s.hosting, s.stack].filter(Boolean).join(" · ")}
                 </p>
               )}
+              <p className="mt-1 font-mono text-[10px] text-muted">
+                Uptime elke 5 min · diepe scan{" "}
+                {s.everDeep ? fmt(s.deepAt) : "nog niet"}
+              </p>
 
               <div className="mt-3 border-t pt-3">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
