@@ -14,6 +14,7 @@ type Invoice = {
   status: string;
   issued_at: string;
   due_at: string | null;
+  paid_at: string | null;
 };
 
 const STATUSES = ["alle", "open", "betaald", "vervallen"] as const;
@@ -32,7 +33,7 @@ export default async function AdminFacturen({
   const { data } = await getSupabaseAdmin()
     .from("invoices")
     .select(
-      "id, client_email, number, amount_cents, status, issued_at, due_at",
+      "id, client_email, number, amount_cents, status, issued_at, due_at, paid_at",
     )
     .order("issued_at", { ascending: false })
     .limit(1000);
@@ -49,7 +50,9 @@ export default async function AdminFacturen({
   const ymThis = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const paidThisMonth = all
     .filter(
-      (i) => i.status === "betaald" && i.issued_at.startsWith(ymThis),
+      (i) =>
+        i.status === "betaald" &&
+        (i.paid_at ?? i.issued_at).startsWith(ymThis),
     )
     .reduce((t, i) => t + i.amount_cents, 0);
   const sBadge = (s: string) =>
@@ -133,9 +136,17 @@ export default async function AdminFacturen({
               <p className="mt-1 truncate font-mono text-[11px] text-muted">
                 {i.client_email} · uitgereikt{" "}
                 {new Date(i.issued_at).toLocaleDateString("nl-BE")}
-                {i.due_at
-                  ? ` · vervalt ${new Date(i.due_at).toLocaleDateString("nl-BE")}`
-                  : ""}
+                {i.status === "betaald" && i.paid_at ? (
+                  <span className="text-green-700 dark:text-green-400">
+                    {" "}
+                    · betaald{" "}
+                    {new Date(i.paid_at).toLocaleDateString("nl-BE")}
+                  </span>
+                ) : i.due_at ? (
+                  ` · vervalt ${new Date(i.due_at).toLocaleDateString("nl-BE")}`
+                ) : (
+                  ""
+                )}
               </p>
             </Link>
             <div className="flex items-center gap-2">

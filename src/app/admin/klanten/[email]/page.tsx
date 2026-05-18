@@ -608,9 +608,25 @@ export default async function AdminKlantDetail({
             key={i.id}
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
           >
-            <p className="font-medium">
-              {i.number} <span className="text-muted">· {eur(i.amount_cents)}</span>
-            </p>
+            <div className="min-w-0">
+              <p className="font-medium">
+                {i.number}{" "}
+                <span className="text-muted">
+                  · {eur(i.amount_cents)}
+                </span>
+              </p>
+              {(i as unknown as { paid_at?: string | null })
+                .paid_at && (
+                <p className="mt-0.5 font-mono text-[11px] text-green-700 dark:text-green-400">
+                  ✓ Betaald op{" "}
+                  {new Date(
+                    (i as unknown as { paid_at: string }).paid_at,
+                  ).toLocaleDateString("nl-BE", {
+                    timeZone: "Europe/Brussels",
+                  })}
+                </p>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
