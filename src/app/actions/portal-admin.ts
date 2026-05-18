@@ -202,7 +202,7 @@ export async function createOffer(formData: FormData): Promise<void> {
     (inc ? subs.find((x) => x.slug === inc.sub) : undefined);
   if (sub)
     picked.push({
-      label: `${sub.name} — verplicht · 12 maanden minimum`,
+      label: `${sub.name} — verplicht · 12 maanden minimum, daarna stilzwijgend verlengd`,
       desc: sub.desc ?? "",
       cents: 0,
       kind: "sub",
@@ -294,7 +294,9 @@ export async function createOffer(formData: FormData): Promise<void> {
     vatReverse,
     validUntil,
     includes,
-    subLabel: sub ? `${sub.name} — 12 mnd minimum` : null,
+    subLabel: sub
+      ? `${sub.name} — 12 mnd min., daarna stilzwijgend verlengd`
+      : null,
     subMonthlyCents: subMonthly,
     discountCents: lockin ? lockinDiscount : 0,
     freeMonthsCents: lockin && subMonthly ? subMonthly * 2 : 0,
@@ -357,7 +359,7 @@ export async function resendOffer(formData: FormData): Promise<void> {
       .filter((it) => it.cents >= 0 && it.kind !== "sub")
       .map((it) => it.label.replace(/\s*\(inbegrepen\)\s*$/i, "")),
     subLabel: subTier
-      ? `${subTier.name} — 12 mnd minimum`
+      ? `${subTier.name} — 12 mnd min., daarna stilzwijgend verlengd`
       : subItem
         ? subItem.label
         : null,
