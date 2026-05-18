@@ -192,10 +192,10 @@ const PRINT_CSS = `@page { margin: 0; }
 @media print {
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 14mm 12mm; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 24mm 12mm 14mm; }
   .no-print { display: none !important; }
   .offer-doc { border: none !important; box-shadow: none !important; page-break-after: always; }
-  .page-break { break-before: page; page-break-before: always; padding-top: 4mm; }
+  .page-break { break-before: page; page-break-before: always; padding-top: 22mm; }
   .print-head { display: flex !important; }
 }
 .print-head { display: none; }`;
