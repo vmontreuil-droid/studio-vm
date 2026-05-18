@@ -28,6 +28,9 @@ const L: Record<
     expired: string;
     reverse: string;
     vatExcl: string;
+    subtotal: string;
+    vat: string;
+    inclVat: string;
   }
 > = {
   nl: {
@@ -40,6 +43,9 @@ const L: Record<
     expired: "vervallen",
     reverse: "BTW verlegd (intracommunautair, 0%)",
     vatExcl: "excl. 21% btw",
+    subtotal: "Subtotaal (excl. btw)",
+    vat: "Btw 21%",
+    inclVat: "Totaal incl. btw",
   },
   fr: {
     none: "Aucun devis pour l'instant.",
@@ -51,6 +57,9 @@ const L: Record<
     expired: "expiré",
     reverse: "TVA autoliquidée (intracommunautaire, 0%)",
     vatExcl: "hors 21% TVA",
+    subtotal: "Sous-total (HTVA)",
+    vat: "TVA 21%",
+    inclVat: "Total TVAC",
   },
   en: {
     none: "No quote yet.",
@@ -62,6 +71,9 @@ const L: Record<
     expired: "expired",
     reverse: "VAT reverse-charged (intra-EU, 0%)",
     vatExcl: "excl. 21% VAT",
+    subtotal: "Subtotal (excl. VAT)",
+    vat: "VAT 21%",
+    inclVat: "Total incl. VAT",
   },
 };
 
@@ -120,14 +132,6 @@ export default async function PortalOffers({
                   ) : null}
                   {o.title}
                 </p>
-                {o.amount_cents != null && (
-                  <p className="mt-1 font-mono text-sm">
-                    {eur(o.amount_cents)}{" "}
-                    <span className="text-[11px] text-muted">
-                      {o.vat_reverse ? l.reverse : l.vatExcl}
-                    </span>
-                  </p>
-                )}
                 {o.items && o.items.length > 0 && (
                   <ul className="mt-3 space-y-1.5 text-xs">
                     {o.items.map((it, i) => (
@@ -147,20 +151,54 @@ export default async function PortalOffers({
                           className={`shrink-0 font-mono ${
                             it.kind === "sub"
                               ? "text-amber-600 dark:text-amber-400"
-                              : it.cents > 0
-                                ? "text-muted"
-                                : "text-accent"
+                              : it.cents < 0
+                                ? "text-green-700 dark:text-green-400"
+                                : it.cents > 0
+                                  ? "text-muted"
+                                  : "text-accent"
                           }`}
                         >
                           {it.kind === "sub"
                             ? "maandelijks"
-                            : it.cents > 0
-                              ? eur(it.cents)
-                              : "inbegrepen"}
+                            : it.cents < 0
+                              ? `− ${eur(-it.cents)}`
+                              : it.cents > 0
+                                ? eur(it.cents)
+                                : "inbegrepen"}
                         </span>
                       </li>
                     ))}
                   </ul>
+                )}
+                {o.amount_cents != null && (
+                  <div className="mt-3 space-y-1 border-t pt-3 text-xs">
+                    <div className="flex items-center justify-between text-muted">
+                      <span>{l.subtotal}</span>
+                      <span className="font-mono">
+                        {eur(o.amount_cents)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted">
+                      <span>{o.vat_reverse ? l.reverse : l.vat}</span>
+                      <span className="font-mono">
+                        {eur(
+                          o.vat_reverse
+                            ? 0
+                            : Math.round(o.amount_cents * 0.21),
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>{l.inclVat}</span>
+                      <span className="font-mono">
+                        {eur(
+                          o.vat_reverse
+                            ? o.amount_cents
+                            : Math.round(o.amount_cents * 1.21),
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 )}
                 {o.valid_until && (
                   <p className="mt-2 font-mono text-[11px] text-muted">

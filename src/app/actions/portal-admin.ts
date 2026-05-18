@@ -175,7 +175,7 @@ export async function createOffer(formData: FormData): Promise<void> {
     picked.push({ label: base.name, desc: "Basispakket", cents: base.cents });
     paid += base.cents;
   }
-  // Inbegrepen opties + bijhorend abonnement → € 0-lijnen.
+  // Inbegrepen opties → € 0-lijnen.
   if (inc) {
     for (const name of inc.addons) {
       const a = addons.find((x) => x.name === name);
@@ -187,15 +187,20 @@ export async function createOffer(formData: FormData): Promise<void> {
           kind: "incl",
         });
     }
-    const s = subs.find((x) => x.slug === inc.sub);
-    if (s)
-      picked.push({
-        label: `${s.name} — verplicht, vanaf maand 1`,
-        desc: s.desc ?? "",
-        cents: 0,
-        kind: "sub",
-      });
   }
+  // Abonnement: expliciete keuze in het formulier wint; anders het
+  // bij het pakket inbegrepen abonnement.
+  const subSlug = String(formData.get("sub") ?? "").trim();
+  const sub =
+    subs.find((x) => x.slug === subSlug) ??
+    (inc ? subs.find((x) => x.slug === inc.sub) : undefined);
+  if (sub)
+    picked.push({
+      label: `${sub.name} — verplicht, vanaf maand 1`,
+      desc: sub.desc ?? "",
+      cents: 0,
+      kind: "sub",
+    });
   // Extra aangevinkte opties die NIET al inbegrepen zijn → betalend.
   for (const k of formData.getAll("addon").map(String)) {
     const a = addons.find((x) => x.key === k);
@@ -204,8 +209,22 @@ export async function createOffer(formData: FormData): Promise<void> {
     picked.push({ label: a.name, desc: a.desc ?? "", cents: a.cents });
     paid += a.cents;
   }
+  // Directe ondertekening: 7% vastlegkorting + 30% aanbetaling
+  // (zelfde model als op de website).
+  const lockin = String(formData.get("lockin") ?? "") === "1";
+  const gross = paid;
+  const lockinDiscount = lockin ? Math.round(gross * 0.07) : 0;
+  if (lockin && lockinDiscount > 0) {
+    picked.push({
+      label: "Vastlegkorting — directe ondertekening (−7%)",
+      desc: "Scope ligt vast bij meteen tekenen + 30% aanbetaling.",
+      cents: -lockinDiscount,
+    });
+  }
   const override = cents(formData.get("amount"));
-  const amount = override > 0 ? override : paid;
+  const amount =
+    override > 0 ? override : Math.max(0, gross - lockinDiscount);
+  const deposit = lockin ? Math.round(amount * 0.3) : 0;
 
   // BTW-controle via VIES (faalt nooit de opslag).
   let vatValid: boolean | null = null;
@@ -218,6 +237,18 @@ export async function createOffer(formData: FormData): Promise<void> {
       vatName = v.name;
       vatReverse = v.valid === true && v.country !== "BE";
     }
+  }
+
+  // Vastleg-clausule onderaan de klanttekst (zelfde belofte als op
+  // de website): 7% korting + 30% aanbetaling + auto-factuur.
+  let finalBody = body;
+  if (lockin) {
+    const clause = `Directe ondertekening: teken je meteen en betaal je de aanbetaling van 30% (€ ${(
+      deposit / 100
+    ).toFixed(
+      2,
+    )} excl. btw), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag — zoals op de website. Zodra je in je portaal akkoord geeft, wordt de factuur voor de aanbetaling automatisch aangemaakt; het saldo volgt na oplevering.`;
+    finalBody = body ? `${body}\n\n${clause}` : clause;
   }
 
   // Offertenummer OFF-{jaar}-{volgnr}
@@ -235,7 +266,7 @@ export async function createOffer(formData: FormData): Promise<void> {
     client_email: email,
     offer_no: offerNo,
     title,
-    body: body || null,
+    body: finalBody || null,
     items: picked,
     amount_cents: amount || null,
     valid_days: validDays,

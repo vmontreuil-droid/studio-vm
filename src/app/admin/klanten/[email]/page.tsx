@@ -9,6 +9,7 @@ import {
   subscriptionTiers,
 } from "@/lib/pricing";
 import { OfferBuilder } from "@/components/offer-builder";
+import { lookupVat } from "@/app/actions/quote";
 import type { ScanResult } from "@/app/actions/scan";
 import {
   createOffer,
@@ -579,9 +580,16 @@ export default async function AdminKlantDetail({
           email={email}
           bases={catalog.bases}
           addons={catalog.addons}
-          subs={catalog.subs}
+          subs={tiers.map((s) => ({
+            key: s.slug,
+            slug: s.slug,
+            name: s.name,
+            cents: s.cents,
+            desc: s.tagline,
+          }))}
           included={OFFER_INCLUDED}
           action={createOffer}
+          lookupVat={lookupVat}
         />
       </div>
 
