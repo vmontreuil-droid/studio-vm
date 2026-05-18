@@ -201,19 +201,18 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@page { margin: 18mm 14mm; }
+const PRINT_CSS = `@page { margin: 0; }
 @media print {
   html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 16mm 14mm; }
   .no-print { display: none !important; }
   .offer-doc { border: none !important; box-shadow: none !important; }
   .offer-doc + .offer-doc { break-before: page; page-break-before: always; }
-  .page-break { break-before: page; page-break-before: always; }
-  #print-area > *:last-child { page-break-after: avoid; }
+  .page-break { break-before: page; page-break-before: always; padding-top: 16mm; }
   .print-head { display: flex !important; }
 }
 .print-head { display: none; }`;
@@ -467,7 +466,7 @@ export default async function PortalOffers({
 
               {/* Totalen */}
               {o.amount_cents != null && (
-                <div className="mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm">
+                <div className="page-break mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm">
                   <div className="flex items-center justify-between text-muted">
                     <span>{l.subtotal}</span>
                     <span className="font-mono">

@@ -101,18 +101,17 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@page { margin: 18mm 14mm; }
+const PRINT_CSS = `@page { margin: 0; }
 @media print {
   html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 16mm 14mm; }
   .no-print { display: none !important; }
   .doc { border: none !important; box-shadow: none !important; }
   .doc + .doc { break-before: page; page-break-before: always; }
-  #print-area > *:last-child { page-break-after: avoid; }
 }`;
 
 export default async function PortalInvoices({
