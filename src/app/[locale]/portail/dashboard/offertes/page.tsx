@@ -103,6 +103,12 @@ const L: Record<
     discountLine: string;
     afterDiscount: string;
     freeMonthsLine: string;
+    payMollie: string;
+    payTransfer: string;
+    recommended: string;
+    mollieKeep: string;
+    transferLoss: string;
+    chooseHint: string;
     lockinClause: (validUntil: string, deposit: string) => string;
     domainClause: string;
   }
@@ -131,6 +137,13 @@ const L: Record<
     discountLine: "Vastlegkorting (directe ondertekening) −7%",
     afterDiscount: "Na korting (excl. btw)",
     freeMonthsLine: "Eerste 2 maanden support gratis",
+    payMollie: "Online via Mollie",
+    payTransfer: "Via overschrijving",
+    recommended: "aanbevolen",
+    mollieKeep: "Je behoudt 7% korting + 2 maanden support gratis.",
+    transferLoss: "Geen korting, geen gratis maanden.",
+    chooseHint:
+      "Twee manieren om te betalen — online via Mollie is voordeliger:",
     payToStart: "Bekijk je voorschotfactuur",
     terms: "Voorwaarden",
     lockinClause: (v, d) =>
@@ -162,6 +175,14 @@ const L: Record<
     discountLine: "Remise d'engagement (signature directe) −7%",
     afterDiscount: "Après remise (HTVA)",
     freeMonthsLine: "2 premiers mois de support offerts",
+    payMollie: "En ligne via Mollie",
+    payTransfer: "Par virement",
+    recommended: "recommandé",
+    mollieKeep:
+      "Vous conservez 7% de remise + 2 mois de support offerts.",
+    transferLoss: "Pas de remise, pas de mois offerts.",
+    chooseHint:
+      "Deux façons de payer — en ligne via Mollie est plus avantageux :",
     payToStart: "Voir votre facture d'acompte",
     terms: "Conditions",
     lockinClause: (v, d) =>
@@ -192,6 +213,13 @@ const L: Record<
     discountLine: "Lock-in discount (direct signature) −7%",
     afterDiscount: "After discount (excl. VAT)",
     freeMonthsLine: "First 2 months of support free",
+    payMollie: "Online via Mollie",
+    payTransfer: "By bank transfer",
+    recommended: "recommended",
+    mollieKeep: "You keep 7% off + 2 months of free support.",
+    transferLoss: "No discount, no free months.",
+    chooseHint:
+      "Two ways to pay — online via Mollie is the better deal:",
     payToStart: "View your deposit invoice",
     terms: "Terms",
     lockinClause: (v, d) =>
@@ -287,7 +315,16 @@ export default async function PortalOffers({
             : undefined;
           const freeMonths =
             hasLockin && subTier ? subTier.cents * 2 : 0;
-          const deposit = hasLockin ? Math.round(incl * 0.3) : 0;
+          // Online via Mollie = met korting; via overschrijving =
+          // volle prijs (geen 7%, geen 2 gratis maanden).
+          const grossVat = o.vat_reverse
+            ? 0
+            : Math.round(gross * 0.21);
+          const grossIncl = gross + grossVat;
+          const molInclCents = incl; // korting al verrekend
+          const molDeposit = Math.round(molInclCents * 0.3);
+          const transDeposit = Math.round(grossIncl * 0.3);
+          const deposit = hasLockin ? molDeposit : 0;
           const expired =
             !!o.valid_until && daysUntil(o.valid_until) < 0;
           // Oude offertes hadden de voorwaarden in de klanttekst.
@@ -466,53 +503,140 @@ export default async function PortalOffers({
 
               {/* Totalen */}
               {o.amount_cents != null && (
-                <div className="page-break mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm">
-                  <div className="flex items-center justify-between text-muted">
-                    <span>{l.subtotal}</span>
-                    <span className="font-mono">
-                      {eur(hasLockin ? gross : amount)}
-                    </span>
-                  </div>
-                  {hasLockin && (
+                <div className="page-break mt-6 rounded-xl border bg-background p-5 text-sm">
+                  {hasLockin ? (
                     <>
-                      <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
-                        <span>{l.discountLine}</span>
-                        <span className="font-mono">
-                          − {eur(discount)}
-                        </span>
+                      <p className="mb-3 text-xs font-medium text-muted">
+                        {l.chooseHint}
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {/* Online via Mollie — met korting */}
+                        <div className="rounded-xl border-2 border-accent bg-card p-4 shadow-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-semibold">
+                              {l.payMollie}
+                            </p>
+                            <span className="rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white">
+                              {l.recommended}
+                            </span>
+                          </div>
+                          <div className="mt-3 space-y-1.5">
+                            <div className="flex justify-between text-muted">
+                              <span>{l.subtotal}</span>
+                              <span className="font-mono">
+                                {eur(gross)}
+                              </span>
+                            </div>
+                            <div className="-mx-1 flex justify-between rounded-lg bg-green-600 px-2 py-1 font-semibold text-white">
+                              <span>{l.discountLine}</span>
+                              <span className="font-mono">
+                                − {eur(discount)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-muted">
+                              <span>
+                                {o.vat_reverse ? l.reverse : l.vat}
+                              </span>
+                              <span className="font-mono">
+                                {eur(vat)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 text-base font-bold">
+                              <span>{l.inclVat}</span>
+                              <span className="font-mono">
+                                {eur(incl)}
+                              </span>
+                            </div>
+                            {freeMonths > 0 && (
+                              <div className="-mx-1 flex justify-between rounded-lg bg-green-600 px-2 py-1 font-semibold text-white">
+                                <span>{l.freeMonthsLine}</span>
+                                <span className="font-mono">
+                                  − {eur(freeMonths)}
+                                </span>
+                              </div>
+                            )}
+                            {molDeposit > 0 && (
+                              <div className="-mx-1 mt-1 flex justify-between rounded-lg bg-foreground px-3 py-2 font-semibold text-background">
+                                <span>{l.deposit}</span>
+                                <span className="font-mono">
+                                  {eur(molDeposit)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-[11px] font-medium text-green-700 dark:text-green-400">
+                            ✓ {l.mollieKeep}
+                          </p>
+                        </div>
+                        {/* Via overschrijving — volle prijs */}
+                        <div className="rounded-xl border bg-background p-4">
+                          <p className="font-semibold text-muted">
+                            {l.payTransfer}
+                          </p>
+                          <div className="mt-3 space-y-1.5">
+                            <div className="flex justify-between text-muted">
+                              <span>{l.subtotal}</span>
+                              <span className="font-mono">
+                                {eur(gross)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-muted">
+                              <span>
+                                {o.vat_reverse ? l.reverse : l.vat}
+                              </span>
+                              <span className="font-mono">
+                                {eur(grossVat)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 text-base font-bold">
+                              <span>{l.inclVat}</span>
+                              <span className="font-mono">
+                                {eur(grossIncl)}
+                              </span>
+                            </div>
+                            {transDeposit > 0 && (
+                              <div className="-mx-1 mt-1 flex justify-between rounded-lg border px-3 py-2 font-semibold">
+                                <span>{l.deposit}</span>
+                                <span className="font-mono">
+                                  {eur(transDeposit)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-[11px] text-muted">
+                            {l.transferLoss}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between text-muted">
-                        <span>{l.afterDiscount}</span>
+                      {subItem && (
+                        <div className="mt-3 flex justify-between text-orange-600 dark:text-orange-400">
+                          <span>{subItem.label}</span>
+                          <span className="font-mono">{l.monthly}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-muted">
+                        <span>{l.subtotal}</span>
                         <span className="font-mono">{eur(amount)}</span>
                       </div>
-                    </>
-                  )}
-                  <div className="flex items-center justify-between text-muted">
-                    <span>{o.vat_reverse ? l.reverse : l.vat}</span>
-                    <span className="font-mono">{eur(vat)}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
-                    <span>{l.inclVat}</span>
-                    <span className="font-mono">{eur(incl)}</span>
-                  </div>
-                  {subItem && (
-                    <div className="flex items-center justify-between text-orange-600 dark:text-orange-400">
-                      <span>{subItem.label}</span>
-                      <span className="font-mono">{l.monthly}</span>
-                    </div>
-                  )}
-                  {freeMonths > 0 && (
-                    <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
-                      <span>{l.freeMonthsLine}</span>
-                      <span className="font-mono">
-                        − {eur(freeMonths)}
-                      </span>
-                    </div>
-                  )}
-                  {deposit > 0 && (
-                    <div className="-mx-1 mt-1 flex items-center justify-between rounded-lg bg-foreground px-3 py-2 font-semibold text-background">
-                      <span>{l.deposit}</span>
-                      <span className="font-mono">{eur(deposit)}</span>
+                      <div className="flex justify-between text-muted">
+                        <span>
+                          {o.vat_reverse ? l.reverse : l.vat}
+                        </span>
+                        <span className="font-mono">{eur(vat)}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2.5 text-base font-semibold">
+                        <span>{l.inclVat}</span>
+                        <span className="font-mono">{eur(incl)}</span>
+                      </div>
+                      {subItem && (
+                        <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                          <span>{subItem.label}</span>
+                          <span className="font-mono">{l.monthly}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="mt-4 border-t pt-3">
