@@ -124,7 +124,7 @@ const L: Record<
     included: "inbegrepen",
     monthly: "per maand",
     deposit: "Voorschot 30% om te starten (incl. btw)",
-    payToStart: "Betaal je voorschot via Mollie →",
+    payToStart: "Betaal je voorschot via Mollie",
     terms: "Voorwaarden",
     lockinClause: (v, d) =>
       `Beslis je vóór ${v}, dan ligt de scope vast en behoud je 7% korting op het eenmalige bedrag én de eerste 2 maanden van het abonnement gratis. Na die datum vervalt dit aanbod automatisch. Het onderhoudsabonnement loopt minimum 12 maanden. Betaling: 30% voorschot (${d}) om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Zodra je akkoord geeft staat de voorschotfactuur meteen klaar; na betaling start het project en vind je de betaalde factuur onmiddellijk in je portaal.`,
@@ -152,7 +152,7 @@ const L: Record<
     included: "inclus",
     monthly: "par mois",
     deposit: "Acompte 30% pour démarrer (TVAC)",
-    payToStart: "Payer l'acompte via Mollie →",
+    payToStart: "Payer l'acompte via Mollie",
     terms: "Conditions",
     lockinClause: (v, d) =>
       `Si vous décidez avant le ${v}, le périmètre est fixé et vous conservez 7% de remise sur le montant unique ainsi que les 2 premiers mois d'abonnement gratuits. Passé cette date, l'offre expire automatiquement. L'abonnement de maintenance court minimum 12 mois. Paiement : acompte de 30% (${d}) pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. Dès votre accord, la facture d'acompte est disponible ; après paiement le projet démarre et la facture payée apparaît aussitôt dans votre portail.`,
@@ -179,7 +179,7 @@ const L: Record<
     included: "included",
     monthly: "per month",
     deposit: "30% deposit to start (incl. VAT)",
-    payToStart: "Pay your deposit via Mollie →",
+    payToStart: "Pay your deposit via Mollie",
     terms: "Terms",
     lockinClause: (v, d) =>
       `If you decide before ${v}, the scope is locked and you keep 7% off the one-off amount plus the first 2 months of the subscription free. After that date this offer expires automatically. The maintenance subscription runs for a minimum of 12 months. Payment: 30% deposit (${d}) to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. Once you approve, the deposit invoice is ready immediately; after payment the project starts and the paid invoice appears in your portal right away.`,
@@ -253,10 +253,22 @@ export default async function PortalOffers({
           const deposit = hasLockin ? Math.round(incl * 0.3) : 0;
           const expired =
             !!o.valid_until && daysUntil(o.valid_until) < 0;
+          // Oude offertes hadden de voorwaarden in de klanttekst.
+          // Die worden nu apart onder de bedragen getoond — filter de
+          // legacy-clausules zodat ze niet dubbel verschijnen.
           const paragraphs = (o.body ?? "")
             .split(/\n{2,}/)
             .map((p) => p.trim())
-            .filter(Boolean);
+            .filter(Boolean)
+            .filter(
+              (p) =>
+                !/^Beslis je v[oó]{2}r de vervaldatum/i.test(p) &&
+                !/^Domein\s*&(amp;)?\s*e-?mail/i.test(p) &&
+                !/^(Si vous d[ée]cidez avant|If you decide before)/i.test(
+                  p,
+                ) &&
+                !/^(Domaine\s*&|Domain\s*&)/i.test(p),
+            );
 
           return (
             <article
@@ -266,10 +278,10 @@ export default async function PortalOffers({
               {/* Briefhoofd */}
               <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
                 <div>
-                  <p className="text-3xl font-extrabold lowercase tracking-tighter">
+                  <p className="text-6xl font-extrabold lowercase leading-none tracking-tighter sm:text-7xl">
                     vm<span className="text-accent">.</span>
                   </p>
-                  <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  <p className="mt-2 font-mono text-[11px] uppercase tracking-widest text-muted">
                     Studio VM · studio-vm.be
                   </p>
                 </div>
@@ -477,7 +489,7 @@ export default async function PortalOffers({
                       className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
+                      <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
                         {l.accept}
                       </SubmitButton>
                     </form>
@@ -486,7 +498,7 @@ export default async function PortalOffers({
                       className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="inline-flex w-full items-center justify-center rounded-full border bg-card-hover px-4 py-2.5 text-sm transition-colors hover:bg-card">
+                      <SubmitButton className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground">
                         {l.reject}
                       </SubmitButton>
                     </form>
@@ -501,13 +513,14 @@ export default async function PortalOffers({
                   <>
                     <Link
                       href={`/${locale}/portail/dashboard/facturen`}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover"
                     >
                       {l.payToStart}
+                      <span aria-hidden>&rarr;</span>
                     </Link>
                     <Link
                       href={`/${locale}/portail/dashboard/offertes/${o.id}/akkoord`}
-                      className="inline-flex w-full items-center justify-center rounded-full border bg-card-hover px-4 py-2.5 text-sm transition-colors hover:bg-card"
+                      className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
                     >
                       {l.proof}
                     </Link>

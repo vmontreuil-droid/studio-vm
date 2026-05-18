@@ -39,7 +39,7 @@ export function portalEmailHtml(o: PortalEmailOpts): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-collapse:collapse"><tr><td align="center" style="padding:48px 16px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;border-collapse:collapse">
   <tr><td style="background:#ffffff;border:1px solid #e7e5e4;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:48px 44px">
-    <p style="margin:0 0 34px;font:800 46px/1 ${FONT};letter-spacing:-3px;color:#1c1917">vm<span style="color:${ACCENT}">.</span></p>
+    <p style="margin:0 0 34px;font:800 76px/1 ${FONT};letter-spacing:-5px;color:#1c1917">vm<span style="color:${ACCENT}">.</span></p>
     <p style="margin:0 0 10px;font:700 12px/1 ${MONO};letter-spacing:.18em;text-transform:uppercase;color:${ACCENT}">${o.eyebrow}</p>
     <h1 style="margin:0 0 22px;font:700 25px/1.35 ${FONT};color:#1c1917">${o.title}</h1>
     ${body}
