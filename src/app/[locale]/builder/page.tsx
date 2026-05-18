@@ -483,7 +483,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Bouw je eigen site, tot in detail.",
     intro:
-      "Kies een thema, voeg secties toe en vul je eigen teksten in. Wat je hier maakt, komt volledig in mijn admin — ik geef het de finishing touch en zet 'm live.",
+      "Kies een thema, voeg secties toe en vul je eigen teksten in. Tevreden? Verstuur het naar Studio VM, óf zet je site zelf live vanaf €39/maand.",
     panelTheme: "Naam + thema",
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
@@ -645,7 +645,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Construisez votre site, dans le détail.",
     intro:
-      "Choisissez un thème, ajoutez des sections et saisissez vos propres textes. Tout ce que vous créez ici arrive dans mon admin — je le finalise et le mets en ligne.",
+      "Choisissez un thème, ajoutez des sections et vos propres textes. Satisfait ? Envoyez-le à Studio VM, ou mettez votre site en ligne vous-même dès 39 €/mois.",
     panelTheme: "Nom + thème",
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
@@ -807,7 +807,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Build your own site, down to the detail.",
     intro:
-      "Pick a theme, add sections and fill in your own copy. Everything you make here lands in my admin — I give it the finishing touch and put it live.",
+      "Pick a theme, add sections and your own copy. Happy? Send it to Studio VM, or put your site live yourself from €39/month.",
     panelTheme: "Name + theme",
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },
@@ -1929,14 +1929,21 @@ export default function BuilderPage({
     <main className="min-h-dvh">
       {!designId && (
         <section className="border-b">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 xl:px-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 xl:px-6">
+            <Link
+              href={localePath(locale, "/")}
+              className="shrink-0 font-mono text-[11px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              ← Studio VM
+            </Link>
+            <span className="hidden h-3.5 w-px bg-border sm:block" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
               {c.eyebrow}
             </span>
             <h1 className="text-base font-semibold tracking-tight">
               {c.title}
             </h1>
-            <p className="hidden text-xs text-muted sm:block">{c.intro}</p>
+            <p className="hidden text-xs text-muted lg:block">{c.intro}</p>
           </div>
         </section>
       )}
@@ -3133,6 +3140,42 @@ export default function BuilderPage({
               })()}
             </Panel>
 
+            {!designId && (
+              <div className="rounded-2xl border border-accent bg-accent/5 p-3">
+                <p className="mb-2 px-1 font-mono text-[10px] uppercase tracking-widest text-accent">
+                  {locale === "fr"
+                    ? "Démarrage rapide"
+                    : locale === "en"
+                      ? "Quick start"
+                      : "Snelstart"}
+                </p>
+                <div className="grid grid-cols-1 gap-1.5">
+                  <a
+                    href="#vm-assist"
+                    className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs font-medium transition-colors hover:border-accent"
+                  >
+                    <Wand2 className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
+                    {locale === "fr"
+                      ? "Assistant : secteur ou importer mon site"
+                      : locale === "en"
+                        ? "Assistant: sector or import my site"
+                        : "Assistent: sector kiezen of mijn site importeren"}
+                  </a>
+                  <a
+                    href="#vm-verzend"
+                    className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs font-medium transition-colors hover:border-accent"
+                  >
+                    <Send className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
+                    {locale === "fr"
+                      ? "Envoyer / mettre en ligne"
+                      : locale === "en"
+                        ? "Send / put online"
+                        : "Versturen / online zetten"}
+                  </a>
+                </div>
+              </div>
+            )}
+
             <Panel icon={<Palette className="h-4 w-4" />} title={c.panelTheme}>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.bizName}
@@ -3547,6 +3590,7 @@ export default function BuilderPage({
               )}
             </Panel>
 
+            <div id="vm-assist" className="scroll-mt-3" />
             <Panel
               icon={<Wand2 className="h-4 w-4" />}
               title={
@@ -4093,6 +4137,7 @@ export default function BuilderPage({
               </div>
             </Panel>
 
+            <div id="vm-verzend" className="scroll-mt-3" />
             <Panel icon={null} title={c.panelReady}>
               <p className="text-xs text-muted">{c.readyText}</p>
               {sent === "ok" ? (

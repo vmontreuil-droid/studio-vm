@@ -17,6 +17,7 @@ export function BuilderTour({
 }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [closed, setClosed] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const cur = steps[i]?.n ?? "1";
 
@@ -95,27 +96,56 @@ export function BuilderTour({
     </div>
   );
 
+  if (closed) {
+    return (
+      <section className="border-b">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-6">
+          <button
+            type="button"
+            onClick={() => {
+              setClosed(false);
+              setPaused(false);
+            }}
+            className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+          >
+            ▶ {title}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
-      className="border-b"
+      className="relative border-b"
       ref={wrapRef}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      <button
+        type="button"
+        aria-label="Sluiten"
+        onClick={() => setClosed(true)}
+        className="absolute right-4 top-4 z-20 rounded-full border bg-background px-2.5 py-1 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+      >
+        ✕
+      </button>
       <style>{`
         @keyframes svmShim{0%{transform:translateX(-120%)}100%{transform:translateX(360%)}}
         @keyframes svmPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
         @keyframes svmFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
-      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-        <div className="max-w-2xl">
+      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+        <div className="max-w-3xl">
           <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
             {title}
           </h2>
-          <p className="mt-3 text-muted">{lead}</p>
+          <p className="mt-3 text-lg leading-relaxed text-muted sm:text-xl">
+            {lead}
+          </p>
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.15fr_.85fr]">
+        <div className="mt-12 grid gap-10 lg:grid-cols-[1.3fr_.7fr]">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="relative overflow-hidden rounded-2xl border bg-card shadow-lg">
               <div className="flex items-center gap-1.5 border-b bg-background px-4 py-3">
