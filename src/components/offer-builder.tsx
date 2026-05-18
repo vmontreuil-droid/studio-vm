@@ -254,7 +254,7 @@ export function OfferBuilder({
     }
     if (effectiveSub)
       out.push({
-        label: `${effectiveSub.name} — verplicht · 12 maanden minimum, daarna stilzwijgend verlengd`,
+        label: `${effectiveSub.name} — verplicht · 1 jaar minimum, daarna jaarlijks stilzwijgend verlengd`,
         desc: effectiveSub.desc ?? "",
         cents: 0,
         incl: false,
@@ -507,7 +507,7 @@ export function OfferBuilder({
       {/* Abonnement — vrij te kiezen, overschrijft het inbegrepen */}
       <div>
         <p className={labelCls}>
-          Abonnement (verplicht · 12 mnd min., daarna stilzwijgend verlengd)
+          Abonnement (verplicht · 1 jaar min., daarna jaarlijks stilzwijgend verlengd)
         </p>
         <select
           name="sub"
@@ -546,9 +546,11 @@ export function OfferBuilder({
             Beslist de klant vóór de vervaldatum van deze offerte, dan
             ligt de scope vast en krijgt hij 7% korting op het
             eenmalige bedrag én de eerste 2 maanden van het abonnement
-            gratis. Het abonnement loopt minimum 12 maanden en wordt
-            daarna stilzwijgend verlengd. Na de offertedatum vervalt
-            deze korting automatisch. Betaling:
+            gratis. Het abonnement heeft een minimumlooptijd van 1
+            jaar en wordt, zonder schriftelijke opzegging minstens 1
+            maand vóór het jaareinde, telkens stilzwijgend met één
+            jaar verlengd. Na de offertedatum vervalt deze korting
+            automatisch. Betaling:
             30% voorschot om te starten, de resterende 70% vóór de
             site live gaat. Alle betalingen verlopen uitsluitend via
             het beveiligde klantenportaal — geen uitzonderingen. De

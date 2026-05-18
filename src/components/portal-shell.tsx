@@ -25,6 +25,8 @@ import {
   Menu,
   X,
   ExternalLink,
+  ScrollText,
+  ShieldCheck,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import { PORTAL_T, type PortalCounts } from "@/lib/portal-shared";
@@ -142,6 +144,24 @@ export function PortalShell({
           icon: CalendarClock,
         },
         { href: `${base}/account`, label: t.account, icon: UserRound },
+        {
+          href: `/${locale}/voorwaarden`,
+          label:
+            locale === "fr"
+              ? "Conditions"
+              : locale === "en"
+                ? "Terms"
+                : "Voorwaarden",
+          icon: ScrollText,
+        },
+        {
+          href: `/${locale}/privacy`,
+          label:
+            locale === "fr"
+              ? "Confidentialité"
+              : "Privacy",
+          icon: ShieldCheck,
+        },
       ],
     },
   ];

@@ -128,6 +128,8 @@ const L: Record<
     commL: string;
     amountL: string;
     promoInv: string;
+    termsTitle: string;
+    terms: string;
   }
 > = {
   nl: {
@@ -167,6 +169,9 @@ const L: Record<
     amountL: "Bedrag (incl. btw)",
     promoInv:
       "Je behield 7% korting + 2 maanden gratis support door tijdig te tekenen. Betaal dit voorschot om je project te starten.",
+    termsTitle: "Voorwaarden",
+    terms:
+      "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
   },
   fr: {
     none: "Aucune facture.",
@@ -205,6 +210,9 @@ const L: Record<
     amountL: "Montant (TVAC)",
     promoInv:
       "Vous avez conservé 7% de remise + 2 mois de support offerts en signant à temps. Payez cet acompte pour démarrer votre projet.",
+    termsTitle: "Conditions",
+    terms:
+      "Paiement : acompte de 30% pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. L'abonnement de maintenance a une durée minimale d'1 an et est, sauf résiliation écrite au moins 1 mois avant la fin de la période annuelle, reconduit tacitement pour un an à chaque fois. Domaine & e-mail (reprise/renouvellement) sont à charge du client et, selon le cas, décomptés sur la facture finale. Conditions complètes : studio-vm.be/fr/voorwaarden.",
   },
   en: {
     none: "No invoices.",
@@ -243,6 +251,9 @@ const L: Record<
     amountL: "Amount (incl. VAT)",
     promoInv:
       "You kept 7% off + 2 months of support free by signing in time. Pay this deposit to start your project.",
+    termsTitle: "Terms",
+    terms:
+      "Payment: 30% deposit to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. The maintenance subscription has a minimum term of 1 year and, unless cancelled in writing at least 1 month before the end of the yearly term, renews tacitly for one year each time. Domain & email (transfer/renewal) are borne by the client and, depending on the case, settled on the final invoice. Full terms: studio-vm.be/en/voorwaarden.",
   },
 };
 
@@ -561,6 +572,16 @@ export default async function PortalInvoices({
                     ✓ {l.paidNote}
                   </p>
                 )}
+              </div>
+
+              {/* Voorwaarden — print mee met de factuur */}
+              <div className="mt-6 rounded-xl border bg-background p-5 text-sm shadow-sm">
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {l.termsTitle}
+                </p>
+                <p className="text-xs leading-relaxed text-muted">
+                  {l.terms}
+                </p>
               </div>
 
               {/* Betaalkeuze — Mollie vs overschrijving */}
