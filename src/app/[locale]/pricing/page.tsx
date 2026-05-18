@@ -343,17 +343,17 @@ export default async function PricingPage({
                         {z.perM}
                       </span>
                     </p>
-                    <div className="mt-6 flex flex-col gap-2">
+                    <div className="mt-5 flex flex-col items-center gap-2.5">
                       <Link
                         href={localePath(locale, "/zelf-bouwen")}
-                        className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                        className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
                       >
                         {z.a}
-                        <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                        <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
                       </Link>
                       <Link
                         href={localePath(locale, "/builder")}
-                        className="inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-card-hover"
+                        className="whitespace-nowrap text-xs font-medium text-accent underline underline-offset-2 transition-opacity hover:opacity-80"
                       >
                         {z.b}
                       </Link>

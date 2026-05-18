@@ -485,9 +485,9 @@ export default async function ZelfBouwenPage({
                   </p>
                   <Link
                     href={builder}
-                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                    className="mt-5 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
                   >
-                    <PenTool className="h-4 w-4" strokeWidth={2} />
+                    <PenTool className="h-3.5 w-3.5" strokeWidth={2} />
                     {c.cta}
                   </Link>
                 </div>
