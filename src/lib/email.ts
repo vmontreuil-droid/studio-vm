@@ -44,7 +44,7 @@ export function portalEmailHtml(o: PortalEmailOpts): string {
     <h1 style="margin:0 0 22px;font:700 25px/1.35 ${FONT};color:#1c1917">${o.title}</h1>
     ${body}
     ${o.extraHtml ?? ""}
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:30px 0 0;border-collapse:separate"><tr><td bgcolor="${ACCENT}" style="background:${ACCENT};border-radius:9px"><a href="${o.ctaHref}" style="display:inline-block;padding:16px 34px;font:700 15px/1 ${FONT};color:#ffffff;text-decoration:none">${o.ctaLabel} &nbsp;&rarr;</a></td></tr></table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0 0;border-collapse:collapse"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="${ACCENT}" style="background:${ACCENT};border-radius:9px"><a href="${o.ctaHref}" style="display:inline-block;padding:16px 34px;font:700 15px/1 ${FONT};color:#ffffff;text-decoration:none">${o.ctaLabel} &nbsp;&rarr;</a></td></tr></table></td></tr></table>
     ${
       o.footnote
         ? `<p style="margin:28px 0 0;padding-top:24px;border-top:1px solid #f0eeec;font:400 13px/1.65 ${FONT};color:#78716c">${o.footnote}</p>`

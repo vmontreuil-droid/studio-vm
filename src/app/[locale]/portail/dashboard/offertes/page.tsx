@@ -467,31 +467,33 @@ export default async function PortalOffers({
                 </p>
               )}
 
-              {/* Acties */}
-              <div className="no-print mt-7 flex flex-wrap items-center gap-2 border-t pt-6">
+              {/* Acties — drie gelijke kolommen */}
+              <div className="no-print mt-7 grid grid-cols-1 gap-2 border-t pt-6 sm:grid-cols-3">
                 <PrintButton label={l.print} />
                 {o.status === "open" && !expired && (
                   <>
                     <form
                       action={decideOffer.bind(null, o.id, "akkoord")}
+                      className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
+                      <SubmitButton className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
                         {l.accept}
                       </SubmitButton>
                     </form>
                     <form
                       action={decideOffer.bind(null, o.id, "afgewezen")}
+                      className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="rounded-full border px-4 py-2.5 text-sm transition-colors hover:bg-card-hover">
+                      <SubmitButton className="inline-flex w-full items-center justify-center rounded-full border bg-card-hover px-4 py-2.5 text-sm transition-colors hover:bg-card">
                         {l.reject}
                       </SubmitButton>
                     </form>
                   </>
                 )}
                 {o.status === "open" && expired && (
-                  <span className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white">
+                  <span className="flex items-center justify-center rounded-full bg-amber-500 px-3 py-2.5 text-xs font-semibold text-white sm:col-span-2">
                     {l.expiredNote}
                   </span>
                 )}
@@ -499,13 +501,13 @@ export default async function PortalOffers({
                   <>
                     <Link
                       href={`/${locale}/portail/dashboard/facturen`}
-                      className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                     >
                       {l.payToStart}
                     </Link>
                     <Link
                       href={`/${locale}/portail/dashboard/offertes/${o.id}/akkoord`}
-                      className="rounded-full border px-4 py-2.5 text-sm transition-colors hover:bg-card-hover"
+                      className="inline-flex w-full items-center justify-center rounded-full border bg-card-hover px-4 py-2.5 text-sm transition-colors hover:bg-card"
                     >
                       {l.proof}
                     </Link>

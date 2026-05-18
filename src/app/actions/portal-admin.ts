@@ -94,10 +94,16 @@ async function notifyClient(
     | "document",
   bodyLines: string[],
   extraHtml?: string,
+  targetPath?: string,
 ) {
   const locale = await clientLocale(email);
   const subject = SUBJECT[kind][locale] ?? SUBJECT[kind].nl;
-  const portalUrl = `${siteUrl}/${locale}/portail`;
+  const portalBase = `${siteUrl}/${locale}/portail`;
+  const portalUrl = targetPath
+    ? `${portalBase}?next=${encodeURIComponent(
+        `/${locale}/portail/${targetPath}`,
+      )}`
+    : portalBase;
   const eyebrow =
     { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[
       locale
@@ -302,6 +308,7 @@ export async function createOffer(formData: FormData): Promise<void> {
       `In je portaal zie je de volledige offerte met alle details. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
     ],
     preview,
+    "dashboard/offertes",
   );
   revalidatePath("/admin/klanten", "layout");
   return;
@@ -370,6 +377,7 @@ export async function resendOffer(formData: FormData): Promise<void> {
       `In je portaal zie je de volledige offerte. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
     ],
     preview,
+    "dashboard/offertes",
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/offertes");

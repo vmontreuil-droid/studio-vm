@@ -87,6 +87,12 @@ export async function sendMagicLink(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: t.bad };
   }
+  // Waar de klant na inloggen belandt. Enkel interne portaalpaden
+  // (anti open-redirect); standaard de dashboardstart.
+  const rawNext = String(formData.get("next") ?? "");
+  const nextPath = /^\/(nl|fr|en)\/portail(\/|$)/.test(rawNext)
+    ? rawNext
+    : `/${locale}/portail/dashboard`;
 
   const h = await headers();
   const origin =
@@ -114,9 +120,7 @@ export async function sendMagicLink(
     // mens op de knop klikt (POST → confirmLogin) wordt ingelogd.
     const link = `${origin}/auth/confirm?token_hash=${encodeURIComponent(
       hashed,
-    )}&type=magiclink&next=${encodeURIComponent(
-      `/${locale}/portail/dashboard`,
-    )}`;
+    )}&type=magiclink&next=${encodeURIComponent(nextPath)}`;
 
     const eyebrow =
       { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[

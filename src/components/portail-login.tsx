@@ -105,7 +105,13 @@ const T: Record<
 const ICONS = [Gauge, TrendingUp, FileText, FolderOpen, Globe, LifeBuoy];
 const initial: AuthState = { ok: false, message: "" };
 
-export function PortailLogin({ locale }: { locale: Locale }) {
+export function PortailLogin({
+  locale,
+  next,
+}: {
+  locale: Locale;
+  next?: string;
+}) {
   const t = T[locale];
   const [state, setState] = useState<AuthState>(initial);
   const [pending, start] = useTransition();
@@ -182,6 +188,9 @@ export function PortailLogin({ locale }: { locale: Locale }) {
                 aria-hidden
               />
               <input type="hidden" name="locale" value={locale} />
+              {next ? (
+                <input type="hidden" name="next" value={next} />
+              ) : null}
               <div>
                 <label
                   htmlFor="email"

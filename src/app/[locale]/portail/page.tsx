@@ -132,11 +132,19 @@ export async function generateMetadata({
 
 export default async function PortailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ next?: string }>;
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
+  const { next: rawNext } = await searchParams;
+  const next =
+    typeof rawNext === "string" &&
+    /^\/(nl|fr|en)\/portail(\/|$)/.test(rawNext)
+      ? rawNext
+      : undefined;
 
   // Echte auth indien Supabase geconfigureerd; anders de demo hieronder.
   if (supabaseConfigured) {
@@ -144,10 +152,11 @@ export default async function PortailPage({
     const {
       data: { user },
     } = await sb.auth.getUser();
-    if (user) redirect(localePath(locale, "/portail/dashboard"));
+    if (user)
+      redirect(next ?? localePath(locale, "/portail/dashboard"));
     return (
       <main>
-        <PortailLogin locale={locale} />
+        <PortailLogin locale={locale} next={next} />
       </main>
     );
   }
