@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Package,
@@ -26,7 +25,7 @@ import {
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
-import { decideOffer } from "@/app/actions/portal-client";
+import { decideOffer, payOfferDeposit } from "@/app/actions/portal-client";
 import { SubmitButton } from "@/components/submit-button";
 import { PrintButton } from "@/components/print-button";
 import {
@@ -577,13 +576,12 @@ export default async function PortalOffers({
                   </span>
                 )}
                 {o.status === "akkoord" && (
-                  <Link
-                    href={`/${locale}/portail/dashboard/facturen`}
-                    className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]"
-                  >
-                    {l.payToStart}
-                    <span aria-hidden>&rarr;</span>
-                  </Link>
+                  <form action={payOfferDeposit.bind(null, o.id)}>
+                    <SubmitButton className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]">
+                      {l.payToStart}
+                      <span aria-hidden>&rarr;</span>
+                    </SubmitButton>
+                  </form>
                 )}
               </div>
             </article>

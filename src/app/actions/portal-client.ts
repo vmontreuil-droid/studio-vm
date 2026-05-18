@@ -285,6 +285,121 @@ export async function payInvoice(id: string): Promise<void> {
   redirect(pay!.checkoutUrl);
 }
 
+// Klikt de klant op "Betaal je voorschot via Mollie" op de offerte:
+// maak (indien nog niet) de 30%-voorschotfactuur aan en ga meteen
+// door naar de Mollie-betaalpagina. Idempotent via offer_id.
+export async function payOfferDeposit(offerId: string): Promise<void> {
+  const email = await authedEmail();
+  const offertes = `${siteUrl}/nl/portail/dashboard/offertes`;
+  const facturen = `${siteUrl}/nl/portail/dashboard/facturen`;
+  if (!email || !mollieConfigured) redirect(facturen);
+
+  const sb = await getSupabaseServer();
+  const { data: oData } = await sb
+    .from("offers")
+    .select(
+      "id, client_email, offer_no, title, amount_cents, status, invoiced_at, items",
+    )
+    .eq("id", offerId)
+    .maybeSingle();
+  const o = oData as
+    | {
+        id: string;
+        client_email: string;
+        offer_no: string | null;
+        title: string;
+        amount_cents: number | null;
+        status: string;
+        invoiced_at: string | null;
+        items: { cents: number }[] | null;
+      }
+    | null;
+  if (
+    !o ||
+    o.client_email !== email ||
+    o.status !== "akkoord" ||
+    (o.amount_cents ?? 0) <= 0
+  ) {
+    redirect(offertes);
+  }
+
+  const db = getSupabaseAdmin();
+  // Bestaat er al een (voorschot)factuur voor deze offerte?
+  const { data: existing } = await db
+    .from("invoices")
+    .select("id, number, amount_cents, status")
+    .eq("offer_id", o!.id)
+    .order("issued_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  let inv = existing as
+    | { id: string; number: string; amount_cents: number; status: string }
+    | null;
+
+  if (!inv) {
+    const lockin = (o!.items ?? []).some(
+      (it) => typeof it.cents === "number" && it.cents < 0,
+    );
+    const full = o!.amount_cents ?? 0;
+    const invCents = lockin ? Math.round(full * 0.3) : full;
+    const invDesc = lockin
+      ? `Voorschot 30% — ${o!.title}${
+          o!.offer_no ? ` (${o!.offer_no})` : ""
+        } · rest vóór livegang`
+      : `${o!.title}${o!.offer_no ? ` (${o!.offer_no})` : ""}`;
+    const year = new Date().getFullYear();
+    const { count } = await db
+      .from("invoices")
+      .select("id", { count: "exact", head: true });
+    const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
+      3,
+      "0",
+    )}`;
+    const dueAt = new Date(Date.now() + 14 * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    const { data: created } = await db
+      .from("invoices")
+      .insert({
+        client_email: email,
+        number: invNo,
+        description: invDesc,
+        amount_cents: invCents,
+        status: "open",
+        due_at: dueAt,
+        offer_id: o!.id,
+      })
+      .select("id, number, amount_cents, status")
+      .maybeSingle();
+    if (!o!.invoiced_at)
+      await db
+        .from("offers")
+        .update({ invoiced_at: new Date().toISOString() })
+        .eq("id", o!.id);
+    inv = created as typeof inv;
+  }
+
+  if (!inv || inv.status === "betaald" || inv.amount_cents <= 0) {
+    redirect(facturen);
+  }
+
+  const pay = await createMolliePayment({
+    amountCents: inv.amount_cents,
+    description: `${inv.number} — Studio VM`,
+    redirectUrl: facturen,
+    webhookUrl: `${siteUrl}/api/mollie/webhook`,
+    metadata: { invoice_id: inv.id },
+  });
+  if (!pay) redirect(facturen);
+
+  await db
+    .from("invoices")
+    .update({ mollie_payment_id: pay.id })
+    .eq("id", inv.id);
+
+  redirect(pay.checkoutUrl);
+}
+
 export async function toggleChecklistItem(
   id: string,
   done: boolean,
