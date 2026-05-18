@@ -130,6 +130,8 @@ const L: Record<
     promoInv: string;
     termsTitle: string;
     terms: string;
+    youSave: string;
+    insteadOf: string;
   }
 > = {
   nl: {
@@ -172,6 +174,8 @@ const L: Record<
     termsTitle: "Voorwaarden",
     terms:
       "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
+    youSave: "Je bespaart",
+    insteadOf: "i.p.v.",
   },
   fr: {
     none: "Aucune facture.",
@@ -213,6 +217,8 @@ const L: Record<
     termsTitle: "Conditions",
     terms:
       "Paiement : acompte de 30% pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. L'abonnement de maintenance a une durée minimale d'1 an et est, sauf résiliation écrite au moins 1 mois avant la fin de la période annuelle, reconduit tacitement pour un an à chaque fois. Domaine & e-mail (reprise/renouvellement) sont à charge du client et, selon le cas, décomptés sur la facture finale. Conditions complètes : studio-vm.be/fr/voorwaarden.",
+    youSave: "Vous économisez",
+    insteadOf: "au lieu de",
   },
   en: {
     none: "No invoices.",
@@ -254,6 +260,8 @@ const L: Record<
     termsTitle: "Terms",
     terms:
       "Payment: 30% deposit to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. The maintenance subscription has a minimum term of 1 year and, unless cancelled in writing at least 1 month before the end of the yearly term, renews tacitly for one year each time. Domain & email (transfer/renewal) are borne by the client and, depending on the case, settled on the final invoice. Full terms: studio-vm.be/en/voorwaarden.",
+    youSave: "You save",
+    insteadOf: "instead of",
   },
 };
 
@@ -321,6 +329,8 @@ export default async function PortalInvoices({
           const vat = reverse ? 0 : Math.round(amount * 0.21);
           const incl = amount + vat;
           const paid = i.status === "betaald";
+          // Mollie = voordeligst (7% korting verrekend). Bij
+          // overschrijving vervalt de korting → hoger bedrag.
 
           // Volledige offerte-opbouw (zelfde detail als de offerte).
           const oItems = ref?.items ?? [];
@@ -346,6 +356,20 @@ export default async function PortalInvoices({
           const oVat = reverse ? 0 : Math.round(oFull * 0.21);
           const oIncl = oFull + oVat;
           const showDetail = !!ref && oItems.length > 0;
+
+          // Betaalbedragen: Mollie = met korting (= deze factuur);
+          // overschrijving = zonder de 7% → evenredig hoger.
+          const hasDiscount =
+            oFull > 0 && oDiscount > 0 && amount < oFull;
+          const mollieIncl = incl;
+          const transferExcl = hasDiscount
+            ? Math.round(amount / 0.93)
+            : amount;
+          const transferVat = reverse
+            ? 0
+            : Math.round(transferExcl * 0.21);
+          const transferIncl = transferExcl + transferVat;
+          const savings = Math.max(0, transferIncl - mollieIncl);
 
           return (
             <article
@@ -595,27 +619,43 @@ export default async function PortalInvoices({
                   <p className="mb-3 text-sm font-semibold">
                     {l.choosePay}
                   </p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {/* Online via Mollie */}
+                  <div className="grid items-stretch gap-3 sm:grid-cols-2">
+                    {/* Online via Mollie — voordeligst */}
                     <div className="flex flex-col rounded-xl border-2 border-accent bg-background p-5 shadow-sm">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-semibold">{l.mollieName}</p>
-                        <span className="rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white">
+                        <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white">
                           {l.recommended}
                         </span>
                       </div>
-                      <p className="mt-2 flex-1 text-xs text-muted">
+                      <p className="mt-2 text-xs leading-relaxed text-muted">
                         {l.mollieDesc}
                       </p>
-                      <p className="mt-3 font-mono text-lg font-bold">
-                        {eur(incl)}
-                      </p>
+                      <div className="mt-4 flex-1 border-t pt-4">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {l.amountL}
+                        </p>
+                        <p className="mt-1 font-mono text-2xl font-bold text-accent">
+                          {eur(mollieIncl)}
+                        </p>
+                        {savings > 0 && (
+                          <p className="mt-1 text-xs text-muted">
+                            <span className="line-through">
+                              {eur(transferIncl)}
+                            </span>{" "}
+                            ·{" "}
+                            <span className="font-semibold text-green-700 dark:text-green-400">
+                              {l.youSave} {eur(savings)}
+                            </span>
+                          </p>
+                        )}
+                      </div>
                       {mollieConfigured && (
                         <form
                           action={payInvoice.bind(null, i.id)}
-                          className="no-print mt-3"
+                          className="no-print mt-4"
                         >
-                          <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
+                          <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90">
                             {l.pay}
                             <span aria-hidden>&rarr;</span>
                           </SubmitButton>
@@ -623,49 +663,61 @@ export default async function PortalInvoices({
                       )}
                     </div>
                     {/* Via overschrijving */}
-                    <div className="rounded-xl border bg-background p-5 shadow-sm">
-                      <p className="font-semibold">{l.transferName}</p>
-                      <p className="mt-2 text-xs text-muted">
+                    <div className="flex flex-col rounded-xl border bg-background p-5 shadow-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold">{l.transferName}</p>
+                      </div>
+                      <p className="mt-2 text-xs leading-relaxed text-muted">
                         {l.noDiscount}
                       </p>
-                      <dl className="mt-3 space-y-2 border-t pt-3 text-sm">
-                        <div>
-                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      <dl className="mt-4 flex-1 space-y-2.5 border-t pt-4 text-sm">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.holder}
                           </dt>
-                          <dd className="font-medium">{BANK.holder}</dd>
+                          <dd className="text-right font-medium">
+                            {BANK.holder}
+                          </dd>
                         </div>
-                        <div>
-                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.ibanL}
                           </dt>
-                          <dd className="shrink-0 whitespace-nowrap font-mono font-semibold tracking-wide">
+                          <dd className="whitespace-nowrap text-right font-mono font-semibold tracking-wide">
                             {BANK.iban}
                           </dd>
                         </div>
-                        <div>
-                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.bicL}
                           </dt>
-                          <dd className="shrink-0 whitespace-nowrap font-mono">{BANK.bic}</dd>
+                          <dd className="whitespace-nowrap text-right font-mono">
+                            {BANK.bic}
+                          </dd>
                         </div>
-                        <div>
-                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.commL}
                           </dt>
-                          <dd className="font-mono font-semibold text-accent">
+                          <dd className="whitespace-nowrap text-right font-mono font-semibold text-accent">
                             {structuredComm(i.number)}
                           </dd>
                         </div>
-                        <div>
-                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                            {l.amountL}
-                          </dt>
-                          <dd className="shrink-0 whitespace-nowrap font-mono text-base font-bold">
-                            {eur(incl)}
-                          </dd>
-                        </div>
                       </dl>
+                      <div className="mt-4 border-t pt-4">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {l.amountL}
+                        </p>
+                        <p className="mt-1 font-mono text-2xl font-bold">
+                          {eur(transferIncl)}
+                        </p>
+                        {savings > 0 && (
+                          <p className="mt-1 text-xs text-muted">
+                            {l.insteadOf} {eur(mollieIncl)}{" "}
+                            <span aria-hidden>·</span> Mollie
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
