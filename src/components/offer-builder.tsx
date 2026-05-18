@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Item = { key: string; slug?: string; name: string; cents: number; desc?: string };
 type Included = Record<
@@ -138,32 +138,47 @@ export function OfferBuilder({
   const grand = payable + vatCents;
   const deposit = lockin ? Math.round(payable * DEPOSIT_RATE) : 0;
   const rest = payable - deposit;
+  const depositVat = isReverse ? 0 : Math.round(deposit * VAT_RATE);
+  const depositIncl = deposit + depositVat;
 
   const field =
     "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
   const labelCls =
     "mb-2 font-mono text-[10px] uppercase tracking-widest text-muted";
 
-  async function runVies() {
-    if (!lookupVat || !vat.trim()) return;
-    setVatState("loading");
-    setVatName(null);
-    try {
-      const r = await lookupVat(vat.trim());
-      if (r.valid === true) {
-        setVatState("ok");
-        setVatName(r.name);
-        if (r.name) setCompany(r.name);
-        if (r.address) setAddress(r.address);
-      } else if (r.valid === false) {
-        setVatState("bad");
-      } else {
+  // Automatische VIES-opzoeking: zodra een plausibel BTW-nummer
+  // getypt is, vult bedrijf + adres zich vanzelf in. Geen knop.
+  const lastVat = useRef<string>("");
+  useEffect(() => {
+    if (!lookupVat) return;
+    const clean = vat.trim().toUpperCase().replace(/\s+/g, "");
+    if (!/^[A-Z]{2}[0-9A-Z]{6,}$/.test(clean)) {
+      setVatState("idle");
+      return;
+    }
+    if (clean === lastVat.current) return;
+    const t = setTimeout(async () => {
+      lastVat.current = clean;
+      setVatState("loading");
+      setVatName(null);
+      try {
+        const r = await lookupVat(clean);
+        if (r.valid === true) {
+          setVatState("ok");
+          setVatName(r.name);
+          if (r.name) setCompany(r.name);
+          if (r.address) setAddress(r.address);
+        } else if (r.valid === false) {
+          setVatState("bad");
+        } else {
+          setVatState("unknown");
+        }
+      } catch {
         setVatState("unknown");
       }
-    } catch {
-      setVatState("unknown");
-    }
-  }
+    }, 700);
+    return () => clearTimeout(t);
+  }, [vat, lookupVat]);
 
   return (
     <form
@@ -187,6 +202,49 @@ export function OfferBuilder({
       ) : (
         <input type="hidden" name="client_email" value={email} />
       )}
+
+      {/* BTW bovenaan — vult bedrijf + adres automatisch in via VIES */}
+      <div className="rounded-xl border bg-background p-4">
+        <p className={labelCls}>
+          BTW-nummer — bedrijf &amp; adres vullen automatisch in
+        </p>
+        <input
+          name="vat_number"
+          value={vat}
+          onChange={(e) => setVat(e.target.value)}
+          placeholder="BTW-nummer (bv. BE0123456789)"
+          className={field}
+        />
+        {vatState === "loading" && (
+          <p className="mt-2 text-xs font-medium text-muted">
+            VIES controleren…
+          </p>
+        )}
+        {vatState === "ok" && (
+          <p className="mt-2 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white dark:bg-green-600">
+            ✓ Geldig BTW-nummer{vatName ? ` — ${vatName}` : ""}. Bedrijf
+            en adres zijn automatisch ingevuld; pas gerust aan.
+          </p>
+        )}
+        {vatState === "bad" && (
+          <p className="mt-2 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white">
+            ✗ Niet geldig volgens VIES. Controleer het nummer of vul
+            de gegevens handmatig in.
+          </p>
+        )}
+        {vatState === "unknown" && (
+          <p className="mt-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white">
+            VIES is even onbereikbaar — vul de gegevens handmatig in,
+            de offerte kan gewoon door.
+          </p>
+        )}
+        {isReverse && (
+          <p className="mt-2 text-xs text-muted">
+            Buitenlands geldig BTW-nummer → btw verlegd (0%,
+            intracommunautair).
+          </p>
+        )}
+      </div>
 
       <div>
         <p className={labelCls}>Klantgegevens</p>
@@ -212,57 +270,6 @@ export function OfferBuilder({
           placeholder="Adres"
           className={`mt-2 ${field}`}
         />
-      </div>
-
-      {/* BTW & adres — tussen klantgegevens en pakket */}
-      <div className="rounded-xl border bg-background p-4">
-        <p className={labelCls}>BTW &amp; adres</p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            name="vat_number"
-            value={vat}
-            onChange={(e) => {
-              setVat(e.target.value);
-              setVatState("idle");
-            }}
-            placeholder="BTW-nummer (bv. BE0123456789)"
-            className={field}
-          />
-          <button
-            type="button"
-            onClick={runVies}
-            disabled={!lookupVat || !vat.trim() || vatState === "loading"}
-            className="shrink-0 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-card-hover disabled:opacity-50"
-          >
-            {vatState === "loading"
-              ? "Ophalen…"
-              : "Gegevens ophalen"}
-          </button>
-        </div>
-        {vatState === "ok" && (
-          <p className="mt-2 text-xs font-medium text-green-700 dark:text-green-400">
-            ✓ Geldig BTW-nummer{vatName ? ` — ${vatName}` : ""}. Bedrijf
-            en adres zijn ingevuld; pas gerust aan waar nodig.
-          </p>
-        )}
-        {vatState === "bad" && (
-          <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
-            ✗ Dit BTW-nummer is niet geldig volgens VIES. Controleer
-            het of vul de gegevens handmatig in.
-          </p>
-        )}
-        {vatState === "unknown" && (
-          <p className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
-            VIES is even onbereikbaar — vul de gegevens handmatig in,
-            de offerte kan gewoon door.
-          </p>
-        )}
-        {isReverse && (
-          <p className="mt-2 text-xs text-muted">
-            Buitenlands geldig BTW-nummer → btw verlegd (0%,
-            intracommunautair).
-          </p>
-        )}
       </div>
 
       <div>
@@ -420,7 +427,7 @@ export function OfferBuilder({
             <span className="font-mono">{eur(subtotal)}</span>
           </div>
           {lockin && (
-            <div className="flex items-center justify-between text-green-700 dark:text-green-400">
+            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-100 px-2 py-1.5 font-semibold text-green-900 dark:bg-green-900 dark:text-green-50">
               <span>Vastlegkorting (directe ondertekening) −7%</span>
               <span className="font-mono">− {eur(discount)}</span>
             </div>
@@ -443,9 +450,19 @@ export function OfferBuilder({
           </div>
           {lockin && (
             <div className="mt-2 space-y-1 border-t pt-2">
-              <div className="flex items-center justify-between font-medium text-foreground">
-                <span>Nu te betalen — aanbetaling 30% (excl. btw)</span>
+              <div className="flex items-center justify-between text-muted">
+                <span>Aanbetaling 30% (excl. btw)</span>
                 <span className="font-mono">{eur(deposit)}</span>
+              </div>
+              <div className="flex items-center justify-between text-muted">
+                <span>
+                  {isReverse ? "Btw (0% — verlegd)" : "Btw 21% op aanbetaling"}
+                </span>
+                <span className="font-mono">{eur(depositVat)}</span>
+              </div>
+              <div className="-mx-1 flex items-center justify-between rounded-lg bg-foreground px-2 py-1.5 font-bold text-background">
+                <span>Nu te betalen (incl. btw)</span>
+                <span className="font-mono">{eur(depositIncl)}</span>
               </div>
               <div className="flex items-center justify-between text-muted">
                 <span>Rest na oplevering (excl. btw)</span>
@@ -465,7 +482,7 @@ export function OfferBuilder({
             </div>
           )}
           {lockin && effectiveSub && (
-            <div className="flex items-center justify-between text-green-700 dark:text-green-400">
+            <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-100 px-2 py-1.5 font-semibold text-green-900 dark:bg-green-900 dark:text-green-50">
               <span>Eerste 2 maanden abonnement gratis</span>
               <span className="font-mono">
                 − {eur(effectiveSub.cents * 2)}
