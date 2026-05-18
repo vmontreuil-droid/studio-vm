@@ -279,28 +279,80 @@ export default async function ZelfBouwenPage({
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
   const builder = localePath(locale, "/builder");
+  const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
+  const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
 
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
-          <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
-            {c.eyebrow}
-          </p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-            {c.title}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-            {c.lead}
-          </p>
-          <Link
-            href={builder}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            <PenTool className="h-4 w-4" strokeWidth={2} />
-            {c.cta}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 sm:py-28 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+          <div>
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
+              {c.eyebrow}
+            </p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
+              {c.title}
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+              {c.lead}
+            </p>
+            <Link
+              href={builder}
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              <PenTool className="h-4 w-4" strokeWidth={2} />
+              {c.cta}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
+          <div className="rounded-3xl border border-accent bg-accent/5 p-7 text-center shadow-[0_0_0_1px_var(--accent)] sm:p-8">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
+              {locale === "fr"
+                ? "Site web en abonnement"
+                : locale === "en"
+                  ? "Website subscription"
+                  : "Website-abonnement"}
+            </p>
+            <p className="mt-4 text-4xl font-semibold tracking-tight">
+              €{setup}
+            </p>
+            <p className="text-xs text-muted">
+              {locale === "fr"
+                ? "démarrage unique"
+                : locale === "en"
+                  ? "one-off setup"
+                  : "eenmalige opstart"}
+            </p>
+            <p className="mt-3 text-4xl font-semibold tracking-tight text-accent">
+              €{month}
+              <span className="text-base font-normal text-muted">
+                {" "}
+                {locale === "fr"
+                  ? "/ mois"
+                  : locale === "en"
+                    ? "/ month"
+                    : "/ maand"}
+              </span>
+            </p>
+            <p className="mt-2 text-xs text-muted">
+              {locale === "fr"
+                ? "Hébergement, entretien & mises à jour inclus. Résiliable chaque mois."
+                : locale === "en"
+                  ? "Hosting, maintenance & updates included. Cancel any month."
+                  : "Hosting, onderhoud & updates inbegrepen. Maandelijks opzegbaar."}
+            </p>
+            <Link
+              href={builder}
+              className="mt-6 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
+            >
+              <PenTool className="h-3.5 w-3.5" strokeWidth={2} />
+              {locale === "fr"
+                ? "Essayer gratuitement"
+                : locale === "en"
+                  ? "Try it free"
+                  : "Gratis uitproberen"}
+            </Link>
+          </div>
         </div>
       </section>
 
