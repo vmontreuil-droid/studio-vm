@@ -98,28 +98,37 @@ async function notifyClient(
   const accent = "#e08214";
   const font =
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const eyebrow =
+    { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[
+      locale
+    ] ?? "Je klantenportaal";
+  const signin =
+    {
+      nl: "Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.",
+      fr: "Connectez-vous avec votre e-mail — vous recevez un lien sécurisé, sans mot de passe.",
+      en: "Sign in with your email — you get a secure login link, no password needed.",
+    }[locale] ??
+    "Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.";
   await sendMail(email, {
     subject,
-    html: `<!DOCTYPE html><html><body style="margin:0;background:#0c0a09">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a09;border-collapse:collapse"><tr><td align="center" style="padding:32px 16px">
+    html: `<!DOCTYPE html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-collapse:collapse"><tr><td align="center" style="padding:40px 16px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:560px;max-width:100%;border-collapse:collapse">
-  <tr><td style="padding:0 4px 18px;font:700 14px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:${accent}">STUDIO&nbsp;VM<span style="color:${accent}">.</span></td></tr>
-  <tr><td style="background:#161210;border:1px solid #2c2521;border-radius:18px;padding:30px">
-    <h1 style="margin:0 0 14px;font:700 20px/1.3 ${font};color:#fafaf9">${subject}</h1>
+  <tr><td style="background:#ffffff;border:1px solid #e7e5e4;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:40px 38px">
+    <p style="margin:0 0 26px;font:800 56px/1 ${font};letter-spacing:-4px;color:#1c1917">vm<span style="color:${accent}">.</span></p>
+    <p style="margin:0 0 6px;font:700 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:${accent}">${eyebrow}</p>
+    <h1 style="margin:8px 0 16px;font:700 22px/1.3 ${font};color:#1c1917">${subject}</h1>
     ${bodyLines
       .map(
         (l) =>
-          `<p style="margin:0 0 12px;font:400 15px/1.6 ${font};color:#a8a29e">${l}</p>`,
+          `<p style="margin:0 0 14px;font:400 15px/1.65 ${font};color:#44403c">${l}</p>`,
       )
       .join("")}
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px;border-collapse:separate"><tr>
-      <td align="center" bgcolor="#fafaf9" style="border-radius:9999px">
-        <a href="${portalUrl}" style="display:block;padding:15px 26px;font:700 15px/1 ${font};color:#0c0a09;text-decoration:none">${CTA[locale] ?? CTA.nl} &nbsp;→</a>
-      </td>
-    </tr></table>
-    <p style="margin:18px 0 0;font:400 12px/1.5 ${font};color:#78716c">Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;border-collapse:separate"><tr><td bgcolor="${accent}" style="background:${accent}"><a href="${portalUrl}" style="display:inline-block;padding:14px 30px;font:700 14px/1 ${font};color:#ffffff;text-decoration:none">${CTA[locale] ?? CTA.nl} &nbsp;&rarr;</a></td></tr></table>
+    <p style="margin:24px 0 0;font:400 13px/1.6 ${font};color:#78716c">${signin}</p>
   </td></tr>
-  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.5 ${font};color:#57534e">© ${new Date().getFullYear()} Studio VM · studio-vm.be</td></tr>
+  <tr><td style="padding:20px 4px 0;text-align:center;font:400 11px/1.6 ${font};color:#57534e">&copy; ${new Date().getFullYear()} Studio VM &middot; studio-vm.be</td></tr>
 </table></td></tr></table></body></html>`,
   }).catch(() => {});
 }
