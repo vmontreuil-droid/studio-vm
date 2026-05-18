@@ -11,9 +11,10 @@ import {
   offerCatalog,
   OFFER_INCLUDED,
   subscriptionTiers,
+  subscriptionCents,
 } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
-import { portalEmailHtml } from "@/lib/email";
+import { portalEmailHtml, offerPreviewHtml } from "@/lib/email";
 import { randomBytes } from "crypto";
 import { runScan } from "@/app/actions/scan";
 
@@ -92,6 +93,7 @@ async function notifyClient(
     | "progress"
     | "document",
   bodyLines: string[],
+  extraHtml?: string,
 ) {
   const locale = await clientLocale(email);
   const subject = SUBJECT[kind][locale] ?? SUBJECT[kind].nl;
@@ -117,6 +119,7 @@ async function notifyClient(
       ctaLabel: CTA[locale] ?? CTA.nl,
       ctaHref: portalUrl,
       footnote: signin,
+      extraHtml,
     }),
   }).catch(() => {});
 }
@@ -290,12 +293,32 @@ export async function createOffer(formData: FormData): Promise<void> {
   });
   if (error) return;
   await ensurePortalUser(email);
-  await notifyClient(email, "offer", [
-    `Er staat een nieuwe offerte voor je klaar: <strong>${title}</strong> (${offerNo})${
-      amount ? ` — € ${(amount / 100).toFixed(2)}` : ""
-    }.`,
-    `Geldig tot ${validUntil}. Bekijk 'm in je portaal en aanvaard of wijs af met één klik.`,
-  ]);
+  const greet = clientName
+    ? `Beste ${clientName.split(/\s+/)[0]},`
+    : "Beste,";
+  const includes = picked
+    .filter((it) => it.cents >= 0 && it.kind !== "sub")
+    .map((it) => it.label.replace(/\s*\(inbegrepen\)\s*$/i, ""));
+  const subMonthly = sub ? subscriptionCents(sub.slug ?? "") : 0;
+  const preview = offerPreviewHtml({
+    offerNo,
+    amountExclCents: amount || 0,
+    vatReverse,
+    validUntil,
+    includes,
+    subLabel: sub ? `${sub.name} — 12 mnd minimum` : null,
+    subMonthlyCents: subMonthly,
+  });
+  await notifyClient(
+    email,
+    "offer",
+    [
+      greet,
+      `Hierbij je persoonlijke voorstel voor <strong>${title}</strong>. Hieronder vind je alvast het overzicht — bekijk het rustig, je beslist zelf en op je eigen tempo.`,
+      `In je portaal zie je de volledige offerte met alle details. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
+    ],
+    preview,
+  );
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -306,7 +329,9 @@ export async function resendOffer(formData: FormData): Promise<void> {
   if (!id) return;
   const { data } = await getSupabaseAdmin()
     .from("offers")
-    .select("client_email, offer_no, title, amount_cents, valid_until")
+    .select(
+      "client_email, offer_no, title, amount_cents, valid_until, items, vat_reverse, client_name",
+    )
     .eq("id", id)
     .maybeSingle();
   const o = data as {
@@ -315,21 +340,47 @@ export async function resendOffer(formData: FormData): Promise<void> {
     title: string;
     amount_cents: number | null;
     valid_until: string | null;
+    items: { label: string; cents: number; kind?: string }[] | null;
+    vat_reverse: boolean | null;
+    client_name: string | null;
   } | null;
   if (!o?.client_email) return;
   await ensurePortalUser(o.client_email);
-  await notifyClient(o.client_email, "offer", [
-    `Je offerte staat (opnieuw) voor je klaar: <strong>${o.title}</strong>${
-      o.offer_no ? ` (${o.offer_no})` : ""
-    }${
-      o.amount_cents
-        ? ` — € ${(o.amount_cents / 100).toFixed(2)}`
-        : ""
-    }.`,
-    `${
-      o.valid_until ? `Geldig tot ${o.valid_until}. ` : ""
-    }Bekijk 'm in je portaal en aanvaard of wijs af met één klik.`,
-  ]);
+  const its = Array.isArray(o.items) ? o.items : [];
+  const subItem = its.find((it) => it.kind === "sub");
+  const subTier = subItem
+    ? subscriptionTiers().find((t) =>
+        subItem.label.toLowerCase().includes(t.name.toLowerCase()),
+      )
+    : undefined;
+  const preview = offerPreviewHtml({
+    offerNo: o.offer_no,
+    amountExclCents: o.amount_cents ?? 0,
+    vatReverse: !!o.vat_reverse,
+    validUntil: o.valid_until,
+    includes: its
+      .filter((it) => it.cents >= 0 && it.kind !== "sub")
+      .map((it) => it.label.replace(/\s*\(inbegrepen\)\s*$/i, "")),
+    subLabel: subTier
+      ? `${subTier.name} — 12 mnd minimum`
+      : subItem
+        ? subItem.label
+        : null,
+    subMonthlyCents: subTier ? subTier.cents : 0,
+  });
+  const greet = o.client_name
+    ? `Beste ${o.client_name.split(/\s+/)[0]},`
+    : "Beste,";
+  await notifyClient(
+    o.client_email,
+    "offer",
+    [
+      greet,
+      `Hierbij (opnieuw) je persoonlijke voorstel voor <strong>${o.title}</strong>. Hieronder het overzicht — bekijk het rustig, je beslist zelf en op je eigen tempo.`,
+      `In je portaal zie je de volledige offerte. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
+    ],
+    preview,
+  );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/offertes");
 }
