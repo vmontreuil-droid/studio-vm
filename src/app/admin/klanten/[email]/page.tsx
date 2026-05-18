@@ -664,12 +664,34 @@ export default async function AdminKlantDetail({
             key={i.id}
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3"
           >
+            {(() => {
+              const oid = (i as unknown as { offer_id?: string | null })
+                .offer_id;
+              const ref = oid
+                ? offers.find((o) => o.id === oid)
+                : undefined;
+              const rev = !!ref?.vat_reverse;
+              const incl = rev
+                ? i.amount_cents
+                : Math.round(i.amount_cents * 1.21);
+              const isDeposit = /voorschot\s*30%/i.test(
+                i.description ?? "",
+              );
+              return (
             <div className="min-w-0">
               <p className="font-medium">
                 {i.number}{" "}
                 <span className="text-muted">
-                  · {eur(i.amount_cents)}
+                  · {eur(i.amount_cents)} excl. ·{" "}
+                  <span className="text-foreground">
+                    {eur(incl)} incl. btw
+                  </span>
                 </span>
+                {isDeposit && (
+                  <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+                    voorschot 30%
+                  </span>
+                )}
               </p>
               {(i as unknown as { paid_at?: string | null })
                 .paid_at && (
@@ -683,6 +705,8 @@ export default async function AdminKlantDetail({
                 </p>
               )}
             </div>
+              );
+            })()}
             <div className="flex items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
