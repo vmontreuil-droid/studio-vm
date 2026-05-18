@@ -510,81 +510,123 @@ export default async function AdminKlantDetail({
       <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
         Offertes
       </h2>
-      <div className="mt-4 space-y-3">
-        {offers.map((o) => (
-          <div key={o.id} className="rounded-2xl border bg-card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-medium">
-                  {o.offer_no ? `${o.offer_no} · ` : ""}
-                  {o.title}{" "}
-                  <span className="text-muted">· {eur(o.amount_cents)}</span>
-                </p>
-                <p className="mt-1 font-mono text-[11px] text-muted">
-                  {o.valid_until ? `geldig tot ${o.valid_until}` : ""}
-                  {o.vat_number
-                    ? ` · BTW ${o.vat_number} ${
-                        o.vat_valid === true
-                          ? "✓"
-                          : o.vat_valid === false
-                            ? "✕"
-                            : "?"
-                      }`
-                    : ""}
-                  {o.vat_reverse ? " · BTW verlegd" : ""}
-                  {o.viewed_at ? " · bekeken" : " · niet bekeken"}
-                </p>
-                {o.items && o.items.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-xs text-muted">
+      {offers.length === 0 ? (
+        <p className="mt-4 rounded-2xl border border-dashed bg-card/40 p-4 text-sm text-muted">
+          Nog geen offertes voor deze klant.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {offers.map((o) => (
+            <div
+              key={o.id}
+              className="rounded-xl border bg-card px-4 py-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
+                    <span className="font-mono text-xs text-muted">
+                      {o.offer_no ?? "—"}
+                    </span>{" "}
+                    {o.title}{" "}
+                    <span className="text-muted">
+                      · {eur(o.amount_cents)}
+                    </span>
+                  </p>
+                  <p className="mt-0.5 truncate font-mono text-[11px] text-muted">
+                    {o.valid_until ? `t/m ${o.valid_until}` : "—"}
+                    {o.vat_number
+                      ? ` · ${o.vat_number}${
+                          o.vat_valid === true
+                            ? " ✓"
+                            : o.vat_valid === false
+                              ? " ✕"
+                              : ""
+                        }`
+                      : ""}
+                    {o.vat_reverse ? " · btw verlegd" : ""}
+                    {" · "}
+                    {o.viewed_at ? "bekeken" : "niet bekeken"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                      o.status,
+                    )}`}
+                  >
+                    {o.status}
+                  </span>
+                  {o.status !== "akkoord" && (
+                    <form
+                      action={setOfferStatus.bind(null, o.id, "akkoord")}
+                    >
+                      <button
+                        title="Op akkoord zetten"
+                        className="rounded-full border px-2.5 py-1 text-xs hover:bg-card-hover"
+                      >
+                        ✓
+                      </button>
+                    </form>
+                  )}
+                  {o.status !== "afgewezen" && (
+                    <form
+                      action={setOfferStatus.bind(
+                        null,
+                        o.id,
+                        "afgewezen",
+                      )}
+                    >
+                      <button
+                        title="Afwijzen"
+                        className="rounded-full border px-2.5 py-1 text-xs hover:bg-card-hover"
+                      >
+                        ✕
+                      </button>
+                    </form>
+                  )}
+                  {o.status === "akkoord" && (
+                    <form action={createOfferInvoice}>
+                      <input type="hidden" name="id" value={o.id} />
+                      <button className="whitespace-nowrap rounded-full border border-accent px-3 py-1 text-xs font-medium text-accent hover:bg-card-hover">
+                        + Voorschotfactuur
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+              {o.items && o.items.length > 0 && (
+                <details className="mt-2 text-xs text-muted">
+                  <summary className="cursor-pointer select-none font-mono text-[11px] uppercase tracking-widest hover:text-foreground">
+                    {o.items.length} lijnen — details
+                  </summary>
+                  <ul className="mt-2 space-y-1 border-t pt-2">
                     {o.items.map((it, i) => (
                       <li key={i}>
-                        <span className="text-foreground">{it.label}</span> —{" "}
+                        <span className="text-foreground">{it.label}</span>{" "}
+                        —{" "}
                         {it.kind === "sub"
                           ? "maandelijks (verplicht)"
                           : it.cents > 0
                             ? cEur(it.cents)
-                            : "inbegrepen"}
-                        {it.desc ? (
-                          <span className="block text-[11px] opacity-80">
-                            {it.desc}
-                          </span>
-                        ) : null}
+                            : it.cents < 0
+                              ? `− ${cEur(-it.cents)}`
+                              : "inbegrepen"}
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span
-                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
-                    o.status,
-                  )}`}
-                >
-                  {o.status}
-                </span>
-                <form action={setOfferStatus.bind(null, o.id, "akkoord")}>
-                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                    ✓
-                  </button>
-                </form>
-                <form action={setOfferStatus.bind(null, o.id, "afgewezen")}>
-                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                    ✕
-                  </button>
-                </form>
-                {o.status === "akkoord" && (
-                  <form action={createOfferInvoice}>
-                    <input type="hidden" name="id" value={o.id} />
-                    <button className="whitespace-nowrap rounded-full border border-accent px-3 py-1.5 text-xs font-medium text-accent hover:bg-card-hover">
-                      Voorschotfactuur aanmaken
-                    </button>
-                  </form>
-                )}
-              </div>
+                </details>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
 
+      <div className="mt-10 border-t pt-8">
+        <h3 className="mb-1 text-sm font-semibold">Nieuwe offerte</h3>
+        <p className="mb-4 text-xs text-muted">
+          Vul het BTW-nummer in — bedrijf &amp; adres komen automatisch.
+          Laat de omschrijving leeg voor een automatische intro op maat.
+        </p>
         <OfferBuilder
           email={email}
           bases={catalog.bases}
@@ -611,11 +653,16 @@ export default async function AdminKlantDetail({
       <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
         Facturen
       </h2>
-      <div className="mt-4 space-y-3">
+      {invoices.length === 0 && (
+        <p className="mt-4 rounded-2xl border border-dashed bg-card/40 p-4 text-sm text-muted">
+          Nog geen facturen voor deze klant.
+        </p>
+      )}
+      <div className="mt-4 space-y-2">
         {invoices.map((i) => (
           <div
             key={i.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3"
           >
             <div className="min-w-0">
               <p className="font-medium">
@@ -644,19 +691,28 @@ export default async function AdminKlantDetail({
               >
                 {i.status}
               </span>
-              <form action={setInvoiceStatus.bind(null, i.id, "betaald")}>
-                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                  Betaald
-                </button>
-              </form>
-              <form action={setInvoiceStatus.bind(null, i.id, "vervallen")}>
-                <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                  Vervallen
-                </button>
-              </form>
+              {i.status !== "betaald" && (
+                <form action={setInvoiceStatus.bind(null, i.id, "betaald")}>
+                  <button className="rounded-full border px-3 py-1 text-xs hover:bg-card-hover">
+                    Betaald
+                  </button>
+                </form>
+              )}
+              {i.status === "open" && (
+                <form
+                  action={setInvoiceStatus.bind(null, i.id, "vervallen")}
+                >
+                  <button className="rounded-full border px-3 py-1 text-xs hover:bg-card-hover">
+                    Vervallen
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         ))}
+        <p className="mt-6 mb-2 text-xs font-semibold text-muted">
+          Handmatig een factuur toevoegen
+        </p>
         <form
           action={addInvoice}
           className="grid gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:grid-cols-4"
