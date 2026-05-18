@@ -6,7 +6,10 @@ import { MY_SITES, SITES_OWNER_EMAIL } from "@/lib/my-sites";
 import {
   ensureSiteMonitors,
   scanAllSites,
+  scanOneSite,
+  siteIssueToTicket,
 } from "@/app/actions/sites-admin";
+import { FIND } from "@/lib/scan-findings";
 
 export const dynamic = "force-dynamic";
 
@@ -210,21 +213,32 @@ export default async function AdminSites() {
                     {s.url.replace(/^https?:\/\//, "")}
                   </a>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest ${
-                    !s.everScanned
-                      ? "bg-card-hover text-muted"
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest ${
+                      !s.everScanned
+                        ? "bg-card-hover text-muted"
+                        : s.down
+                          ? "bg-red-500/15 text-red-500"
+                          : "bg-green-500/15 text-green-600 dark:text-green-400"
+                    }`}
+                  >
+                    {!s.everScanned
+                      ? "—"
                       : s.down
-                        ? "bg-red-500/15 text-red-500"
-                        : "bg-green-500/15 text-green-600 dark:text-green-400"
-                  }`}
-                >
-                  {!s.everScanned
-                    ? "—"
-                    : s.down
-                      ? "Offline"
-                      : "Online"}
-                </span>
+                        ? "Offline"
+                        : "Online"}
+                  </span>
+                  <form action={scanOneSite}>
+                    <input type="hidden" name="url" value={s.url} />
+                    <button
+                      type="submit"
+                      className="rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+                    >
+                      Scan opnieuw
+                    </button>
+                  </form>
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
@@ -290,22 +304,55 @@ export default async function AdminSites() {
                   <p className="mt-1.5 text-sm font-medium text-red-600 dark:text-red-400">
                     Site onbereikbaar{s.error ? ` — ${s.error}` : ""}.
                   </p>
-                ) : !s.everScanned ? (
+                ) : !s.everDeep ? (
                   <p className="mt-1.5 text-sm text-muted">
-                    Nog niet gescand — klik “Scan nu”.
+                    Nog geen diepe scan — klik “Scan opnieuw”.
                   </p>
                 ) : s.pitfalls.length === 0 ? (
                   <p className="mt-1.5 text-sm font-medium text-green-700 dark:text-green-400">
                     ✓ Geen kritische punten gevonden.
                   </p>
                 ) : (
-                  <ul className="mt-2 space-y-1 text-sm">
-                    {s.pitfalls.map((p, k) => (
-                      <li key={k} className="flex gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                        <span>{p}</span>
-                      </li>
-                    ))}
+                  <ul className="mt-2 space-y-3 text-sm">
+                    {s.pitfalls.map((p, k) => {
+                      const meta = FIND.nl[p];
+                      return (
+                        <li key={k} className="flex gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium">
+                              {meta?.title ?? p}
+                            </p>
+                            {meta?.fix && (
+                              <p className="mt-0.5 text-[13px] text-muted">
+                                → {meta.fix}
+                              </p>
+                            )}
+                            <form
+                              action={siteIssueToTicket}
+                              className="mt-1"
+                            >
+                              <input
+                                type="hidden"
+                                name="site"
+                                value={s.name}
+                              />
+                              <input
+                                type="hidden"
+                                name="key"
+                                value={p}
+                              />
+                              <button
+                                type="submit"
+                                className="font-mono text-[10px] uppercase tracking-widest text-accent underline-offset-2 hover:underline"
+                              >
+                                + Zet om in taak
+                              </button>
+                            </form>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
