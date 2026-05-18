@@ -19,6 +19,7 @@ import {
   Repeat,
   Headphones,
   Palette,
+  Globe,
   LogOut,
   Menu,
   X,
@@ -69,6 +70,7 @@ const items = [
     badge: "formNieuw",
   },
   { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
+  { href: "/admin/sites", label: "Sites", icon: Globe },
   { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
   {
     href: "/admin/monitors",
