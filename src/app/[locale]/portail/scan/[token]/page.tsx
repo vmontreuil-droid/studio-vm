@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import type { ScanResult } from "@/app/actions/scan";
 import { ScanReport } from "@/components/scan-report";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ const C: Record<
   Locale,
   {
     backToPortal: string;
+    backToAdmin: string;
     eyebrow: string;
     title: string;
     intro: string;
@@ -41,6 +43,7 @@ const C: Record<
 > = {
   nl: {
     backToPortal: "Terug naar je portaal",
+    backToAdmin: "Terug naar admin",
     eyebrow: "Jouw analyse",
     title: "Volledige site-analyse",
     intro:
@@ -76,6 +79,7 @@ const C: Record<
   },
   fr: {
     backToPortal: "Retour à votre portail",
+    backToAdmin: "Retour à l'admin",
     eyebrow: "Votre analyse",
     title: "Analyse complète du site",
     intro:
@@ -111,6 +115,7 @@ const C: Record<
   },
   en: {
     backToPortal: "Back to your portal",
+    backToAdmin: "Back to admin",
     eyebrow: "Your analysis",
     title: "Full site analysis",
     intro:
@@ -164,16 +169,24 @@ export default async function ScanPortalPage({
   if (!row || !row.scan || !row.scan.ok) notFound();
   const s = row.scan;
 
+  // Bekijk je dit als ingelogde admin, dan terug naar admin i.p.v.
+  // in het klantportaal vallen.
+  const isAdmin = await requireAdmin();
+  const backHref = isAdmin
+    ? "/admin/scans"
+    : localePath(locale, `/portail/${token}`);
+  const backLabel = isAdmin ? c.backToAdmin : c.backToPortal;
+
   return (
     <main>
       <section className="border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
           <Link
-            href={localePath(locale, `/portail/${token}`)}
+            href={backHref}
             className="mb-6 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            {c.backToPortal}
+            {backLabel}
           </Link>
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
