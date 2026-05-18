@@ -27,6 +27,12 @@ type OfferRef = {
   client_address: string | null;
   vat_number: string | null;
   vat_reverse: boolean | null;
+  title: string | null;
+  offer_no: string | null;
+  amount_cents: number | null;
+  items:
+    | { label: string; desc?: string; cents: number; kind?: string }[]
+    | null;
 };
 
 const eur = (c: number) =>
@@ -75,7 +81,7 @@ export default async function AdminInvoiceDoc({
     const { data: o } = await db
       .from("offers")
       .select(
-        "client_name, client_company, client_address, vat_number, vat_reverse",
+        "client_name, client_company, client_address, vat_number, vat_reverse, title, offer_no, amount_cents, items",
       )
       .eq("id", i.offer_id)
       .maybeSingle();
@@ -87,6 +93,21 @@ export default async function AdminInvoiceDoc({
   const incl = amount + vat;
   const paid = i.status === "betaald";
   const isDeposit = /voorschot\s*30%/i.test(i.description ?? "");
+
+  // Volledige offerte-opbouw (zoals in het portaal): alle lijnen +
+  // offerte-totaal, daarna deze (voorschot)factuur apart.
+  const oItems = ref?.items ?? [];
+  const oNet = ref?.amount_cents ?? 0;
+  const oDiscount = oItems.reduce(
+    (s, it) =>
+      typeof it.cents === "number" && it.cents < 0 ? s - it.cents : s,
+    0,
+  );
+  const oGross = oNet + oDiscount;
+  const oSub = oItems.find((it) => it.kind === "sub");
+  const oVat = reverse ? 0 : Math.round(oNet * 0.21);
+  const oIncl = oNet + oVat;
+  const showDetail = oItems.length > 0 && oNet > 0;
 
   return (
     <>
@@ -205,7 +226,107 @@ export default async function AdminInvoiceDoc({
             </h2>
           )}
 
-          <div className="mt-6 rounded-xl border bg-background p-5 text-sm">
+          {showDetail && (
+            <>
+              <div className="mt-7">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Volledige offerte
+                  {ref?.offer_no ? ` · ${ref.offer_no}` : ""}
+                </p>
+                <ul className="space-y-2.5">
+                  {oItems.map((it, k) => {
+                    const neg = it.cents < 0;
+                    return (
+                      <li
+                        key={k}
+                        className="flex items-start justify-between gap-4 border-b pb-2.5 text-sm last:border-0"
+                      >
+                        <span className="min-w-0">
+                          <span className="font-medium">{it.label}</span>
+                          {it.desc && (
+                            <span className="mt-0.5 block text-xs text-muted">
+                              {it.desc}
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className={`shrink-0 whitespace-nowrap font-mono text-xs ${
+                            it.kind === "sub"
+                              ? "text-orange-600 dark:text-orange-400"
+                              : neg
+                                ? "text-green-700 dark:text-green-400"
+                                : it.cents > 0
+                                  ? "text-muted"
+                                  : "text-accent"
+                          }`}
+                        >
+                          {it.kind === "sub"
+                            ? "maandelijks"
+                            : neg
+                              ? `− ${eur(-it.cents)}`
+                              : it.cents > 0
+                                ? eur(it.cents)
+                                : "inbegrepen"}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <div className="mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm shadow-sm">
+                <div className="flex items-center justify-between text-muted">
+                  <span>Subtotaal (excl. btw)</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">
+                    {eur(oDiscount > 0 ? oGross : oNet)}
+                  </span>
+                </div>
+                {oDiscount > 0 && (
+                  <>
+                    <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
+                      <span>Vastlegkorting (directe ondertekening) −7%</span>
+                      <span className="shrink-0 whitespace-nowrap font-mono">
+                        − {eur(oDiscount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted">
+                      <span>Na korting (excl. btw)</span>
+                      <span className="shrink-0 whitespace-nowrap font-mono">
+                        {eur(oNet)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center justify-between text-muted">
+                  <span>{reverse ? "Btw (0% — verlegd)" : "Btw 21%"}</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">
+                    {eur(oVat)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
+                  <span>Totaal offerte (incl. btw)</span>
+                  <span className="shrink-0 whitespace-nowrap font-mono">
+                    {eur(oIncl)}
+                  </span>
+                </div>
+                {oSub && (
+                  <div className="flex items-center justify-between text-orange-600 dark:text-orange-400">
+                    <span>{oSub.label}</span>
+                    <span className="shrink-0 whitespace-nowrap font-mono">
+                      maandelijks
+                    </span>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="mt-6 rounded-xl border-2 border-accent bg-background p-5 text-sm">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-accent">
+              {isDeposit
+                ? "Deze voorschotfactuur — nu te betalen"
+                : "Deze factuur — nu te betalen"}
+            </p>
             <div className="flex items-center justify-between text-muted">
               <span>Subtotaal (excl. btw)</span>
               <span className="font-mono">{eur(amount)}</span>
