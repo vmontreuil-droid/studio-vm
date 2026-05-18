@@ -103,6 +103,8 @@ const L: Record<
 
 const PRINT_CSS = `@page { margin: 18mm 14mm; }
 @media print {
+  html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
