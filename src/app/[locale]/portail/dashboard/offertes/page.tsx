@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Package,
@@ -25,7 +26,7 @@ import {
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
-import { decideOffer, payOfferDeposit } from "@/app/actions/portal-client";
+import { decideOffer } from "@/app/actions/portal-client";
 import { SubmitButton } from "@/components/submit-button";
 import { PrintButton } from "@/components/print-button";
 import {
@@ -130,7 +131,7 @@ const L: Record<
     discountLine: "Vastlegkorting (directe ondertekening) −7%",
     afterDiscount: "Na korting (excl. btw)",
     freeMonthsLine: "Eerste 2 maanden support gratis",
-    payToStart: "Betaal je voorschot via Mollie",
+    payToStart: "Bekijk je voorschotfactuur",
     terms: "Voorwaarden",
     lockinClause: (v, d) =>
       `Beslis je vóór ${v}, dan ligt de scope vast en behoud je 7% korting op het eenmalige bedrag én de eerste 2 maanden van het abonnement gratis. Na die datum vervalt dit aanbod automatisch. Het onderhoudsabonnement loopt minimum 12 maanden. Betaling: 30% voorschot (${d}) om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Zodra je akkoord geeft staat de voorschotfactuur meteen klaar; na betaling start het project en vind je de betaalde factuur onmiddellijk in je portaal.`,
@@ -161,7 +162,7 @@ const L: Record<
     discountLine: "Remise d'engagement (signature directe) −7%",
     afterDiscount: "Après remise (HTVA)",
     freeMonthsLine: "2 premiers mois de support offerts",
-    payToStart: "Payer l'acompte via Mollie",
+    payToStart: "Voir votre facture d'acompte",
     terms: "Conditions",
     lockinClause: (v, d) =>
       `Si vous décidez avant le ${v}, le périmètre est fixé et vous conservez 7% de remise sur le montant unique ainsi que les 2 premiers mois d'abonnement gratuits. Passé cette date, l'offre expire automatiquement. L'abonnement de maintenance court minimum 12 mois. Paiement : acompte de 30% (${d}) pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. Dès votre accord, la facture d'acompte est disponible ; après paiement le projet démarre et la facture payée apparaît aussitôt dans votre portail.`,
@@ -191,7 +192,7 @@ const L: Record<
     discountLine: "Lock-in discount (direct signature) −7%",
     afterDiscount: "After discount (excl. VAT)",
     freeMonthsLine: "First 2 months of support free",
-    payToStart: "Pay your deposit via Mollie",
+    payToStart: "View your deposit invoice",
     terms: "Terms",
     lockinClause: (v, d) =>
       `If you decide before ${v}, the scope is locked and you keep 7% off the one-off amount plus the first 2 months of the subscription free. After that date this offer expires automatically. The maintenance subscription runs for a minimum of 12 months. Payment: 30% deposit (${d}) to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. Once you approve, the deposit invoice is ready immediately; after payment the project starts and the paid invoice appears in your portal right away.`,
@@ -576,12 +577,13 @@ export default async function PortalOffers({
                   </span>
                 )}
                 {o.status === "akkoord" && (
-                  <form action={payOfferDeposit.bind(null, o.id)}>
-                    <SubmitButton className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]">
-                      {l.payToStart}
-                      <span aria-hidden>&rarr;</span>
-                    </SubmitButton>
-                  </form>
+                  <Link
+                    href={`/${locale}/portail/dashboard/facturen`}
+                    className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]"
+                  >
+                    {l.payToStart}
+                    <span aria-hidden>&rarr;</span>
+                  </Link>
                 )}
               </div>
             </article>
