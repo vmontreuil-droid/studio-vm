@@ -101,13 +101,16 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@page { margin: 0; }
+const PRINT_CSS = `@page { margin: 18mm 14mm; }
 @media print {
+  html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 24mm 12mm 14mm; }
+  #print-area { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
   .no-print { display: none !important; }
-  .doc { border: none !important; box-shadow: none !important; page-break-after: always; }
+  .doc { border: none !important; box-shadow: none !important; }
+  .doc + .doc { break-before: page; page-break-before: always; }
+  #print-area > *:last-child { page-break-after: avoid; }
 }`;
 
 export default async function PortalInvoices({
@@ -273,12 +276,12 @@ export default async function PortalInvoices({
                 )}
               </div>
 
-              {/* Acties */}
-              <div className="no-print mt-7 grid grid-cols-1 gap-2 border-t pt-6 sm:grid-cols-3">
+              {/* Acties — gecentreerd, naast elkaar */}
+              <div className="no-print mt-7 flex flex-wrap items-center justify-center gap-3 border-t pt-6">
                 <PrintButton label={l.print} />
                 {mollieConfigured && !paid && (
-                  <form action={payInvoice.bind(null, i.id)} className="w-full">
-                    <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
+                  <form action={payInvoice.bind(null, i.id)}>
+                    <SubmitButton className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]">
                       {l.pay}
                       <span aria-hidden>&rarr;</span>
                     </SubmitButton>
@@ -289,7 +292,7 @@ export default async function PortalInvoices({
                     href={i.pdf_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-5 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground sm:min-w-[140px]"
                   >
                     {l.pdf}
                   </a>

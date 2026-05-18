@@ -37,6 +37,7 @@ import {
   PORTAL_T,
   type Offer,
 } from "@/lib/portal-shared";
+import { subscriptionTiers } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +100,9 @@ const L: Record<
     deposit: string;
     payToStart: string;
     terms: string;
+    discountLine: string;
+    afterDiscount: string;
+    freeMonthsLine: string;
     lockinClause: (validUntil: string, deposit: string) => string;
     domainClause: string;
   }
@@ -124,6 +128,9 @@ const L: Record<
     included: "inbegrepen",
     monthly: "per maand",
     deposit: "Voorschot 30% om te starten (incl. btw)",
+    discountLine: "Vastlegkorting (directe ondertekening) −7%",
+    afterDiscount: "Na korting (excl. btw)",
+    freeMonthsLine: "Eerste 2 maanden support gratis",
     payToStart: "Betaal je voorschot via Mollie",
     terms: "Voorwaarden",
     lockinClause: (v, d) =>
@@ -152,6 +159,9 @@ const L: Record<
     included: "inclus",
     monthly: "par mois",
     deposit: "Acompte 30% pour démarrer (TVAC)",
+    discountLine: "Remise d'engagement (signature directe) −7%",
+    afterDiscount: "Après remise (HTVA)",
+    freeMonthsLine: "2 premiers mois de support offerts",
     payToStart: "Payer l'acompte via Mollie",
     terms: "Conditions",
     lockinClause: (v, d) =>
@@ -179,6 +189,9 @@ const L: Record<
     included: "included",
     monthly: "per month",
     deposit: "30% deposit to start (incl. VAT)",
+    discountLine: "Lock-in discount (direct signature) −7%",
+    afterDiscount: "After discount (excl. VAT)",
+    freeMonthsLine: "First 2 months of support free",
     payToStart: "Pay your deposit via Mollie",
     terms: "Terms",
     lockinClause: (v, d) =>
@@ -188,14 +201,17 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@page { margin: 0; }
+const PRINT_CSS = `@page { margin: 18mm 14mm; }
 @media print {
+  html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 24mm 12mm 14mm; }
+  #print-area { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
   .no-print { display: none !important; }
-  .offer-doc { border: none !important; box-shadow: none !important; page-break-after: always; }
-  .page-break { break-before: page; page-break-before: always; padding-top: 22mm; }
+  .offer-doc { border: none !important; box-shadow: none !important; }
+  .offer-doc + .offer-doc { break-before: page; page-break-before: always; }
+  .page-break { break-before: page; page-break-before: always; }
+  #print-area > *:last-child { page-break-after: avoid; }
   .print-head { display: flex !important; }
 }
 .print-head { display: none; }`;
@@ -217,6 +233,7 @@ export default async function PortalOffers({
     .select("*")
     .order("created_at", { ascending: false });
   const offers = (data as Doc[]) ?? [];
+  const subTiers = subscriptionTiers();
 
   const unseen = offers
     .filter((o) => o.status === "open")
@@ -250,10 +267,25 @@ export default async function PortalOffers({
           const vat = o.vat_reverse ? 0 : Math.round(amount * 0.21);
           const incl = amount + vat;
           const items = o.items ?? [];
-          const hasLockin = items.some(
-            (it) => typeof it.cents === "number" && it.cents < 0,
+          const discount = items.reduce(
+            (s, it) =>
+              typeof it.cents === "number" && it.cents < 0
+                ? s - it.cents
+                : s,
+            0,
           );
+          const hasLockin = discount > 0;
+          const gross = amount + discount;
           const subItem = items.find((it) => it.kind === "sub");
+          const subTier = subItem
+            ? subTiers.find((tier) =>
+                subItem.label
+                  .toLowerCase()
+                  .includes(tier.name.toLowerCase()),
+              )
+            : undefined;
+          const freeMonths =
+            hasLockin && subTier ? subTier.cents * 2 : 0;
           const deposit = hasLockin ? Math.round(incl * 0.3) : 0;
           const expired =
             !!o.valid_until && daysUntil(o.valid_until) < 0;
@@ -433,27 +465,51 @@ export default async function PortalOffers({
 
               {/* Totalen */}
               {o.amount_cents != null && (
-                <div className="mt-6 rounded-xl border bg-background p-5 text-sm">
+                <div className="mt-6 space-y-1.5 rounded-xl border bg-background p-5 text-sm">
                   <div className="flex items-center justify-between text-muted">
                     <span>{l.subtotal}</span>
-                    <span className="font-mono">{eur(amount)}</span>
+                    <span className="font-mono">
+                      {eur(hasLockin ? gross : amount)}
+                    </span>
                   </div>
-                  <div className="mt-1.5 flex items-center justify-between text-muted">
+                  {hasLockin && (
+                    <>
+                      <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
+                        <span>{l.discountLine}</span>
+                        <span className="font-mono">
+                          − {eur(discount)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted">
+                        <span>{l.afterDiscount}</span>
+                        <span className="font-mono">{eur(amount)}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-center justify-between text-muted">
                     <span>{o.vat_reverse ? l.reverse : l.vat}</span>
                     <span className="font-mono">{eur(vat)}</span>
                   </div>
-                  <div className="mt-2.5 flex items-center justify-between border-t pt-2.5 text-base font-semibold">
+                  <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
                     <span>{l.inclVat}</span>
                     <span className="font-mono">{eur(incl)}</span>
                   </div>
                   {subItem && (
-                    <div className="mt-2 flex items-center justify-between text-orange-600 dark:text-orange-400">
+                    <div className="flex items-center justify-between text-orange-600 dark:text-orange-400">
                       <span>{subItem.label}</span>
                       <span className="font-mono">{l.monthly}</span>
                     </div>
                   )}
+                  {freeMonths > 0 && (
+                    <div className="-mx-1 flex items-center justify-between rounded-lg bg-green-600 px-2 py-1.5 font-semibold text-white">
+                      <span>{l.freeMonthsLine}</span>
+                      <span className="font-mono">
+                        − {eur(freeMonths)}
+                      </span>
+                    </div>
+                  )}
                   {deposit > 0 && (
-                    <div className="mt-3 flex items-center justify-between rounded-lg bg-foreground px-3 py-2 font-semibold text-background">
+                    <div className="-mx-1 mt-1 flex items-center justify-between rounded-lg bg-foreground px-3 py-2 font-semibold text-background">
                       <span>{l.deposit}</span>
                       <span className="font-mono">{eur(deposit)}</span>
                     </div>
@@ -491,52 +547,42 @@ export default async function PortalOffers({
                 </p>
               )}
 
-              {/* Acties — drie gelijke kolommen */}
-              <div className="no-print mt-7 grid grid-cols-1 gap-2 border-t pt-6 sm:grid-cols-3">
+              {/* Acties — gecentreerd, naast elkaar */}
+              <div className="no-print mt-7 flex flex-wrap items-center justify-center gap-3 border-t pt-6">
                 <PrintButton label={l.print} />
                 {o.status === "open" && !expired && (
                   <>
                     <form
                       action={decideOffer.bind(null, o.id, "akkoord")}
-                      className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
+                      <SubmitButton className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]">
                         {l.accept}
                       </SubmitButton>
                     </form>
                     <form
                       action={decideOffer.bind(null, o.id, "afgewezen")}
-                      className="w-full"
                     >
                       <input type="hidden" name="locale" value={locale} />
-                      <SubmitButton className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground">
+                      <SubmitButton className="inline-flex items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-5 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground sm:min-w-[160px]">
                         {l.reject}
                       </SubmitButton>
                     </form>
                   </>
                 )}
                 {o.status === "open" && expired && (
-                  <span className="flex items-center justify-center rounded-full bg-amber-500 px-3 py-2.5 text-xs font-semibold text-white sm:col-span-2">
+                  <span className="flex items-center justify-center rounded-full bg-amber-500 px-4 py-2.5 text-xs font-semibold text-white">
                     {l.expiredNote}
                   </span>
                 )}
                 {o.status === "akkoord" && (
-                  <>
-                    <Link
-                      href={`/${locale}/portail/dashboard/facturen`}
-                      className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover"
-                    >
-                      {l.payToStart}
-                      <span aria-hidden>&rarr;</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/portail/dashboard/offertes/${o.id}/akkoord`}
-                      className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border bg-card-hover px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
-                    >
-                      {l.proof}
-                    </Link>
-                  </>
+                  <Link
+                    href={`/${locale}/portail/dashboard/facturen`}
+                    className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]"
+                  >
+                    {l.payToStart}
+                    <span aria-hidden>&rarr;</span>
+                  </Link>
                 )}
               </div>
             </article>
