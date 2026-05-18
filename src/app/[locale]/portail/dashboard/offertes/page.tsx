@@ -109,6 +109,7 @@ const L: Record<
     mollieKeep: string;
     transferLoss: string;
     chooseHint: string;
+    promo: (validUntil: string) => string;
     lockinClause: (validUntil: string, deposit: string) => string;
     domainClause: string;
   }
@@ -144,6 +145,8 @@ const L: Record<
     transferLoss: "Geen korting, geen gratis maanden.",
     chooseHint:
       "Twee manieren om te betalen — online via Mollie is voordeliger:",
+    promo: (v) =>
+      `Beslis vóór ${v} en betaal online via Mollie: zo behoud je 7% korting én de eerste 2 maanden support gratis. Daarna of bij overschrijving vervalt dit voordeel.`,
     payToStart: "Bekijk je voorschotfactuur",
     terms: "Voorwaarden",
     lockinClause: (v, d) =>
@@ -183,6 +186,8 @@ const L: Record<
     transferLoss: "Pas de remise, pas de mois offerts.",
     chooseHint:
       "Deux façons de payer — en ligne via Mollie est plus avantageux :",
+    promo: (v) =>
+      `Décidez avant le ${v} et payez en ligne via Mollie : vous conservez 7% de remise et les 2 premiers mois de support offerts. Passé ce délai ou par virement, cet avantage expire.`,
     payToStart: "Voir votre facture d'acompte",
     terms: "Conditions",
     lockinClause: (v, d) =>
@@ -220,6 +225,8 @@ const L: Record<
     transferLoss: "No discount, no free months.",
     chooseHint:
       "Two ways to pay — online via Mollie is the better deal:",
+    promo: (v) =>
+      `Decide before ${v} and pay online via Mollie: you keep 7% off and the first 2 months of support free. After that, or by bank transfer, this benefit expires.`,
     payToStart: "View your deposit invoice",
     terms: "Terms",
     lockinClause: (v, d) =>
@@ -506,6 +513,14 @@ export default async function PortalOffers({
                 <div className="page-break mt-6 rounded-xl border bg-background p-5 text-sm">
                   {hasLockin ? (
                     <>
+                      <div className="-mx-1 mb-4 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white">
+                        ⚡{" "}
+                        {l.promo(
+                          o.valid_until
+                            ? dt(o.valid_until, locale)
+                            : "—",
+                        )}
+                      </div>
                       <p className="mb-3 text-xs font-medium text-muted">
                         {l.chooseHint}
                       </p>
