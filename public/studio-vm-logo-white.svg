@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="Studio VM">
+  <style>
+    .accent { fill: #f59e0b }
+    .fg { fill: #ffffff }
+    text {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 800;
+      font-size: 60px;
+      letter-spacing: -3px;
+      dominant-baseline: middle;
+    }
+  </style>
+  <text x="20" y="46">
+    <tspan class="fg">vm</tspan><tspan class="accent">.</tspan>
+  </text>
+</svg>
