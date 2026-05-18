@@ -224,7 +224,6 @@ export async function createOffer(formData: FormData): Promise<void> {
   const override = cents(formData.get("amount"));
   const amount =
     override > 0 ? override : Math.max(0, gross - lockinDiscount);
-  const deposit = lockin ? Math.round(amount * 0.3) : 0;
 
   // BTW-controle via VIES (faalt nooit de opslag).
   let vatValid: boolean | null = null;
@@ -243,28 +242,11 @@ export async function createOffer(formData: FormData): Promise<void> {
     .toISOString()
     .slice(0, 10);
 
-  // Vastleg-clausule onderaan de klanttekst. Geldt enkel bij
-  // beslissing vóór de offertedatum; daarna automatisch weg.
-  let finalBody = body;
-  if (lockin) {
-    const clause = `Beslis je vóór de vervaldatum van deze offerte (${validUntil}), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag (− € ${(
-      lockinDiscount / 100
-    ).toFixed(
-      2,
-    )}) én de eerste 2 maanden van het abonnement gratis. Na die datum vervalt dit aanbod automatisch. Het onderhoudsabonnement loopt minimum 12 maanden. Betaling: 30% voorschot (€ ${(
-      deposit / 100
-    ).toFixed(
-      2,
-    )} excl. btw) om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Zodra je in je portaal akkoord geeft, staat de voorschotfactuur er meteen klaar; na betaling van het voorschot start het project en vind je de betaalde factuur onmiddellijk in je portaal.`;
-    finalBody = body ? `${body}\n\n${clause}` : clause;
-  }
-
-  // Standaard domein/e-mail-clausule — staat onder elke offerte.
-  const domainClause =
-    "Domein & e-mail: of we je bestaande domein vlot kunnen meenemen hangt af van hoe makkelijk je huidige provider de gegevens vrijgeeft. Daar kunnen kosten aan verbonden zijn, en het domeinabonnement (de jaarlijkse verlenging) blijft steeds ten laste van jou. Dit alles bespreken we samen en wordt — afhankelijk van het geval — verrekend op de slotfactuur; een exact bedrag kunnen we hier dus nog niet vastleggen.";
-  finalBody = finalBody
-    ? `${finalBody}\n\n${domainClause}`
-    : domainClause;
+  // De vastleg-/betaal- én domein/e-mail-voorwaarden staan NIET
+  // meer in de vrije klanttekst — die worden contextueel onder de
+  // bedragen in het offertedocument getoond (zie portaal). De
+  // klanttekst blijft dus zuiver de eigen toelichting.
+  const finalBody = body;
 
   // Offertenummer OFF-{jaar}-{volgnr}
   const year = new Date().getFullYear();

@@ -98,6 +98,9 @@ const L: Record<
     monthly: string;
     deposit: string;
     payToStart: string;
+    terms: string;
+    lockinClause: (validUntil: string, deposit: string) => string;
+    domainClause: string;
   }
 > = {
   nl: {
@@ -122,6 +125,11 @@ const L: Record<
     monthly: "per maand",
     deposit: "Voorschot 30% om te starten (incl. btw)",
     payToStart: "Betaal je voorschot via Mollie →",
+    terms: "Voorwaarden",
+    lockinClause: (v, d) =>
+      `Beslis je vóór ${v}, dan ligt de scope vast en behoud je 7% korting op het eenmalige bedrag én de eerste 2 maanden van het abonnement gratis. Na die datum vervalt dit aanbod automatisch. Het onderhoudsabonnement loopt minimum 12 maanden. Betaling: 30% voorschot (${d}) om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Zodra je akkoord geeft staat de voorschotfactuur meteen klaar; na betaling start het project en vind je de betaalde factuur onmiddellijk in je portaal.`,
+    domainClause:
+      "Domein & e-mail: of we je bestaande domein vlot kunnen meenemen hangt af van hoe makkelijk je huidige provider de gegevens vrijgeeft. Daar kunnen kosten aan verbonden zijn, en het domeinabonnement (de jaarlijkse verlenging) blijft steeds ten laste van jou. Dit bespreken we samen en wordt — afhankelijk van het geval — verrekend op de slotfactuur; een exact bedrag kunnen we hier dus nog niet vastleggen.",
   },
   fr: {
     none: "Aucun devis pour l'instant.",
@@ -145,6 +153,11 @@ const L: Record<
     monthly: "par mois",
     deposit: "Acompte 30% pour démarrer (TVAC)",
     payToStart: "Payer l'acompte via Mollie →",
+    terms: "Conditions",
+    lockinClause: (v, d) =>
+      `Si vous décidez avant le ${v}, le périmètre est fixé et vous conservez 7% de remise sur le montant unique ainsi que les 2 premiers mois d'abonnement gratuits. Passé cette date, l'offre expire automatiquement. L'abonnement de maintenance court minimum 12 mois. Paiement : acompte de 30% (${d}) pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. Dès votre accord, la facture d'acompte est disponible ; après paiement le projet démarre et la facture payée apparaît aussitôt dans votre portail.`,
+    domainClause:
+      "Domaine & e-mail : la reprise de votre domaine existant dépend de la facilité avec laquelle votre fournisseur actuel libère les données. Des frais peuvent s'appliquer, et l'abonnement du domaine (le renouvellement annuel) reste toujours à votre charge. Nous en discutons ensemble ; selon le cas, cela est décompté sur la facture finale — un montant exact ne peut donc pas être fixé ici.",
   },
   en: {
     none: "No quote yet.",
@@ -167,6 +180,11 @@ const L: Record<
     monthly: "per month",
     deposit: "30% deposit to start (incl. VAT)",
     payToStart: "Pay your deposit via Mollie →",
+    terms: "Terms",
+    lockinClause: (v, d) =>
+      `If you decide before ${v}, the scope is locked and you keep 7% off the one-off amount plus the first 2 months of the subscription free. After that date this offer expires automatically. The maintenance subscription runs for a minimum of 12 months. Payment: 30% deposit (${d}) to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. Once you approve, the deposit invoice is ready immediately; after payment the project starts and the paid invoice appears in your portal right away.`,
+    domainClause:
+      "Domain & email: whether we can smoothly migrate your existing domain depends on how easily your current provider releases the data. Costs may apply, and the domain subscription (the yearly renewal) always remains your responsibility. We discuss this together and, depending on the case, it is settled on the final invoice — an exact amount can't be fixed here.",
   },
 };
 
@@ -416,6 +434,24 @@ export default async function PortalOffers({
                       <span className="font-mono">{eur(deposit)}</span>
                     </div>
                   )}
+                  <div className="mt-4 border-t pt-3">
+                    <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {l.terms}
+                    </p>
+                    {deposit > 0 && (
+                      <p className="mb-2 text-xs leading-relaxed text-muted">
+                        {l.lockinClause(
+                          o.valid_until
+                            ? dt(o.valid_until, locale)
+                            : "—",
+                          eur(deposit),
+                        )}
+                      </p>
+                    )}
+                    <p className="text-xs leading-relaxed text-muted">
+                      {l.domainClause}
+                    </p>
+                  </div>
                 </div>
               )}
 
