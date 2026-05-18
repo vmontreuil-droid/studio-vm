@@ -10,6 +10,7 @@ import {
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
+import { portalEmailHtml } from "@/lib/email";
 import { createMolliePayment } from "@/lib/mollie";
 import { subscriptionTiers } from "@/lib/pricing";
 
@@ -143,22 +144,38 @@ export async function decideOffer(
           nl: {
             subject: `Je factuur ${invNo} staat klaar`,
             l1: `Bedankt voor je akkoord op <strong>${o.title}</strong>.`,
-            l2: `Factuur <strong>${invNo}</strong> (${amount}) staat klaar in je portaal, betaalbaar tegen ${dueAt}.`,
+            l2: `Factuur <strong>${invNo}</strong> (${amount}) staat klaar in je portaal, betaalbaar tegen ${dueAt}. Je kiest er zelf hoe je betaalt: online via Mollie of via overschrijving.`,
+            eyebrow: "Je klantenportaal",
+            cta: "Bekijk je factuur in het portaal",
           },
           fr: {
             subject: `Votre facture ${invNo} est prête`,
             l1: `Merci pour votre accord sur <strong>${o.title}</strong>.`,
-            l2: `La facture <strong>${invNo}</strong> (${amount}) est disponible dans votre espace client, payable pour le ${dueAt}.`,
+            l2: `La facture <strong>${invNo}</strong> (${amount}) est disponible dans votre portail, payable pour le ${dueAt}. Vous choisissez le mode de paiement : en ligne via Mollie ou par virement.`,
+            eyebrow: "Votre portail client",
+            cta: "Voir votre facture dans le portail",
           },
           en: {
             subject: `Your invoice ${invNo} is ready`,
             l1: `Thanks for approving <strong>${o.title}</strong>.`,
-            l2: `Invoice <strong>${invNo}</strong> (${amount}) is ready in your portal, payable by ${dueAt}.`,
+            l2: `Invoice <strong>${invNo}</strong> (${amount}) is ready in your portal, payable by ${dueAt}. You choose how to pay: online via Mollie or by bank transfer.`,
+            eyebrow: "Your client portal",
+            cta: "View your invoice in the portal",
           },
         }[dloc];
+        const facturenUrl = `${siteUrl}/${dloc}/portail?next=${encodeURIComponent(
+          `/${dloc}/portail/dashboard/facturen`,
+        )}`;
         await sendMail(email, {
           subject: im.subject,
-          html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111"><p style="margin:0 0 8px">${im.l1}</p><p style="margin:0 0 8px">${im.l2}</p></div>`,
+          html: portalEmailHtml({
+            locale: dloc,
+            eyebrow: im.eyebrow,
+            title: im.subject,
+            bodyLines: [im.l1, im.l2],
+            ctaLabel: im.cta,
+            ctaHref: facturenUrl,
+          }),
         }).catch(() => {});
       }
     }

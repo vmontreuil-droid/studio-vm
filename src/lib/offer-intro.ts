@@ -21,12 +21,12 @@ export function offerIntroText(
     );
     p.push(
       b
-        ? `Voici notre proposition sur base du forfait <strong>${b}</strong> : un site sur mesure, rapide et adapté au mobile, avec votre propre espace de gestion pour modifier textes et images vous-même. Textes soignés, base multilingue, bannière cookies & RGPD et suivi des contacts sont inclus — prêt à faire bonne impression.`
+        ? `Voici notre proposition sur base du forfait ${b} : un site sur mesure, rapide et adapté au mobile, avec votre propre espace de gestion pour modifier textes et images vous-même. Textes soignés, base multilingue, bannière cookies & RGPD et suivi des contacts sont inclus — prêt à faire bonne impression.`
         : "Voici notre proposition : un site sur mesure, rapide et adapté au mobile, avec votre propre espace de gestion.",
     );
     if (subName)
       p.push(
-        `Pour garder votre site au top sans souci, l'abonnement <strong>${subName}</strong> est inclus : hébergement, sécurité, sauvegardes, mises à jour et support — un interlocuteur fixe.`,
+        `Pour garder votre site au top sans souci, l'abonnement ${subName} est inclus : hébergement, sécurité, sauvegardes, mises à jour et support — un interlocuteur fixe.`,
       );
     if (lockin)
       p.push(
@@ -50,12 +50,12 @@ export function offerIntroText(
     );
     p.push(
       b
-        ? `Here is our proposal based on the <strong>${b}</strong> package: a bespoke, fast and mobile-friendly website with your own admin so you can edit texts and images yourself. Polished copy, multilingual setup, cookie & GDPR banner and contact follow-up are included — ready to look professional.`
+        ? `Here is our proposal based on the ${b} package: a bespoke, fast and mobile-friendly website with your own admin so you can edit texts and images yourself. Polished copy, multilingual setup, cookie & GDPR banner and contact follow-up are included — ready to look professional.`
         : "Here is our proposal: a bespoke, fast and mobile-friendly website with your own admin.",
     );
     if (subName)
       p.push(
-        `To keep your site running worry-free, the <strong>${subName}</strong> subscription is included: hosting, security, backups, updates and support — one fixed point of contact.`,
+        `To keep your site running worry-free, the ${subName} subscription is included: hosting, security, backups, updates and support — one fixed point of contact.`,
       );
     if (lockin)
       p.push(
@@ -78,12 +78,12 @@ export function offerIntroText(
   );
   p.push(
     b
-      ? `Hierbij ons voorstel op basis van het <strong>${b}</strong>-pakket: een volledig op maat ontworpen, snelle en mobielvriendelijke website met een eigen beheeromgeving, zodat je zelf teksten en beelden kunt aanpassen. Verzorgde teksten, meertalige opzet, cookiebanner & GDPR en een nette contactopvolging zitten mee inbegrepen — alles klaar om professioneel voor de dag te komen.`
+      ? `Hierbij ons voorstel op basis van het ${b}-pakket: een volledig op maat ontworpen, snelle en mobielvriendelijke website met een eigen beheeromgeving, zodat je zelf teksten en beelden kunt aanpassen. Verzorgde teksten, meertalige opzet, cookiebanner & GDPR en een nette contactopvolging zitten mee inbegrepen — alles klaar om professioneel voor de dag te komen.`
       : "Hierbij ons voorstel: een volledig op maat ontworpen, snelle en mobielvriendelijke website met een eigen beheeromgeving.",
   );
   if (subName)
     p.push(
-      `Om je site daarna zorgeloos draaiend te houden, zit het <strong>${subName}</strong>-abonnement erbij: hosting, beveiliging, back-ups, updates en support. Eén vast aanspreekpunt.`,
+      `Om je site daarna zorgeloos draaiend te houden, zit het ${subName}-abonnement erbij: hosting, beveiliging, back-ups, updates en support. Eén vast aanspreekpunt.`,
     );
   if (lockin)
     p.push(
