@@ -87,6 +87,10 @@ export async function scanAllSites(): Promise<void> {
             hosting:
               res.findings?.find((f) => f.key === "hosting")?.value ??
               null,
+            // Kritische punten — al leesbare NL-zinnen uit de scan.
+            pitfalls: Array.isArray(res.pitfalls)
+              ? res.pitfalls.slice(0, 8)
+              : [],
             scanned_at: now,
           },
         });

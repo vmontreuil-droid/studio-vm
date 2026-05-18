@@ -69,6 +69,11 @@ export default async function AdminSites() {
         : null;
     const hosting =
       typeof snap.hosting === "string" ? (snap.hosting as string) : null;
+    const pitfalls = Array.isArray(snap.pitfalls)
+      ? (snap.pitfalls as unknown[]).map(String).filter(Boolean)
+      : [];
+    const error =
+      typeof snap.error === "string" ? (snap.error as string) : null;
     const alarms: string[] = [];
     if (!everScanned) alarms.push("nog niet gescand");
     if (down) alarms.push("OFFLINE");
@@ -101,6 +106,8 @@ export default async function AdminSites() {
       stack: latest?.stack ?? null,
       hosting,
       responseMs,
+      pitfalls,
+      error,
       alarms,
       history,
     };
@@ -250,6 +257,34 @@ export default async function AdminSites() {
                   {[s.hosting, s.stack].filter(Boolean).join(" · ")}
                 </p>
               )}
+
+              <div className="mt-3 border-t pt-3">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Kritische punten
+                </p>
+                {s.down ? (
+                  <p className="mt-1.5 text-sm font-medium text-red-600 dark:text-red-400">
+                    Site onbereikbaar{s.error ? ` — ${s.error}` : ""}.
+                  </p>
+                ) : !s.everScanned ? (
+                  <p className="mt-1.5 text-sm text-muted">
+                    Nog niet gescand — klik “Scan nu”.
+                  </p>
+                ) : s.pitfalls.length === 0 ? (
+                  <p className="mt-1.5 text-sm font-medium text-green-700 dark:text-green-400">
+                    ✓ Geen kritische punten gevonden.
+                  </p>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {s.pitfalls.map((p, k) => (
+                      <li key={k} className="flex gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {s.history.length >= 2 ? (
                 <TrendChart
