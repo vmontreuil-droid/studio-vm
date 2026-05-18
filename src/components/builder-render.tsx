@@ -30,8 +30,57 @@ type Snap = {
   radius?: string;
   logo?: string;
   header?: Record<string, unknown>;
+  locale?: string;
   pages?: SnapPage[];
 };
+
+// Drietalige fallback-teksten voor de publieke render (volgt de taal
+// waarin het ontwerp gemaakt is — snap.locale).
+function rt(loc: string | undefined) {
+  const l = loc === "fr" ? "fr" : loc === "en" ? "en" : "nl";
+  const T = {
+    nl: {
+      page: "Pagina",
+      section: "Sectie",
+      wantLink: "Gewenste link",
+      photosApart: "(foto's apart aangeleverd)",
+      name: "Naam",
+      email: "E-mail",
+      message: "Bericht",
+      field: "Veld",
+      send: "Verstuur",
+      thanks: "Bedankt! We nemen snel contact met je op.",
+      contactInfo: "Contactgegevens",
+    },
+    fr: {
+      page: "Page",
+      section: "Section",
+      wantLink: "Lien souhaité",
+      photosApart: "(photos fournies séparément)",
+      name: "Nom",
+      email: "E-mail",
+      message: "Message",
+      field: "Champ",
+      send: "Envoyer",
+      thanks: "Merci ! Nous vous recontactons rapidement.",
+      contactInfo: "Coordonnées",
+    },
+    en: {
+      page: "Page",
+      section: "Section",
+      wantLink: "Desired link",
+      photosApart: "(photos supplied separately)",
+      name: "Name",
+      email: "Email",
+      message: "Message",
+      field: "Field",
+      send: "Send",
+      thanks: "Thanks! We'll get back to you soon.",
+      contactInfo: "Contact details",
+    },
+  } as const;
+  return T[l];
+}
 
 const RICONS: Record<
   string,
@@ -212,6 +261,7 @@ export function BuilderRender({
   const accent = snap.colors?.accent || themeObj?.accent || "#b45309";
   const rad = radiusPx(snap.radius);
   const soft = `${fg}1a`;
+  const L = rt(snap.locale);
   const businessName = snap.businessName || "Website";
   const blocksOf = (p: SnapPage): Block[] =>
     Array.isArray(p.blocks)
@@ -231,7 +281,7 @@ export function BuilderRender({
         <div key={pi}>
           {!live && (
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Pagina: {page.name || `#${pi + 1}`}
+              {L.page}: {page.name || `#${pi + 1}`}
             </p>
           )}
           {!live && (page.seoTitle || page.seoDesc) && (
@@ -471,6 +521,7 @@ export function BuilderRender({
                       bg={bg}
                       accent={accent}
                       soft={soft}
+                      loc={snap.locale}
                     />
                   </div>
                   {ovs.map((ov, oi) => (
@@ -513,14 +564,14 @@ export function BuilderRender({
                       return null;
                     const lbl =
                       lk.k === "page"
-                        ? `Pagina: ${lk.v}`
+                        ? `${L.page}: ${lk.v}`
                         : lk.k === "section"
-                          ? `Sectie: ${lk.v}`
+                          ? `${L.section}: ${lk.v}`
                           : lk.v;
                     return (
                       <p
                         className="absolute bottom-1 right-2 rounded bg-black/55 px-2 py-0.5 font-mono text-[10px] text-white"
-                        title="Gewenste link"
+                        title={L.wantLink}
                       >
                         → {lbl}
                       </p>
@@ -542,14 +593,17 @@ function BlockView({
   bg,
   accent,
   soft,
+  loc,
 }: {
   block: Block;
   fg: string;
   bg: string;
   accent: string;
   soft: string;
+  loc?: string;
 }) {
   const d = block.data || {};
+  const L = rt(loc);
   const items = arr(d.items);
   const border = { borderColor: soft };
   const hN = (k: string, dv: number) =>
@@ -1008,7 +1062,7 @@ function BlockView({
             ))}
           </div>
           <p className="mt-3 text-center text-[11px] opacity-50">
-            (foto&apos;s apart aangeleverd)
+            {L.photosApart}
           </p>
         </div>
       );
@@ -1084,13 +1138,13 @@ function BlockView({
       );
     case "contact": {
       const cf = arr(d.items);
-      const crows =
+      const crows: Record<string, string>[] =
         cf.length > 0
           ? cf
           : [
-              { label: "Naam", type: "text", req: "1" },
-              { label: "E-mail", type: "email", req: "1" },
-              { label: "Bericht", type: "textarea", req: "1" },
+              { label: L.name, type: "text", req: "1" },
+              { label: L.email, type: "email", req: "1" },
+              { label: L.message, type: "textarea", req: "1" },
             ];
       const cBtnR =
         s(d._btnShape) === "recht"
@@ -1110,7 +1164,7 @@ function BlockView({
         <div className={cCard ? "" : "mx-auto max-w-sm"}>
           <div className="space-y-2 text-xs">
             {crows.map((fl, i) => {
-              const lbl = String(fl.label || `Veld ${i + 1}`);
+              const lbl = String(fl.label || `${L.field} ${i + 1}`);
               const req = fl.req === "1" || fl.req === "true";
               const fst = {
                 ...border,
@@ -1145,13 +1199,13 @@ function BlockView({
                 borderRadius: cBtnR,
               }}
             >
-              {s(d.button) || "Verstuur"}
+              {s(d.button) || L.send}
             </span>
             <p
               className="mt-1 rounded px-3 py-1.5 text-[11px]"
               style={{ background: `${okC}1f`, color: okC }}
             >
-              {s(d._okText) || "Bedankt! We nemen snel contact met je op."}
+              {s(d._okText) || L.thanks}
             </p>
           </div>
         </div>
@@ -1181,7 +1235,7 @@ function BlockView({
                 }}
               >
                 <p className="mb-2 text-sm font-semibold">
-                  {s(d._cardTitle) || "Contactgegevens"}
+                  {s(d._cardTitle) || L.contactInfo}
                 </p>
                 <p className="whitespace-pre-line opacity-80">
                   {s(d._cardText)}
@@ -1201,7 +1255,7 @@ function BlockView({
             {ff.map((fl, i) => (
               <div key={i}>
                 <span className="opacity-60">
-                  {String(fl.label || `Veld ${i + 1}`)}
+                  {String(fl.label || `${L.field} ${i + 1}`)}
                 </span>
                 <span className="ml-1 opacity-40">
                   ({String(fl.type || "text")})
@@ -1212,7 +1266,7 @@ function BlockView({
               className="mt-2 inline-block rounded-full px-4 py-1.5 text-xs font-medium"
               style={{ background: accent, color: bg }}
             >
-              {s(d.button) || "Versturen"}
+              {s(d.button) || L.send}
             </span>
           </div>
         </div>

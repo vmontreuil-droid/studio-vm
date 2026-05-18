@@ -1124,6 +1124,9 @@ export default function BuilderPage({
   const params = useParams();
   const raw = Array.isArray(params.locale) ? params.locale[0] : params.locale;
   const locale: Locale = isValidLocale(raw) ? raw : DEFAULT_LOCALE;
+  // Concept per taal apart bewaren: anders wordt een NL-concept over
+  // de correcte FR/EN-start gelegd → taalmix in de preview.
+  const storageKey = `${STORAGE_KEY}-${locale}`;
   const c = T[locale];
 
   const [theme, setTheme] = useState<Theme>(themes[0]);
@@ -1308,7 +1311,14 @@ export default function BuilderPage({
     try {
       const fromServer =
         initialSnapshot && Object.keys(initialSnapshot).length > 0;
-      const raw = fromServer ? null : localStorage.getItem(STORAGE_KEY);
+      // Migratie: bestaand NL-concept onder de oude globale sleutel
+      // blijft werken; FR/EN starten schoon (geen taalmix meer).
+      const raw = fromServer
+        ? null
+        : localStorage.getItem(storageKey) ??
+          (locale === DEFAULT_LOCALE
+            ? localStorage.getItem(STORAGE_KEY)
+            : null);
       const d = fromServer
         ? initialSnapshot!
         : raw
@@ -1344,7 +1354,7 @@ export default function BuilderPage({
     if (!hydrated) return;
     try {
       localStorage.setItem(
-        STORAGE_KEY,
+        storageKey,
         JSON.stringify({
           businessName,
           theme,
@@ -1467,6 +1477,8 @@ export default function BuilderPage({
 
   const resetDraft = () => {
     try {
+      localStorage.removeItem(storageKey);
+      // Ook oude, niet-taalgebonden conceptsleutel opruimen.
       localStorage.removeItem(STORAGE_KEY);
     } catch {
       /* noop */
@@ -4026,8 +4038,20 @@ export default function BuilderPage({
                         draggable
                         onDragStart={() => setDragIx(i)}
                         onDragEnd={() => setDragIx(null)}
-                        aria-label="Versleep om te herschikken"
-                        title="Versleep om te herschikken"
+                        aria-label={
+                          locale === "fr"
+                            ? "Glisser pour réorganiser"
+                            : locale === "en"
+                              ? "Drag to reorder"
+                              : "Versleep om te herschikken"
+                        }
+                        title={
+                          locale === "fr"
+                            ? "Glisser pour réorganiser"
+                            : locale === "en"
+                              ? "Drag to reorder"
+                              : "Versleep om te herschikken"
+                        }
                         className="cursor-grab px-1 text-muted active:cursor-grabbing"
                       >
                         <GripVertical
@@ -4365,7 +4389,13 @@ export default function BuilderPage({
                   <button
                     type="button"
                     onClick={() => setDevice("mobile")}
-                    aria-label="Mobiel"
+                    aria-label={
+                      locale === "fr"
+                        ? "Mobile"
+                        : locale === "en"
+                          ? "Mobile"
+                          : "Mobiel"
+                    }
                     className={`px-2.5 py-1 ${
                       device === "mobile"
                         ? "bg-card-hover text-foreground"
@@ -4383,7 +4413,13 @@ export default function BuilderPage({
                     type="button"
                     onClick={undo}
                     disabled={histRef.current.length === 0}
-                    aria-label="Ongedaan maken"
+                    aria-label={
+                      locale === "fr"
+                        ? "Annuler"
+                        : locale === "en"
+                          ? "Undo"
+                          : "Ongedaan maken"
+                    }
                     title={
                       locale === "fr"
                         ? "Annuler (Ctrl+Z)"
@@ -4399,7 +4435,13 @@ export default function BuilderPage({
                     type="button"
                     onClick={redo}
                     disabled={redoRef.current.length === 0}
-                    aria-label="Opnieuw"
+                    aria-label={
+                      locale === "fr"
+                        ? "Rétablir"
+                        : locale === "en"
+                          ? "Redo"
+                          : "Opnieuw"
+                    }
                     title={
                       locale === "fr"
                         ? "Rétablir (Ctrl+Maj+Z)"
