@@ -265,14 +265,14 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@page { margin: 0; }
+const PRINT_CSS = `@page { margin: 18mm 14mm; }
 @media print {
   html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: #fff !important; }
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 16mm 14mm; }
+  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 0 !important; }
   .no-print { display: none !important; }
   .doc { border: none !important; box-shadow: none !important; }
   .doc + .doc { break-before: page; page-break-before: always; }
@@ -610,13 +610,13 @@ export default async function PortalInvoices({
 
               {/* Betaalkeuze — Mollie vs overschrijving */}
               {!paid && (
-                <div className="mt-7">
+                <div className="mt-12 border-t pt-10">
                   {oDiscount > 0 && (
-                    <div className="-mx-1 mb-4 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white">
+                    <div className="-mx-1 mb-5 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white">
                       ⚡ {l.promoInv}
                     </div>
                   )}
-                  <p className="mb-3 text-sm font-semibold">
+                  <p className="mb-4 text-base font-semibold">
                     {l.choosePay}
                   </p>
                   <div className="grid items-stretch gap-3 sm:grid-cols-2">
@@ -670,36 +670,34 @@ export default async function PortalInvoices({
                       <p className="mt-2 text-xs leading-relaxed text-muted">
                         {l.noDiscount}
                       </p>
-                      <dl className="mt-4 flex-1 space-y-2.5 border-t pt-4 text-sm">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      <dl className="mt-4 flex-1 space-y-3 border-t pt-4 text-sm">
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.holder}
                           </dt>
-                          <dd className="text-right font-medium">
+                          <dd className="mt-0.5 font-medium">
                             {BANK.holder}
                           </dd>
                         </div>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.ibanL}
                           </dt>
-                          <dd className="whitespace-nowrap text-right font-mono font-semibold tracking-wide">
+                          <dd className="mt-0.5 font-mono text-base font-semibold tracking-wide">
                             {BANK.iban}
                           </dd>
                         </div>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.bicL}
                           </dt>
-                          <dd className="whitespace-nowrap text-right font-mono">
-                            {BANK.bic}
-                          </dd>
+                          <dd className="mt-0.5 font-mono">{BANK.bic}</dd>
                         </div>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <dt className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
+                        <div>
+                          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
                             {l.commL}
                           </dt>
-                          <dd className="whitespace-nowrap text-right font-mono font-semibold text-accent">
+                          <dd className="mt-0.5 break-all font-mono text-base font-semibold text-accent">
                             {structuredComm(i.number)}
                           </dd>
                         </div>
