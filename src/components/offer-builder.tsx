@@ -7,6 +7,71 @@ import {
   useState,
   useTransition,
 } from "react";
+import {
+  Package,
+  Languages,
+  MailCheck,
+  CalendarCheck,
+  Newspaper,
+  Lock,
+  Search,
+  Camera,
+  ShieldCheck,
+  PenLine,
+  LayoutDashboard,
+  Smartphone,
+  Share2,
+  BarChart3,
+  Mail,
+  RefreshCw,
+  CreditCard,
+  Tag,
+  Repeat,
+  Check,
+  type LucideIcon,
+} from "lucide-react";
+
+function lineIcon(label: string): LucideIcon {
+  const s = label.toLowerCase();
+  if (s.includes("korting")) return Tag;
+  if (
+    s.includes("abonnement") ||
+    /\b(care|plus|scale|partner)\b/.test(s)
+  )
+    return Repeat;
+  if (s.includes("basispakket") || s.includes("aanbetaling"))
+    return Package;
+  if (s.includes("taal")) return Languages;
+  if (s.includes("formulier")) return MailCheck;
+  if (s.includes("reservatie") || s.includes("afspra"))
+    return CalendarCheck;
+  if (s.includes("blog") || s.includes("nieuws-cms"))
+    return Newspaper;
+  if (s.includes("leden")) return Lock;
+  if (s.includes("seo")) return Search;
+  if (s.includes("foto")) return Camera;
+  if (s.includes("cookie") || s.includes("gdpr")) return ShieldCheck;
+  if (s.includes("tekst") || s.includes("copywriting"))
+    return PenLine;
+  if (s.includes("admin") || s.includes("cms"))
+    return LayoutDashboard;
+  if (s.includes("mobile") || s.includes("dark mode"))
+    return Smartphone;
+  if (s.includes("open graph") || s.includes("sitemap"))
+    return Share2;
+  if (s.includes("analytics") || s.includes("structured data"))
+    return BarChart3;
+  if (s.includes("newsletter") || s.includes("nieuwsbrief"))
+    return Mail;
+  if (s.includes("ronde") || s.includes("revisie")) return RefreshCw;
+  if (
+    s.includes("mollie") ||
+    s.includes("stripe") ||
+    s.includes("betaal")
+  )
+    return CreditCard;
+  return Check;
+}
 
 type Item = { key: string; slug?: string; name: string; cents: number; desc?: string };
 type Included = Record<
@@ -507,13 +572,30 @@ export function OfferBuilder({
                 key={i}
                 className="flex items-start justify-between gap-3 border-b pb-2 text-sm last:border-0 last:pb-0"
               >
-                <span className="min-w-0">
-                  <span className="font-medium">{l.label}</span>
-                  {l.desc && (
-                    <span className="mt-0.5 block text-xs text-muted">
-                      {l.desc}
-                    </span>
-                  )}
+                <span className="flex min-w-0 gap-2.5">
+                  {(() => {
+                    const Icon = lineIcon(l.label);
+                    return (
+                      <Icon
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${
+                          l.sub
+                            ? "text-orange-600 dark:text-orange-400"
+                            : l.incl
+                              ? "text-accent"
+                              : "text-muted"
+                        }`}
+                        strokeWidth={2}
+                      />
+                    );
+                  })()}
+                  <span className="min-w-0">
+                    <span className="font-medium">{l.label}</span>
+                    {l.desc && (
+                      <span className="mt-0.5 block text-xs text-muted">
+                        {l.desc}
+                      </span>
+                    )}
+                  </span>
                 </span>
                 <span
                   className={`shrink-0 font-mono text-xs ${
