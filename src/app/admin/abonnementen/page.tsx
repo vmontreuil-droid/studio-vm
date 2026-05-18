@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { TrendChart } from "@/components/admin/trend-chart";
+import { forecast, trendPct } from "@/lib/forecast";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +73,30 @@ export default async function AdminAbonnementen({
     },
   ];
 
+  const MONTHS = 9;
+  const FC = 3;
+  const refNow = new Date();
+  const monthList = Array.from({ length: MONTHS }, (_, i) => {
+    const d = new Date(
+      refNow.getFullYear(),
+      refNow.getMonth() - (MONTHS - 1 - i),
+      1,
+    );
+    return {
+      label: d.toLocaleDateString("nl-BE", { month: "short" }),
+      end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+    };
+  });
+  const monthLabels = monthList.map((m) => m.label);
+  const mrrByMonth = monthList.map((m) =>
+    all
+      .filter(
+        (s) => s.status === "actief" && new Date(s.started_at) <= m.end,
+      )
+      .reduce((t, s) => t + monthlyCents(s), 0),
+  );
+  const mrrFc = forecast(mrrByMonth, FC);
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Abonnementen</h1>
@@ -87,6 +113,18 @@ export default async function AdminAbonnementen({
             <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-3 rounded-2xl border bg-card p-5">
+        <TrendChart
+          id="mrr-curve"
+          caption="Geschatte MRR-curve + prognose"
+          history={mrrByMonth}
+          projection={mrrFc}
+          labels={monthLabels}
+          trend={trendPct(mrrByMonth)}
+          format={(n) => `€ ${Math.round(n / 100).toLocaleString("nl-BE")}`}
+        />
       </div>
 
       {plans.length > 0 && (

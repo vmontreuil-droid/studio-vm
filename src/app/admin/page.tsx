@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import type { ScanResult } from "@/app/actions/scan";
+import { TrendChart } from "@/components/admin/trend-chart";
+import { forecast, trendPct } from "@/lib/forecast";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +81,7 @@ export default async function AdminDashboard() {
       .limit(500),
     db
       .from("subscriptions")
-      .select("client_email, price_cents, period, status")
+      .select("client_email, price_cents, period, status, started_at")
       .limit(1000),
     db
       .from("form_submissions")
@@ -113,6 +115,7 @@ export default async function AdminDashboard() {
     price_cents: number;
     period: string;
     status: string;
+    started_at: string;
   };
   type Form = {
     id: string;
@@ -236,9 +239,60 @@ export default async function AdminDashboard() {
   ];
 
   const aanvraagWeeks = weekBuckets(quotes, (r) => r.created_at);
-  const aMax = Math.max(1, ...aanvraagWeeks.map((w) => w.count));
   const scanWeeks = weekBuckets(scanRows, (r) => r.created_at);
-  const sMax = Math.max(1, ...scanWeeks.map((w) => w.count));
+  const FC = 3;
+  const aanvraagHist = aanvraagWeeks.map((w) => w.count);
+  const scanHist = scanWeeks.map((w) => w.count);
+  const aanvraagFc = forecast(aanvraagHist, FC);
+  const scanFc = forecast(scanHist, FC);
+  const weekLabels = aanvraagWeeks.map((w) =>
+    w.start.toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit" }),
+  );
+
+  // ---- Maandreeksen + prognoses ----
+  const MONTHS = 9;
+  const refNow = new Date();
+  const monthList = Array.from({ length: MONTHS }, (_, i) => {
+    const d = new Date(
+      refNow.getFullYear(),
+      refNow.getMonth() - (MONTHS - 1 - i),
+      1,
+    );
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("nl-BE", { month: "short" }),
+      end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+    };
+  });
+  const monthLabels = monthList.map((m) => m.label);
+
+  const revenueByMonth = monthList.map((m) =>
+    invoices
+      .filter((i) => i.status === "betaald" && i.issued_at.startsWith(m.key))
+      .reduce((t, i) => t + i.amount_cents, 0),
+  );
+  const revenueFc = forecast(revenueByMonth, FC);
+
+  const monthlyize = (s: SubR) =>
+    /jaar|year|annu/i.test(s.period)
+      ? Math.round(s.price_cents / 12)
+      : s.price_cents;
+  const mrrByMonth = monthList.map((m) =>
+    subList
+      .filter(
+        (s) => s.status === "actief" && new Date(s.started_at) <= m.end,
+      )
+      .reduce((t, s) => t + monthlyize(s), 0),
+  );
+  const mrrFc = forecast(mrrByMonth, FC);
+
+  const offerConvByMonth = monthList.map((m) => {
+    const made = offers.filter((o) => o.created_at.startsWith(m.key));
+    if (made.length === 0) return 0;
+    const ok = made.filter((o) => o.status === "akkoord").length;
+    return Math.round((ok / made.length) * 100);
+  });
+  const offerConvFc = forecast(offerConvByMonth, FC);
 
   const SOURCES = [
     { key: "builder", label: "Builder" },
@@ -331,31 +385,14 @@ export default async function AdminDashboard() {
 
       <div className="mt-6 grid gap-3 lg:grid-cols-3">
         <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Aanvragen per week
-          </p>
-          <div className="mt-5 flex h-28 items-end gap-2">
-            {aanvraagWeeks.map((w, i) => (
-              <div
-                key={i}
-                className="flex flex-1 flex-col items-center gap-1.5"
-              >
-                <span className="font-mono text-[10px] text-muted">
-                  {w.count}
-                </span>
-                <div
-                  className="w-full rounded-t bg-accent/70"
-                  style={{ height: `${Math.max(2, (w.count / aMax) * 100)}%` }}
-                />
-                <span className="font-mono text-[9px] text-muted">
-                  {w.start.toLocaleDateString("nl-BE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </span>
-              </div>
-            ))}
-          </div>
+          <TrendChart
+            id="aanvragen-wk"
+            caption="Aanvragen per week + prognose"
+            history={aanvraagHist}
+            projection={aanvraagFc}
+            labels={weekLabels}
+            trend={trendPct(aanvraagHist)}
+          />
         </div>
 
         <div className="rounded-2xl border bg-card p-5">
@@ -383,31 +420,14 @@ export default async function AdminDashboard() {
 
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
         <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Scans per week
-          </p>
-          <div className="mt-5 flex h-28 items-end gap-2">
-            {scanWeeks.map((w, i) => (
-              <div
-                key={i}
-                className="flex flex-1 flex-col items-center gap-1.5"
-              >
-                <span className="font-mono text-[10px] text-muted">
-                  {w.count}
-                </span>
-                <div
-                  className="w-full rounded-t bg-sky-500/60"
-                  style={{ height: `${Math.max(2, (w.count / sMax) * 100)}%` }}
-                />
-                <span className="font-mono text-[9px] text-muted">
-                  {w.start.toLocaleDateString("nl-BE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </span>
-              </div>
-            ))}
-          </div>
+          <TrendChart
+            id="scans-wk"
+            caption="Scans per week + prognose"
+            history={scanHist}
+            projection={scanFc}
+            labels={weekLabels}
+            trend={trendPct(scanHist)}
+          />
         </div>
 
         <div className="rounded-2xl border bg-card p-5">
@@ -503,6 +523,53 @@ export default async function AdminDashboard() {
               );
             })}
           </ul>
+        </div>
+      </div>
+
+      <h2 className="mt-8 font-mono text-xs uppercase tracking-widest text-accent">
+        Prognoses
+      </h2>
+      <p className="mt-1 font-mono text-[10px] text-muted">
+        Lineaire trend over de getoonde periode, gedempt geprojecteerd —
+        een richting, geen garantie.
+      </p>
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-2xl border bg-card p-5">
+          <TrendChart
+            id="omzet-mnd"
+            caption="Betaalde omzet / maand"
+            history={revenueByMonth}
+            projection={revenueFc}
+            labels={monthLabels}
+            trend={trendPct(revenueByMonth)}
+            format={(n) =>
+              `€ ${Math.round(n / 100).toLocaleString("nl-BE")}`
+            }
+          />
+        </div>
+        <div className="rounded-2xl border bg-card p-5">
+          <TrendChart
+            id="mrr-mnd"
+            caption="Geschatte MRR"
+            history={mrrByMonth}
+            projection={mrrFc}
+            labels={monthLabels}
+            trend={trendPct(mrrByMonth)}
+            format={(n) =>
+              `€ ${Math.round(n / 100).toLocaleString("nl-BE")}`
+            }
+          />
+        </div>
+        <div className="rounded-2xl border bg-card p-5">
+          <TrendChart
+            id="conv-mnd"
+            caption="Offerte → akkoord (%)"
+            history={offerConvByMonth}
+            projection={offerConvFc}
+            labels={monthLabels}
+            trend={trendPct(offerConvByMonth)}
+            format={(n) => `${Math.round(n)}%`}
+          />
         </div>
       </div>
 

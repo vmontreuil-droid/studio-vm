@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setInvoiceStatus } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/admin/trend-chart";
+import { forecast, trendPct } from "@/lib/forecast";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,27 @@ export default async function AdminFacturen({
     { k: "Totaal facturen", v: String(all.length) },
   ];
 
+  const MONTHS = 9;
+  const FC = 3;
+  const monthList = Array.from({ length: MONTHS }, (_, i) => {
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth() - (MONTHS - 1 - i),
+      1,
+    );
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("nl-BE", { month: "short" }),
+    };
+  });
+  const monthLabels = monthList.map((m) => m.label);
+  const revenueByMonth = monthList.map((m) =>
+    all
+      .filter((i) => i.status === "betaald" && i.issued_at.startsWith(m.key))
+      .reduce((t, i) => t + i.amount_cents, 0),
+  );
+  const revenueFc = forecast(revenueByMonth, FC);
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Facturen</h1>
@@ -86,6 +109,18 @@ export default async function AdminFacturen({
             <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-3 rounded-2xl border bg-card p-5">
+        <TrendChart
+          id="omzet-fact"
+          caption="Betaalde omzet / maand + prognose"
+          history={revenueByMonth}
+          projection={revenueFc}
+          labels={monthLabels}
+          trend={trendPct(revenueByMonth)}
+          format={(n) => `€ ${Math.round(n / 100).toLocaleString("nl-BE")}`}
+        />
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
