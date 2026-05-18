@@ -137,22 +137,22 @@ export default async function AdminSites() {
       </p>
 
       {alarmSites.length > 0 ? (
-        <div className="mt-5 rounded-2xl border border-red-500/50 bg-red-500/10 p-5">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-red-600 dark:text-red-400">
+        <div className="mt-5 rounded-2xl border border-red-600 bg-red-100 p-5 dark:border-red-700 dark:bg-red-950">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-red-800 dark:text-red-200">
             ⚠ Aandacht nodig — {alarmSites.length} site
             {alarmSites.length === 1 ? "" : "s"}
           </p>
-          <ul className="mt-3 space-y-1.5 text-sm">
+          <ul className="mt-3 space-y-1.5 text-sm text-red-900 dark:text-red-100">
             {alarmSites.map((s) => (
               <li key={s.url} className="flex flex-wrap gap-x-2">
                 <strong>{s.name}</strong>
-                <span className="text-muted">— {s.alarms.join(" · ")}</span>
+                <span className="opacity-80">— {s.alarms.join(" · ")}</span>
               </li>
             ))}
           </ul>
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl border border-green-600/50 bg-green-500/10 p-4 text-sm font-medium text-green-700 dark:text-green-300">
+        <div className="mt-5 rounded-2xl border border-green-700 bg-green-100 p-4 text-sm font-semibold text-green-900 dark:border-green-700 dark:bg-green-900 dark:text-green-50">
           ✓ Alles in orde — geen alarmen.
         </div>
       )}
