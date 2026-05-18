@@ -45,6 +45,21 @@ export async function decideOffer(
   const dloc: "nl" | "fr" | "en" =
     rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
   const sb = await getSupabaseServer();
+
+  // Vervallen offerte kan niet meer aanvaard worden — de vastleg-
+  // korting/voorwaarden gelden enkel bij beslissing vóór de
+  // offertedatum. Afwijzen mag altijd.
+  if (decision === "akkoord") {
+    const { data: chk } = await sb
+      .from("offers")
+      .select("valid_until, status")
+      .eq("id", id)
+      .eq("client_email", email)
+      .maybeSingle();
+    const vu = (chk as { valid_until: string | null } | null)?.valid_until;
+    if (vu && new Date(vu) < new Date(new Date().toDateString())) return;
+  }
+
   const { error } = await sb
     .from("offers")
     .update({ status: decision, decided_at: new Date().toISOString() })

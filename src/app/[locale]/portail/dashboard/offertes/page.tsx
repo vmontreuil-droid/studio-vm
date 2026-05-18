@@ -260,22 +260,43 @@ export default async function PortalOffers({
                   </div>
                 );
               })()}
-            {o.status === "open" && (
-              <div className="mt-4 flex gap-2">
-                <form action={decideOffer.bind(null, o.id, "akkoord")}>
-                  <input type="hidden" name="locale" value={locale} />
-                  <SubmitButton className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
-                    {l.accept}
-                  </SubmitButton>
-                </form>
-                <form action={decideOffer.bind(null, o.id, "afgewezen")}>
-                  <input type="hidden" name="locale" value={locale} />
-                  <SubmitButton className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
-                    {l.reject}
-                  </SubmitButton>
-                </form>
-              </div>
-            )}
+            {o.status === "open" &&
+              (() => {
+                const expired =
+                  !!o.valid_until && daysUntil(o.valid_until) < 0;
+                return (
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {!expired && (
+                      <form
+                        action={decideOffer.bind(null, o.id, "akkoord")}
+                      >
+                        <input
+                          type="hidden"
+                          name="locale"
+                          value={locale}
+                        />
+                        <SubmitButton className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
+                          {l.accept}
+                        </SubmitButton>
+                      </form>
+                    )}
+                    <form
+                      action={decideOffer.bind(null, o.id, "afgewezen")}
+                    >
+                      <input type="hidden" name="locale" value={locale} />
+                      <SubmitButton className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
+                        {l.reject}
+                      </SubmitButton>
+                    </form>
+                    {expired && (
+                      <span className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white">
+                        Deze offerte is vervallen — vraag gerust een
+                        nieuwe aan.
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             {o.status === "akkoord" && (
               <Link
                 href={`/${locale}/portail/dashboard/offertes/${o.id}/akkoord`}

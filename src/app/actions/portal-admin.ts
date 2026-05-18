@@ -239,15 +239,23 @@ export async function createOffer(formData: FormData): Promise<void> {
     }
   }
 
-  // Vastleg-clausule onderaan de klanttekst (zelfde belofte als op
-  // de website): 7% korting + 30% aanbetaling + auto-factuur.
+  const validUntil = new Date(Date.now() + validDays * 86400000)
+    .toISOString()
+    .slice(0, 10);
+
+  // Vastleg-clausule onderaan de klanttekst. Geldt enkel bij
+  // beslissing vóór de offertedatum; daarna automatisch weg.
   let finalBody = body;
   if (lockin) {
-    const clause = `Directe ondertekening: teken je meteen en betaal je de aanbetaling van 30% (€ ${(
+    const clause = `Beslis je vóór de vervaldatum van deze offerte (${validUntil}), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag (− € ${(
+      lockinDiscount / 100
+    ).toFixed(
+      2,
+    )}) én de eerste 2 maanden van het abonnement gratis. Na die datum vervalt dit aanbod automatisch. Het onderhoudsabonnement loopt minimum 12 maanden. Betaling: 30% voorschot (€ ${(
       deposit / 100
     ).toFixed(
       2,
-    )} excl. btw), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag én de eerste 2 maanden van het abonnement gratis — zoals op de website. Het onderhoudsabonnement loopt minimum 12 maanden. Zodra je in je portaal akkoord geeft, wordt de factuur voor de aanbetaling automatisch aangemaakt; het saldo volgt na oplevering.`;
+    )} excl. btw) om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Zodra je in je portaal akkoord geeft, staat de voorschotfactuur er meteen klaar; na betaling van het voorschot start het project en vind je de betaalde factuur onmiddellijk in je portaal.`;
     finalBody = body ? `${body}\n\n${clause}` : clause;
   }
 
@@ -257,10 +265,6 @@ export async function createOffer(formData: FormData): Promise<void> {
     .from("offers")
     .select("id", { count: "exact", head: true });
   const offerNo = `OFF-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
-
-  const validUntil = new Date(Date.now() + validDays * 86400000)
-    .toISOString()
-    .slice(0, 10);
 
   const { error } = await db.from("offers").insert({
     client_email: email,

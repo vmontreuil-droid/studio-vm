@@ -383,16 +383,21 @@ export function OfferBuilder({
         />
         <span>
           <span className="font-medium">
-            Directe ondertekening — 7% korting + 30% aanbetaling + 2
-            gratis maanden
+            Beslissing vóór de offertedatum — 7% korting + 2 gratis
+            maanden
           </span>
           <span className="mt-0.5 block text-xs text-muted">
-            Zoals op de website: tekent de klant meteen en betaalt hij
-            de aanbetaling van 30%, dan ligt de scope vast en krijgt
-            hij 7% korting op het eenmalige bedrag én de eerste 2
-            maanden van het abonnement gratis. Het abonnement loopt
-            minimum 12 maanden. De factuur voor de aanbetaling
-            verschijnt automatisch in zijn portaal.
+            Beslist de klant vóór de vervaldatum van deze offerte, dan
+            ligt de scope vast en krijgt hij 7% korting op het
+            eenmalige bedrag én de eerste 2 maanden van het abonnement
+            gratis. Het abonnement loopt minimum 12 maanden. Na de
+            offertedatum vervalt deze korting automatisch. Betaling:
+            30% voorschot om te starten, de resterende 70% vóór de
+            site live gaat. Alle betalingen verlopen uitsluitend via
+            het beveiligde klantenportaal — geen uitzonderingen. De
+            voorschotfactuur staat meteen klaar in het portaal; zodra
+            het voorschot betaald is, start het project en vindt de
+            klant de betaalde factuur er onmiddellijk terug.
           </span>
         </span>
       </label>
@@ -482,7 +487,7 @@ export function OfferBuilder({
                 <span className="font-mono">{eur(depositIncl)}</span>
               </div>
               <div className="flex items-center justify-between text-muted">
-                <span>Rest na oplevering (excl. btw)</span>
+                <span>Rest — vóór livegang (excl. btw)</span>
                 <span className="font-mono">{eur(rest)}</span>
               </div>
             </div>
