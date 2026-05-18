@@ -42,7 +42,16 @@ export default async function AdminDashboard() {
   if (!adminConfigured || !(await requireAdmin())) return null;
 
   const db = getSupabaseAdmin();
-  const [{ data: q }, { data: m }, subsR, { data: sc }] = await Promise.all([
+  const [
+    { data: q },
+    { data: m },
+    subsR,
+    { data: sc },
+    { data: offR },
+    { data: invR },
+    { data: subRows },
+    { data: formR },
+  ] = await Promise.all([
     db
       .from("quotes")
       .select("id, name, email, source, status, created_at")
@@ -58,11 +67,137 @@ export default async function AdminDashboard() {
       .select("id, email, url, token, locale, scan, created_at")
       .order("created_at", { ascending: false })
       .limit(2000),
+    db
+      .from("offers")
+      .select("id, client_email, title, amount_cents, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500),
+    db
+      .from("invoices")
+      .select("id, client_email, number, amount_cents, status, issued_at")
+      .order("issued_at", { ascending: false })
+      .limit(500),
+    db
+      .from("subscriptions")
+      .select("client_email, price_cents, period, status")
+      .limit(1000),
+    db
+      .from("form_submissions")
+      .select("id, client_email, visitor_name, visitor_email, is_read, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
   const quotes = q ?? [];
   const monitors = m ?? [];
   const subscribers = subsR.count ?? 0;
   const scanRows = (sc as ScanRow[]) ?? [];
+
+  type Off = {
+    id: string;
+    client_email: string;
+    title: string;
+    amount_cents: number | null;
+    status: string;
+    created_at: string;
+  };
+  type Inv = {
+    id: string;
+    client_email: string;
+    number: string;
+    amount_cents: number;
+    status: string;
+    issued_at: string;
+  };
+  type SubR = {
+    client_email: string;
+    price_cents: number;
+    period: string;
+    status: string;
+  };
+  type Form = {
+    id: string;
+    client_email: string;
+    visitor_name: string;
+    visitor_email: string;
+    is_read: boolean;
+    created_at: string;
+  };
+  const offers = (offR as Off[]) ?? [];
+  const invoices = (invR as Inv[]) ?? [];
+  const subList = (subRows as SubR[]) ?? [];
+  const forms = (formR as Form[]) ?? [];
+
+  const eur = (c: number) => `€ ${(c / 100).toFixed(2)}`;
+  const mrr = subList
+    .filter((s) => s.status === "actief")
+    .reduce(
+      (t, s) =>
+        t +
+        (/jaar|year|annu/i.test(s.period)
+          ? Math.round(s.price_cents / 12)
+          : s.price_cents),
+      0,
+    );
+  const openInvoiceTotal = invoices
+    .filter((i) => i.status === "open")
+    .reduce((t, i) => t + i.amount_cents, 0);
+  const now = new Date();
+  const ymThis = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const paidThisMonth = invoices
+    .filter((i) => i.status === "betaald" && i.issued_at.startsWith(ymThis))
+    .reduce((t, i) => t + i.amount_cents, 0);
+  const openOfferValue = offers
+    .filter((o) => o.status === "open")
+    .reduce((t, o) => t + (o.amount_cents ?? 0), 0);
+  const unreadForms = forms.filter((f) => !f.is_read).length;
+
+  const money = [
+    { k: "MRR", v: eur(mrr), href: "/admin/abonnementen" },
+    {
+      k: "Openstaand",
+      v: eur(openInvoiceTotal),
+      href: "/admin/facturen?status=open",
+    },
+    {
+      k: "Betaald deze maand",
+      v: eur(paidThisMonth),
+      href: "/admin/facturen?status=betaald",
+    },
+    {
+      k: "Open offertes",
+      v: eur(openOfferValue),
+      href: "/admin/offertes?status=open",
+    },
+  ];
+
+  type Activity = {
+    at: string;
+    label: string;
+    sub: string;
+    href: string;
+  };
+  const activity: Activity[] = [
+    ...offers.slice(0, 12).map((o) => ({
+      at: o.created_at,
+      label: `Offerte · ${o.title}`,
+      sub: `${o.client_email} · ${o.status}`,
+      href: `/admin/klanten/${encodeURIComponent(o.client_email)}?tab=offertes`,
+    })),
+    ...invoices.slice(0, 12).map((i) => ({
+      at: i.issued_at,
+      label: `Factuur ${i.number} · ${eur(i.amount_cents)}`,
+      sub: `${i.client_email} · ${i.status}`,
+      href: `/admin/klanten/${encodeURIComponent(i.client_email)}?tab=facturen`,
+    })),
+    ...forms.slice(0, 12).map((f) => ({
+      at: f.created_at,
+      label: `Formulier · ${f.visitor_name || f.visitor_email || "bezoeker"}`,
+      sub: `${f.client_email}${f.is_read ? "" : " · nieuw"}`,
+      href: "/admin/formulieren",
+    })),
+  ]
+    .sort((a, b) => (a.at < b.at ? 1 : -1))
+    .slice(0, 8);
 
   const okScans = scanRows
     .map((r) => (r.scan && r.scan.ok ? r.scan : null))
@@ -164,7 +299,22 @@ export default async function AdminDashboard() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {money.map((s) => (
+          <Link
+            key={s.k}
+            href={s.href}
+            className="rounded-2xl border border-accent/30 bg-accent/5 p-5 transition-colors hover:bg-accent/10"
+          >
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+              {s.k}
+            </p>
+            <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {stats.map((s) => (
           <Link
             key={s.k}
@@ -389,6 +539,38 @@ export default async function AdminDashboard() {
               {r.status} ·{" "}
               {new Date(r.created_at).toLocaleDateString("nl-BE")}
             </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+          Recente activiteit
+          {unreadForms > 0 && (
+            <span className="ml-2 rounded-full bg-accent/15 px-2 py-0.5 text-accent">
+              {unreadForms} nieuw formulier{unreadForms === 1 ? "" : "en"}
+            </span>
+          )}
+        </h2>
+      </div>
+      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border bg-card">
+        {activity.length === 0 && (
+          <li className="p-5 text-sm text-muted">Nog geen activiteit.</li>
+        )}
+        {activity.map((a, i) => (
+          <li key={i}>
+            <Link
+              href={a.href}
+              className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm transition-colors hover:bg-card-hover"
+            >
+              <span className="min-w-0">
+                <strong>{a.label}</strong>{" "}
+                <span className="text-muted">· {a.sub}</span>
+              </span>
+              <span className="font-mono text-xs text-muted">
+                {new Date(a.at).toLocaleDateString("nl-BE")}
+              </span>
+            </Link>
           </li>
         ))}
       </ul>

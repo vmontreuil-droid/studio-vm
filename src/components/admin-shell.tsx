@@ -13,6 +13,12 @@ import {
   Gauge,
   Users,
   Mail,
+  MailOpen,
+  FileText,
+  Receipt,
+  Repeat,
+  Headphones,
+  Palette,
   LogOut,
   Menu,
   X,
@@ -27,12 +33,42 @@ export type AdminCounts = {
   monitorsActief: number;
   scans: number;
   klanten: number;
+  offertesOpen: number;
+  facturenOpen: number;
+  ticketsOpen: number;
+  formNieuw: number;
 };
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/aanvragen", label: "Aanvragen", icon: Inbox, badge: "nieuw" },
   { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
+  {
+    href: "/admin/offertes",
+    label: "Offertes",
+    icon: FileText,
+    badge: "offertesOpen",
+  },
+  {
+    href: "/admin/facturen",
+    label: "Facturen",
+    icon: Receipt,
+    badge: "facturenOpen",
+  },
+  { href: "/admin/abonnementen", label: "Abonnementen", icon: Repeat },
+  {
+    href: "/admin/tickets",
+    label: "Tickets",
+    icon: Headphones,
+    badge: "ticketsOpen",
+  },
+  {
+    href: "/admin/formulieren",
+    label: "Formulieren",
+    icon: MailOpen,
+    badge: "formNieuw",
+  },
+  { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
   { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
   {
     href: "/admin/monitors",

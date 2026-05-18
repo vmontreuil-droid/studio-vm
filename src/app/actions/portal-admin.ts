@@ -674,3 +674,53 @@ export async function deleteClient(formData: FormData): Promise<void> {
   revalidatePath("/admin/klanten", "layout");
   redirect("/admin/klanten");
 }
+
+// ---------- Formulier-inzendingen (van gepubliceerde klantsites) ----------
+
+export async function setFormRead(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const read = String(formData.get("read") ?? "") === "1";
+  await getSupabaseAdmin()
+    .from("form_submissions")
+    .update({ is_read: read })
+    .eq("id", id);
+  revalidatePath("/admin/formulieren");
+  revalidatePath("/admin/klanten", "layout");
+}
+
+export async function deleteFormSubmission(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin().from("form_submissions").delete().eq("id", id);
+  revalidatePath("/admin/formulieren");
+}
+
+// ---------- Builder-ontwerpen (admin-zijde, service-role) ----------
+
+export async function adminUnpublishDesign(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin()
+    .from("builder_designs")
+    .update({ published: false, published_at: null })
+    .eq("id", id);
+  revalidatePath("/admin/designs");
+}
+
+export async function adminDeleteDesign(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await getSupabaseAdmin().from("builder_designs").delete().eq("id", id);
+  revalidatePath("/admin/designs");
+}
