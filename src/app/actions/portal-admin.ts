@@ -308,6 +308,8 @@ export async function createOffer(formData: FormData): Promise<void> {
     includes,
     subLabel: sub ? `${sub.name} — 12 mnd minimum` : null,
     subMonthlyCents: subMonthly,
+    discountCents: lockin ? lockinDiscount : 0,
+    freeMonthsCents: lockin && subMonthly ? subMonthly * 2 : 0,
   });
   await notifyClient(
     email,
@@ -353,6 +355,10 @@ export async function resendOffer(formData: FormData): Promise<void> {
         subItem.label.toLowerCase().includes(t.name.toLowerCase()),
       )
     : undefined;
+  const discCents = its.reduce(
+    (s, it) => (it.cents < 0 ? s - it.cents : s),
+    0,
+  );
   const preview = offerPreviewHtml({
     offerNo: o.offer_no,
     amountExclCents: o.amount_cents ?? 0,
@@ -367,6 +373,8 @@ export async function resendOffer(formData: FormData): Promise<void> {
         ? subItem.label
         : null,
     subMonthlyCents: subTier ? subTier.cents : 0,
+    discountCents: discCents,
+    freeMonthsCents: discCents > 0 && subTier ? subTier.cents * 2 : 0,
   });
   const greet = o.client_name
     ? `Beste ${o.client_name.split(/\s+/)[0]},`

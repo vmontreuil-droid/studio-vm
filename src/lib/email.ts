@@ -58,6 +58,7 @@ export function portalEmailHtml(o: PortalEmailOpts): string {
 export type OfferPreview = {
   offerNo?: string | null;
   greeting?: string;
+  /** Netto na korting (excl. btw) — basis voor btw + totaal. */
   amountExclCents: number | null;
   vatReverse?: boolean;
   validUntil?: string | null;
@@ -66,6 +67,9 @@ export type OfferPreview = {
   /** Maandelijks abonnement, indien van toepassing. */
   subLabel?: string | null;
   subMonthlyCents?: number;
+  /** Directe-ondertekening-voordelen (groen). */
+  discountCents?: number;
+  freeMonthsCents?: number;
 };
 
 // "De eerste 10 cm van de offerte" als nette kaart in de mail:
@@ -108,6 +112,38 @@ export function offerPreviewHtml(p: OfferPreview): string {
         )}/mnd</td></tr>`
       : "";
 
+  const greenRow = (label: string, value: string) =>
+    `<tr><td bgcolor="#dcfce7" style="background:#dcfce7;padding:9px 12px;font:700 14px/1.4 ${FONT};color:#166534;border-radius:6px 0 0 6px">${label}</td><td bgcolor="#dcfce7" align="right" style="background:#dcfce7;padding:9px 12px;font:700 14px/1.4 ${MONO};color:#166534;border-radius:0 6px 6px 0">${value}</td></tr><tr><td colspan="2" style="height:4px;line-height:4px;font-size:0">&nbsp;</td></tr>`;
+
+  const disc = p.discountCents ?? 0;
+  const free = p.freeMonthsCents ?? 0;
+  const gross = amount + disc;
+
+  const promo =
+    disc > 0
+      ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;border-collapse:separate"><tr><td bgcolor="#dcfce7" style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px 18px;font:600 14px/1.5 ${FONT};color:#166534">&#9889; Beslis je v&oacute;&oacute;r ${
+          p.validUntil ?? "de vervaldatum"
+        }, dan behoud je <strong>7% korting</strong>${
+          free > 0
+            ? " &eacute;n <strong>de eerste 2 maanden support gratis</strong>"
+            : ""
+        }. Daarna vervalt dit aanbod automatisch.</td></tr></table>`
+      : "";
+
+  const totalsRows =
+    disc > 0
+      ? `${row("Pakket (excl. btw)", eur(gross))}
+        ${greenRow("Vastlegkorting &mdash; directe ondertekening (&minus;7%)", "&minus; " + eur(disc))}
+        ${row("Na korting (excl. btw)", eur(amount))}
+        ${row(vatLabel, eur(vat))}
+        ${row("Totaal (incl. btw)", eur(incl), true)}
+        ${subRow}
+        ${free > 0 ? greenRow("Eerste 2 maanden support gratis", "&minus; " + eur(free)) : ""}`
+      : `${row("Eenmalig (excl. btw)", eur(amount))}
+        ${row(vatLabel, eur(vat))}
+        ${row("Totaal (incl. btw)", eur(incl), true)}
+        ${subRow}`;
+
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 8px;background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;border-collapse:separate">
     <tr><td style="padding:26px 28px">
@@ -118,11 +154,10 @@ export function offerPreviewHtml(p: OfferPreview): string {
       }
       <p style="margin:0 0 12px;font:700 12px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:#78716c">Wat je krijgt</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${includeRows}</table>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;border-top:1px solid #e7e5e4;border-collapse:collapse">
-        ${row("Eenmalig (excl. btw)", eur(amount))}
-        ${row(vatLabel, eur(vat))}
-        ${row("Totaal (incl. btw)", eur(incl), true)}
-        ${subRow}
+      <div style="height:18px;line-height:18px;font-size:0">&nbsp;</div>
+      ${promo}
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e7e5e4;border-collapse:collapse">
+        ${totalsRows}
       </table>
       ${
         p.validUntil
