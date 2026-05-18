@@ -377,12 +377,6 @@ export function OfferBuilder({
             placeholder="Vrije toelichting bovenaan de offerte…"
             className={field}
           />
-          <span className="mt-1 block text-xs text-muted">
-            Onder deze tekst komt automatisch een standaard clausule
-            over domein &amp; e-mail
-            {lockin ? " en de vastleg-/betaalvoorwaarden" : ""} — die
-            hoef je hier niet zelf te typen.
-          </span>
         </label>
       </div>
 
@@ -608,6 +602,12 @@ export function OfferBuilder({
               </span>
             </div>
           )}
+          <p className="mt-2 border-t pt-2 text-xs text-muted">
+            Onderaan de offerte komt automatisch een standaard
+            clausule over domein &amp; e-mail
+            {lockin ? " en de vastleg-/betaalvoorwaarden" : ""} — die
+            hoef je niet zelf te typen.
+          </p>
         </div>
       </div>
 
