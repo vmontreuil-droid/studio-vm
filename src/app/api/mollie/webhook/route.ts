@@ -6,6 +6,7 @@ import { mollieCreateSubscription } from "@/lib/mollie-sub";
 import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 import { sendMail } from "@/lib/monitor";
 import { siteUrl } from "@/lib/supabase/config";
+import { portalEmailHtml, invoicePaidPreviewHtml } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -32,14 +33,132 @@ export async function POST(req: NextRequest) {
 
   if (payment.status === "paid" && invoiceId) {
     try {
-      await getSupabaseAdmin()
+      const db = getSupabaseAdmin();
+      const { data: invData } = await db
+        .from("invoices")
+        .select(
+          "id, number, description, amount_cents, status, client_email, offer_id, paid_at",
+        )
+        .eq("id", invoiceId)
+        .maybeSingle();
+      const inv = invData as {
+        id: string;
+        number: string;
+        description: string | null;
+        amount_cents: number;
+        status: string;
+        client_email: string | null;
+        offer_id: string | null;
+        paid_at: string | null;
+      } | null;
+      // Idempotent: enkel de eerste keer verwerken + mailen.
+      const firstTime = !!inv && inv.status !== "betaald";
+      const paidAt = new Date().toISOString();
+      await db
         .from("invoices")
         .update({
           status: "betaald",
-          paid_at: new Date().toISOString(),
+          paid_at: paidAt,
           mollie_payment_id: payment.id,
         })
         .eq("id", invoiceId);
+
+      if (firstTime && inv && inv.client_email) {
+        try {
+          let reverse = false;
+          if (inv.offer_id) {
+            const { data: off } = await db
+              .from("offers")
+              .select("vat_reverse")
+              .eq("id", inv.offer_id)
+              .maybeSingle();
+            reverse = !!(off as { vat_reverse?: boolean } | null)
+              ?.vat_reverse;
+          }
+          let loc = "nl";
+          try {
+            const { data: sr } = await db
+              .from("scan_requests")
+              .select("locale")
+              .eq("email", inv.client_email)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            const sl = (sr as { locale?: string } | null)?.locale;
+            if (sl === "fr" || sl === "en") loc = sl;
+          } catch {}
+
+          let portalUrl = `${siteUrl}/${loc}/portail?next=${encodeURIComponent(
+            `/${loc}/portail/dashboard/facturen`,
+          )}`;
+          try {
+            const gen = await db.auth.admin.generateLink({
+              type: "magiclink",
+              email: inv.client_email,
+            });
+            const hashed = gen.data?.properties?.hashed_token;
+            if (!gen.error && hashed) {
+              portalUrl = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+                hashed,
+              )}&type=magiclink&next=${encodeURIComponent(
+                `/${loc}/portail/dashboard/facturen`,
+              )}`;
+            }
+          } catch {}
+
+          const subj = {
+            nl: `Betaling ontvangen — factuur ${inv.number}`,
+            fr: `Paiement reçu — facture ${inv.number}`,
+            en: `Payment received — invoice ${inv.number}`,
+          }[loc] as string;
+          const lines = {
+            nl: [
+              "Bedankt — je betaling is goed ontvangen ✓",
+              "Je factuur is volledig betaald. Hieronder vind je de bevestiging; in je portaal staat ze met de betaalstempel klaar.",
+            ],
+            fr: [
+              "Merci — votre paiement a bien été reçu ✓",
+              "Votre facture est entièrement payée. Vous trouverez la confirmation ci-dessous ; elle est disponible avec le cachet payé dans votre portail.",
+            ],
+            en: [
+              "Thank you — your payment was received ✓",
+              "Your invoice is fully paid. Below is the confirmation; it's available with the paid stamp in your portal.",
+            ],
+          }[loc] as string[];
+          const cta = {
+            nl: "Bekijk je factuur in het portaal",
+            fr: "Voir votre facture dans le portail",
+            en: "View your invoice in the portal",
+          }[loc] as string;
+
+          await sendMail(inv.client_email, {
+            subject: subj,
+            html: portalEmailHtml({
+              locale: loc,
+              eyebrow:
+                loc === "fr"
+                  ? "Paiement confirmé"
+                  : loc === "en"
+                    ? "Payment confirmed"
+                    : "Betaling bevestigd",
+              title: subj,
+              bodyLines: lines,
+              ctaLabel: cta,
+              ctaHref: portalUrl,
+              extraHtml: invoicePaidPreviewHtml({
+                number: inv.number,
+                description: inv.description,
+                amountExclCents: inv.amount_cents,
+                vatReverse: reverse,
+                paidAt,
+                locale: loc,
+              }),
+            }),
+          }).catch(() => {});
+        } catch {
+          // Mail mag de webhook nooit doen falen.
+        }
+      }
     } catch {
       // Mollie herprobeert de webhook als we geen 200 geven; bij een
       // DB-hapering net wél 200 geven en op de volgende retry vertrouwen

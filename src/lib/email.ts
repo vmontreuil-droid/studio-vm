@@ -167,3 +167,58 @@ export function offerPreviewHtml(p: OfferPreview): string {
     </td></tr>
   </table>`;
 }
+
+export type InvoicePaidPreview = {
+  number: string;
+  description?: string | null;
+  amountExclCents: number;
+  vatReverse?: boolean;
+  paidAt?: string | null;
+  locale?: string;
+};
+
+// Betaalde-factuur-kaart in de mail: nummer, omschrijving, bedragen
+// met btw én een duidelijke groene BETAALD-stempel + datum.
+export function invoicePaidPreviewHtml(p: InvoicePaidPreview): string {
+  const amount = p.amountExclCents;
+  const vat = p.vatReverse ? 0 : Math.round(amount * 0.21);
+  const incl = amount + vat;
+  const vatLabel = p.vatReverse ? "Btw (0% &mdash; verlegd)" : "Btw (21%)";
+  const loc = p.locale ?? "nl";
+  const paidWord =
+    loc === "fr" ? "PAY&Eacute;E" : loc === "en" ? "PAID" : "BETAALD";
+  const onWord = loc === "fr" ? "le" : loc === "en" ? "on" : "op";
+  const dateStr = p.paidAt
+    ? new Date(p.paidAt).toLocaleDateString(
+        loc === "fr" ? "fr-BE" : loc === "en" ? "en-GB" : "nl-BE",
+        { day: "2-digit", month: "2-digit", year: "numeric" },
+      )
+    : "";
+  const row = (label: string, value: string, strong = false) =>
+    `<tr><td style="padding:7px 0;font:${strong ? "700" : "400"} 14px/1.4 ${FONT};color:${
+      strong ? "#1c1917" : "#78716c"
+    }">${label}</td><td align="right" style="padding:7px 0;font:${
+      strong ? "700" : "400"
+    } 14px/1.4 ${MONO};color:${strong ? "#1c1917" : "#44403c"}">${value}</td></tr>`;
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 8px;background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;border-collapse:separate">
+    <tr><td style="padding:26px 28px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
+        <td style="font:700 11px/1 ${MONO};letter-spacing:.16em;text-transform:uppercase;color:#a8a29e">Factuur ${p.number}</td>
+        <td align="right"><span style="display:inline-block;background:#16a34a;color:#ffffff;font:700 12px/1 ${FONT};letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:6px">&#10003; ${paidWord}${
+          dateStr ? ` ${onWord} ${dateStr}` : ""
+        }</span></td>
+      </tr></table>
+      ${
+        p.description
+          ? `<p style="margin:16px 0 0;font:600 15px/1.5 ${FONT};color:#1c1917">${p.description}</p>`
+          : ""
+      }
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #e7e5e4;border-collapse:collapse">
+        ${row("Subtotaal (excl. btw)", eur(amount))}
+        ${row(vatLabel, eur(vat))}
+        ${row("Totaal (incl. btw)", eur(incl), true)}
+      </table>
+    </td></tr>
+  </table>`;
+}

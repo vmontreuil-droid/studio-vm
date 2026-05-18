@@ -78,6 +78,7 @@ type Inv = {
   pdf_url: string | null;
   offer_id: string | null;
   client_email: string | null;
+  paid_at: string | null;
 };
 type OfferRef = {
   id: string;
@@ -132,6 +133,8 @@ const L: Record<
     terms: string;
     youSave: string;
     insteadOf: string;
+    paid: string;
+    paidOn: string;
   }
 > = {
   nl: {
@@ -176,6 +179,8 @@ const L: Record<
       "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
     youSave: "Je bespaart",
     insteadOf: "i.p.v.",
+    paid: "Betaald",
+    paidOn: "Betaald op",
   },
   fr: {
     none: "Aucune facture.",
@@ -219,6 +224,8 @@ const L: Record<
       "Paiement : acompte de 30% pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. L'abonnement de maintenance a une durée minimale d'1 an et est, sauf résiliation écrite au moins 1 mois avant la fin de la période annuelle, reconduit tacitement pour un an à chaque fois. Domaine & e-mail (reprise/renouvellement) sont à charge du client et, selon le cas, décomptés sur la facture finale. Conditions complètes : studio-vm.be/fr/voorwaarden.",
     youSave: "Vous économisez",
     insteadOf: "au lieu de",
+    paid: "Payée",
+    paidOn: "Payée le",
   },
   en: {
     none: "No invoices.",
@@ -262,6 +269,8 @@ const L: Record<
       "Payment: 30% deposit to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. The maintenance subscription has a minimum term of 1 year and, unless cancelled in writing at least 1 month before the end of the yearly term, renews tacitly for one year each time. Domain & email (transfer/renewal) are borne by the client and, depending on the case, settled on the final invoice. Full terms: studio-vm.be/en/voorwaarden.",
     youSave: "You save",
     insteadOf: "instead of",
+    paid: "Paid",
+    paidOn: "Paid on",
   },
 };
 
@@ -592,9 +601,19 @@ export default async function PortalInvoices({
                   </p>
                 )}
                 {paid && (
-                  <p className="mt-3 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white">
-                    ✓ {l.paidNote}
-                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
+                    <span className="inline-flex -rotate-3 items-center gap-2 rounded-lg border-2 border-green-600 px-4 py-2 text-base font-extrabold uppercase tracking-widest text-green-600">
+                      ✓ {l.paid}
+                    </span>
+                    {i.paid_at && (
+                      <span className="text-sm text-muted">
+                        {l.paidOn}{" "}
+                        <strong className="text-foreground">
+                          {dt(i.paid_at, locale)}
+                        </strong>
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 
