@@ -538,13 +538,22 @@ export function OfferBuilder({
         />
       </div>
 
-      <textarea
-        name="body"
-        rows={6}
-        defaultValue={prefill.body ?? ""}
-        placeholder="Omschrijving voor de klant (optioneel)"
-        className={field}
-      />
+      <div>
+        <textarea
+          name="body"
+          rows={6}
+          defaultValue={prefill.body ?? ""}
+          placeholder="Omschrijving voor de klant (optioneel)"
+          className={field}
+        />
+        <p className="mt-1 text-xs text-muted">
+          Onder deze tekst komt automatisch een standaard clausule
+          over domein &amp; e-mail
+          {" "}
+          {lockin ? "en de vastleg-/betaalvoorwaarden " : ""}
+          — die hoef je hier niet zelf te typen.
+        </p>
+      </div>
       {scanAction && (
         <div className="rounded-xl border border-dashed bg-background p-4">
           <p className={labelCls}>

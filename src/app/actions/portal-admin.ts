@@ -259,6 +259,13 @@ export async function createOffer(formData: FormData): Promise<void> {
     finalBody = body ? `${body}\n\n${clause}` : clause;
   }
 
+  // Standaard domein/e-mail-clausule — staat onder elke offerte.
+  const domainClause =
+    "Domein & e-mail: of we je bestaande domein vlot kunnen meenemen hangt af van hoe makkelijk je huidige provider de gegevens vrijgeeft. Daar kunnen kosten aan verbonden zijn, en het domeinabonnement (de jaarlijkse verlenging) blijft steeds ten laste van jou. Dit alles bespreken we samen en wordt — afhankelijk van het geval — verrekend op de slotfactuur; een exact bedrag kunnen we hier dus nog niet vastleggen.";
+  finalBody = finalBody
+    ? `${finalBody}\n\n${domainClause}`
+    : domainClause;
+
   // Offertenummer OFF-{jaar}-{volgnr}
   const year = new Date().getFullYear();
   const { count } = await db
