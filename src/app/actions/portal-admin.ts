@@ -196,7 +196,7 @@ export async function createOffer(formData: FormData): Promise<void> {
     (inc ? subs.find((x) => x.slug === inc.sub) : undefined);
   if (sub)
     picked.push({
-      label: `${sub.name} — verplicht, vanaf maand 1`,
+      label: `${sub.name} — verplicht · 12 maanden minimum`,
       desc: sub.desc ?? "",
       cents: 0,
       kind: "sub",
@@ -247,7 +247,7 @@ export async function createOffer(formData: FormData): Promise<void> {
       deposit / 100
     ).toFixed(
       2,
-    )} excl. btw), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag — zoals op de website. Zodra je in je portaal akkoord geeft, wordt de factuur voor de aanbetaling automatisch aangemaakt; het saldo volgt na oplevering.`;
+    )} excl. btw), dan ligt de scope vast en krijg je 7% korting op het eenmalige bedrag én de eerste 2 maanden van het abonnement gratis — zoals op de website. Het onderhoudsabonnement loopt minimum 12 maanden. Zodra je in je portaal akkoord geeft, wordt de factuur voor de aanbetaling automatisch aangemaakt; het saldo volgt na oplevering.`;
     finalBody = body ? `${body}\n\n${clause}` : clause;
   }
 

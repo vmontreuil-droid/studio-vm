@@ -112,7 +112,7 @@ export function OfferBuilder({
     }
     if (effectiveSub)
       out.push({
-        label: `${effectiveSub.name} — verplicht, vanaf maand 1`,
+        label: `${effectiveSub.name} — verplicht · 12 maanden minimum`,
         desc: effectiveSub.desc ?? "",
         cents: 0,
         incl: false,
@@ -326,7 +326,9 @@ export function OfferBuilder({
 
       {/* Abonnement — vrij te kiezen, overschrijft het inbegrepen */}
       <div>
-        <p className={labelCls}>Abonnement (verplicht, vanaf maand 1)</p>
+        <p className={labelCls}>
+          Abonnement (verplicht · 12 maanden minimum)
+        </p>
         <select
           name="sub"
           value={effectiveSubSlug}
@@ -357,13 +359,16 @@ export function OfferBuilder({
         />
         <span>
           <span className="font-medium">
-            Directe ondertekening — 7% vastlegkorting + 30% aanbetaling
+            Directe ondertekening — 7% korting + 30% aanbetaling + 2
+            gratis maanden
           </span>
           <span className="mt-0.5 block text-xs text-muted">
             Zoals op de website: tekent de klant meteen en betaalt hij
             de aanbetaling van 30%, dan ligt de scope vast en krijgt
-            hij 7% korting op het eenmalige bedrag. De factuur voor de
-            aanbetaling verschijnt automatisch in zijn portaal.
+            hij 7% korting op het eenmalige bedrag én de eerste 2
+            maanden van het abonnement gratis. Het abonnement loopt
+            minimum 12 maanden. De factuur voor de aanbetaling
+            verschijnt automatisch in zijn portaal.
           </span>
         </span>
       </label>
@@ -451,10 +456,19 @@ export function OfferBuilder({
           {effectiveSub && (
             <div className="flex items-center justify-between pt-1 text-amber-600 dark:text-amber-400">
               <span>
-                + {effectiveSub.name} maandelijks (excl. btw)
+                + {effectiveSub.name} maandelijks (excl. btw) · 12 mnd
+                minimum
               </span>
               <span className="font-mono">
                 {eur(effectiveSub.cents)}/m
+              </span>
+            </div>
+          )}
+          {lockin && effectiveSub && (
+            <div className="flex items-center justify-between text-green-700 dark:text-green-400">
+              <span>Eerste 2 maanden abonnement gratis</span>
+              <span className="font-mono">
+                − {eur(effectiveSub.cents * 2)}
               </span>
             </div>
           )}
