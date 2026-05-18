@@ -15,6 +15,8 @@ type Invoice = {
   issued_at: string;
   due_at: string | null;
   paid_at: string | null;
+  offer_id: string | null;
+  description: string | null;
 };
 
 const STATUSES = ["alle", "open", "betaald", "vervallen"] as const;
@@ -30,14 +32,34 @@ export default async function AdminFacturen({
     ? (sp.status as string)
     : "alle";
 
-  const { data } = await getSupabaseAdmin()
+  const db = getSupabaseAdmin();
+  const { data } = await db
     .from("invoices")
     .select(
-      "id, client_email, number, amount_cents, status, issued_at, due_at, paid_at",
+      "id, client_email, number, amount_cents, status, issued_at, due_at, paid_at, offer_id, description",
     )
     .order("issued_at", { ascending: false })
     .limit(1000);
   const all = (data as Invoice[]) ?? [];
+  const offerIds = [
+    ...new Set(all.map((i) => i.offer_id).filter(Boolean)),
+  ] as string[];
+  const reverseByOffer = new Map<string, boolean>();
+  if (offerIds.length > 0) {
+    const { data: offs } = await db
+      .from("offers")
+      .select("id, vat_reverse")
+      .in("id", offerIds);
+    for (const o of (offs as {
+      id: string;
+      vat_reverse: boolean | null;
+    }[]) ?? [])
+      reverseByOffer.set(o.id, !!o.vat_reverse);
+  }
+  const inclOf = (i: Invoice) =>
+    i.offer_id && reverseByOffer.get(i.offer_id)
+      ? i.amount_cents
+      : Math.round(i.amount_cents * 1.21);
   const invoices =
     status === "alle" ? all : all.filter((i) => i.status === status);
 
@@ -126,7 +148,17 @@ export default async function AdminFacturen({
             >
               <p className="font-medium">
                 {i.number}{" "}
-                <span className="text-muted">· {eur(i.amount_cents)}</span>
+                <span className="text-muted">
+                  · {eur(i.amount_cents)} excl. ·{" "}
+                  <span className="text-foreground">
+                    {eur(inclOf(i))} incl. btw
+                  </span>
+                </span>
+                {/voorschot\s*30%/i.test(i.description ?? "") && (
+                  <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+                    voorschot 30%
+                  </span>
+                )}
                 {isOverdue(i) && (
                   <span className="ml-2 rounded bg-red-500/15 px-1.5 py-0.5 font-mono text-[10px] uppercase text-red-500">
                     te laat
