@@ -675,7 +675,8 @@ export default async function AdminKlantDetail({
                 ? i.amount_cents
                 : Math.round(i.amount_cents * 1.21);
               const isDeposit = /voorschot\s*30%/i.test(
-                i.description ?? "",
+                (i as unknown as { description?: string | null })
+                  .description ?? "",
               );
               return (
             <div className="min-w-0">
