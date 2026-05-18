@@ -43,10 +43,10 @@ test.describe("Tools", () => {
     });
   });
 
-  test("offerte-calculator toont een richtprijs", async ({ page }) => {
+  test("offerte-calculator toont een totaalprijs", async ({ page }) => {
     await page.goto("/nl/offerte");
     const aside = page.locator("aside");
-    await expect(aside.getByText(/Richtprijs/i).first()).toBeVisible();
+    await expect(aside.getByText(/Jouw totaal/i).first()).toBeVisible();
     await expect(aside.getByText(/€\s?\d/).first()).toBeVisible();
   });
 
