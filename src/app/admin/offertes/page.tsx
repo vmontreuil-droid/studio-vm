@@ -72,7 +72,15 @@ export default async function AdminOffertes({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Offertes</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Offertes</h1>
+        <Link
+          href="/admin/offertes/nieuw"
+          className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+        >
+          + Nieuwe offerte
+        </Link>
+      </div>
       <p className="mt-2 text-sm text-muted">
         Alle offertes over alle klanten heen.
       </p>

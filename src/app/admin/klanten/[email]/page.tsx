@@ -28,6 +28,7 @@ import {
   setDomain,
   deleteClient,
   activateWebsiteClient,
+  addClientScan,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -481,6 +482,21 @@ export default async function AdminKlantDetail({
             </div>
           );
         })}
+        <form
+          action={addClientScan}
+          className="grid gap-2 rounded-2xl border border-dashed bg-card/50 p-4 sm:grid-cols-[1fr_auto]"
+        >
+          <input type="hidden" name="client_email" value={email} />
+          <input
+            name="url"
+            required
+            placeholder="Site scannen (bv. klant.be) — zonder de klant te mailen"
+            className={field}
+          />
+          <button className="rounded-full border px-5 py-2 text-sm font-medium hover:bg-card-hover">
+            Scan toevoegen
+          </button>
+        </form>
       </div>
 
       </>

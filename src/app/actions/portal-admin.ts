@@ -13,6 +13,8 @@ import {
   subscriptionTiers,
 } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
+import { randomBytes } from "crypto";
+import { runScan } from "@/app/actions/scan";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
@@ -723,4 +725,40 @@ export async function adminDeleteDesign(
   if (!id) return;
   await getSupabaseAdmin().from("builder_designs").delete().eq("id", id);
   revalidatePath("/admin/designs");
+}
+
+// Scant een site en koppelt de analyse aan een klant, ZONDER de
+// klant te mailen. Bewust geen sendPortalMail / nieuwsbrief: jij
+// beslist zelf wanneer (en of) de klant iets ontvangt. De scan
+// verschijnt in /admin/scans én in het klantportaal van die mail.
+export async function addClientScan(formData: FormData): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase()
+    .slice(0, 160);
+  let url = String(formData.get("url") ?? "").trim().slice(0, 300);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !url) return;
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+
+  let scan: Awaited<ReturnType<typeof runScan>>;
+  try {
+    scan = await runScan(url);
+  } catch {
+    return;
+  }
+  if (!scan || !scan.ok) return;
+
+  await getSupabaseAdmin()
+    .from("scan_requests")
+    .insert({
+      token: randomBytes(24).toString("base64url"),
+      email,
+      url: scan.finalUrl || url,
+      locale: "nl",
+      scan,
+    });
+  await ensurePortalUser(email);
+  revalidatePath("/admin/scans");
+  revalidatePath(`/admin/klanten/${encodeURIComponent(email)}`);
 }

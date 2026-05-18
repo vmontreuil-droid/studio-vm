@@ -12,6 +12,7 @@ const eur = (c: number) => `€ ${(c / 100).toFixed(2)}`;
 
 export function OfferBuilder({
   email,
+  emailEditable = false,
   bases,
   addons,
   subs,
@@ -19,6 +20,7 @@ export function OfferBuilder({
   action,
 }: {
   email: string;
+  emailEditable?: boolean;
   bases: Item[];
   addons: Item[];
   subs: Item[];
@@ -90,7 +92,23 @@ export function OfferBuilder({
       action={action}
       className="space-y-4 rounded-2xl border border-dashed bg-card/50 p-5"
     >
-      <input type="hidden" name="client_email" value={email} />
+      {emailEditable ? (
+        <div>
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+            Klant e-mail (verplicht — hierop komt de portaal-login)
+          </p>
+          <input
+            name="client_email"
+            type="email"
+            required
+            defaultValue={email}
+            placeholder="klant@bedrijf.be"
+            className={field}
+          />
+        </div>
+      ) : (
+        <input type="hidden" name="client_email" value={email} />
+      )}
 
       <div>
         <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
