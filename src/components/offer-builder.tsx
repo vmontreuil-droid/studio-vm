@@ -42,6 +42,7 @@ export function OfferBuilder({
   included,
   action,
   lookupVat,
+  scanAction,
   prefill = {},
 }: {
   email: string;
@@ -52,6 +53,7 @@ export function OfferBuilder({
   included: Included;
   action: (formData: FormData) => Promise<void>;
   lookupVat?: (vat: string) => Promise<VatLookup>;
+  scanAction?: (formData: FormData) => Promise<void>;
   prefill?: OfferPrefill;
 }) {
   const baseFromPrefill =
@@ -248,28 +250,43 @@ export function OfferBuilder({
 
       <div>
         <p className={labelCls}>Klantgegevens</p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <input
-            name="client_name"
-            defaultValue={prefill.client_name ?? ""}
-            placeholder="Naam contactpersoon"
-            className={field}
-          />
-          <input
-            name="client_company"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            placeholder="Bedrijf"
-            className={field}
-          />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-muted">
+              Naam contactpersoon
+            </span>
+            <input
+              name="client_name"
+              defaultValue={prefill.client_name ?? ""}
+              placeholder="bv. Gerry Carpentier"
+              className={field}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-muted">
+              Bedrijf {vatState === "ok" ? "(via VIES)" : ""}
+            </span>
+            <input
+              name="client_company"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="bv. NV Carpentier"
+              className={field}
+            />
+          </label>
         </div>
-        <input
-          name="client_address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Adres"
-          className={`mt-2 ${field}`}
-        />
+        <label className="mt-3 block">
+          <span className="mb-1 block text-xs font-medium text-muted">
+            Adres {vatState === "ok" ? "(via VIES)" : ""}
+          </span>
+          <input
+            name="client_address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Straat nr, postcode gemeente"
+            className={field}
+          />
+        </label>
       </div>
 
       <div>
@@ -523,17 +540,50 @@ export function OfferBuilder({
         placeholder="Omschrijving voor de klant (optioneel)"
         className={field}
       />
-      <textarea
-        name="internal_note"
-        rows={2}
-        defaultValue={prefill.internal_note ?? ""}
-        placeholder="Interne notities (enkel voor jou — niet zichtbaar voor de klant)"
-        className={field}
-      />
+      {scanAction && (
+        <div className="rounded-xl border border-dashed bg-background p-4">
+          <p className={labelCls}>
+            Optioneel — analyse meesturen (zonder de klant te mailen)
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            Scant de huidige site en koppelt de volledige analyse aan
+            dezelfde klant-e-mail. Ze verschijnt in zijn portaal naast
+            de offerte — jij beslist zelf wanneer je hem contacteert.
+          </p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <input
+              name="url"
+              placeholder="huidige website (bv. klant.be)"
+              className={field}
+            />
+            <button
+              type="submit"
+              formAction={scanAction}
+              formNoValidate
+              className="shrink-0 rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-card-hover"
+            >
+              Scan toevoegen
+            </button>
+          </div>
+        </div>
+      )}
 
       <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
         Offerte aanmaken &amp; versturen
       </button>
+
+      <div className="mt-2 border-t pt-4">
+        <p className={labelCls}>
+          Interne notities — enkel voor jou, niet zichtbaar voor de klant
+        </p>
+        <textarea
+          name="internal_note"
+          rows={3}
+          defaultValue={prefill.internal_note ?? ""}
+          placeholder="Bv. context, afspraken, opvolging…"
+          className={`mt-1 ${field}`}
+        />
+      </div>
     </form>
   );
 }

@@ -13,9 +13,6 @@ import { lookupVat } from "@/app/actions/quote";
 
 export const dynamic = "force-dynamic";
 
-const field =
-  "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
-
 export default async function NieuweOfferte({
   searchParams,
 }: {
@@ -82,40 +79,9 @@ export default async function NieuweOfferte({
           included={OFFER_INCLUDED}
           action={createOffer}
           lookupVat={lookupVat}
+          scanAction={addClientScan}
           prefill={prefill}
         />
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-dashed bg-card/50 p-5">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-          Optioneel — analyse meesturen (zonder de klant te mailen)
-        </p>
-        <p className="mt-1 text-sm text-muted">
-          Scant de huidige site en koppelt de volledige analyse aan
-          dezelfde klant-e-mail. Ze verschijnt in zijn portaal naast
-          de offerte — jij beslist zelf wanneer je hem contacteert.
-        </p>
-        <form
-          action={addClientScan}
-          className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
-        >
-          <input
-            name="client_email"
-            type="email"
-            required
-            placeholder="klant@bedrijf.be"
-            className={field}
-          />
-          <input
-            name="url"
-            required
-            placeholder="huidige website (bv. klant.be)"
-            className={field}
-          />
-          <button className="rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:bg-card-hover">
-            Scan toevoegen
-          </button>
-        </form>
       </div>
     </>
   );
