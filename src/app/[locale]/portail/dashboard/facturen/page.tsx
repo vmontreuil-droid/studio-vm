@@ -101,10 +101,11 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@media print {
+const PRINT_CSS = `@page { margin: 0; }
+@media print {
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 14mm 12mm; }
   .no-print { display: none !important; }
   .doc { border: none !important; box-shadow: none !important; page-break-after: always; }
 }`;
@@ -197,7 +198,7 @@ export default async function PortalInvoices({
 
               {/* Van / Voor */}
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border bg-background p-4 text-sm">
+                <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
                   <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
                     {l.from}
                   </p>
@@ -211,7 +212,7 @@ export default async function PortalInvoices({
                   ref?.client_address ||
                   ref?.vat_number ||
                   i.client_email) && (
-                  <div className="rounded-xl border bg-background p-4 text-sm">
+                  <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
                     <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
                       {l.forWhom}
                     </p>

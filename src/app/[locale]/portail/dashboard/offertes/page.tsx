@@ -188,13 +188,17 @@ const L: Record<
   },
 };
 
-const PRINT_CSS = `@media print {
+const PRINT_CSS = `@page { margin: 0; }
+@media print {
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 14mm 12mm; }
   .no-print { display: none !important; }
   .offer-doc { border: none !important; box-shadow: none !important; page-break-after: always; }
-}`;
+  .page-break { break-before: page; page-break-before: always; padding-top: 4mm; }
+  .print-head { display: flex !important; }
+}
+.print-head { display: none; }`;
 
 export default async function PortalOffers({
   params,
@@ -307,7 +311,7 @@ export default async function PortalOffers({
 
               {/* Van / Voor */}
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border bg-background p-4 text-sm">
+                <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
                   <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
                     {l.from}
                   </p>
@@ -318,7 +322,7 @@ export default async function PortalOffers({
                   o.client_company ||
                   o.client_address ||
                   o.vat_number) && (
-                  <div className="rounded-xl border bg-background p-4 text-sm">
+                  <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
                     <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
                       {l.forWhom}
                     </p>
@@ -353,9 +357,17 @@ export default async function PortalOffers({
                 </div>
               )}
 
-              {/* Lijnen */}
+              {/* Lijnen — op een nieuwe pagina bij afdrukken */}
               {items.length > 0 && (
-                <div className="mt-7">
+                <div className="page-break mt-7">
+                  <div className="print-head mb-6 items-end justify-between border-b pb-4">
+                    <p className="text-3xl font-extrabold lowercase leading-none tracking-tighter">
+                      vm<span className="text-accent">.</span>
+                    </p>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      Offerte {o.offer_no ?? ""}
+                    </p>
+                  </div>
                   <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
                     {l.whatYouGet}
                   </p>
