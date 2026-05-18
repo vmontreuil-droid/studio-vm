@@ -125,9 +125,7 @@ export default async function AdminOffertes({
             className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border bg-card p-5"
           >
             <Link
-              href={`/admin/klanten/${encodeURIComponent(
-                o.client_email,
-              )}?tab=offertes`}
+              href={`/admin/offertes/${o.id}`}
               className="min-w-0 flex-1 transition-opacity hover:opacity-80"
             >
               <p className="font-medium">
