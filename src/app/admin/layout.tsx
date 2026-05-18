@@ -32,11 +32,24 @@ export default async function AdminLayout({
 
   const db = getSupabaseAdmin();
   const head = { count: "exact" as const, head: true };
-  const [nieuwR, monitorsR, scansR, emailsR] = await Promise.all([
+  const [
+    nieuwR,
+    monitorsR,
+    scansR,
+    emailsR,
+    offertesR,
+    facturenR,
+    ticketsR,
+    formR,
+  ] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
     db.from("scan_requests").select("id", head),
     db.from("scan_requests").select("email").limit(2000),
+    db.from("offers").select("id", head).eq("status", "open"),
+    db.from("invoices").select("id", head).eq("status", "open"),
+    db.from("tickets").select("id", head).neq("status", "gesloten"),
+    db.from("form_submissions").select("id", head).eq("is_read", false),
   ]);
   const emails = (emailsR.data as { email: string }[] | null) ?? [];
   const klanten = new Set(
@@ -47,6 +60,10 @@ export default async function AdminLayout({
     monitorsActief: monitorsR.count ?? 0,
     scans: scansR.count ?? 0,
     klanten,
+    offertesOpen: offertesR.count ?? 0,
+    facturenOpen: facturenR.count ?? 0,
+    ticketsOpen: ticketsR.count ?? 0,
+    formNieuw: formR.count ?? 0,
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;
