@@ -45,7 +45,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="rounded-2xl bg-card shadow-sm p-5">
       <h2 className="font-mono text-[11px] uppercase tracking-widest text-accent">
         {title}
       </h2>

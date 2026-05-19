@@ -193,7 +193,7 @@ export default async function AdminSites() {
           return (
             <div
               key={s.url}
-              className={`rounded-2xl border bg-card p-5 ${
+              className={`rounded-2xl bg-card shadow-sm p-5 ${
                 s.down
                   ? "border-red-500/50"
                   : s.alarms.length > 0

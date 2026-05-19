@@ -16,7 +16,7 @@ export function BankImporter() {
     <form
       ref={formRef}
       action={action}
-      className="rounded-2xl border bg-card p-5"
+      className="rounded-2xl bg-card shadow-sm p-5"
     >
       <div
         role="button"

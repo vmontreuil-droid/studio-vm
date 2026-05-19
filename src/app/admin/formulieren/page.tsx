@@ -75,7 +75,7 @@ export default async function AdminFormulieren({
 
       <div className="mt-6 space-y-3">
         {list.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             {view === "nieuw"
               ? "Geen ongelezen inzendingen."
               : "Nog geen inzendingen."}
@@ -84,7 +84,7 @@ export default async function AdminFormulieren({
         {list.map((s) => (
           <div
             key={s.id}
-            className={`rounded-2xl border bg-card p-5 ${
+            className={`rounded-2xl bg-card shadow-sm p-5 ${
               s.is_read ? "" : "border-accent/40"
             }`}
           >

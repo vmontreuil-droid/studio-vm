@@ -48,7 +48,7 @@ export default async function AdminJournal() {
 
       <ul className="mt-6 space-y-2">
         {rows.length === 0 && (
-          <li className="rounded-2xl border bg-card p-6 text-muted">
+          <li className="rounded-2xl bg-card shadow-sm p-6 text-muted">
             Nog geen posts. De publieke /journal toont voorlopig de ingebouwde
             voorbeelden.
           </li>
@@ -56,7 +56,7 @@ export default async function AdminJournal() {
         {rows.map((r) => (
           <li
             key={r.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card shadow-sm px-4 py-3 text-sm"
           >
             <span className="min-w-0">
               <strong className="break-words">

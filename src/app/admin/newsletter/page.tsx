@@ -76,14 +76,14 @@ export default async function AdminNewsletter() {
 
       <ul className="mt-6 space-y-2">
         {subs.length === 0 && (
-          <li className="rounded-2xl border bg-card p-6 text-muted">
+          <li className="rounded-2xl bg-card shadow-sm p-6 text-muted">
             Nog geen abonnees.
           </li>
         )}
         {subs.map((s) => (
           <li
             key={s.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-sm"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card shadow-sm px-4 py-3 text-sm"
           >
             <span className="min-w-0">
               <a

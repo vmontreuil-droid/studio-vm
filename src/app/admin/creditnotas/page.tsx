@@ -71,7 +71,7 @@ export default async function AdminCreditnotas() {
         <CreditNoteForm invoices={invoices} />
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-2xl border bg-card">
+      <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">
         <ul className="divide-y divide-border">
           {notes.length === 0 && (
             <li className="p-6 text-sm text-muted">

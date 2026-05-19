@@ -76,7 +76,7 @@ export default async function AdminScans({
 
       <div className="mt-6 space-y-3">
         {rows.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             Nog geen scans met e-mail.
           </p>
         )}
@@ -88,7 +88,7 @@ export default async function AdminScans({
           return (
             <div
               key={r.id}
-              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-card shadow-sm p-5"
             >
               <Link
                 href={`/admin/scans/${r.id}`}

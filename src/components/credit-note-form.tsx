@@ -27,7 +27,7 @@ export function CreditNoteForm({
   }
 
   return (
-    <form action={action} className="rounded-2xl border bg-card p-5">
+    <form action={action} className="rounded-2xl bg-card shadow-sm p-5">
       <h2 className="font-mono text-[11px] uppercase tracking-widest text-accent">
         Nieuwe creditnota
       </h2>

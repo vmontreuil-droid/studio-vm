@@ -40,7 +40,7 @@ function Editor({
   return (
     <form
       action={action}
-      className="rounded-2xl border bg-card p-5"
+      className="rounded-2xl bg-card shadow-sm p-5"
     >
       {product && <input type="hidden" name="id" value={product.id} />}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -160,7 +160,7 @@ export function ProductManager({ products }: { products: Product[] }) {
         </button>
       )}
 
-      <div className="overflow-hidden rounded-2xl border bg-card">
+      <div className="overflow-hidden rounded-2xl bg-card shadow-sm">
         <ul className="divide-y divide-border">
           {products.length === 0 && (
             <li className="p-6 text-sm text-muted">

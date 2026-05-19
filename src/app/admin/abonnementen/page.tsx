@@ -80,7 +80,7 @@ export default async function AdminAbonnementen({
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.k} className="rounded-2xl border bg-card p-5">
+          <div key={s.k} className="rounded-2xl bg-card shadow-sm p-5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {s.k}
             </p>
@@ -90,7 +90,7 @@ export default async function AdminAbonnementen({
       </div>
 
       {plans.length > 0 && (
-        <div className="mt-3 rounded-2xl border bg-card p-5">
+        <div className="mt-3 rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Actieve abonnees per plan
           </p>
@@ -125,7 +125,7 @@ export default async function AdminAbonnementen({
 
       <div className="mt-6 space-y-3">
         {subs.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             Geen abonnementen in deze weergave.
           </p>
         )}
@@ -135,7 +135,7 @@ export default async function AdminAbonnementen({
             href={`/admin/klanten/${encodeURIComponent(
               s.client_email,
             )}?tab=abonnement`}
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+            className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover"
           >
             <div className="min-w-0 flex-1">
               <p className="font-medium">

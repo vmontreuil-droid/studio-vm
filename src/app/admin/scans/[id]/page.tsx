@@ -88,7 +88,7 @@ export default async function AdminScanDetail({
         {ok ? (
           <ScanReport scan={s} locale={locale} />
         ) : (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             Deze scan bevat geen geldig rapport
             {s && s.ok === false ? `: ${s.error}` : "."}
           </p>

@@ -128,7 +128,7 @@ export default async function AdminFacturen({
       {/* KPI-strip */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.k} className="rounded-xl border bg-card p-4">
+          <div key={s.k} className="rounded-xl bg-card shadow-sm p-4">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {s.k}
             </p>
@@ -140,7 +140,7 @@ export default async function AdminFacturen({
       </div>
 
       {/* Toolbar + tabel */}
-      <div className="mt-5 overflow-hidden rounded-2xl border bg-card">
+      <div className="mt-5 overflow-hidden rounded-2xl bg-card shadow-sm">
         <div className="flex flex-wrap items-center gap-1.5 border-b px-4 py-3">
           {STATUSES.map((s) => (
             <Link

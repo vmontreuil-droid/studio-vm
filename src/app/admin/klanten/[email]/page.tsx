@@ -404,7 +404,7 @@ export default async function AdminKlantDetail({
               ),
             },
           ].map((c) => (
-            <div key={c.k} className="rounded-2xl border bg-card p-5">
+            <div key={c.k} className="rounded-2xl bg-card shadow-sm p-5">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
                 {c.k}
               </p>
@@ -453,7 +453,7 @@ export default async function AdminKlantDetail({
       </h2>
       <div className="mt-4 space-y-3">
         {rows.length === 0 && (
-          <p className="rounded-2xl border bg-card p-5 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-5 text-sm text-muted">
             Geen scans — handmatig toegevoegde klant. Zet hieronder een
             offerte, factuur, abonnement of website voor hem klaar.
           </p>
@@ -464,7 +464,7 @@ export default async function AdminKlantDetail({
           return (
             <div
               key={r.id}
-              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-card shadow-sm p-5"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
@@ -533,7 +533,7 @@ export default async function AdminKlantDetail({
           {offers.map((o) => (
             <div
               key={o.id}
-              className="rounded-xl border bg-card px-4 py-3"
+              className="rounded-xl bg-card shadow-sm px-4 py-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 <div className="min-w-0">
@@ -676,7 +676,7 @@ export default async function AdminKlantDetail({
         {invoices.map((i) => (
           <div
             key={i.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card shadow-sm px-4 py-3"
           >
             {(() => {
               const oid = (i as unknown as { offer_id?: string | null })
@@ -779,7 +779,7 @@ export default async function AdminKlantDetail({
         {subs.map((s) => (
           <div
             key={s.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card shadow-sm p-4"
           >
             <p className="font-medium">
               {s.plan} <span className="text-muted">· {eur(s.price_cents)} / maand</span>
@@ -825,7 +825,7 @@ export default async function AdminKlantDetail({
           <p className="text-sm text-muted">Nog geen tickets.</p>
         )}
         {tickets.map((tk) => (
-          <div key={tk.id} className="rounded-2xl border bg-card p-5">
+          <div key={tk.id} className="rounded-2xl bg-card shadow-sm p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="font-semibold tracking-tight">{tk.subject}</p>
               <div className="flex items-center gap-2">
@@ -898,7 +898,7 @@ export default async function AdminKlantDetail({
         {sites.map((s) => (
           <div
             key={s.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card shadow-sm p-4"
           >
             <div className="min-w-0">
               <p className="font-medium">{s.name}</p>
@@ -1028,7 +1028,7 @@ export default async function AdminKlantDetail({
         {checklist.map((c) => (
           <div
             key={c.id}
-            className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+            className="flex items-center justify-between gap-3 rounded-xl bg-card shadow-sm p-3"
           >
             <span className="text-sm">
               {c.done ? "✓ " : "○ "}
@@ -1071,7 +1071,7 @@ export default async function AdminKlantDetail({
         {documents.map((d) => (
           <div
             key={d.id}
-            className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+            className="flex items-center justify-between gap-3 rounded-xl bg-card shadow-sm p-3"
           >
             <a
               href={d.url}

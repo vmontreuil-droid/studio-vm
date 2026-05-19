@@ -155,7 +155,7 @@ export default async function AdminRapporten({
         {kpi.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.k} className="rounded-2xl border bg-card p-5">
+            <div key={s.k} className="rounded-2xl bg-card shadow-sm p-5">
               <div className="flex items-center justify-between">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
                   {s.k}
@@ -171,7 +171,7 @@ export default async function AdminRapporten({
         })}
       </div>
 
-      <div className="mt-3 overflow-hidden rounded-2xl border bg-card">
+      <div className="mt-3 overflow-hidden rounded-2xl bg-card shadow-sm">
         <div className="border-b px-5 py-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Btw per kwartaal — voorbereiding aangifte
@@ -223,7 +223,7 @@ export default async function AdminRapporten({
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Nog te ontvangen (debiteuren)
           </p>
@@ -235,7 +235,7 @@ export default async function AdminRapporten({
             Openstaande verkoopfacturen →
           </Link>
         </div>
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Nog te betalen (crediteuren)
           </p>
@@ -249,7 +249,7 @@ export default async function AdminRapporten({
         </div>
       </div>
 
-      <div className="mt-3 rounded-2xl border bg-card p-5">
+      <div className="mt-3 rounded-2xl bg-card shadow-sm p-5">
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
           Export voor de accountant ({year})
         </p>

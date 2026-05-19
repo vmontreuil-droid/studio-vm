@@ -76,7 +76,7 @@ export default async function AdminDesigns({
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.k} className="rounded-2xl border bg-card p-5">
+          <div key={s.k} className="rounded-2xl bg-card shadow-sm p-5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {s.k}
             </p>
@@ -103,7 +103,7 @@ export default async function AdminDesigns({
 
       <div className="mt-6 space-y-3">
         {designs.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             Geen ontwerpen in deze weergave.
           </p>
         )}
@@ -112,7 +112,7 @@ export default async function AdminDesigns({
           return (
             <div
               key={d.id}
-              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-card shadow-sm p-5"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

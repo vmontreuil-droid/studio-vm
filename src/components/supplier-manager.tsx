@@ -24,7 +24,7 @@ function Editor({
   const [state, action] = useActionState(saveSupplierAction, null);
   if (state?.ok) onDone();
   return (
-    <form action={action} className="rounded-2xl border bg-card p-5">
+    <form action={action} className="rounded-2xl bg-card shadow-sm p-5">
       {supplier && <input type="hidden" name="id" value={supplier.id} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
@@ -114,7 +114,7 @@ export function SupplierManager({ suppliers }: { suppliers: Supplier[] }) {
           Nieuwe leverancier
         </button>
       )}
-      <div className="overflow-hidden rounded-2xl border bg-card">
+      <div className="overflow-hidden rounded-2xl bg-card shadow-sm">
         <ul className="divide-y divide-border">
           {suppliers.length === 0 && (
             <li className="p-6 text-sm text-muted">

@@ -85,7 +85,7 @@ export function PurchaseUploader() {
     setPf((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="rounded-2xl bg-card shadow-sm p-5">
       {!fileUrl ? (
         <>
           <div

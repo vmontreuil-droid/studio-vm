@@ -63,7 +63,7 @@ export function PostFields({ row }: { row?: JournalRow }) {
       {LOCALES.map((loc) => {
         const c = row?.content?.[loc];
         return (
-          <fieldset key={loc} className="rounded-2xl border bg-card p-5">
+          <fieldset key={loc} className="rounded-2xl bg-card shadow-sm p-5">
             <legend className="px-2 font-mono text-xs uppercase tracking-widest text-accent">
               {LOCALE_LABEL[loc] ?? loc}
             </legend>

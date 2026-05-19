@@ -135,12 +135,12 @@ export default async function AdminAanvragen({
 
       <ul className="mt-6 space-y-4">
         {rows.length === 0 && (
-          <li className="rounded-2xl border bg-card p-6 text-muted">
+          <li className="rounded-2xl bg-card shadow-sm p-6 text-muted">
             Geen aanvragen voor deze filter.
           </li>
         )}
         {rows.map((q) => (
-          <li key={q.id} className="rounded-2xl border bg-card p-5">
+          <li key={q.id} className="rounded-2xl bg-card shadow-sm p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="font-semibold">
                 <Link

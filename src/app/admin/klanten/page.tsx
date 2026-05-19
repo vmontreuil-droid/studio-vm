@@ -226,7 +226,7 @@ export default async function AdminKlanten({
 
       <div className="mt-6 space-y-3">
         {clients.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
             Nog geen klanten. Zodra iemand een scan met e-mail doet,
             verschijnt die hier automatisch.
           </p>
@@ -235,7 +235,7 @@ export default async function AdminKlanten({
           <Link
             key={c.email}
             href={`/admin/klanten/${encodeURIComponent(c.email)}`}
-            className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+            className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover"
           >
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-3">

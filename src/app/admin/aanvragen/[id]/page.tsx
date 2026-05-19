@@ -179,7 +179,7 @@ export default async function QuoteDetail({
       </div>
 
       {/* Acties */}
-      <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
+      <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-card shadow-sm p-4">
         <form action={setStatus} className="flex items-center gap-2">
           <input type="hidden" name="id" value={q.id} />
           <select
@@ -206,7 +206,7 @@ export default async function QuoteDetail({
       </div>
 
       {/* Contact & facturatie */}
-      <div className="mt-4 rounded-2xl border bg-card p-5">
+      <div className="mt-4 rounded-2xl bg-card shadow-sm p-5">
         <p className="font-mono text-xs uppercase tracking-widest text-accent">
           Contact & facturatie
         </p>
@@ -274,7 +274,7 @@ export default async function QuoteDetail({
 
       {/* Aanbetaling & financieel */}
       {q.deposit_cents != null && (
-        <div className="mt-4 rounded-2xl border bg-card p-5">
+        <div className="mt-4 rounded-2xl bg-card shadow-sm p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-xs uppercase tracking-widest text-accent">
               Aanbetaling & financieel
@@ -393,7 +393,7 @@ export default async function QuoteDetail({
 
       {/* Offerte-details */}
       {!isBuilder && (
-        <dl className="mt-4 grid gap-x-8 gap-y-4 rounded-2xl border bg-card p-5 sm:grid-cols-2">
+        <dl className="mt-4 grid gap-x-8 gap-y-4 rounded-2xl bg-card shadow-sm p-5 sm:grid-cols-2">
           <Field label="Pakket" value={q.base} />
           <Field label="Onderhoud" value={q.plan} />
           <Field
@@ -412,7 +412,7 @@ export default async function QuoteDetail({
 
       {/* Builder-ontwerp */}
       {snap && (
-        <div className="mt-4 rounded-2xl border bg-card p-5">
+        <div className="mt-4 rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             Builder-ontwerp
           </p>
@@ -476,7 +476,7 @@ export default async function QuoteDetail({
 
       {/* Scan van hun huidige site */}
       {q.scan && (
-        <div className="mt-4 rounded-2xl border bg-card p-5">
+        <div className="mt-4 rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             Scan van hun huidige site
           </p>
@@ -549,7 +549,7 @@ export default async function QuoteDetail({
 
       {/* Statushistoriek */}
       {history.length > 0 && (
-        <div className="mt-4 rounded-2xl border bg-card p-5">
+        <div className="mt-4 rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             Statushistoriek
           </p>
@@ -588,7 +588,7 @@ export default async function QuoteDetail({
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Bericht
           </p>
-          <pre className="mt-1 whitespace-pre-wrap rounded-2xl border bg-card p-5 font-sans text-sm">
+          <pre className="mt-1 whitespace-pre-wrap rounded-2xl bg-card shadow-sm p-5 font-sans text-sm">
             {q.message}
           </pre>
         </div>
