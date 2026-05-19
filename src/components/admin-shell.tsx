@@ -28,6 +28,7 @@ import {
   ExternalLink,
   Search,
   Settings,
+  FolderArchive,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -98,6 +99,7 @@ const groups: {
   {
     title: "Boekhouding",
     items: [
+      { href: "/admin/documenten", label: "Documenten", icon: FolderArchive },
       { href: "/admin/instellingen", label: "Instellingen", icon: Settings },
     ],
   },
