@@ -33,28 +33,44 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
   });
   const [err, setErr] = useState<string | null>(null);
   const [debug, setDebug] = useState<unknown>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   async function runOne(): Promise<BatchResult | null> {
-    const res = await fetch("/api/admin/email-batch", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filter, limit: 100 }),
-    });
-    if (!res.ok) {
-      let detail = "";
-      try {
-        const j = await res.json();
-        if (j && typeof j === "object" && "error" in j) detail = String(j.error);
-      } catch {}
-      setErr(
-        `Server gaf ${res.status} terug${detail ? ` — ${detail}` : ""}`,
-      );
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      const res = await fetch("/api/admin/email-batch", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filter, limit: 100 }),
+        signal: ctrl.signal,
+      });
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const j = await res.json();
+          if (j && typeof j === "object" && "error" in j)
+            detail = String(j.error);
+        } catch {}
+        setErr(
+          `Server gaf ${res.status} terug${detail ? ` — ${detail}` : ""}`,
+        );
+        return null;
+      }
+      const j = (await res.json()) as BatchResult;
+      if (j._debug) setDebug(j._debug);
+      return j;
+    } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") {
+        setErr("Gestopt.");
+      } else {
+        setErr("Netwerkfout: " + (e instanceof Error ? e.message : ""));
+      }
       return null;
+    } finally {
+      abortRef.current = null;
     }
-    const j = (await res.json()) as BatchResult;
-    if (j._debug) setDebug(j._debug);
-    return j;
   }
 
   async function single() {
@@ -98,6 +114,8 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
   function stop() {
     stopRef.current = true;
     setStopRequested(true);
+    // Lopende fetch ook meteen afkappen.
+    abortRef.current?.abort();
   }
 
   const running = mode !== "idle";
