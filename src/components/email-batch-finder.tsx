@@ -36,6 +36,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
   async function runOne(): Promise<BatchResult | null> {
     const res = await fetch("/api/admin/email-batch", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filter, limit: 100 }),
     });
