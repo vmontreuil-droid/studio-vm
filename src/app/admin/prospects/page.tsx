@@ -72,16 +72,16 @@ export default async function AdminProspects({
   // browser sluiten / stop & herstart.
   let q1 = db
     .from("kbo_enterprises")
-    .select("enterprise_number", { count: "planned", head: true })
+    .select("enterprise_number", { count: "exact", head: true })
     .not("website", "is", null)
     .is("email_scanned_at", null);
   let q2 = db
     .from("kbo_enterprises")
-    .select("enterprise_number", { count: "planned", head: true })
+    .select("enterprise_number", { count: "exact", head: true })
     .not("email_scanned_at", "is", null);
   let q3 = db
     .from("kbo_enterprises")
-    .select("enterprise_number", { count: "planned", head: true })
+    .select("enterprise_number", { count: "exact", head: true })
     .not("email_found", "is", null)
     .neq("email_found", "[]");
   if (q) {

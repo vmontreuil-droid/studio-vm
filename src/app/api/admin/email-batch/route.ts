@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   // meer" zonder een count-scan over de hele tabel.
   let q = db
     .from("kbo_enterprises")
-    .select("enterprise_number, website", { count: "planned" })
+    .select("enterprise_number, website", { count: "exact" })
     .not("website", "is", null)
     .is("email_scanned_at", null)
     .limit(limit + 1);
