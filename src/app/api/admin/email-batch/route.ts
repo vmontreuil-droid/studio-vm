@@ -17,6 +17,20 @@ type Filter = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+function applyFilter<T>(q: T, f: Filter): T {
+  let r = q as unknown as {
+    ilike: (c: string, v: string) => unknown;
+    like: (c: string, v: string) => unknown;
+    eq: (c: string, v: string) => unknown;
+  };
+  if (f.q) r = r.ilike("name", `%${f.q}%`) as typeof r;
+  if (f.postcode) r = r.like("postcode", `${f.postcode}%`) as typeof r;
+  if (f.nace) r = r.like("nace_main", `${f.nace}%`) as typeof r;
+  if (f.form) r = r.eq("juridical_form", f.form) as typeof r;
+  if (f.active !== false) r = r.eq("juridical_status", "000") as typeof r;
+  return r as unknown as T;
+}
+
 export async function POST(req: NextRequest) {
   if (!adminConfigured || !(await requireAdmin())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -29,50 +43,48 @@ export async function POST(req: NextRequest) {
   const f: Filter = body.filter ?? {};
 
   const db = getSupabaseAdmin();
-  // 1) Welke 100 nu scannen?
+
+  // Eén query: rijen + exact count tegelijk (count zit in dezelfde
+  // response). Geen aparte count-call meer → minder kans op cache-
+  // mismatch tussen de twee.
   let q = db
     .from("kbo_enterprises")
-    .select("enterprise_number, website")
+    .select("enterprise_number, website", { count: "exact" })
     .not("website", "is", null)
-    .neq("website", "")
     .is("email_scanned_at", null)
     .order("name", { ascending: true })
     .limit(limit);
-  if (f.q) q = q.ilike("name", `%${f.q}%`);
-  if (f.postcode) q = q.like("postcode", `${f.postcode}%`);
-  if (f.nace) q = q.like("nace_main", `${f.nace}%`);
-  if (f.form) q = q.eq("juridical_form", f.form);
-  if (f.active !== false) q = q.eq("juridical_status", "000");
+  q = applyFilter(q, f);
 
-  const { data, error } = await q;
+  const { data, error, count } = await q;
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message, hint: "select" },
+      { status: 500 },
+    );
   }
   const rows =
     (data as { enterprise_number: string; website: string }[] | null) ?? [];
-
-  // 2) Resterend totaal in deze filter (voor de voortgangsteller).
-  let cq = db
-    .from("kbo_enterprises")
-    .select("enterprise_number", { count: "exact", head: true })
-    .not("website", "is", null)
-    .neq("website", "")
-    .is("email_scanned_at", null);
-  if (f.q) cq = cq.ilike("name", `%${f.q}%`);
-  if (f.postcode) cq = cq.like("postcode", `${f.postcode}%`);
-  if (f.nace) cq = cq.like("nace_main", `${f.nace}%`);
-  if (f.form) cq = cq.eq("juridical_form", f.form);
-  if (f.active !== false) cq = cq.eq("juridical_status", "000");
-  const { count: remainingBefore } = await cq;
+  const remainingBefore = count ?? rows.length;
 
   let scanned = 0;
   let withEmails = 0;
   let emailsTotal = 0;
   for (const r of rows) {
+    if (!r.website || !r.website.trim()) {
+      // lege string in DB — markeer als gescand zodat we hem niet
+      // elke batch opnieuw oppikken
+      await db
+        .from("kbo_enterprises")
+        .update({ email_found: [], email_scanned_at: new Date().toISOString() })
+        .eq("enterprise_number", r.enterprise_number);
+      scanned++;
+      continue;
+    }
     let emails: string[] = [];
     try {
-      const res = await findEmails(r.website);
-      emails = (res.emails ?? []).map((e) => e.address);
+      const fr = await findEmails(r.website);
+      emails = (fr.emails ?? []).map((e) => e.address);
     } catch {
       /* netwerk-fout — gewoon leeg opslaan, volgende */
     }
@@ -95,7 +107,7 @@ export async function POST(req: NextRequest) {
     scanned,
     withEmails,
     emailsTotal,
-    remainingBefore: remainingBefore ?? 0,
-    remainingAfter: Math.max(0, (remainingBefore ?? 0) - scanned),
+    remainingBefore,
+    remainingAfter: Math.max(0, remainingBefore - scanned),
   });
 }
