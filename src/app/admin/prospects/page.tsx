@@ -3,6 +3,7 @@ import { Mail, Globe, MailSearch, Phone, Building2 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { EmailBatchFinder } from "@/components/email-batch-finder";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,8 @@ type KboRow = {
   email: string | null;
   phone: string | null;
   website: string | null;
+  email_found: string[] | null;
+  email_scanned_at: string | null;
 };
 
 const PAGE_SIZE = 50;
@@ -50,7 +53,7 @@ export default async function AdminProspects({
   let qy = db
     .from("kbo_enterprises")
     .select(
-      "enterprise_number, juridical_form, juridical_status, start_date, name, postcode, city, street, house_number, nace_main, nace_codes, email, phone, website",
+      "enterprise_number, juridical_form, juridical_status, start_date, name, postcode, city, street, house_number, nace_main, nace_codes, email, phone, website, email_found, email_scanned_at",
       { count: "exact" },
     )
     .order("name", { ascending: true });
@@ -163,6 +166,12 @@ export default async function AdminProspects({
         </button>
       </form>
 
+      <div className="mt-4">
+        <EmailBatchFinder
+          filter={{ q, postcode, nace, form, active }}
+        />
+      </div>
+
       <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
@@ -247,6 +256,30 @@ export default async function AdminProspects({
                         <span className="text-xs text-muted">—</span>
                       )}
                     </div>
+                    {r.email_found && r.email_found.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {r.email_found.slice(0, 3).map((em) => (
+                          <a
+                            key={em}
+                            href={`mailto:${em}`}
+                            className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-400"
+                          >
+                            <Mail className="h-3 w-3" strokeWidth={2} />
+                            {em}
+                          </a>
+                        ))}
+                        {r.email_found.length > 3 && (
+                          <span className="text-[10px] text-muted">
+                            +{r.email_found.length - 3} meer
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {r.email_scanned_at && !r.email_found?.length && (
+                      <span className="mt-1 inline-block font-mono text-[9px] uppercase tracking-widest text-muted">
+                        gescand — geen mail gevonden
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.website ? (
