@@ -7,6 +7,8 @@ import {
   adminUnpublishDesign,
   adminDeleteDesign,
 } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +67,34 @@ export default async function AdminDesigns({
     },
   ];
 
+  const nowD = new Date();
+  const designMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowD.getFullYear(), nowD.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: all.filter((d) => (d.created_at ?? "").startsWith(ym))
+        .length,
+    };
+  });
+  const designSegs = [
+    {
+      label: "Online",
+      value: all.filter((d) => d.published).length,
+      color: "#16a34a",
+    },
+    {
+      label: "Verstuurd",
+      value: all.filter((d) => d.status === "verstuurd").length,
+      color: "var(--accent)",
+    },
+    {
+      label: "Concept",
+      value: all.filter((d) => d.status === "concept").length,
+      color: "#64748b",
+    },
+  ];
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -83,6 +113,26 @@ export default async function AdminDesigns({
             <p className="mt-1 text-2xl font-semibold">{s.v}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Nieuwe ontwerpen — laatste 6 maanden">
+            <TrendChart
+              id="dsg-maand"
+              color="var(--accent)"
+              height={140}
+              points={designMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={designSegs}
+            centerTop={String(all.length)}
+            centerSub="ontwerpen"
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">

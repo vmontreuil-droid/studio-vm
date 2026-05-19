@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setMonitorActive, deleteMonitor } from "@/app/actions/admin";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,29 @@ export default async function AdminMonitors() {
       <p className="mt-2 text-sm text-muted">
         Sites die bezoekers via de scan laten opvolgen.
       </p>
+
+      {monitors.length > 0 && (
+        <div className="mt-5">
+          <ChartCard title="Status-verdeling">
+            <Donut
+              segments={[
+                {
+                  label: "Actief",
+                  value: monitors.filter((m) => m.active).length,
+                  color: "#16a34a",
+                },
+                {
+                  label: "Gepauzeerd",
+                  value: monitors.filter((m) => !m.active).length,
+                  color: "#64748b",
+                },
+              ]}
+              centerTop={String(monitors.length)}
+              centerSub="monitors"
+            />
+          </ChartCard>
+        </div>
+      )}
 
       <ul className="mt-6 space-y-2">
         {monitors.length === 0 && (

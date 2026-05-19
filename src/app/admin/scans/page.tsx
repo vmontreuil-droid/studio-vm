@@ -3,6 +3,8 @@ import { ExternalLink, BarChart3 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, BarList, ChartCard } from "@/components/charts";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +42,52 @@ export default async function AdminScans({
     );
   }
 
+  const okScans = rows
+    .map((r) => (r.scan && r.scan.ok ? r.scan : null))
+    .filter((s): s is ScanResult & { ok: true } => s != null);
+  const scoreSegs = [
+    {
+      label: "Zwak (0–44)",
+      value: okScans.filter((s) => s.score < 45).length,
+      color: "#dc2626",
+    },
+    {
+      label: "Degelijk (45–74)",
+      value: okScans.filter((s) => s.score >= 45 && s.score < 75).length,
+      color: "#f59e0b",
+    },
+    {
+      label: "Sterk (75–100)",
+      value: okScans.filter((s) => s.score >= 75).length,
+      color: "#16a34a",
+    },
+  ];
+  const avgScore =
+    okScans.length > 0
+      ? Math.round(
+          okScans.reduce((s, x) => s + x.score, 0) / okScans.length,
+        )
+      : 0;
+  const nowS = new Date();
+  const scanMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowS.getFullYear(), nowS.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: rows.filter((r) => (r.created_at ?? "").startsWith(ym))
+        .length,
+    };
+  });
+  const platMap = new Map<string, number>();
+  for (const s of okScans) {
+    const k = (s.stack || "Onbekend").trim();
+    platMap.set(k, (platMap.get(k) ?? 0) + 1);
+  }
+  const platforms = [...platMap.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
   const gradeColor = (score: number) =>
     score >= 75
       ? "bg-green-500/15 text-green-600 dark:text-green-400"
@@ -73,6 +121,31 @@ export default async function AdminScans({
         {rows.length} scan{rows.length === 1 ? "" : "s"} — elke regel is een
         potentiële klant met een eigen klantenportaal.
       </p>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Scans — laatste 6 maanden">
+            <TrendChart
+              id="scan-maand"
+              color="#0ea5e9"
+              height={150}
+              points={scanMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title={`Score-verdeling · gem. ${avgScore}/100`}>
+          <Donut
+            segments={scoreSegs}
+            centerTop={String(okScans.length)}
+            centerSub="scans"
+          />
+        </ChartCard>
+      </div>
+      <div className="mt-3">
+        <ChartCard title="Platforms van prospects">
+          <BarList items={platforms} color="#0ea5e9" />
+        </ChartCard>
+      </div>
 
       <div className="mt-6 space-y-3">
         {rows.length === 0 && (
