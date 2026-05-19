@@ -68,6 +68,50 @@ export default async function AdminProspects({
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  // Persistente tellers (uit DB) voor de batch-finder. Overleven
+  // browser sluiten / stop & herstart.
+  let q1 = db
+    .from("kbo_enterprises")
+    .select("enterprise_number", { count: "planned", head: true })
+    .not("website", "is", null)
+    .is("email_scanned_at", null);
+  let q2 = db
+    .from("kbo_enterprises")
+    .select("enterprise_number", { count: "planned", head: true })
+    .not("email_scanned_at", "is", null);
+  let q3 = db
+    .from("kbo_enterprises")
+    .select("enterprise_number", { count: "planned", head: true })
+    .not("email_found", "is", null)
+    .neq("email_found", "[]");
+  if (q) {
+    q1 = q1.ilike("name", `%${q}%`);
+    q2 = q2.ilike("name", `%${q}%`);
+    q3 = q3.ilike("name", `%${q}%`);
+  }
+  if (postcode) {
+    q1 = q1.like("postcode", `${postcode}%`);
+    q2 = q2.like("postcode", `${postcode}%`);
+    q3 = q3.like("postcode", `${postcode}%`);
+  }
+  if (nace) {
+    q1 = q1.like("nace_main", `${nace}%`);
+    q2 = q2.like("nace_main", `${nace}%`);
+    q3 = q3.like("nace_main", `${nace}%`);
+  }
+  if (form) {
+    q1 = q1.eq("juridical_form", form);
+    q2 = q2.eq("juridical_form", form);
+    q3 = q3.eq("juridical_form", form);
+  }
+  if (active) {
+    q1 = q1.eq("juridical_status", "000");
+    q2 = q2.eq("juridical_status", "000");
+    q3 = q3.eq("juridical_status", "000");
+  }
+  const [{ count: scanRemaining }, { count: alreadyScanned }, { count: withEmails }] =
+    await Promise.all([q1, q2, q3]);
+
   const mkLink = (p: Record<string, string | number | undefined>) => {
     const u = new URLSearchParams();
     const base = { q, postcode, nace, form, active: active ? "1" : "0", page };
@@ -169,6 +213,11 @@ export default async function AdminProspects({
       <div className="mt-4">
         <EmailBatchFinder
           filter={{ q, postcode, nace, form, active }}
+          initial={{
+            remaining: scanRemaining ?? 0,
+            scanned: alreadyScanned ?? 0,
+            withEmails: withEmails ?? 0,
+          }}
         />
       </div>
 

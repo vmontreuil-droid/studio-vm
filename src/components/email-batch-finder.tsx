@@ -21,17 +21,28 @@ type BatchResult = {
   _debug?: unknown;
 };
 
-export function EmailBatchFinder({ filter }: { filter: Filter }) {
+export function EmailBatchFinder({
+  filter,
+  initial,
+}: {
+  filter: Filter;
+  initial?: { remaining: number; scanned: number; withEmails: number };
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<"idle" | "single" | "auto">("idle");
   const [stopRequested, setStopRequested] = useState(false);
   const stopRef = useRef(false);
+  // DB-tellers (komen van de server, overleven stop/herstart).
+  const dbScanned = initial?.scanned ?? 0;
+  const dbWithEmails = initial?.withEmails ?? 0;
+  const dbRemaining = initial?.remaining ?? 0;
+  // Sessie-delta — alleen wat in DEZE run gescand werd.
   const [totals, setTotals] = useState({
     scanned: 0,
     withEmails: 0,
     emailsTotal: 0,
-    hasMore: true,
-    remaining: null as number | null,
+    hasMore: dbRemaining > 0,
+    remaining: dbRemaining,
   });
   const [err, setErr] = useState<string | null>(null);
   const [debug, setDebug] = useState<unknown>(null);
@@ -174,37 +185,37 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         </div>
       </div>
 
-      {(running || totals.scanned > 0) && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl bg-background p-4 text-sm">
-          {running && (
-            <Loader2
-              className="h-4 w-4 animate-spin text-accent"
-              strokeWidth={2.5}
-            />
-          )}
-          {!running && totals.scanned > 0 && (
-            <Check
-              className="h-4 w-4 text-green-600 dark:text-green-400"
-              strokeWidth={2.5}
-            />
-          )}
-          <span>
-            <strong>{totals.scanned}</strong> gescand ·{" "}
-            <strong className="text-green-700 dark:text-green-400">
-              {totals.withEmails}
-            </strong>{" "}
-            met mail ({totals.emailsTotal} adres
-            {totals.emailsTotal === 1 ? "" : "sen"} totaal) ·{" "}
-            <span className="text-muted">
-              {totals.hasMore
-                ? totals.remaining != null
-                  ? `±${totals.remaining.toLocaleString("nl-BE")} te gaan`
-                  : "nog meer te gaan…"
-                : "alles gescand ✓"}
-            </span>
+      <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl bg-background p-4 text-sm">
+        <span>
+          <strong>{(dbScanned + totals.scanned).toLocaleString("nl-BE")}</strong>{" "}
+          gescand ·{" "}
+          <strong className="text-green-700 dark:text-green-400">
+            {(dbWithEmails + totals.withEmails).toLocaleString("nl-BE")}
+          </strong>{" "}
+          met mail ·{" "}
+          <span className="text-muted">
+            {totals.hasMore || Math.max(0, dbRemaining - totals.scanned) > 0
+              ? `±${Math.max(0, dbRemaining - totals.scanned).toLocaleString("nl-BE")} te gaan`
+              : "alles gescand ✓"}
           </span>
-        </div>
-      )}
+        </span>
+        {running && (
+          <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted">
+            <Loader2
+              className="h-3.5 w-3.5 animate-spin text-accent"
+              strokeWidth={2.5}
+            />
+            deze sessie: +{totals.scanned} ({totals.emailsTotal} adres
+            {totals.emailsTotal === 1 ? "" : "sen"})
+          </span>
+        )}
+        {!running && totals.scanned > 0 && (
+          <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+            <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+            deze sessie: +{totals.scanned} (+{totals.emailsTotal} adressen)
+          </span>
+        )}
+      </div>
       {err && (
         <p className="mt-3 text-sm text-red-600 dark:text-red-400">{err}</p>
       )}
