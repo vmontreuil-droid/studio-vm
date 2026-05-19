@@ -5,12 +5,16 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const res = NextResponse.redirect(`${req.nextUrl.origin}/admin`, 303);
-  res.cookies.set(ADMIN_COOKIE, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+  // Twee cookies wissen — de nieuwe path=/ én een eventueel oud
+  // overblijfsel met path=/admin (oude cookie-config).
+  for (const path of ["/", "/admin"]) {
+    res.cookies.set(ADMIN_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path,
+      maxAge: 0,
+    });
+  }
   return res;
 }
