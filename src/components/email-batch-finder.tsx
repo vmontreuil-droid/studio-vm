@@ -37,7 +37,13 @@ export function EmailBatchFinder({
   const dbWithEmails = initial?.withEmails ?? 0;
   const dbRemaining = initial?.remaining ?? 0;
   // Sessie-delta — alleen wat in DEZE run gescand werd.
-  const [totals, setTotals] = useState({
+  const [totals, setTotals] = useState<{
+    scanned: number;
+    withEmails: number;
+    emailsTotal: number;
+    hasMore: boolean;
+    remaining: number | null;
+  }>({
     scanned: 0,
     withEmails: 0,
     emailsTotal: 0,
