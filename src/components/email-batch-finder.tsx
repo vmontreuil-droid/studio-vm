@@ -43,7 +43,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filter, limit: 100 }),
+        body: JSON.stringify({ filter, limit: 20 }),
         signal: ctrl.signal,
       });
       if (!res.ok) {
@@ -129,8 +129,8 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
           </p>
           <p className="mt-1 text-sm text-muted">
             Loopt automatisch door alle prospects mét website in deze filter
-            (100 per batch, 1,5 s tussen sites). Gevonden mailadressen
-            verschijnen in de kolom hieronder.
+            (20 per batch, 5 parallel). Gevonden mailadressen verschijnen
+            in de kolom hieronder.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -142,7 +142,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
                 className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
               >
                 <Search className="h-4 w-4" strokeWidth={2} />
-                Eén batch (100)
+                Eén batch (20)
               </button>
               <button
                 type="button"

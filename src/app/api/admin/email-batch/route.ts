@@ -15,8 +15,6 @@ type Filter = {
   active?: boolean;
 };
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 function applyFilter<T>(q: T, f: Filter): T {
   let r = q as unknown as {
     ilike: (c: string, v: string) => unknown;
@@ -39,7 +37,11 @@ export async function POST(req: NextRequest) {
     limit?: number;
     filter?: Filter;
   };
-  const limit = Math.min(Math.max(Number(body.limit) || 100, 1), 100);
+  // Kleine batches (20) + parallel scannen (5 tegelijk) zodat één
+  // call ruim binnen Vercel's 5 min budget blijft. De client roept
+  // de API gewoon vaker aan in auto-modus.
+  const limit = Math.min(Math.max(Number(body.limit) || 20, 1), 30);
+  const CONCURRENCY = 5;
   const f: Filter = body.filter ?? {};
 
   const db = getSupabaseAdmin();
@@ -89,41 +91,49 @@ export async function POST(req: NextRequest) {
   const hasMore = all.length > limit;
   const rows = hasMore ? all.slice(0, limit) : all;
 
-  let scanned = 0;
-  let withEmails = 0;
-  let emailsTotal = 0;
-  for (const r of rows) {
-    if (!r.website || !r.website.trim()) {
-      // lege string in DB — markeer als gescand zodat we hem niet
-      // elke batch opnieuw oppikken
-      await db
+  // Parallel scannen — CONCURRENCY workers nemen één voor één een
+  // prospect uit de wachtrij.
+  type ScanResult = { id: string; emails: string[] };
+  const results: ScanResult[] = new Array(rows.length);
+  let idx = 0;
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => {
+      while (true) {
+        const i = idx++;
+        if (i >= rows.length) return;
+        const r = rows[i];
+        if (!r.website || !r.website.trim()) {
+          results[i] = { id: r.enterprise_number, emails: [] };
+          continue;
+        }
+        try {
+          const fr = await findEmails(r.website);
+          results[i] = {
+            id: r.enterprise_number,
+            emails: (fr.emails ?? []).map((e) => e.address),
+          };
+        } catch {
+          results[i] = { id: r.enterprise_number, emails: [] };
+        }
+      }
+    }),
+  );
+
+  // Bulk-update alle gescande rijen in één pass (parallel) — sneller
+  // dan één voor één een eq-UPDATE doen.
+  const now = new Date().toISOString();
+  await Promise.all(
+    results.map((res) =>
+      db
         .from("kbo_enterprises")
-        .update({ email_found: [], email_scanned_at: new Date().toISOString() })
-        .eq("enterprise_number", r.enterprise_number);
-      scanned++;
-      continue;
-    }
-    let emails: string[] = [];
-    try {
-      const fr = await findEmails(r.website);
-      emails = (fr.emails ?? []).map((e) => e.address);
-    } catch {
-      /* netwerk-fout — gewoon leeg opslaan, volgende */
-    }
-    await db
-      .from("kbo_enterprises")
-      .update({
-        email_found: emails,
-        email_scanned_at: new Date().toISOString(),
-      })
-      .eq("enterprise_number", r.enterprise_number);
-    scanned++;
-    if (emails.length > 0) {
-      withEmails++;
-      emailsTotal += emails.length;
-    }
-    await sleep(1500); // throttle — wees vriendelijk
-  }
+        .update({ email_found: res.emails, email_scanned_at: now })
+        .eq("enterprise_number", res.id),
+    ),
+  );
+
+  const scanned = results.length;
+  const withEmails = results.filter((r) => r.emails.length > 0).length;
+  const emailsTotal = results.reduce((t, r) => t + r.emails.length, 0);
 
   return NextResponse.json({
     scanned,
