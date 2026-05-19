@@ -63,7 +63,12 @@ export default async function AdminFacturen({
   const invoices =
     status === "alle" ? all : all.filter((i) => i.status === status);
 
-  const eur = (c: number) => `€ ${(c / 100).toFixed(2)}`;
+  const eur = (c: number) =>
+    "€ " +
+    (c / 100).toLocaleString("nl-BE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   const sum = (s: string) =>
     all
       .filter((i) => i.status === s)
@@ -79,131 +84,209 @@ export default async function AdminFacturen({
     .reduce((t, i) => t + i.amount_cents, 0);
   const sBadge = (s: string) =>
     s === "betaald"
-      ? "bg-green-500/15 text-green-600 dark:text-green-400"
+      ? "bg-green-500/15 text-green-700 dark:text-green-400"
       : s === "vervallen"
-        ? "bg-red-500/15 text-red-500"
+        ? "bg-red-500/15 text-red-600 dark:text-red-400"
         : "bg-accent/15 text-accent";
   const isOverdue = (i: Invoice) =>
     i.status === "open" &&
     i.due_at != null &&
     new Date(i.due_at).getTime() < now.getTime();
+  const d = (s: string | null) =>
+    s ? new Date(s).toLocaleDateString("nl-BE") : "—";
 
   const stats = [
-    { k: "Openstaand", v: eur(sum("open")) },
-    { k: "Betaald (deze maand)", v: eur(paidThisMonth) },
-    { k: "Vervallen", v: eur(sum("vervallen")) },
-    { k: "Totaal facturen", v: String(all.length) },
+    { k: "Openstaand", v: eur(sum("open")), tone: "text-accent" },
+    {
+      k: "Betaald (deze maand)",
+      v: eur(paidThisMonth),
+      tone: "text-green-600 dark:text-green-400",
+    },
+    {
+      k: "Vervallen",
+      v: eur(sum("vervallen")),
+      tone: "text-red-600 dark:text-red-400",
+    },
+    { k: "Aantal facturen", v: String(all.length), tone: "" },
   ];
+  const count = (s: string) =>
+    s === "alle" ? all.length : all.filter((i) => i.status === s).length;
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Facturen</h1>
-      <p className="mt-2 text-sm text-muted">
-        Alle facturen over alle klanten heen.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Facturen
+          </h1>
+          <p className="mt-0.5 text-sm text-muted">
+            Alle verkoopfacturen over alle klanten heen.
+          </p>
+        </div>
+      </div>
 
+      {/* KPI-strip */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.k} className="rounded-2xl border bg-card p-5">
+          <div key={s.k} className="rounded-xl border bg-card p-4">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {s.k}
             </p>
-            <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
+            <p className={`mt-1 truncate text-xl font-semibold ${s.tone}`}>
+              {s.v}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        {STATUSES.map((s) => (
-          <Link
-            key={s}
-            href={`/admin/facturen${s === "alle" ? "" : `?status=${s}`}`}
-            className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-              status === s
-                ? "bg-foreground text-background"
-                : "hover:bg-card-hover"
-            }`}
-          >
-            {s}
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-6 space-y-3">
-        {invoices.length === 0 && (
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
-            Geen facturen in deze weergave.
-          </p>
-        )}
-        {invoices.map((i) => (
-          <div
-            key={i.id}
-            className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card p-5"
-          >
+      {/* Toolbar + tabel */}
+      <div className="mt-5 overflow-hidden rounded-2xl border bg-card">
+        <div className="flex flex-wrap items-center gap-1.5 border-b px-4 py-3">
+          {STATUSES.map((s) => (
             <Link
-              href={`/admin/facturen/${i.id}`}
-              className="min-w-0 flex-1"
+              key={s}
+              href={`/admin/facturen${s === "alle" ? "" : `?status=${s}`}`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                status === s
+                  ? "bg-accent/15 text-accent"
+                  : "text-muted hover:bg-card-hover hover:text-foreground"
+              }`}
             >
-              <p className="font-medium">
-                {i.number}{" "}
-                <span className="text-muted">
-                  · {eur(i.amount_cents)} excl. ·{" "}
-                  <span className="text-foreground">
-                    {eur(inclOf(i))} incl. btw
-                  </span>
-                </span>
-                {/voorschot\s*30%/i.test(i.description ?? "") && (
-                  <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
-                    voorschot 30%
-                  </span>
-                )}
-                {isOverdue(i) && (
-                  <span className="ml-2 rounded bg-red-500/15 px-1.5 py-0.5 font-mono text-[10px] uppercase text-red-500">
-                    te laat
-                  </span>
-                )}
-              </p>
-              <p className="mt-1 truncate font-mono text-[11px] text-muted">
-                {i.client_email} · uitgereikt{" "}
-                {new Date(i.issued_at).toLocaleDateString("nl-BE")}
-                {i.status === "betaald" && i.paid_at ? (
-                  <span className="text-green-700 dark:text-green-400">
-                    {" "}
-                    · betaald{" "}
-                    {new Date(i.paid_at).toLocaleDateString("nl-BE")}
-                  </span>
-                ) : i.due_at ? (
-                  ` · vervalt ${new Date(i.due_at).toLocaleDateString("nl-BE")}`
-                ) : (
-                  ""
-                )}
-              </p>
+              {s} · {count(s)}
             </Link>
-            <div className="flex items-center gap-2">
-              <span
-                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
-                  i.status,
-                )}`}
-              >
-                {i.status}
-              </span>
-              {i.status !== "betaald" && (
-                <form action={setInvoiceStatus.bind(null, i.id, "betaald")}>
-                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                    Betaald
-                  </button>
-                </form>
+          ))}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr className="border-b bg-background/40 text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+                <th className="px-4 py-3 font-medium">Nummer</th>
+                <th className="px-4 py-3 font-medium">Klant</th>
+                <th className="px-4 py-3 font-medium">Uitgereikt</th>
+                <th className="px-4 py-3 font-medium">Vervalt</th>
+                <th className="px-4 py-3 text-right font-medium">
+                  Excl. btw
+                </th>
+                <th className="px-4 py-3 text-right font-medium">
+                  Incl. btw
+                </th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 text-right font-medium">Actie</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {invoices.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-10 text-center text-sm text-muted"
+                  >
+                    Geen facturen in deze weergave.
+                  </td>
+                </tr>
               )}
-              {i.status === "open" && (
-                <form action={setInvoiceStatus.bind(null, i.id, "vervallen")}>
-                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                    Vervallen
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        ))}
+              {invoices.map((i) => {
+                const overdue = isOverdue(i);
+                const deposit = /voorschot\s*30%/i.test(
+                  i.description ?? "",
+                );
+                return (
+                  <tr
+                    key={i.id}
+                    className={`group transition-colors hover:bg-card-hover ${
+                      overdue ? "bg-red-500/[0.04]" : ""
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/facturen/${i.id}`}
+                        className="font-medium hover:text-accent"
+                      >
+                        {i.number}
+                      </Link>
+                      {deposit && (
+                        <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent">
+                          voorschot
+                        </span>
+                      )}
+                    </td>
+                    <td className="max-w-[220px] truncate px-4 py-3 text-muted">
+                      {i.client_email}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-muted">
+                      {d(i.issued_at)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {i.status === "betaald" && i.paid_at ? (
+                        <span className="text-green-700 dark:text-green-400">
+                          betaald {d(i.paid_at)}
+                        </span>
+                      ) : i.due_at ? (
+                        <span
+                          className={
+                            overdue
+                              ? "font-medium text-red-600 dark:text-red-400"
+                              : "text-muted"
+                          }
+                        >
+                          {d(i.due_at)}
+                        </span>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-muted">
+                      {eur(i.amount_cents)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium">
+                      {eur(inclOf(i))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
+                          i.status,
+                        )}`}
+                      >
+                        {overdue ? "te laat" : i.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5 opacity-60 transition-opacity group-hover:opacity-100">
+                        {i.status !== "betaald" && (
+                          <form
+                            action={setInvoiceStatus.bind(
+                              null,
+                              i.id,
+                              "betaald",
+                            )}
+                          >
+                            <button className="rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-green-500/10 hover:text-green-700 dark:hover:text-green-400">
+                              Betaald
+                            </button>
+                          </form>
+                        )}
+                        {i.status === "open" && (
+                          <form
+                            action={setInvoiceStatus.bind(
+                              null,
+                              i.id,
+                              "vervallen",
+                            )}
+                          >
+                            <button className="rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-card-hover">
+                              Vervallen
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
