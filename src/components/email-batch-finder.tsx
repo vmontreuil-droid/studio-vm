@@ -17,6 +17,7 @@ type BatchResult = {
   withEmails: number;
   emailsTotal: number;
   hasMore: boolean;
+  _debug?: unknown;
 };
 
 export function EmailBatchFinder({ filter }: { filter: Filter }) {
@@ -31,6 +32,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
     hasMore: true,
   });
   const [err, setErr] = useState<string | null>(null);
+  const [debug, setDebug] = useState<unknown>(null);
 
   async function runOne(): Promise<BatchResult | null> {
     const res = await fetch("/api/admin/email-batch", {
@@ -50,7 +52,9 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
       );
       return null;
     }
-    return (await res.json()) as BatchResult;
+    const j = (await res.json()) as BatchResult;
+    if (j._debug) setDebug(j._debug);
+    return j;
   }
 
   async function single() {
@@ -174,6 +178,11 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
       {err && (
         <p className="mt-3 text-sm text-red-600 dark:text-red-400">{err}</p>
       )}
+      {debug ? (
+        <pre className="mt-3 max-h-60 overflow-auto rounded-lg bg-card-hover p-3 text-[10px] leading-tight">
+          {JSON.stringify(debug, null, 2)}
+        </pre>
+      ) : null}
     </div>
   );
 }

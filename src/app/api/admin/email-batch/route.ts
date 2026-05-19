@@ -64,6 +64,28 @@ export async function POST(req: NextRequest) {
   }
   const all =
     (data as { enterprise_number: string; website: string }[] | null) ?? [];
+
+  // Diagnose: als de SELECT 0 rijen geeft, run een 2e probe met
+  // alleen `website not null` om te zien of de filter ergens stukt.
+  if (all.length === 0) {
+    const probe = await db
+      .from("kbo_enterprises")
+      .select("enterprise_number, website, email_scanned_at")
+      .not("website", "is", null)
+      .limit(3);
+    return NextResponse.json({
+      scanned: 0,
+      withEmails: 0,
+      emailsTotal: 0,
+      hasMore: false,
+      _debug: {
+        filter: f,
+        probeRows: probe.data ?? [],
+        probeError: probe.error?.message,
+      },
+    });
+  }
+
   const hasMore = all.length > limit;
   const rows = hasMore ? all.slice(0, limit) : all;
 
