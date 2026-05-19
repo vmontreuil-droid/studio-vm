@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Mail, BarChart3 } from "lucide-react";
+import { ArrowLeft, Mail, BarChart3, ExternalLink } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -31,6 +31,7 @@ import {
   deleteClient,
   activateWebsiteClient,
   addClientScan,
+  impersonatePortal,
 } from "@/app/actions/portal-admin";
 
 export const dynamic = "force-dynamic";
@@ -313,6 +314,19 @@ export default async function AdminKlantDetail({
               <Mail className="h-4 w-4 shrink-0" strokeWidth={2} />
               Mail klant
             </a>
+            <form action={impersonatePortal}>
+              <input type="hidden" name="client_email" value={email} />
+              <button
+                type="submit"
+                className="flex w-full items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm text-accent transition-colors hover:bg-card-hover"
+              >
+                <ExternalLink
+                  className="h-4 w-4 shrink-0"
+                  strokeWidth={2}
+                />
+                Bekijk portaal als klant
+              </button>
+            </form>
           </div>
         </nav>
 

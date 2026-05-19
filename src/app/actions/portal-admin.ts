@@ -922,6 +922,36 @@ export async function setSiteStatus(
   return;
 }
 
+// Admin-impersonatie: log de admin rechtstreeks in als deze klant
+// om diens portaal te bekijken (QA/support). Maakt de portaal-
+// gebruiker aan indien nodig.
+export async function impersonatePortal(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const email = String(formData.get("client_email") ?? "")
+    .trim()
+    .toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  await ensurePortalUser(email);
+  const next = `/nl/portail/dashboard`;
+  const redirectTo = `${siteUrl}${next}`;
+  const gen = await getSupabaseAdmin().auth.admin.generateLink({
+    type: "magiclink",
+    email,
+    options: { redirectTo },
+  });
+  const hashed = gen.data?.properties?.hashed_token;
+  if (gen.error || !hashed) {
+    redirect(`/admin/klanten/${encodeURIComponent(email)}`);
+  }
+  redirect(
+    `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+      hashed as string,
+    )}&type=magiclink&next=${encodeURIComponent(next)}`,
+  );
+}
+
 export async function addClient(formData: FormData): Promise<void> {
   if (!(await guard())) return;
   const email = String(formData.get("client_email") ?? "")

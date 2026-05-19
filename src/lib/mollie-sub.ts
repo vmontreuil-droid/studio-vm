@@ -1,4 +1,4 @@
-import { mollieApiKey, siteUrl } from "@/lib/supabase/config";
+import { mollieApiKey, siteUrl, paymentsEnabled } from "@/lib/supabase/config";
 
 // Recurring-abonnement via Mollie: klant → eerste betaling (mandaat) →
 // maandelijks abonnement. Zonder MOLLIE_API_KEY doet alles niets
@@ -15,7 +15,7 @@ export async function mollieCreateCustomer(
   email: string,
   name: string,
 ): Promise<string | null> {
-  if (!mollieApiKey) return null;
+  if (!mollieApiKey || !paymentsEnabled) return null;
   try {
     const res = await fetch(`${API}/customers`, {
       method: "POST",
@@ -42,7 +42,7 @@ export async function mollieFirstPayment(input: {
   redirectUrl: string;
   metadata: Record<string, string>;
 }): Promise<{ id: string; checkoutUrl: string } | null> {
-  if (!mollieApiKey) return null;
+  if (!mollieApiKey || !paymentsEnabled) return null;
   try {
     const res = await fetch(`${API}/payments`, {
       method: "POST",
@@ -80,7 +80,7 @@ export async function mollieCreateSubscription(input: {
   description: string;
   metadata: Record<string, string>;
 }): Promise<string | null> {
-  if (!mollieApiKey) return null;
+  if (!mollieApiKey || !paymentsEnabled) return null;
   try {
     const res = await fetch(
       `${API}/customers/${encodeURIComponent(input.customerId)}/subscriptions`,

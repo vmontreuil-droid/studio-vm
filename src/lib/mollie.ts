@@ -1,4 +1,4 @@
-import { mollieApiKey } from "@/lib/supabase/config";
+import { mollieApiKey, paymentsEnabled } from "@/lib/supabase/config";
 
 const API = "https://api.mollie.com/v2";
 
@@ -20,7 +20,7 @@ type MolliePayment = {
 export async function createMolliePayment(
   input: CreateInput,
 ): Promise<{ id: string; checkoutUrl: string } | null> {
-  if (!mollieApiKey) return null;
+  if (!mollieApiKey || !paymentsEnabled) return null;
   try {
     const res = await fetch(`${API}/payments`, {
       method: "POST",
