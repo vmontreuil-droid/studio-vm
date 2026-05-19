@@ -20,7 +20,9 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 import { createClient } from "@supabase/supabase-js";
-import "dotenv/config";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config(); // val terug op .env als .env.local er niet is
 
 const folder = process.argv[2];
 if (!folder) {
@@ -204,21 +206,61 @@ const all = [...rows.values()].map((r) => ({
 }));
 rows.clear();
 
-const BATCH = 1000;
+const BATCH = 500;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function upsertWithRetry(table, chunk, conflict) {
+  const delays = [1500, 4000, 10_000, 20_000];
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
+    try {
+      const { error } = await sb
+        .from(table)
+        .upsert(chunk, { onConflict: conflict });
+      if (!error) return true;
+      const msg = error.message || String(error);
+      if (attempt === delays.length) {
+        console.error(`    laatste poging: ${msg}`);
+        return false;
+      }
+      console.warn(`    poging ${attempt + 1} faalde (${msg}) — wachten ${delays[attempt]}ms`);
+      await sleep(delays[attempt]);
+    } catch (e) {
+      const msg = e?.message ?? String(e);
+      if (attempt === delays.length) {
+        console.error(`    laatste poging (throw): ${msg}`);
+        return false;
+      }
+      console.warn(`    poging ${attempt + 1} throw (${msg}) — wachten ${delays[attempt]}ms`);
+      await sleep(delays[attempt]);
+    }
+  }
+  return false;
+}
+
 let inserted = 0;
+let failed = 0;
 for (let i = 0; i < all.length; i += BATCH) {
   const chunk = all.slice(i, i + BATCH);
-  const { error } = await sb
-    .from("kbo_enterprises")
-    .upsert(chunk, { onConflict: "enterprise_number" });
-  if (error) {
-    console.error(`  fout bij batch ${i}: ${error.message}`);
-    process.exit(1);
+  const ok = await upsertWithRetry(
+    "kbo_enterprises",
+    chunk,
+    "enterprise_number",
+  );
+  if (ok) inserted += chunk.length;
+  else failed += chunk.length;
+  if (
+    (inserted + failed) % 50_000 === 0 ||
+    i + BATCH >= all.length
+  ) {
+    console.log(
+      `  upserted ${inserted}/${all.length}${failed ? ` (${failed} gefaald)` : ""}`,
+    );
   }
-  inserted += chunk.length;
-  if (inserted % 50_000 === 0 || inserted === all.length) {
-    console.log(`  upserted ${inserted}/${all.length}`);
-  }
+}
+if (failed > 0) {
+  console.warn(
+    `! ${failed} rijen mislukt — re-run het script om enkel die opnieuw te proberen (idempotent).`,
+  );
 }
 
 // 7) code.csv — vertaaltabel
@@ -235,13 +277,7 @@ await readCsv("code.csv", (r) => {
 });
 for (let i = 0; i < codes.length; i += BATCH) {
   const chunk = codes.slice(i, i + BATCH);
-  const { error } = await sb
-    .from("kbo_codes")
-    .upsert(chunk, { onConflict: "category,code,language" });
-  if (error) {
-    console.error(`  fout code-batch ${i}: ${error.message}`);
-    process.exit(1);
-  }
+  await upsertWithRetry("kbo_codes", chunk, "category,code,language");
 }
 console.log(`  ${codes.length} code-rijen geüpsert`);
 
