@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setTicketStatus } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -79,12 +81,56 @@ export default async function AdminTickets({
     { k: "Totaal", v: String(all.length) },
   ];
 
+  const nowT = new Date();
+  const ticketMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowT.getFullYear(), nowT.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: all.filter((t) => (t.updated_at ?? "").startsWith(ym))
+        .length,
+    };
+  });
+  const ticketSegs = [
+    { label: "Open", value: all.filter((t) => t.status === "open").length, color: "var(--accent)" },
+    {
+      label: "In behandeling",
+      value: all.filter((t) => t.status === "in_behandeling").length,
+      color: "#0ea5e9",
+    },
+    {
+      label: "Gesloten",
+      value: all.filter((t) => t.status === "gesloten").length,
+      color: "#64748b",
+    },
+  ];
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Tickets</h1>
       <p className="mt-2 text-sm text-muted">
         Supportvragen over alle klanten heen.
       </p>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Tickets — laatste 6 maanden">
+            <TrendChart
+              id="tic-maand"
+              color="var(--accent)"
+              height={140}
+              points={ticketMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={ticketSegs}
+            centerTop={String(all.length)}
+            centerSub="tickets"
+          />
+        </ChartCard>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (

@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setStatus, setNote, deleteQuote } from "@/app/actions/admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +74,38 @@ export default async function AdminAanvragen({
     );
   }
 
+  const nowA = new Date();
+  const reqMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowA.getFullYear(), nowA.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: rows.filter((r) =>
+        ((r.created_at as string) ?? "").startsWith(ym),
+      ).length,
+    };
+  });
+  const SRC = [
+    { key: "builder", label: "Builder", color: "var(--accent)" },
+    { key: "offerte-configurator", label: "Configurator", color: "#0ea5e9" },
+    { key: "contact", label: "Contact", color: "#16a34a" },
+  ];
+  const known = new Set(SRC.map((s) => s.key));
+  const srcSegs = [
+    ...SRC.map((s) => ({
+      label: s.label,
+      value: rows.filter((r) => r.source === s.key).length,
+      color: s.color,
+    })),
+    {
+      label: "Overig",
+      value: rows.filter(
+        (r) => !r.source || !known.has(r.source as string),
+      ).length,
+      color: "#64748b",
+    },
+  ];
+
   const eur = (x: number | null) =>
     x == null ? "—" : "€ " + x.toLocaleString("nl-BE");
   const chip = (label: string, params: Record<string, string>) => {
@@ -109,6 +143,26 @@ export default async function AdminAanvragen({
             Exporteer CSV
           </a>
         )}
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Aanvragen — laatste 6 maanden">
+            <TrendChart
+              id="aanv-maand"
+              color="var(--accent)"
+              height={140}
+              points={reqMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Per bron">
+          <Donut
+            segments={srcSegs}
+            centerTop={String(rows.length)}
+            centerSub="aanvragen"
+          />
+        </ChartCard>
       </div>
 
       <form className="mt-6 flex flex-wrap items-center gap-2">

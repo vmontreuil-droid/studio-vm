@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { Donut, BarList } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -89,23 +90,47 @@ export default async function AdminAbonnementen({
         ))}
       </div>
 
-      {plans.length > 0 && (
-        <div className="mt-3 rounded-2xl bg-card shadow-sm p-5">
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-2xl bg-card p-5 shadow-sm">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Status-verdeling
+          </p>
+          <div className="mt-4">
+            <Donut
+              segments={[
+                {
+                  label: "Actief",
+                  value: all.filter((s) => s.status === "actief").length,
+                  color: "#16a34a",
+                },
+                {
+                  label: "Gepauzeerd",
+                  value: all.filter((s) => s.status === "gepauzeerd")
+                    .length,
+                  color: "var(--accent)",
+                },
+                {
+                  label: "Gestopt",
+                  value: all.filter((s) => s.status === "gestopt").length,
+                  color: "#dc2626",
+                },
+              ]}
+              centerTop={String(all.length)}
+              centerSub="abonnementen"
+            />
+          </div>
+        </div>
+        <div className="rounded-2xl bg-card p-5 shadow-sm">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Actieve abonnees per plan
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {plans.map(([plan, n]) => (
-              <span
-                key={plan}
-                className="rounded-full bg-card-hover px-3 py-1.5 text-sm"
-              >
-                {plan} <span className="text-muted">· {n}</span>
-              </span>
-            ))}
+          <div className="mt-4">
+            <BarList
+              items={plans.map(([label, value]) => ({ label, value }))}
+            />
           </div>
         </div>
-      )}
+      </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {STATUSES.map((s) => (

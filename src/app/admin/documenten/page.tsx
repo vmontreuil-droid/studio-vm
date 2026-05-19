@@ -9,6 +9,7 @@ import {
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -191,6 +192,23 @@ export default async function AdminDocumenten({
           </Link>
         ))}
       </div>
+
+      {docs.length > 0 && (
+        <div className="mt-4">
+          <ChartCard title="Verdeling per type">
+            <Donut
+              segments={[
+                { label: "Offertes", value: counts.offerte, color: "#3b82f6" },
+                { label: "Facturen", value: counts.factuur, color: "var(--accent)" },
+                { label: "Aankoop", value: counts.aankoop, color: "#f59e0b" },
+                { label: "Bestanden", value: counts.bestand, color: "#64748b" },
+              ]}
+              centerTop={String(docs.length)}
+              centerSub="documenten"
+            />
+          </ChartCard>
+        </div>
+      )}
 
       <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">
         <ul className="divide-y divide-border">

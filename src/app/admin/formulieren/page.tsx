@@ -6,6 +6,8 @@ import {
   setFormRead,
   deleteFormSubmission,
 } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,17 @@ export default async function AdminFormulieren({
   const unread = all.filter((s) => !s.is_read);
   const list = view === "nieuw" ? unread : all;
 
+  const nowF = new Date();
+  const formMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowF.getFullYear(), nowF.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: all.filter((s) => (s.created_at ?? "").startsWith(ym))
+        .length,
+    };
+  });
+
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -71,6 +84,37 @@ export default async function AdminFormulieren({
             </Link>
           ))}
         </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Inzendingen — laatste 6 maanden">
+            <TrendChart
+              id="form-maand"
+              color="var(--accent)"
+              height={140}
+              points={formMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Gelezen vs ongelezen">
+          <Donut
+            segments={[
+              {
+                label: "Ongelezen",
+                value: unread.length,
+                color: "var(--accent)",
+              },
+              {
+                label: "Gelezen",
+                value: all.length - unread.length,
+                color: "#16a34a",
+              },
+            ]}
+            centerTop={String(all.length)}
+            centerSub="inzendingen"
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-6 space-y-3">
