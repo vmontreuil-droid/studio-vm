@@ -29,6 +29,8 @@ import {
   Search,
   Settings,
   FolderArchive,
+  FileMinus,
+  Package,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -66,7 +68,9 @@ const groups: {
     items: [
       { href: "/admin/offertes", label: "Offertes", icon: FileText, badge: "offertesOpen" },
       { href: "/admin/facturen", label: "Facturen", icon: Receipt, badge: "facturenOpen" },
+      { href: "/admin/creditnotas", label: "Creditnota's", icon: FileMinus },
       { href: "/admin/abonnementen", label: "Abonnementen", icon: Repeat },
+      { href: "/admin/producten", label: "Producten", icon: Package },
       { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
     ],
   },

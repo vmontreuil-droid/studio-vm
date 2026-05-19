@@ -66,3 +66,123 @@ export async function saveCompanySettingsAction(
 ): Promise<{ ok: boolean; error?: string }> {
   return saveCompanySettings(fd);
 }
+
+// ---------- Module 3a — productcatalogus ----------
+
+function cents(fd: FormData, k: string): number {
+  const raw = (fd.get(k) as string | null)?.trim().replace(",", ".") ?? "0";
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+}
+
+export async function saveProduct(
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const id = str(fd, "id");
+  const row = {
+    name: str(fd, "name") || "Naamloos",
+    description: str(fd, "description"),
+    unit_price_cents: cents(fd, "unit_price"),
+    vat_rate: num(fd, "vat_rate", 21),
+    kind: str(fd, "kind") === "product" ? "product" : "dienst",
+    active: fd.get("active") != null,
+    sort: int(fd, "sort", 0),
+  };
+  try {
+    const db = getSupabaseAdmin();
+    const { error } = id
+      ? await db.from("products").update(row).eq("id", id)
+      : await db.from("products").insert(row);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/admin/producten");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function deleteProduct(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  if (!id) return;
+  try {
+    await getSupabaseAdmin().from("products").delete().eq("id", id);
+    revalidatePath("/admin/producten");
+  } catch {}
+}
+
+export async function toggleProduct(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  if (!id) return;
+  try {
+    const db = getSupabaseAdmin();
+    const { data } = await db
+      .from("products")
+      .select("active")
+      .eq("id", id)
+      .maybeSingle();
+    await db
+      .from("products")
+      .update({ active: !(data as { active: boolean } | null)?.active })
+      .eq("id", id);
+    revalidatePath("/admin/producten");
+  } catch {}
+}
+
+export async function saveProductAction(
+  _prev: { ok: boolean; error?: string } | null,
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  return saveProduct(fd);
+}
+
+// ---------- Module 3b — creditnota's ----------
+
+export async function createCreditNote(
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const email = str(fd, "client_email");
+  if (!email) return { ok: false, error: "Klant-e-mail is verplicht." };
+  try {
+    const { nextDocNumber } = await import("@/lib/admin/numbering");
+    const number = await nextDocNumber("credit");
+    const { error } = await getSupabaseAdmin().from("credit_notes").insert({
+      number,
+      invoice_id: str(fd, "invoice_id"),
+      client_email: email.toLowerCase(),
+      amount_cents: cents(fd, "amount"),
+      vat_rate: num(fd, "vat_rate", 21),
+      reason: str(fd, "reason"),
+    });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/admin/creditnotas");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function createCreditNoteAction(
+  _prev: { ok: boolean; error?: string } | null,
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  return createCreditNote(fd);
+}
+
+export async function setCreditNoteStatus(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  const status = str(fd, "status");
+  if (!id || (status !== "open" && status !== "verwerkt")) return;
+  try {
+    await getSupabaseAdmin()
+      .from("credit_notes")
+      .update({ status })
+      .eq("id", id);
+    revalidatePath("/admin/creditnotas");
+    revalidatePath(`/admin/creditnotas/${id}`);
+  } catch {}
+}
