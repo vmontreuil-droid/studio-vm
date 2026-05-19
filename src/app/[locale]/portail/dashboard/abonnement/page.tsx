@@ -24,6 +24,21 @@ import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
+function monthsElapsed(startISO: string, now: Date): number {
+  const s = new Date(startISO);
+  let m =
+    (now.getFullYear() - s.getFullYear()) * 12 +
+    (now.getMonth() - s.getMonth());
+  if (now.getDate() < s.getDate()) m -= 1;
+  return Math.max(0, m);
+}
+function addMonthsISO(startISO: string, n: number): string {
+  const s = new Date(startISO);
+  return new Date(s.getFullYear(), s.getMonth() + n, s.getDate())
+    .toISOString()
+    .slice(0, 10);
+}
+
 const L: Record<
   Locale,
   {
@@ -368,15 +383,66 @@ export default async function PortalSubscription({
             key={s.id}
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5"
           >
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold tracking-tight">{s.plan}</p>
               <p className="mt-1 font-mono text-[11px] text-muted">
                 {eur(s.price_cents)} {l.per} · {l.since}{" "}
                 {dt(s.started_at, locale)}
               </p>
+              {(() => {
+                const x = s as unknown as {
+                  started_at: string | null;
+                  pay_method: string | null;
+                  free_months: number | null;
+                };
+                if (
+                  !x.pay_method ||
+                  !x.started_at ||
+                  s.status !== "actief"
+                )
+                  return null;
+                const free = x.free_months ?? 0;
+                const cycle =
+                  monthsElapsed(x.started_at, new Date()) + 1;
+                if (free > 0 && cycle <= free) {
+                  const firstBill = addMonthsISO(x.started_at, free);
+                  return (
+                    <p className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg bg-green-100 px-3 py-1.5 text-xs font-medium text-green-900 dark:bg-green-900 dark:text-green-50">
+                      🎁{" "}
+                      {locale === "fr"
+                        ? `Mois ${cycle}/${free} offert`
+                        : locale === "en"
+                          ? `Month ${cycle}/${free} free`
+                          : `Maand ${cycle}/${free} gratis`}
+                      <span className="font-normal opacity-80">
+                        ·{" "}
+                        {locale === "fr"
+                          ? "1re facture vers"
+                          : locale === "en"
+                            ? "first invoice around"
+                            : "eerste factuur rond"}{" "}
+                        {dt(firstBill, locale)}
+                      </span>
+                    </p>
+                  );
+                }
+                const next = addMonthsISO(x.started_at, cycle);
+                return (
+                  <p className="mt-2 text-xs text-muted">
+                    {locale === "fr"
+                      ? "Facturation mensuelle active · prochaine facture vers"
+                      : locale === "en"
+                        ? "Monthly billing active · next invoice around"
+                        : "Maandelijkse facturatie actief · volgende factuur rond"}{" "}
+                    <strong className="text-foreground">
+                      {dt(next, locale)}
+                    </strong>
+                  </p>
+                );
+              })()}
             </div>
             <span
-              className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${badge(
+              className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${badge(
                 s.status,
               )}`}
             >
