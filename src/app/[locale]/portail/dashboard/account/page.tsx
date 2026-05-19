@@ -108,7 +108,7 @@ export default async function PortalAccount({
         {t.account}
       </h1>
 
-      <dl className="mt-8 grid gap-x-8 gap-y-5 rounded-2xl border bg-card p-6 sm:grid-cols-2">
+      <dl className="mt-8 grid gap-x-8 gap-y-5 rounded-2xl bg-card shadow-sm p-6 sm:grid-cols-2">
         <div>
           <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
             {l.email}
@@ -125,7 +125,7 @@ export default async function PortalAccount({
         </div>
       </dl>
 
-      <div className="mt-6 rounded-2xl border bg-card p-6">
+      <div className="mt-6 rounded-2xl bg-card shadow-sm p-6">
         <p className="font-mono text-xs uppercase tracking-widest text-accent">
           {l.sessionTitle}
         </p>
@@ -143,7 +143,7 @@ export default async function PortalAccount({
         </form>
       </div>
 
-      <div className="mt-6 rounded-2xl border bg-card p-6">
+      <div className="mt-6 rounded-2xl bg-card shadow-sm p-6">
         <p className="font-mono text-xs uppercase tracking-widest text-accent">
           {l.mailTitle}
         </p>

@@ -84,7 +84,7 @@ export default async function PortalScanDetail({
 
   return (
     <>
-      <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4">
+      <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card shadow-sm p-4">
         <p className="text-sm text-muted">{sh.hint}</p>
         <ShareScan
           url={shareUrl}

@@ -82,7 +82,7 @@ export default async function PortalMyWebsite({
           </div>
         )}
         {sites.map((s) => (
-          <div key={s.id} className="rounded-2xl border bg-card p-6">
+          <div key={s.id} className="rounded-2xl bg-card shadow-sm p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-lg font-semibold tracking-tight">

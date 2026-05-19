@@ -98,7 +98,7 @@ export default async function PortalTickets({
           <p className="text-sm text-muted">{l.none}</p>
         )}
         {tickets.map((tk) => (
-          <div key={tk.id} className="rounded-2xl border bg-card p-5">
+          <div key={tk.id} className="rounded-2xl bg-card shadow-sm p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="font-semibold tracking-tight">{tk.subject}</p>
               <span

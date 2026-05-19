@@ -70,7 +70,7 @@ export default async function PortalChecklist({
               >
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition-colors hover:bg-card-hover"
+                  className="flex w-full items-center gap-4 rounded-2xl bg-card shadow-sm p-4 text-left transition-colors hover:bg-card-hover"
                 >
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${

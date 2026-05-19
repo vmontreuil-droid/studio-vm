@@ -94,7 +94,7 @@ export default async function PortalPayments({
 
       <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {cards.map((c) => (
-          <div key={c.k} className="rounded-2xl border bg-card p-5">
+          <div key={c.k} className="rounded-2xl bg-card shadow-sm p-5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {c.k}
             </p>
@@ -113,7 +113,7 @@ export default async function PortalPayments({
         {invoices.map((i) => (
           <div
             key={i.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card shadow-sm p-5"
           >
             <div className="min-w-0">
               <p className="font-medium">

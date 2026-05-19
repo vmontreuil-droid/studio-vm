@@ -96,7 +96,7 @@ export default async function PortalDocuments({
   const myDocs = docs.filter((d) => d.uploaded_by === "klant");
 
   const Card = ({ d, own }: { d: Doc; own: boolean }) => (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover">
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover">
       <a
         href={hrefs.get(d.id) ?? "#"}
         target="_blank"

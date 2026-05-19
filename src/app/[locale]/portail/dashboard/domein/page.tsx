@@ -92,7 +92,7 @@ export default async function PortalDomain({
             { k: l.dns, v: s.dns_note },
           ].filter((r) => r.v);
           return (
-            <div key={s.id} className="rounded-2xl border bg-card p-6">
+            <div key={s.id} className="rounded-2xl bg-card shadow-sm p-6">
               <p className="font-semibold tracking-tight">{s.name}</p>
               <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {rows.map((r) => (

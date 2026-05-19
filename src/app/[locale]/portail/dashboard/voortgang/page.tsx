@@ -118,7 +118,7 @@ export default async function PortalProgress({
             })}
           </ol>
           {p?.note && (
-            <div className="mt-6 rounded-2xl border bg-card p-5">
+            <div className="mt-6 rounded-2xl bg-card shadow-sm p-5">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted">
                 {p.note}
               </p>

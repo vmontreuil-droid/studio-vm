@@ -273,7 +273,7 @@ export default async function PortalBuilderOverview({
         {designs.map((d) => (
           <div
             key={d.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3.5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card shadow-sm p-3.5"
           >
             <div className="min-w-0">
               <p className="font-semibold tracking-tight">

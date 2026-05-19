@@ -177,7 +177,7 @@ export default async function PortailPage({
             </h1>
             <p className="mt-4 max-w-md text-muted">{c.intro}</p>
 
-            <form className="mt-8 max-w-md space-y-4 rounded-2xl border bg-card p-6">
+            <form className="mt-8 max-w-md space-y-4 rounded-2xl bg-card shadow-sm p-6">
               <div>
                 <label
                   htmlFor="email"
@@ -228,7 +228,7 @@ export default async function PortailPage({
             <p className="font-mono text-xs uppercase tracking-widest text-muted">
               {c.previewLabel}
             </p>
-            <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+            <div className="overflow-hidden rounded-2xl bg-card shadow-sm shadow-sm">
               <div className="flex items-center gap-2 border-b bg-background px-4 py-3">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                 <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />

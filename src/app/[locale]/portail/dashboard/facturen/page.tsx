@@ -383,7 +383,7 @@ export default async function PortalInvoices({
           return (
             <article
               key={i.id}
-              className="doc rounded-2xl border bg-card p-6 sm:p-9"
+              className="doc rounded-2xl bg-card shadow-sm p-6 sm:p-9"
             >
               {/* Briefhoofd */}
               <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">

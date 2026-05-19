@@ -110,7 +110,7 @@ export default async function PortalScans({
           return (
             <details
               key={s.token}
-              className="group rounded-2xl border bg-card p-5 [&_summary::-webkit-details-marker]:hidden"
+              className="group rounded-2xl bg-card shadow-sm p-5 [&_summary::-webkit-details-marker]:hidden"
             >
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 list-none">
                 <div className="min-w-0">

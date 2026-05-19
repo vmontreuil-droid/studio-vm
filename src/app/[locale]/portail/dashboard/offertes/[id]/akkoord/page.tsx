@@ -113,7 +113,7 @@ export default async function OfferAcceptance({
           {l.notyet}
         </p>
       ) : (
-        <div className="mt-6 rounded-2xl border bg-card p-8">
+        <div className="mt-6 rounded-2xl bg-card shadow-sm p-8">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             Studio VM · {t.offers}
           </p>

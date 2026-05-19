@@ -52,7 +52,7 @@ export default async function PortalAppointment({
         {t.appointment}
       </h1>
 
-      <div className="mt-8 rounded-2xl border bg-card p-8">
+      <div className="mt-8 rounded-2xl bg-card shadow-sm p-8">
         <CalendarClock className="h-8 w-8 text-accent" strokeWidth={1.75} />
         <h2 className="mt-4 text-xl font-semibold tracking-tight">
           {l.title}

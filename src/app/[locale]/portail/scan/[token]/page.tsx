@@ -196,7 +196,7 @@ export default async function ScanPortalPage({
           </h1>
           <p className="mt-4 max-w-2xl text-muted">{c.intro}</p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-6 rounded-2xl border bg-card p-6">
+          <div className="mt-10 flex flex-wrap items-center gap-6 rounded-2xl bg-card shadow-sm p-6">
             <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-full border-4 border-accent">
               <span className="text-3xl font-bold">{s.grade}</span>
               <span className="font-mono text-[10px] text-muted">
@@ -243,7 +243,7 @@ export default async function ScanPortalPage({
               <Link
                 key={b.t}
                 href={localePath(locale, b.href)}
-                className="group flex flex-col rounded-2xl border bg-card p-6 transition-colors hover:bg-card-hover"
+                className="group flex flex-col rounded-2xl bg-card shadow-sm p-6 transition-colors hover:bg-card-hover"
               >
                 <span className="font-semibold tracking-tight">{b.t}</span>
                 <span className="mt-2 flex-1 text-sm text-muted">{b.d}</span>

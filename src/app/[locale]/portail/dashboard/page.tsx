@@ -290,7 +290,7 @@ export default async function PortalOverview({
             <Link
               key={c.k}
               href={c.href}
-              className="rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+              className="rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover"
             >
               <Icon className="h-5 w-5 text-accent" strokeWidth={1.75} />
               <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -331,7 +331,7 @@ export default async function PortalOverview({
       <h2 className="mt-10 font-mono text-xs uppercase tracking-widest text-accent">
         {x.activity}
       </h2>
-      <div className="mt-4 overflow-hidden rounded-2xl border bg-card">
+      <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">
         {recent.length === 0 && (
           <p className="p-6 text-sm text-muted">{x.noActivity}</p>
         )}
