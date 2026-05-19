@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { CreditNoteForm } from "@/components/credit-note-form";
+import { TrendChart } from "@/components/trend-chart";
+import { ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +54,23 @@ export default async function AdminCreditnotas() {
     (t, n) => t + Math.round(n.amount_cents * (1 + n.vat_rate / 100)),
     0,
   );
+  const now = new Date();
+  const cnMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        notes
+          .filter((n) => (n.issued_at ?? "").startsWith(ym))
+          .reduce(
+            (t, n) =>
+              t + Math.round(n.amount_cents * (1 + n.vat_rate / 100)),
+            0,
+          ) / 100,
+      ),
+    };
+  });
 
   return (
     <>
@@ -69,6 +88,18 @@ export default async function AdminCreditnotas() {
 
       <div className="mt-6">
         <CreditNoteForm invoices={invoices} />
+      </div>
+
+      <div className="mt-3">
+        <ChartCard title="Creditnota's — laatste 6 maanden (incl. btw)">
+          <TrendChart
+            id="cn-maand"
+            color="#dc2626"
+            height={140}
+            unit=" €"
+            points={cnMonths}
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">

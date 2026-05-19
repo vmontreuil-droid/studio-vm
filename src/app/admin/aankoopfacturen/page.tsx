@@ -4,6 +4,8 @@ import { adminConfigured, mindeeConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { PurchaseUploader } from "@/components/purchase-uploader";
 import { setPurchaseStatus, deletePurchaseInvoice } from "@/app/actions/accounting";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, BarList, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,50 @@ export default async function AdminAankoopfacturen() {
     .reduce((t, r) => t + r.total_cents, 0);
   const vatTotal = rows.reduce((t, r) => t + r.vat_cents, 0);
 
+  const now = new Date();
+  const costMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        rows
+          .filter((r) => (r.invoice_date ?? "").startsWith(ym))
+          .reduce((t, r) => t + r.total_cents, 0) / 100,
+      ),
+    };
+  });
+  const PALETTE = [
+    "var(--accent)",
+    "#0ea5e9",
+    "#16a34a",
+    "#a855f7",
+    "#dc2626",
+    "#64748b",
+  ];
+  const catMap = new Map<string, number>();
+  for (const r of rows) {
+    const k = (r.category || "Overig").trim();
+    catMap.set(k, (catMap.get(k) ?? 0) + r.total_cents);
+  }
+  const catSegs = [...catMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([label, value], i) => ({
+      label,
+      value: Math.round(value / 100),
+      color: PALETTE[i % PALETTE.length],
+    }));
+  const supMap = new Map<string, number>();
+  for (const r of rows) {
+    const k = r.supplier_name || "Onbekend";
+    supMap.set(k, (supMap.get(k) ?? 0) + r.total_cents);
+  }
+  const topSup = [...supMap.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -64,6 +110,42 @@ export default async function AdminAankoopfacturen() {
 
       <div className="mt-6">
         <PurchaseUploader />
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Aankoopkosten — laatste 6 maanden (incl. btw)">
+            <TrendChart
+              id="aank-kosten"
+              color="#0ea5e9"
+              height={150}
+              unit=" €"
+              points={costMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Per categorie">
+          <Donut
+            segments={catSegs}
+            centerTop={String(rows.length)}
+            centerSub="facturen"
+          />
+        </ChartCard>
+      </div>
+      <div className="mt-3">
+        <ChartCard title="Top-leveranciers (incl. btw)">
+          <BarList
+            items={topSup}
+            color="#0ea5e9"
+            format={(n) =>
+              "€ " +
+              (n / 100).toLocaleString("nl-BE", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })
+            }
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">

@@ -7,6 +7,9 @@ import {
   matchTransaction,
   setTransactionStatus,
 } from "@/app/actions/accounting";
+import { TrendChart } from "@/components/trend-chart";
+import { Gauge } from "@/components/gauge";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +63,36 @@ export default async function AdminBank() {
     .filter((t) => t.amount_cents < 0)
     .reduce((s, t) => s + t.amount_cents, 0);
 
+  const now = new Date();
+  const flowMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        txs
+          .filter((t) => (t.booked_at ?? "").startsWith(ym))
+          .reduce((s, t) => s + t.amount_cents, 0) / 100,
+      ),
+    };
+  });
+  const matchedCnt = txs.filter((t) => t.status === "gematcht").length;
+  const matchRate =
+    txs.length > 0 ? Math.round((matchedCnt / txs.length) * 100) : 0;
+  const statusSegs = [
+    {
+      label: "Open",
+      value: txs.filter((t) => t.status === "open").length,
+      color: "var(--accent)",
+    },
+    { label: "Gematcht", value: matchedCnt, color: "#16a34a" },
+    {
+      label: "Genegeerd",
+      value: txs.filter((t) => t.status === "genegeerd").length,
+      color: "#64748b",
+    },
+  ];
+
   return (
     <>
       <div>
@@ -72,6 +105,36 @@ export default async function AdminBank() {
 
       <div className="mt-6">
         <BankImporter />
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Nettocashflow — laatste 6 maanden">
+            <TrendChart
+              id="bank-flow"
+              color="#16a34a"
+              height={150}
+              unit=" €"
+              points={flowMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Afpunt-graad">
+          <Gauge
+            value={matchRate}
+            label="Gematcht"
+            sub={`${matchedCnt} van ${txs.length} transacties`}
+          />
+        </ChartCard>
+      </div>
+      <div className="mt-3">
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={statusSegs}
+            centerTop={String(txs.length)}
+            centerSub="transacties"
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">

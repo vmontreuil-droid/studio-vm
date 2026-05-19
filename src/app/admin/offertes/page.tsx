@@ -3,6 +3,9 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { resendOffer, deleteOffer } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Gauge } from "@/components/gauge";
+import { Donut, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -54,21 +57,40 @@ export default async function AdminOffertes({
         ? "bg-red-500/15 text-red-500"
         : "bg-accent/15 text-accent";
 
+  const convRate =
+    all.length === 0
+      ? 0
+      : Math.round(
+          (all.filter((o) => o.status === "akkoord").length /
+            all.length) *
+            100,
+        );
   const stats = [
     { k: "Open (waarde)", v: eur(sum("open")) },
     { k: "Akkoord (waarde)", v: eur(sum("akkoord")) },
-    {
-      k: "Conversie",
-      v:
-        all.length === 0
-          ? "—"
-          : `${Math.round(
-              (all.filter((o) => o.status === "akkoord").length /
-                all.length) *
-                100,
-            )}%`,
-    },
+    { k: "Conversie", v: all.length === 0 ? "—" : `${convRate}%` },
     { k: "Totaal", v: String(all.length) },
+  ];
+
+  const now = new Date();
+  const valueMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        all
+          .filter((o) => (o.created_at ?? "").startsWith(ym))
+          .reduce((t, o) => t + (o.amount_cents ?? 0), 0) / 100,
+      ),
+    };
+  });
+  const cnt = (s: string) =>
+    all.filter((o) => o.status === s).length;
+  const statusSegs = [
+    { label: "Open", value: cnt("open"), color: "var(--accent)" },
+    { label: "Akkoord", value: cnt("akkoord"), color: "#16a34a" },
+    { label: "Afgewezen", value: cnt("afgewezen"), color: "#dc2626" },
   ];
 
   return (
@@ -95,6 +117,37 @@ export default async function AdminOffertes({
             <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
           </div>
         ))}
+      </div>
+
+      {/* Grafieken */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Offertewaarde aangemaakt — laatste 6 maanden">
+            <TrendChart
+              id="off-waarde"
+              color="var(--accent)"
+              height={150}
+              unit=" €"
+              points={valueMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Win-rate">
+          <Gauge
+            value={convRate}
+            label="Geaccepteerd"
+            sub={`${cnt("akkoord")} van ${all.length} offertes`}
+          />
+        </ChartCard>
+      </div>
+      <div className="mt-3">
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={statusSegs}
+            centerTop={String(all.length)}
+            centerSub="offertes"
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">

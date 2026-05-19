@@ -12,6 +12,7 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { TrendChart } from "@/components/trend-chart";
 import { Gauge } from "@/components/gauge";
+import { ChartCard } from "@/components/charts";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,9 @@ export default async function AdminDashboard() {
     { data: invR },
     { data: subRows },
     { data: formR },
+    { data: purR },
+    { data: cnR },
+    { data: bankR },
   ] = await Promise.all([
     db
       .from("quotes")
@@ -96,6 +100,18 @@ export default async function AdminDashboard() {
       .select("id, client_email, visitor_name, visitor_email, is_read, created_at")
       .order("created_at", { ascending: false })
       .limit(200),
+    db
+      .from("purchase_invoices")
+      .select("net_cents, vat_cents, total_cents, status, invoice_date")
+      .limit(2000),
+    db
+      .from("credit_notes")
+      .select("amount_cents, vat_rate, issued_at")
+      .limit(2000),
+    db
+      .from("bank_transactions")
+      .select("amount_cents, status, booked_at")
+      .limit(2000),
   ]);
   const quotes = q ?? [];
   const monitors = m ?? [];
@@ -181,6 +197,82 @@ export default async function AdminDashboard() {
           (paidThisMonth / (paidThisMonth + openInvoiceTotal)) * 100,
         )
       : 0;
+
+  // ---- Boekhouding (aankoop / btw / creditnota's / bank) ----
+  type Pur = {
+    net_cents: number;
+    vat_cents: number;
+    total_cents: number;
+    status: string;
+    invoice_date: string;
+  };
+  type Cn = { amount_cents: number; vat_rate: number; issued_at: string };
+  type Bank = { amount_cents: number; status: string; booked_at: string };
+  const purchases = (purR as Pur[] | null) ?? [];
+  const creditNotes = (cnR as Cn[] | null) ?? [];
+  const bankTx = (bankR as Bank[] | null) ?? [];
+
+  const costThisMonth = purchases
+    .filter((p) => (p.invoice_date ?? "").startsWith(ymThis))
+    .reduce((t, p) => t + p.total_cents, 0);
+  const vatDeductible = purchases.reduce((t, p) => t + p.vat_cents, 0);
+  const yr = String(now.getFullYear());
+  const vatDue =
+    Math.round(
+      invoices
+        .filter((i) => i.issued_at.startsWith(yr))
+        .reduce((t, i) => t + i.amount_cents, 0) * 0.21,
+    ) -
+    creditNotes
+      .filter((c) => (c.issued_at ?? "").startsWith(yr))
+      .reduce(
+        (t, c) => t + Math.round(c.amount_cents * (c.vat_rate / 100)),
+        0,
+      );
+  const vatBalance = vatDue - vatDeductible;
+  const creditTotal = creditNotes.reduce(
+    (t, c) => t + Math.round(c.amount_cents * (1 + c.vat_rate / 100)),
+    0,
+  );
+  const bankOpen = bankTx.filter((b) => b.status === "open").length;
+  const costMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        purchases
+          .filter((p) => (p.invoice_date ?? "").startsWith(ym))
+          .reduce((t, p) => t + p.total_cents, 0) / 100,
+      ),
+    };
+  });
+  const boekhouding = [
+    {
+      k: "Kosten deze maand",
+      v: eur(costThisMonth),
+      href: "/admin/aankoopfacturen",
+      sub: "aankoop incl. btw",
+    },
+    {
+      k: "Btw-saldo",
+      v: eur(vatBalance),
+      href: "/admin/rapporten",
+      sub: vatBalance >= 0 ? `${yr} — te betalen` : `${yr} — terug`,
+    },
+    {
+      k: "Creditnota's",
+      v: eur(creditTotal),
+      href: "/admin/creditnotas",
+      sub: `${creditNotes.length} stuk(s)`,
+    },
+    {
+      k: "Bank af te punten",
+      v: String(bankOpen),
+      href: "/admin/bank",
+      sub: "open transacties",
+    },
+  ];
 
   const money = [
     {
@@ -427,6 +519,57 @@ export default async function AdminDashboard() {
             )}`}
           />
         </div>
+      </div>
+
+      {/* Boekhouding-overzicht */}
+      <div className="mt-6 flex items-center justify-between">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+          Boekhouding
+        </h2>
+        <Link
+          href="/admin/rapporten"
+          className="text-xs text-muted hover:text-foreground"
+        >
+          Rapporten →
+        </Link>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {boekhouding.map((s) => (
+          <Link
+            key={s.k}
+            href={s.href}
+            className="rounded-2xl bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              {s.k}
+            </p>
+            <p className="mt-2 truncate text-2xl font-bold tracking-tight">
+              {s.v}
+            </p>
+            <p className="mt-0.5 text-xs text-muted">{s.sub}</p>
+          </Link>
+        ))}
+      </div>
+      <div className="mt-3">
+        <ChartCard
+          title="Aankoopkosten — laatste 6 maanden (incl. btw)"
+          action={
+            <Link
+              href="/admin/aankoopfacturen"
+              className="text-xs text-muted hover:text-foreground"
+            >
+              Aankoop →
+            </Link>
+          }
+        >
+          <TrendChart
+            id="dash-kosten"
+            color="#0ea5e9"
+            height={140}
+            unit=" €"
+            points={costMonths}
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

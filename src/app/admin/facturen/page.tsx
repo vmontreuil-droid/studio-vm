@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setInvoiceStatus } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, BarList, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +114,39 @@ export default async function AdminFacturen({
   const count = (s: string) =>
     s === "alle" ? all.length : all.filter((i) => i.status === s).length;
 
+  // Grafiek-data
+  const revMonths = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: Math.round(
+        all
+          .filter(
+            (i) =>
+              i.status === "betaald" &&
+              (i.paid_at ?? i.issued_at).startsWith(ym),
+          )
+          .reduce((t, i) => t + i.amount_cents, 0) / 100,
+      ),
+    };
+  });
+  const statusSegs = [
+    { label: "Open", value: count("open"), color: "var(--accent)" },
+    { label: "Betaald", value: count("betaald"), color: "#16a34a" },
+    { label: "Vervallen", value: count("vervallen"), color: "#dc2626" },
+  ];
+  const byClient = new Map<string, number>();
+  for (const i of all)
+    byClient.set(
+      i.client_email,
+      (byClient.get(i.client_email) ?? 0) + inclOf(i),
+    );
+  const topClients = [...byClient.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -137,6 +172,53 @@ export default async function AdminFacturen({
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Grafieken */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="Betaalde omzet — laatste 6 maanden"
+            action={
+              <Link
+                href="/admin/facturen?status=betaald"
+                className="text-xs text-muted hover:text-foreground"
+              >
+                Betaald →
+              </Link>
+            }
+          >
+            <TrendChart
+              id="fac-omzet"
+              color="var(--accent)"
+              height={150}
+              unit=" €"
+              points={revMonths}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={statusSegs}
+            centerTop={String(all.length)}
+            centerSub="facturen"
+          />
+        </ChartCard>
+      </div>
+
+      <div className="mt-3">
+        <ChartCard title="Top-klanten naar omzet (incl. btw)">
+          <BarList
+            items={topClients}
+            format={(n) =>
+              "€ " +
+              (n / 100).toLocaleString("nl-BE", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })
+            }
+          />
+        </ChartCard>
       </div>
 
       {/* Toolbar + tabel */}
