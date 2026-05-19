@@ -143,16 +143,16 @@ function Sidebar({
   const path = usePathname();
 
   return (
-    <div className="flex h-full flex-col text-slate-300">
+    <div className="flex h-full flex-col text-foreground">
       <div
-        className={`flex items-center gap-2 px-5 py-5 ${
+        className={`flex items-center gap-2 px-5 py-6 ${
           collapsed ? "justify-center" : "justify-between"
         }`}
       >
         {!collapsed && (
-          <p className="text-xl font-extrabold lowercase tracking-tighter text-white">
+          <p className="text-xl font-extrabold lowercase tracking-tighter text-foreground">
             vm<span className="text-accent">.</span>
-            <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-slate-500">
+            <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
               admin
             </span>
           </p>
@@ -161,7 +161,7 @@ function Sidebar({
           type="button"
           onClick={onToggleCollapse}
           aria-label={collapsed ? "Sidebar openklappen" : "Sidebar inklappen"}
-          className="hidden rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white md:inline-flex"
+          className="hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:inline-flex"
         >
           {collapsed ? (
             <PanelLeft className="h-4 w-4" strokeWidth={2} />
@@ -175,11 +175,11 @@ function Sidebar({
         {groups.map((group) => (
           <div key={group.title}>
             {!collapsed && (
-              <p className="px-3 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-widest text-slate-500">
+              <p className="px-3 pb-2 font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
                 {group.title}
               </p>
             )}
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {group.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = exact
                   ? path === href
@@ -191,26 +191,27 @@ function Sidebar({
                     href={href}
                     onClick={onNavigate}
                     title={collapsed ? label : undefined}
-                    className={`relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                       collapsed ? "justify-center" : ""
                     } ${
                       active
-                        ? "bg-white/10 font-medium text-white"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                        ? "bg-accent font-semibold text-white shadow-sm shadow-accent/30"
+                        : "text-muted hover:bg-card-hover hover:text-foreground"
                     }`}
                   >
-                    {active && (
-                      <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-accent" />
-                    )}
                     <Icon
-                      className={`h-[18px] w-[18px] shrink-0 ${
-                        active ? "text-accent" : ""
-                      }`}
+                      className="h-[18px] w-[18px] shrink-0"
                       strokeWidth={2}
                     />
                     {!collapsed && <span className="flex-1">{label}</span>}
                     {!collapsed && n > 0 && (
-                      <span className="rounded-full bg-accent/20 px-2 py-0.5 font-mono text-[10px] font-medium text-accent">
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${
+                          active
+                            ? "bg-white/25 text-white"
+                            : "bg-accent/15 text-accent"
+                        }`}
+                      >
                         {n}
                       </span>
                     )}
@@ -222,13 +223,13 @@ function Sidebar({
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-white/10 p-3">
+      <div className="mt-auto border-t border-border p-3">
         {!collapsed && (
           <a
             href="/"
             target="_blank"
             rel="noreferrer"
-            className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2 text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
           >
             <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={2} />
             Bekijk website
@@ -248,7 +249,7 @@ function Sidebar({
             <button
               type="submit"
               title={collapsed ? "Uitloggen" : undefined}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-red-500/15 hover:text-red-300 ${
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${
                 collapsed ? "justify-center" : ""
               }`}
             >
@@ -284,7 +285,7 @@ function AdminSearch() {
   return (
     <div className="relative w-full max-w-sm">
       <Search
-        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+        className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
         strokeWidth={2}
       />
       <input
@@ -296,7 +297,7 @@ function AdminSearch() {
         onFocus={() => q && setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Zoek in admin…"
-        className="w-full rounded-lg border bg-card py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-accent"
+        className="w-full rounded-full border bg-card py-2.5 pl-10 pr-4 text-sm shadow-sm outline-none transition-colors focus:border-accent"
       />
       {open && hits.length > 0 && (
         <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border bg-card shadow-lg">
@@ -326,10 +327,6 @@ export function AdminShell({
   counts: AdminCounts;
   children: React.ReactNode;
 }) {
-  const path = usePathname();
-  // Klantfiche: full-bleed, tab-rail tegen de sidebar (geen centrering).
-  const wide =
-    path.startsWith("/admin/klanten/") && path !== "/admin/klanten";
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -390,9 +387,9 @@ export function AdminShell({
         }`}
       />
 
-      {/* Sidebar — donker navy, zoals een boekhoudprogramma */}
+      {/* Sidebar — licht (Shiko-stijl) */}
       <aside
-        className={`fixed top-0 z-50 h-dvh shrink-0 bg-[#0f172a] transition-[transform,width] duration-200 ease-out md:sticky ${
+        className={`fixed top-0 z-50 h-dvh shrink-0 border-r bg-card transition-[transform,width] duration-200 ease-out md:sticky ${
           collapsed ? "md:w-[68px]" : "md:w-64"
         } w-64 ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -402,7 +399,7 @@ export function AdminShell({
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Sluiten"
-          className="absolute right-3 top-4 z-10 rounded-lg p-1.5 text-slate-400 hover:text-white md:hidden"
+          className="absolute right-3 top-5 z-10 rounded-lg p-1.5 text-muted hover:text-foreground md:hidden"
         >
           <X className="h-5 w-5" strokeWidth={2} />
         </button>
@@ -414,10 +411,10 @@ export function AdminShell({
         />
       </aside>
 
-      {/* Werkblad */}
+      {/* Werkblad — full width (Shiko-stijl) */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Bovenbalk met snelzoeker — desktop */}
-        <header className="sticky top-0 z-20 hidden items-center gap-4 border-b bg-background/80 px-6 py-3 backdrop-blur md:flex md:px-8">
+        <header className="sticky top-0 z-20 hidden items-center gap-4 bg-background/80 px-6 py-4 backdrop-blur md:flex md:px-10">
           <AdminSearch />
           <div className="ml-auto flex items-center gap-3 text-xs text-muted">
             <span className="font-mono uppercase tracking-widest">
@@ -426,18 +423,8 @@ export function AdminShell({
           </div>
         </header>
 
-        <main
-          className={
-            wide
-              ? "min-w-0 flex-1 px-4 pb-16 pt-20 sm:px-6 md:pt-6"
-              : "min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:px-10 md:pt-8"
-          }
-        >
-          {wide ? (
-            children
-          ) : (
-            <div className="mx-auto max-w-6xl">{children}</div>
-          )}
+        <main className="min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:px-10 md:pt-2">
+          {children}
         </main>
       </div>
     </div>

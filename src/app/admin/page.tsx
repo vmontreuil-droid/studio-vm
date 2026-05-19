@@ -11,6 +11,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { TrendChart } from "@/components/trend-chart";
+import { Gauge } from "@/components/gauge";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -174,6 +175,12 @@ export default async function AdminDashboard() {
     .filter((o) => o.status === "open")
     .reduce((t, o) => t + (o.amount_cents ?? 0), 0);
   const unreadForms = forms.filter((f) => !f.is_read).length;
+  const collectionRate =
+    paidThisMonth + openInvoiceTotal > 0
+      ? Math.round(
+          (paidThisMonth / (paidThisMonth + openInvoiceTotal)) * 100,
+        )
+      : 0;
 
   const money = [
     {
@@ -368,42 +375,58 @@ export default async function AdminDashboard() {
             <Link
               key={s.k}
               href={s.href}
-              className="rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+              className="rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
                   {s.k}
                 </p>
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent/10 text-accent">
-                  <Icon className="h-4 w-4" strokeWidth={2} />
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/10 text-accent">
+                  <Icon className="h-5 w-5" strokeWidth={2} />
                 </span>
               </div>
-              <p className="mt-2 truncate text-2xl font-semibold">{s.v}</p>
+              <p className="mt-3 truncate text-3xl font-bold tracking-tight">
+                {s.v}
+              </p>
               <p className="mt-0.5 text-xs text-muted">{s.sub}</p>
             </Link>
           );
         })}
       </div>
 
-      <div className="mt-3 rounded-2xl border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Betaalde omzet — laatste 6 maanden
-          </p>
-          <Link
-            href="/admin/facturen?status=betaald"
-            className="text-xs text-muted hover:text-foreground"
-          >
-            Facturen →
-          </Link>
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-2xl bg-card p-6 shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              Betaalde omzet — laatste 6 maanden
+            </p>
+            <Link
+              href="/admin/facturen?status=betaald"
+              className="text-xs text-muted hover:text-foreground"
+            >
+              Facturen →
+            </Link>
+          </div>
+          <TrendChart
+            id="omzet"
+            color="var(--accent)"
+            height={150}
+            unit=" €"
+            points={revMonths}
+          />
         </div>
-        <TrendChart
-          id="omzet"
-          color="var(--accent)"
-          height={150}
-          unit=" €"
-          points={revMonths}
-        />
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-card p-6 shadow-sm">
+          <p className="mb-2 self-start font-mono text-[10px] uppercase tracking-widest text-muted">
+            Inningsgraad
+          </p>
+          <Gauge
+            value={collectionRate}
+            label="Geïnd deze maand"
+            sub={`${eur(paidThisMonth)} van ${eur(
+              paidThisMonth + openInvoiceTotal,
+            )}`}
+          />
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -411,7 +434,7 @@ export default async function AdminDashboard() {
           <Link
             key={s.k}
             href={s.href}
-            className="rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+            className="rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover"
           >
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {s.k}
@@ -422,7 +445,7 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="mt-6 grid gap-3 lg:grid-cols-3">
-        <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
+        <div className="rounded-2xl bg-card shadow-sm p-5 lg:col-span-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Aanvragen per week
           </p>
@@ -439,7 +462,7 @@ export default async function AdminDashboard() {
           />
         </div>
 
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Aanvragen per bron
           </p>
@@ -463,7 +486,7 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
-        <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
+        <div className="rounded-2xl bg-card shadow-sm p-5 lg:col-span-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Scans per week
           </p>
@@ -480,7 +503,7 @@ export default async function AdminDashboard() {
           />
         </div>
 
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Score-verdeling gescande sites
           </p>
@@ -507,7 +530,7 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
-        <div className="rounded-2xl border bg-card p-5">
+        <div className="rounded-2xl bg-card shadow-sm p-5">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Platforms van prospects
           </p>
@@ -532,7 +555,7 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
+        <div className="rounded-2xl bg-card shadow-sm p-5 lg:col-span-2">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               Recentste scans
@@ -587,7 +610,7 @@ export default async function AdminDashboard() {
           Alle aanvragen →
         </Link>
       </div>
-      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border bg-card">
+      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-sm">
         {quotes.length === 0 && (
           <li className="p-5 text-sm text-muted">Nog geen aanvragen.</li>
         )}
@@ -623,7 +646,7 @@ export default async function AdminDashboard() {
           )}
         </h2>
       </div>
-      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border bg-card">
+      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-sm">
         {activity.length === 0 && (
           <li className="p-5 text-sm text-muted">Nog geen activiteit.</li>
         )}
