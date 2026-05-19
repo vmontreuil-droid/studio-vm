@@ -27,6 +27,7 @@ import {
   PanelLeft,
   ExternalLink,
   Search,
+  Settings,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -92,6 +93,12 @@ const groups: {
       { href: "/admin/changelog", label: "Changelog", icon: History },
       { href: "/admin/now", label: "/now", icon: Clock },
       { href: "/admin/newsletter", label: "Nieuwsbrief", icon: Mail },
+    ],
+  },
+  {
+    title: "Boekhouding",
+    items: [
+      { href: "/admin/instellingen", label: "Instellingen", icon: Settings },
     ],
   },
 ];
