@@ -34,6 +34,7 @@ import {
   ReceiptText,
   Truck,
   Landmark,
+  BarChart3,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -119,6 +120,7 @@ const groups: {
   {
     title: "Boekhouding",
     items: [
+      { href: "/admin/rapporten", label: "Rapporten", icon: BarChart3 },
       { href: "/admin/documenten", label: "Documenten", icon: FolderArchive },
       { href: "/admin/instellingen", label: "Instellingen", icon: Settings },
     ],
