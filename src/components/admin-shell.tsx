@@ -35,6 +35,7 @@ import {
   Truck,
   Landmark,
   BarChart3,
+  MailSearch,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -107,6 +108,7 @@ const groups: {
       { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
       { href: "/admin/monitors", label: "Monitors", icon: Activity, badge: "monitorsActief" },
       { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
+      { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
     ],
   },
   {
