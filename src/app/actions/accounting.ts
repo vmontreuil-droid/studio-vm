@@ -357,3 +357,149 @@ export async function deletePurchaseInvoice(fd: FormData): Promise<void> {
     revalidatePath("/admin/aankoopfacturen");
   } catch {}
 }
+
+// ---------- Module 5 — bank ----------
+
+// Match openstaande inkomende transacties met openstaande facturen
+// via de Belgische gestructureerde mededeling (uniek per factuur).
+// Idempotent: enkel status='open' wordt aangeraakt.
+async function autoMatchBank(): Promise<number> {
+  const db = getSupabaseAdmin();
+  const { structuredComm } = await import("@/lib/bank");
+  const { structuredDigits } = await import("@/lib/bank-import");
+
+  const [{ data: txs }, { data: invs }] = await Promise.all([
+    db
+      .from("bank_transactions")
+      .select("id, amount_cents, communication")
+      .eq("status", "open")
+      .gt("amount_cents", 0)
+      .limit(2000),
+    db
+      .from("invoices")
+      .select("id, number, status")
+      .eq("status", "open")
+      .limit(2000),
+  ]);
+
+  const byCode = new Map<string, string>();
+  for (const i of (invs as { id: string; number: string }[] | null) ?? []) {
+    const code = structuredDigits(structuredComm(i.number));
+    if (code) byCode.set(code, i.id);
+  }
+  let matched = 0;
+  for (const t of (txs as
+    | { id: string; amount_cents: number; communication: string | null }[]
+    | null) ?? []) {
+    const code = structuredDigits(t.communication);
+    if (!code) continue;
+    const invId = byCode.get(code);
+    if (!invId) continue;
+    await db
+      .from("bank_transactions")
+      .update({ matched_invoice_id: invId, status: "gematcht" })
+      .eq("id", t.id);
+    await db
+      .from("invoices")
+      .update({ status: "betaald", paid_at: new Date().toISOString() })
+      .eq("id", invId);
+    byCode.delete(code);
+    matched++;
+  }
+  return matched;
+}
+
+export async function importBankCsv(
+  fd: FormData,
+): Promise<{
+  ok: boolean;
+  error?: string;
+  imported?: number;
+  matched?: number;
+}> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const file = fd.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Geen CSV-bestand." };
+  }
+  try {
+    const text = await file.text();
+    const { parseBankCsv, fingerprint } = await import(
+      "@/lib/bank-import"
+    );
+    const parsed = parseBankCsv(text);
+    if (parsed.length === 0) {
+      return {
+        ok: false,
+        error: "Geen herkenbare transacties — controleer het CSV-formaat.",
+      };
+    }
+    const rows = parsed.map((t) => ({
+      booked_at: t.bookedAt,
+      amount_cents: t.amountCents,
+      counterparty: t.counterparty,
+      communication: t.communication,
+      fingerprint: fingerprint(t),
+    }));
+    const { error } = await getSupabaseAdmin()
+      .from("bank_transactions")
+      .upsert(rows, { onConflict: "fingerprint", ignoreDuplicates: true });
+    if (error) return { ok: false, error: error.message };
+
+    const matched = await autoMatchBank();
+    revalidatePath("/admin/bank");
+    revalidatePath("/admin/facturen");
+    return { ok: true, imported: rows.length, matched };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function importBankCsvAction(
+  _prev: { ok: boolean; error?: string; imported?: number; matched?: number } | null,
+  fd: FormData,
+): Promise<{
+  ok: boolean;
+  error?: string;
+  imported?: number;
+  matched?: number;
+}> {
+  return importBankCsv(fd);
+}
+
+export async function matchTransaction(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  const invoiceId = str(fd, "invoice_id");
+  if (!id || !invoiceId) return;
+  try {
+    const db = getSupabaseAdmin();
+    await db
+      .from("bank_transactions")
+      .update({ matched_invoice_id: invoiceId, status: "gematcht" })
+      .eq("id", id);
+    await db
+      .from("invoices")
+      .update({ status: "betaald", paid_at: new Date().toISOString() })
+      .eq("id", invoiceId);
+    revalidatePath("/admin/bank");
+    revalidatePath("/admin/facturen");
+  } catch {}
+}
+
+export async function setTransactionStatus(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  const status = str(fd, "status");
+  if (!id || (status !== "open" && status !== "genegeerd")) return;
+  try {
+    await getSupabaseAdmin()
+      .from("bank_transactions")
+      .update({
+        status,
+        ...(status === "open" ? { matched_invoice_id: null } : {}),
+      })
+      .eq("id", id);
+    revalidatePath("/admin/bank");
+  } catch {}
+}

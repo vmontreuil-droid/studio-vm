@@ -33,6 +33,7 @@ import {
   Package,
   ReceiptText,
   Truck,
+  Landmark,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -81,6 +82,12 @@ const groups: {
     items: [
       { href: "/admin/aankoopfacturen", label: "Aankoopfacturen", icon: ReceiptText },
       { href: "/admin/leveranciers", label: "Leveranciers", icon: Truck },
+    ],
+  },
+  {
+    title: "Bank",
+    items: [
+      { href: "/admin/bank", label: "Bank", icon: Landmark },
     ],
   },
   {
