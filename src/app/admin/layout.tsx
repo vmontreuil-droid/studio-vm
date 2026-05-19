@@ -51,10 +51,31 @@ export default async function AdminLayout({
     db.from("tickets").select("id", head).neq("status", "gesloten"),
     db.from("form_submissions").select("id", head).eq("is_read", false),
   ]);
-  const emails = (emailsR.data as { email: string }[] | null) ?? [];
-  const klanten = new Set(
-    emails.map((e) => e.email?.toLowerCase().trim()).filter(Boolean),
-  ).size;
+  // "Klanten"-badge = uniek aantal klanten over álle bronnen heen,
+  // zodat het cijfer overeenkomt met de klantenlijst.
+  const [subEmR, quoteEmR, offerEmR, invEmR] = await Promise.all([
+    db.from("subscriptions").select("client_email").limit(5000),
+    db.from("quotes").select("email").limit(5000),
+    db.from("offers").select("client_email").limit(5000),
+    db.from("invoices").select("client_email").limit(5000),
+  ]);
+  const klantSet = new Set<string>();
+  const add = (v: string | null | undefined) => {
+    const k = v?.toLowerCase().trim();
+    if (k) klantSet.add(k);
+  };
+  for (const e of (emailsR.data as { email: string }[] | null) ?? [])
+    add(e.email);
+  for (const r of (subEmR.data as { client_email: string }[] | null) ?? [])
+    add(r.client_email);
+  for (const r of (quoteEmR.data as { email: string }[] | null) ?? [])
+    add(r.email);
+  for (const r of (offerEmR.data as { client_email: string }[] | null) ??
+    [])
+    add(r.client_email);
+  for (const r of (invEmR.data as { client_email: string }[] | null) ?? [])
+    add(r.client_email);
+  const klanten = klantSet.size;
   const counts: AdminCounts = {
     nieuw: nieuwR.count ?? 0,
     monitorsActief: monitorsR.count ?? 0,

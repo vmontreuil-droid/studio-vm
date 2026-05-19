@@ -61,7 +61,12 @@ export default async function AdminKlanten({
   }
   // Ook klanten die via de configurator binnenkwamen (geen scan) of
   // een abonnement hebben, horen hier — niet enkel scan-leads.
-  const [{ data: subData }, { data: cfgData }] = await Promise.all([
+  const [
+    { data: subData },
+    { data: cfgData },
+    { data: offerData },
+    { data: invData },
+  ] = await Promise.all([
     getSupabaseAdmin()
       .from("subscriptions")
       .select("client_email, plan, created_at")
@@ -71,6 +76,16 @@ export default async function AdminKlanten({
       .from("quotes")
       .select("email, name, company, created_at, source")
       .in("source", ["offerte-configurator", "builder"])
+      .order("created_at", { ascending: false })
+      .limit(2000),
+    getSupabaseAdmin()
+      .from("offers")
+      .select("client_email, client_company, title, created_at")
+      .order("created_at", { ascending: false })
+      .limit(2000),
+    getSupabaseAdmin()
+      .from("invoices")
+      .select("client_email, number, created_at")
       .order("created_at", { ascending: false })
       .limit(2000),
   ]);
@@ -107,6 +122,40 @@ export default async function AdminKlanten({
         c.company ||
         c.name ||
         (c.source === "builder" ? "Via builder" : "Via configurator"),
+      grade: null,
+      score: null,
+    });
+  }
+
+  for (const o of (offerData as
+    | {
+        client_email: string;
+        client_company: string | null;
+        title: string | null;
+        created_at: string;
+      }[]
+    | null) ?? []) {
+    const key = o.client_email?.toLowerCase().trim();
+    if (!key || byEmail.has(key)) continue;
+    byEmail.set(key, {
+      email: key,
+      scans: 0,
+      lastAt: o.created_at,
+      host: o.client_company || o.title || "Offerte-klant",
+      grade: null,
+      score: null,
+    });
+  }
+  for (const iv of (invData as
+    | { client_email: string; number: string; created_at: string }[]
+    | null) ?? []) {
+    const key = iv.client_email?.toLowerCase().trim();
+    if (!key || byEmail.has(key)) continue;
+    byEmail.set(key, {
+      email: key,
+      scans: 0,
+      lastAt: iv.created_at,
+      host: `Factuur ${iv.number}`,
       grade: null,
       score: null,
     });
