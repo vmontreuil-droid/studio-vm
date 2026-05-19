@@ -95,6 +95,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
     stopRef.current = false;
     setMode("auto");
     let safety = 0;
+    let batches = 0;
     while (!stopRef.current) {
       const r = await runOne();
       if (!r) break;
@@ -104,11 +105,14 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         emailsTotal: t.emailsTotal + r.emailsTotal,
         hasMore: r.hasMore,
       }));
-      router.refresh(); // verse data per batch → mail-pillen verschijnen live
+      // Tabel om de 10 batches verversen — niet elke batch, want
+      // dat onderbreekt de lopende async loop.
+      if (++batches % 10 === 0) router.refresh();
       if (r.scanned === 0 || !r.hasMore) break;
       if (++safety > 2000) break; // veiligheidsstop (200 000 prospects)
     }
     setMode("idle");
+    router.refresh();
   }
 
   function stop() {
