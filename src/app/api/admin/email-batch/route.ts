@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
     .select("enterprise_number, website")
     .not("website", "is", null)
     .is("email_scanned_at", null)
-    .order("name", { ascending: true })
     .limit(limit + 1);
   q = applyFilter(q, f);
 
