@@ -506,6 +506,170 @@ export async function createOfferInvoice(
   revalidatePath("/admin/facturen");
 }
 
+// Slotfactuur 70% — jij beslist wanneer die vertrekt. Idempotent:
+// max één slotfactuur per offerte.
+export async function createSlotInvoice(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("offers")
+    .select("id, client_email, offer_no, title, amount_cents, items")
+    .eq("id", id)
+    .maybeSingle();
+  const o = data as {
+    id: string;
+    client_email: string;
+    offer_no: string | null;
+    title: string;
+    amount_cents: number | null;
+    items: { cents: number }[] | null;
+  } | null;
+  if (!o?.client_email || (o.amount_cents ?? 0) <= 0) return;
+  const lockin = (o.items ?? []).some(
+    (it) => typeof it.cents === "number" && it.cents < 0,
+  );
+  if (!lockin) return; // zonder voorschot is er geen slot
+  const net = o.amount_cents ?? 0;
+  const deposit = Math.round(net * 0.3);
+  const slot = net - deposit;
+  if (slot <= 0) return;
+
+  const { data: existing } = await db
+    .from("invoices")
+    .select("id, description")
+    .eq("offer_id", o.id)
+    .like("description", "Slotfactuur%")
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    revalidatePath("/admin/klanten", "layout");
+    return;
+  }
+  const year = new Date().getFullYear();
+  const { count } = await db
+    .from("invoices")
+    .select("id", { count: "exact", head: true });
+  const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
+  const dueAt = new Date(Date.now() + 14 * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const desc = `Slotfactuur 70% — ${o.title}${
+    o.offer_no ? ` (${o.offer_no})` : ""
+  }`;
+  const { error } = await db.from("invoices").insert({
+    client_email: o.client_email,
+    number: invNo,
+    description: desc,
+    amount_cents: slot,
+    status: "open",
+    due_at: dueAt,
+    offer_id: o.id,
+  });
+  if (error) return;
+  await ensurePortalUser(o.client_email);
+  await notifyClient(
+    o.client_email,
+    "invoice",
+    [
+      `De slotfactuur staat voor je klaar: <strong>${invNo}</strong> — € ${(
+        slot / 100
+      ).toFixed(2)} (excl. btw).`,
+      `Betaalbaar tegen ${dueAt}. Je site gaat online zodra deze factuur betaald is. Je vindt 'm in je portaal — online via Mollie of via overschrijving.`,
+    ],
+    undefined,
+    "dashboard/facturen",
+  );
+  revalidatePath("/admin/klanten", "layout");
+  revalidatePath("/admin/facturen");
+}
+
+// "Livegang" voor maatwerk: jij klikt dit zodra de site online gaat.
+// Start het supportabonnement; 2 gratis maanden als het project via
+// Mollie betaald werd, anders meteen betalend vanaf maand 1.
+export async function startSupportSubscription(
+  formData: FormData,
+): Promise<void> {
+  if (!(await guard())) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const db = getSupabaseAdmin();
+  const { data } = await db
+    .from("offers")
+    .select("id, client_email, items")
+    .eq("id", id)
+    .maybeSingle();
+  const o = data as {
+    id: string;
+    client_email: string;
+    items: { label: string; kind?: string }[] | null;
+  } | null;
+  if (!o?.client_email) return;
+  const subItem = (o.items ?? []).find((it) => it.kind === "sub");
+  const tier = subItem
+    ? subscriptionTiers().find((t) =>
+        subItem.label.toLowerCase().includes(t.name.toLowerCase()),
+      )
+    : undefined;
+  if (!tier) return;
+
+  // Al een (actief/wachtend) supportabonnement voor deze offerte?
+  const { data: dup } = await db
+    .from("subscriptions")
+    .select("id")
+    .eq("offer_id", o.id)
+    .limit(1)
+    .maybeSingle();
+  if (dup) {
+    revalidatePath("/admin/klanten", "layout");
+    return;
+  }
+
+  // Via Mollie betaald project (een betaalde factuur met
+  // mollie_payment_id) → 2 gratis maanden; anders 0.
+  const { data: paidRows } = await db
+    .from("invoices")
+    .select("mollie_payment_id")
+    .eq("offer_id", o.id)
+    .eq("status", "betaald");
+  const viaMollie = ((paidRows as { mollie_payment_id: string | null }[]) ??
+    []).some((r) => !!r.mollie_payment_id);
+  const freeMonths = viaMollie ? 2 : 0;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { error } = await db.from("subscriptions").insert({
+    client_email: o.client_email,
+    plan: tier.name,
+    price_cents: tier.cents,
+    status: "actief",
+    started_at: today,
+    offer_id: o.id,
+    pay_method: viaMollie ? "mollie" : "transfer",
+    free_months: freeMonths,
+    last_cycle: 0,
+  });
+  if (error) return;
+  await ensurePortalUser(o.client_email);
+  await notifyClient(
+    o.client_email,
+    "subscription",
+    [
+      `Je site staat online en je <strong>${tier.name}</strong>-supportabonnement (€ ${(
+        tier.cents / 100
+      ).toFixed(2)}/maand) is gestart.`,
+      freeMonths > 0
+        ? `Je eerste ${freeMonths} maanden zijn gratis — daarna ontvang je maandelijks een factuur in je portaal.`
+        : `Je ontvangt maandelijks een factuur in je portaal.`,
+    ],
+    undefined,
+    "dashboard/abonnement",
+  );
+  revalidatePath("/admin/klanten", "layout");
+}
+
 export async function setOfferStatus(
   id: string,
   status: "open" | "akkoord" | "afgewezen",

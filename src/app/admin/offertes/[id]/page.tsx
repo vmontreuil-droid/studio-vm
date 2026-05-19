@@ -8,6 +8,8 @@ import {
   setOfferStatus,
   resendOffer,
   createOfferInvoice,
+  createSlotInvoice,
+  startSupportSubscription,
 } from "@/app/actions/portal-admin";
 import { PrintButton } from "@/components/print-button";
 
@@ -141,12 +143,26 @@ export default async function AdminOfferDoc({
             </form>
           )}
           {o.status === "akkoord" && (
-            <form action={createOfferInvoice}>
-              <input type="hidden" name="id" value={o.id} />
-              <button className="rounded-full border border-accent px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
-                + Voorschotfactuur
-              </button>
-            </form>
+            <>
+              <form action={createOfferInvoice}>
+                <input type="hidden" name="id" value={o.id} />
+                <button className="rounded-full border border-accent px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
+                  + Voorschotfactuur 30%
+                </button>
+              </form>
+              <form action={createSlotInvoice}>
+                <input type="hidden" name="id" value={o.id} />
+                <button className="rounded-full border border-accent px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-card-hover">
+                  + Slotfactuur 70%
+                </button>
+              </form>
+              <form action={startSupportSubscription}>
+                <input type="hidden" name="id" value={o.id} />
+                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
+                  Start support (livegang)
+                </button>
+              </form>
+            </>
           )}
         </div>
       </div>

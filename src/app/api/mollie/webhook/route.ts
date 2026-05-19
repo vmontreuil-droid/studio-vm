@@ -566,15 +566,75 @@ export async function POST(req: NextRequest) {
               updated_at: new Date().toISOString(),
             })
             .eq("id", sub.id);
-        } else if (sub.status !== "actief") {
+        } else {
+          // Geslaagde recurring incasso → terug/blijven actief,
+          // grace opheffen.
           await db
             .from("subscriptions")
             .update({
               status: "actief",
+              grace_until: null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", sub.id);
         }
+      }
+    } catch {
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+  }
+
+  // ---- Mislukte recurring incasso → dunning (10 dagen grace) ----
+  if (
+    subEmail &&
+    ["failed", "expired", "canceled", "charged_back"].includes(
+      payment.status,
+    )
+  ) {
+    try {
+      const db = getSupabaseAdmin();
+      const { data } = await db
+        .from("subscriptions")
+        .select("id, status, plan, grace_until")
+        .eq("client_email", subEmail)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const sub = data as {
+        id: string;
+        status: string;
+        plan: string;
+        grace_until: string | null;
+      } | null;
+      // Enkel de eerste keer een grace zetten + mailen.
+      if (sub && sub.status === "actief" && !sub.grace_until) {
+        const grace = new Date(Date.now() + 10 * 86400000)
+          .toISOString()
+          .slice(0, 10);
+        await db
+          .from("subscriptions")
+          .update({
+            status: "gepauzeerd",
+            grace_until: grace,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", sub.id);
+        await sendMail(subEmail, {
+          subject: "Betaling mislukt — actie nodig binnen 10 dagen",
+          html: portalEmailHtml({
+            locale: "nl",
+            eyebrow: "Actie nodig",
+            title: "Je abonnementsbetaling is mislukt",
+            bodyLines: [
+              `De automatische incasso voor je <strong>${sub.plan}</strong>-abonnement is mislukt.`,
+              `Regel het vóór <strong>${grace}</strong> in je portaal. Blijft de betaling uit, dan wordt je website na die datum tijdelijk offline gehaald tot het abonnement weer in orde is.`,
+            ],
+            ctaLabel: "Regel het in je portaal",
+            ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
+              "/nl/portail/dashboard/facturen",
+            )}`,
+          }),
+        }).catch(() => {});
       }
     } catch {
       return NextResponse.json({ ok: false }, { status: 500 });
