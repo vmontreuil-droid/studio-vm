@@ -16,8 +16,7 @@ type BatchResult = {
   scanned: number;
   withEmails: number;
   emailsTotal: number;
-  remainingBefore: number;
-  remainingAfter: number;
+  hasMore: boolean;
 };
 
 export function EmailBatchFinder({ filter }: { filter: Filter }) {
@@ -29,7 +28,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
     scanned: 0,
     withEmails: 0,
     emailsTotal: 0,
-    remaining: 0,
+    hasMore: true,
   });
   const [err, setErr] = useState<string | null>(null);
 
@@ -41,7 +40,14 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
       body: JSON.stringify({ filter, limit: 100 }),
     });
     if (!res.ok) {
-      setErr(`Server gaf ${res.status} terug`);
+      let detail = "";
+      try {
+        const j = await res.json();
+        if (j && typeof j === "object" && "error" in j) detail = String(j.error);
+      } catch {}
+      setErr(
+        `Server gaf ${res.status} terug${detail ? ` — ${detail}` : ""}`,
+      );
       return null;
     }
     return (await res.json()) as BatchResult;
@@ -56,7 +62,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         scanned: t.scanned + r.scanned,
         withEmails: t.withEmails + r.withEmails,
         emailsTotal: t.emailsTotal + r.emailsTotal,
-        remaining: r.remainingAfter,
+        hasMore: r.hasMore,
       }));
     }
     setMode("idle");
@@ -76,10 +82,10 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         scanned: t.scanned + r.scanned,
         withEmails: t.withEmails + r.withEmails,
         emailsTotal: t.emailsTotal + r.emailsTotal,
-        remaining: r.remainingAfter,
+        hasMore: r.hasMore,
       }));
-      if (r.scanned === 0 || r.remainingAfter === 0) break;
-      if (++safety > 200) break; // veiligheidsstop (20 000 prospects)
+      if (r.scanned === 0 || !r.hasMore) break;
+      if (++safety > 2000) break; // veiligheidsstop (200 000 prospects)
     }
     setMode("idle");
     router.refresh();
@@ -159,7 +165,9 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
             </strong>{" "}
             met mail ({totals.emailsTotal} adres
             {totals.emailsTotal === 1 ? "" : "sen"} totaal) ·{" "}
-            <span className="text-muted">{totals.remaining} te gaan</span>
+            <span className="text-muted">
+              {totals.hasMore ? "nog meer te gaan…" : "alles gescand ✓"}
+            </span>
           </span>
         </div>
       )}

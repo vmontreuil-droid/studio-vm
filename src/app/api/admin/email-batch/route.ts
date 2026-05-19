@@ -44,28 +44,29 @@ export async function POST(req: NextRequest) {
 
   const db = getSupabaseAdmin();
 
-  // Eén query: rijen + exact count tegelijk (count zit in dezelfde
-  // response). Geen aparte count-call meer → minder kans op cache-
-  // mismatch tussen de twee.
+  // Geen exact count — die is veel te traag op 1,95 M rijen. We
+  // halen LIMIT+1 rijen op zodat we kunnen vertellen "is er nog
+  // meer" zonder een count-scan over de hele tabel.
   let q = db
     .from("kbo_enterprises")
-    .select("enterprise_number, website", { count: "exact" })
+    .select("enterprise_number, website")
     .not("website", "is", null)
     .is("email_scanned_at", null)
     .order("name", { ascending: true })
-    .limit(limit);
+    .limit(limit + 1);
   q = applyFilter(q, f);
 
-  const { data, error, count } = await q;
+  const { data, error } = await q;
   if (error) {
     return NextResponse.json(
       { error: error.message, hint: "select" },
       { status: 500 },
     );
   }
-  const rows =
+  const all =
     (data as { enterprise_number: string; website: string }[] | null) ?? [];
-  const remainingBefore = count ?? rows.length;
+  const hasMore = all.length > limit;
+  const rows = hasMore ? all.slice(0, limit) : all;
 
   let scanned = 0;
   let withEmails = 0;
@@ -107,7 +108,6 @@ export async function POST(req: NextRequest) {
     scanned,
     withEmails,
     emailsTotal,
-    remainingBefore,
-    remainingAfter: Math.max(0, remainingBefore - scanned),
+    hasMore,
   });
 }
