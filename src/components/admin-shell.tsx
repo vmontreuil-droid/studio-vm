@@ -37,6 +37,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
 
 export type AdminCounts = {
   nieuw: number;
@@ -149,14 +150,7 @@ function Sidebar({
           collapsed ? "justify-center" : "justify-between"
         }`}
       >
-        {!collapsed && (
-          <p className="text-xl font-extrabold lowercase tracking-tighter text-foreground">
-            vm<span className="text-accent">.</span>
-            <span className="ml-2 align-middle font-mono text-[10px] font-normal uppercase tracking-widest text-muted">
-              admin
-            </span>
-          </p>
-        )}
+        {!collapsed && <Logo className="text-3xl" withAdmin />}
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -362,12 +356,7 @@ export function AdminShell({
     <div className="flex min-h-dvh bg-background">
       {/* Mobiele topbar */}
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur md:hidden">
-        <p className="text-lg font-extrabold lowercase tracking-tighter">
-          vm<span className="text-accent">.</span>
-          <span className="ml-2 align-middle font-mono text-[9px] font-normal uppercase tracking-widest text-muted">
-            admin
-          </span>
-        </p>
+        <Logo className="text-2xl" withAdmin />
         <button
           type="button"
           onClick={() => setOpen(true)}
