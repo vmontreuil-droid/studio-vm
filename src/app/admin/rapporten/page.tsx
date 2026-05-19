@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Download, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { TrendChart } from "@/components/trend-chart";
+import { ChartCard } from "@/components/charts";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -169,6 +171,33 @@ export default async function AdminRapporten({
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ChartCard title={`Omzet per kwartaal — ${year}`}>
+          <TrendChart
+            id="rap-omzet"
+            color="var(--accent)"
+            height={150}
+            unit=" €"
+            points={Q.map((q) => ({
+              label: `Q${q.q}`,
+              value: Math.round(q.omzet / 100),
+            }))}
+          />
+        </ChartCard>
+        <ChartCard title={`Kosten per kwartaal — ${year}`}>
+          <TrendChart
+            id="rap-kosten"
+            color="#0ea5e9"
+            height={150}
+            unit=" €"
+            points={Q.map((q) => ({
+              label: `Q${q.q}`,
+              value: Math.round(q.kosten / 100),
+            }))}
+          />
+        </ChartCard>
       </div>
 
       <div className="mt-3 overflow-hidden rounded-2xl bg-card shadow-sm">

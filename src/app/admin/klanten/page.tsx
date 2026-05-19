@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { addClient } from "@/app/actions/portal-admin";
+import { TrendChart } from "@/components/trend-chart";
+import { ChartCard } from "@/components/charts";
 import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
@@ -170,6 +172,18 @@ export default async function AdminKlanten({
     );
   }
 
+  const allClients = [...byEmail.values()];
+  const nowK = new Date();
+  const newPerMonth = Array.from({ length: 6 }, (_, k) => {
+    const dt = new Date(nowK.getFullYear(), nowK.getMonth() - (5 - k), 1);
+    const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: dt.toLocaleDateString("nl-BE", { month: "short" }),
+      value: allClients.filter((c) => (c.lastAt ?? "").startsWith(ym))
+        .length,
+    };
+  });
+
   const gradeColor = (s: number | null) =>
     s == null
       ? "bg-muted/15 text-muted"
@@ -203,6 +217,17 @@ export default async function AdminKlanten({
         {clients.length} klant{clients.length === 1 ? "" : "en"} — automatisch
         uit scans, configurator-aanvragen en abonnementen.
       </p>
+
+      <div className="mt-5">
+        <ChartCard title="Nieuwe klanten — laatste 6 maanden">
+          <TrendChart
+            id="kl-nieuw"
+            color="var(--accent)"
+            height={140}
+            points={newPerMonth}
+          />
+        </ChartCard>
+      </div>
 
       <form
         action={addClient}
