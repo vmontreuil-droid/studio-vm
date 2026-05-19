@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  TrendingUp,
+  CircleAlert,
+  CheckCircle2,
+  FileText,
+  Plus,
+  Receipt,
+} from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -168,21 +176,33 @@ export default async function AdminDashboard() {
   const unreadForms = forms.filter((f) => !f.is_read).length;
 
   const money = [
-    { k: "MRR", v: eur(mrr), href: "/admin/abonnementen" },
+    {
+      k: "MRR",
+      v: eur(mrr),
+      href: "/admin/abonnementen",
+      icon: TrendingUp,
+      sub: "terugkerend per maand",
+    },
     {
       k: "Openstaand",
       v: eur(openInvoiceTotal),
       href: "/admin/facturen?status=open",
+      icon: CircleAlert,
+      sub: "nog te ontvangen",
     },
     {
       k: "Betaald deze maand",
       v: eur(paidThisMonth),
       href: "/admin/facturen?status=betaald",
+      icon: CheckCircle2,
+      sub: "ontvangen deze maand",
     },
     {
       k: "Open offertes",
       v: eur(openOfferValue),
       href: "/admin/offertes?status=open",
+      icon: FileText,
+      sub: "in afwachting",
     },
   ];
 
@@ -311,21 +331,58 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted">
+            {now.toLocaleDateString("nl-BE", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/offertes/nieuw"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Nieuwe offerte
+          </Link>
+          <Link
+            href="/admin/facturen"
+            className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-card-hover"
+          >
+            <Receipt className="h-4 w-4" strokeWidth={2} />
+            Facturen
+          </Link>
+        </div>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {money.map((s) => (
-          <Link
-            key={s.k}
-            href={s.href}
-            className="rounded-2xl border border-accent/30 bg-accent/5 p-5 transition-colors hover:bg-accent/10"
-          >
-            <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-              {s.k}
-            </p>
-            <p className="mt-1 truncate text-2xl font-semibold">{s.v}</p>
-          </Link>
-        ))}
+        {money.map((s) => {
+          const Icon = s.icon;
+          return (
+            <Link
+              key={s.k}
+              href={s.href}
+              className="rounded-2xl border bg-card p-5 transition-colors hover:bg-card-hover"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {s.k}
+                </p>
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent/10 text-accent">
+                  <Icon className="h-4 w-4" strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-2 truncate text-2xl font-semibold">{s.v}</p>
+              <p className="mt-0.5 text-xs text-muted">{s.sub}</p>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mt-3 rounded-2xl border bg-card p-5">
