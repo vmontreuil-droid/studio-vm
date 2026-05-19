@@ -104,11 +104,11 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         emailsTotal: t.emailsTotal + r.emailsTotal,
         hasMore: r.hasMore,
       }));
+      router.refresh(); // verse data per batch → mail-pillen verschijnen live
       if (r.scanned === 0 || !r.hasMore) break;
       if (++safety > 2000) break; // veiligheidsstop (200 000 prospects)
     }
     setMode("idle");
-    router.refresh();
   }
 
   function stop() {
