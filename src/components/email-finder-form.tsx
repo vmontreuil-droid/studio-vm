@@ -5,7 +5,11 @@ import { Search, Mail, Copy, AlertCircle } from "lucide-react";
 import { findEmailsAction } from "@/app/actions/email-finder";
 import { SubmitButton } from "@/components/submit-button";
 
-export function EmailFinderForm() {
+export function EmailFinderForm({
+  initialUrl,
+}: {
+  initialUrl?: string;
+}) {
   const [state, action] = useActionState(findEmailsAction, null);
 
   return (
@@ -18,6 +22,7 @@ export function EmailFinderForm() {
           <input
             name="url"
             required
+            defaultValue={initialUrl ?? ""}
             placeholder="bv. carpentiernv.be"
             className="flex-1 rounded-full border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
           />

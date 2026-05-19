@@ -5,8 +5,13 @@ import { EmailFinderForm } from "@/components/email-finder-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminEmailFinder() {
+export default async function AdminEmailFinder({
+  searchParams,
+}: {
+  searchParams: Promise<{ url?: string }>;
+}) {
   if (!adminConfigured || !(await requireAdmin())) return null;
+  const { url } = await searchParams;
   return (
     <>
       <div>
@@ -36,7 +41,7 @@ export default async function AdminEmailFinder() {
         </p>
       </div>
 
-      <EmailFinderForm />
+      <EmailFinderForm initialUrl={url} />
     </>
   );
 }

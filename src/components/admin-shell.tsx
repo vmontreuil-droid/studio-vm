@@ -36,6 +36,7 @@ import {
   Landmark,
   BarChart3,
   MailSearch,
+  Building2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -109,6 +110,7 @@ const groups: {
       { href: "/admin/monitors", label: "Monitors", icon: Activity, badge: "monitorsActief" },
       { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
       { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
+      { href: "/admin/prospects", label: "Prospects (KBO)", icon: Building2 },
     ],
   },
   {
