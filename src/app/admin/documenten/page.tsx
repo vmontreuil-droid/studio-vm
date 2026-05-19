@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { FileText, Receipt, Paperclip, Search } from "lucide-react";
+import {
+  FileText,
+  Receipt,
+  Paperclip,
+  Search,
+  ReceiptText,
+} from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-type DocType = "offerte" | "factuur" | "bestand";
+type DocType = "offerte" | "factuur" | "aankoop" | "bestand";
 
 type Doc = {
   type: DocType;
@@ -21,6 +27,7 @@ type Doc = {
 const TYPES: { key: DocType; label: string; icon: typeof FileText }[] = [
   { key: "offerte", label: "Offertes", icon: FileText },
   { key: "factuur", label: "Facturen", icon: Receipt },
+  { key: "aankoop", label: "Aankoop", icon: ReceiptText },
   { key: "bestand", label: "Bestanden", icon: Paperclip },
 ];
 
@@ -33,7 +40,7 @@ export default async function AdminDocumenten({
   const { type, q } = await searchParams;
   const db = getSupabaseAdmin();
 
-  const [offR, invR, docR] = await Promise.all([
+  const [offR, invR, docR, purR] = await Promise.all([
     db
       .from("offers")
       .select("id, client_email, title, amount_cents, status, created_at")
@@ -48,6 +55,13 @@ export default async function AdminDocumenten({
       .from("documents")
       .select("id, client_email, name, url, kind, created_at")
       .order("created_at", { ascending: false })
+      .limit(1000),
+    db
+      .from("purchase_invoices")
+      .select(
+        "id, supplier_name, number, total_cents, status, invoice_date",
+      )
+      .order("invoice_date", { ascending: false })
       .limit(1000),
   ]);
 
@@ -69,6 +83,17 @@ export default async function AdminDocumenten({
       amountCents: (i.amount_cents as number | null) ?? null,
       status: (i.status as string | null) ?? null,
       href: `/admin/facturen/${i.id as string}`,
+    })),
+    ...((purR.data as Record<string, unknown>[] | null) ?? []).map((p) => ({
+      type: "aankoop" as const,
+      title: `${(p.supplier_name as string) || "Aankoop"}${
+        p.number ? ` · ${p.number as string}` : ""
+      }`,
+      client: (p.supplier_name as string) ?? "",
+      at: (p.invoice_date as string) ?? "",
+      amountCents: (p.total_cents as number | null) ?? null,
+      status: (p.status as string | null) ?? null,
+      href: `/admin/aankoopfacturen`,
     })),
     ...((docR.data as Record<string, unknown>[] | null) ?? []).map((d) => ({
       type: "bestand" as const,
@@ -92,9 +117,10 @@ export default async function AdminDocumenten({
 
   const eur = (c: number | null) =>
     c == null ? "" : `€ ${(c / 100).toFixed(2)}`;
-  const counts = {
+  const counts: Record<DocType, number> = {
     offerte: docs.filter((d) => d.type === "offerte").length,
     factuur: docs.filter((d) => d.type === "factuur").length,
+    aankoop: docs.filter((d) => d.type === "aankoop").length,
     bestand: docs.filter((d) => d.type === "bestand").length,
   };
   const qs = (t?: string) => {
@@ -109,6 +135,8 @@ export default async function AdminDocumenten({
       "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     factuur:
       "bg-accent/10 text-accent",
+    aankoop:
+      "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     bestand:
       "bg-slate-500/10 text-slate-600 dark:text-slate-400",
   };

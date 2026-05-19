@@ -31,6 +31,8 @@ import {
   FolderArchive,
   FileMinus,
   Package,
+  ReceiptText,
+  Truck,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -72,6 +74,13 @@ const groups: {
       { href: "/admin/abonnementen", label: "Abonnementen", icon: Repeat },
       { href: "/admin/producten", label: "Producten", icon: Package },
       { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
+    ],
+  },
+  {
+    title: "Aankoop",
+    items: [
+      { href: "/admin/aankoopfacturen", label: "Aankoopfacturen", icon: ReceiptText },
+      { href: "/admin/leveranciers", label: "Leveranciers", icon: Truck },
     ],
   },
   {

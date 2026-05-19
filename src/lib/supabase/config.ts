@@ -46,3 +46,10 @@ export const paymentsEnabled = !["1", "true", "on"].includes(
   (process.env.PAYMENTS_OFF ?? "").trim().toLowerCase(),
 );
 export const mollieConfigured = Boolean(mollieApiKey) && paymentsEnabled;
+
+// Aankoop-OCR via Mindee (optioneel). Zonder MINDEE_API_KEY werkt de
+// aankoopmodule volledig handmatig; mét key worden leverancier,
+// bedrag, btw en datum automatisch uit de geüploade bon/factuur
+// gehaald. Sleutel: Mindee dashboard → API Keys.
+export const mindeeApiKey = process.env.MINDEE_API_KEY ?? "";
+export const mindeeConfigured = Boolean(mindeeApiKey);

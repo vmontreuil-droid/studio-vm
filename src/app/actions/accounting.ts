@@ -186,3 +186,174 @@ export async function setCreditNoteStatus(fd: FormData): Promise<void> {
     revalidatePath(`/admin/creditnotas/${id}`);
   } catch {}
 }
+
+// ---------- Module 4 — aankoop & leveranciers ----------
+
+export async function saveSupplier(
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const id = str(fd, "id");
+  const row = {
+    name: str(fd, "name") || "Naamloos",
+    vat_number: str(fd, "vat_number"),
+    email: str(fd, "email"),
+    iban: str(fd, "iban"),
+    notes: str(fd, "notes"),
+  };
+  try {
+    const db = getSupabaseAdmin();
+    const { error } = id
+      ? await db.from("suppliers").update(row).eq("id", id)
+      : await db.from("suppliers").insert(row);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/admin/leveranciers");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function saveSupplierAction(
+  _prev: { ok: boolean; error?: string } | null,
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  return saveSupplier(fd);
+}
+
+export async function deleteSupplier(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  if (!id) return;
+  try {
+    await getSupabaseAdmin().from("suppliers").delete().eq("id", id);
+    revalidatePath("/admin/leveranciers");
+  } catch {}
+}
+
+// Upload het bron-bestand + lees het (optioneel) uit via Mindee.
+// Retourneert de prefill-velden zodat de admin ze kan nakijken.
+export async function scanPurchase(
+  fd: FormData,
+): Promise<{
+  ok: boolean;
+  error?: string;
+  fileUrl?: string;
+  ocrApplied?: boolean;
+  fields?: {
+    supplierName: string | null;
+    supplierVat: string | null;
+    number: string | null;
+    invoiceDate: string | null;
+    dueDate: string | null;
+    net: number | null;
+    vat: number | null;
+    total: number | null;
+    vatRate: number | null;
+  };
+}> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const file = fd.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Geen bestand." };
+  }
+  try {
+    const db = getSupabaseAdmin();
+    const safe = (file.name || "bon")
+      .replace(/[^\w.\-]+/g, "_")
+      .slice(-80);
+    const path = `${Date.now()}-${safe}`;
+    const up = await db.storage
+      .from("purchases")
+      .upload(path, file, { upsert: false });
+    if (up.error) return { ok: false, error: up.error.message };
+
+    const { parseInvoice } = await import("@/lib/mindee");
+    const parsed = await parseInvoice(file);
+    return {
+      ok: true,
+      fileUrl: path,
+      ocrApplied: !!parsed,
+      fields: {
+        supplierName: parsed?.supplierName ?? null,
+        supplierVat: parsed?.supplierVat ?? null,
+        number: parsed?.invoiceNumber ?? null,
+        invoiceDate: parsed?.invoiceDate ?? null,
+        dueDate: parsed?.dueDate ?? null,
+        net: parsed?.netCents ?? null,
+        vat: parsed?.vatCents ?? null,
+        total: parsed?.totalCents ?? null,
+        vatRate: parsed?.vatRate ?? null,
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function createPurchaseInvoice(
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await requireAdmin())) return { ok: false, error: "Geen toegang." };
+  const net = cents(fd, "net");
+  const vat = cents(fd, "vat");
+  const totalRaw = cents(fd, "total");
+  const total = totalRaw || net + vat;
+  try {
+    const { error } = await getSupabaseAdmin()
+      .from("purchase_invoices")
+      .insert({
+        supplier_name: str(fd, "supplier_name"),
+        number: str(fd, "number"),
+        net_cents: net,
+        vat_cents: vat,
+        total_cents: total,
+        vat_rate: num(fd, "vat_rate", 21),
+        category: str(fd, "category"),
+        invoice_date:
+          str(fd, "invoice_date") ||
+          new Date().toISOString().slice(0, 10),
+        due_date: str(fd, "due_date"),
+        file_url: str(fd, "file_url"),
+      });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/admin/aankoopfacturen");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fout." };
+  }
+}
+
+export async function createPurchaseInvoiceAction(
+  _prev: { ok: boolean; error?: string } | null,
+  fd: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  return createPurchaseInvoice(fd);
+}
+
+export async function setPurchaseStatus(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  const status = str(fd, "status");
+  if (!id || (status !== "open" && status !== "betaald")) return;
+  try {
+    await getSupabaseAdmin()
+      .from("purchase_invoices")
+      .update({ status })
+      .eq("id", id);
+    revalidatePath("/admin/aankoopfacturen");
+  } catch {}
+}
+
+export async function deletePurchaseInvoice(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const id = str(fd, "id");
+  if (!id) return;
+  try {
+    await getSupabaseAdmin()
+      .from("purchase_invoices")
+      .delete()
+      .eq("id", id);
+    revalidatePath("/admin/aankoopfacturen");
+  } catch {}
+}
