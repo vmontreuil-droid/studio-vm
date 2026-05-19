@@ -17,6 +17,7 @@ type BatchResult = {
   withEmails: number;
   emailsTotal: number;
   hasMore: boolean;
+  remaining: number | null;
   _debug?: unknown;
 };
 
@@ -30,6 +31,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
     withEmails: 0,
     emailsTotal: 0,
     hasMore: true,
+    remaining: null as number | null,
   });
   const [err, setErr] = useState<string | null>(null);
   const [debug, setDebug] = useState<unknown>(null);
@@ -83,6 +85,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         withEmails: t.withEmails + r.withEmails,
         emailsTotal: t.emailsTotal + r.emailsTotal,
         hasMore: r.hasMore,
+        remaining: r.remaining,
       }));
     }
     setMode("idle");
@@ -104,6 +107,7 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
         withEmails: t.withEmails + r.withEmails,
         emailsTotal: t.emailsTotal + r.emailsTotal,
         hasMore: r.hasMore,
+        remaining: r.remaining,
       }));
       // Tabel om de 10 batches verversen — niet elke batch, want
       // dat onderbreekt de lopende async loop.
@@ -192,7 +196,11 @@ export function EmailBatchFinder({ filter }: { filter: Filter }) {
             met mail ({totals.emailsTotal} adres
             {totals.emailsTotal === 1 ? "" : "sen"} totaal) ·{" "}
             <span className="text-muted">
-              {totals.hasMore ? "nog meer te gaan…" : "alles gescand ✓"}
+              {totals.hasMore
+                ? totals.remaining != null
+                  ? `±${totals.remaining.toLocaleString("nl-BE")} te gaan`
+                  : "nog meer te gaan…"
+                : "alles gescand ✓"}
             </span>
           </span>
         </div>

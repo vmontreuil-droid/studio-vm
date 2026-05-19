@@ -51,13 +51,13 @@ export async function POST(req: NextRequest) {
   // meer" zonder een count-scan over de hele tabel.
   let q = db
     .from("kbo_enterprises")
-    .select("enterprise_number, website")
+    .select("enterprise_number, website", { count: "planned" })
     .not("website", "is", null)
     .is("email_scanned_at", null)
     .limit(limit + 1);
   q = applyFilter(q, f);
 
-  const { data, error } = await q;
+  const { data, error, count } = await q;
   if (error) {
     return NextResponse.json(
       { error: error.message, hint: "select" },
@@ -140,5 +140,6 @@ export async function POST(req: NextRequest) {
     withEmails,
     emailsTotal,
     hasMore,
+    remaining: typeof count === "number" ? Math.max(0, count - scanned) : null,
   });
 }
