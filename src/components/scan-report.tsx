@@ -687,9 +687,15 @@ function Fact({ label, value }: { label: string; value: string }) {
 export function ScanReport({
   scan,
   locale,
+  proposalHref,
+  proposalLabel,
 }: {
   scan: ScanResult & { ok: true };
   locale: Locale;
+  /** Bestaande offerte van de ingelogde klant — wint van de
+   *  configurator-link wanneer aanwezig. */
+  proposalHref?: string;
+  proposalLabel?: string;
 }) {
   const r = scan;
   const t = UI[locale];
@@ -1223,10 +1229,22 @@ export function ScanReport({
                   : "Je exacte vaste prijs — pakket, verplicht onderhoud, domein en e-mail — stel je samen in de configurator, waar je alles vastlegt (30% aanbetaling)."}
             </p>
             <Link
-              href={localePath(locale, "/offerte")}
+              href={
+                proposalHref ??
+                localePath(
+                  locale,
+                  `/offerte?pakket=${
+                    baseKey === "base_webshop"
+                      ? "webshop"
+                      : baseKey === "base_pro"
+                        ? "pro"
+                        : "onepager"
+                  }`,
+                )
+              }
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
-              {pl.cta}
+              {proposalHref ? (proposalLabel ?? pl.cta) : pl.cta}
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </Link>
           </div>

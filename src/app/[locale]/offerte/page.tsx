@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Check, Send, Loader2, AlertTriangle } from "lucide-react";
 import { submitQuote, startOffer, lookupVat } from "@/app/actions/quote";
 import {
@@ -405,6 +405,17 @@ export default function OffertePage() {
   const subs = useMemo(() => subscriptionTiers(), []);
 
   const [baseSlug, setBaseSlug] = useState("");
+  // Komt de bezoeker van een scan-analyse (?pakket=…) → pakket
+  // alvast voorselecteren zodat hij meteen zijn voorstel ziet.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const wanted = searchParams.get("pakket")?.trim().toLowerCase();
+    if (!wanted) return;
+    setBaseSlug((cur) =>
+      cur ? cur : bases.some((b) => b.slug === wanted) ? wanted : cur,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [extras, setExtras] = useState<Set<string>>(new Set());
   const [subSlug, setSubSlug] = useState("");
   const [domain, setDomain] = useState<Domain>("connect");

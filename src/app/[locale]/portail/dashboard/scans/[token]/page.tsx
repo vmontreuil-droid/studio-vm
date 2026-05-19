@@ -8,7 +8,14 @@ import type { ScanResult } from "@/app/actions/scan";
 
 const SH: Record<
   string,
-  { label: string; copied: string; mail: string; subject: string; hint: string }
+  {
+    label: string;
+    copied: string;
+    mail: string;
+    subject: string;
+    hint: string;
+    proposal: string;
+  }
 > = {
   nl: {
     label: "Deel deze analyse",
@@ -16,6 +23,7 @@ const SH: Record<
     mail: "Mail",
     subject: "Mijn website-analyse — Studio VM",
     hint: "Deel deze analyse met wie je wil — de link werkt zonder login.",
+    proposal: "Bekijk je voorstel",
   },
   fr: {
     label: "Partager cette analyse",
@@ -23,6 +31,7 @@ const SH: Record<
     mail: "E-mail",
     subject: "Mon analyse de site — Studio VM",
     hint: "Partagez cette analyse avec qui vous voulez — le lien fonctionne sans connexion.",
+    proposal: "Voir votre proposition",
   },
   en: {
     label: "Share this analysis",
@@ -30,6 +39,7 @@ const SH: Record<
     mail: "Email",
     subject: "My website analysis — Studio VM",
     hint: "Share this analysis with anyone — the link works without login.",
+    proposal: "View your proposal",
   },
 };
 
@@ -59,6 +69,19 @@ export default async function PortalScanDetail({
   const sh = SH[locale] ?? SH.nl;
   const shareUrl = `${siteUrl}/${locale}/portail/scan/${token}`;
 
+  // Heeft deze (ingelogde) klant al een voorstel/offerte? Dan linkt
+  // de plan-CTA naar zijn offerte i.p.v. de configurator.
+  const { data: offData } = await sb
+    .from("offers")
+    .select("id, status")
+    .neq("status", "afgewezen")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const proposalHref = offData
+    ? `/${locale}/portail/dashboard/offertes`
+    : undefined;
+
   return (
     <>
       <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4">
@@ -71,7 +94,12 @@ export default async function PortalScanDetail({
           subject={sh.subject}
         />
       </div>
-      <ScanReport scan={row.scan} locale={locale} />
+      <ScanReport
+        scan={row.scan}
+        locale={locale}
+        proposalHref={proposalHref}
+        proposalLabel={sh.proposal}
+      />
     </>
   );
 }
