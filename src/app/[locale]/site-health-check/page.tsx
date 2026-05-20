@@ -25,7 +25,6 @@ type Block = {
   title: string;
   sub: string;
   bullets: string[];
-  freeFirst: { title: string; sub: string; cta: string };
   compare: {
     title: string;
     sub: string;
@@ -85,6 +84,32 @@ type Block = {
       fix: string;
       impact: string;
     }[];
+    extras: {
+      intro: string;
+      invoice: {
+        label: string;
+        fromLabel: string;
+        from: string;
+        toLabel: string;
+        to: string;
+        descLabel: string;
+        desc: string;
+        exclLabel: string;
+        vatLabel: string;
+        totalLabel: string;
+        stamp: string;
+      };
+      mail: {
+        from: string;
+        subjectLabel: string;
+        subject: string;
+        body: string;
+        cta: string;
+      };
+      mobile: {
+        statusBar: string;
+      };
+    };
   };
   faq: { title: string; items: { q: string; a: string }[] };
   formTitle: string;
@@ -107,13 +132,9 @@ const T: Record<Locale, Block> = {
       "Top-3 prioriteiten met concrete fix-stappen",
       "Persoonlijk rapport via je eigen klantenportaal",
       "30 min videocall met mij om alles uit te leggen",
+      "Officiële factuur (incl. btw) — meteen na betaling in je mailbox",
       "Geen abonnement, geen vervolgverkoop",
     ],
-    freeFirst: {
-      title: "Wil je eerst even gratis kijken?",
-      sub: "Doe een snelle scan zonder iets te betalen — je krijgt meteen je score en de grote pijnpunten. Als je daarna een diepere analyse wil, kan je hier €99 betalen.",
-      cta: "Start gratis preview-scan",
-    },
     compare: {
       title: "Gratis scan versus Health Check €99",
       sub: "Hetzelfde scan-engine, maar de €99 ontgrendelt het volledige rapport en het persoonlijke actieplan. Geen 30-min call nodig — je kan direct aan de slag.",
@@ -132,6 +153,7 @@ const T: Record<Locale, Block> = {
         { feat: "DNS + security headers volledig uitgewerkt", free: false, paid: true },
         { feat: "Opvolg-mails (op 3 + 7 dagen)", free: false, paid: true },
         { feat: "Inbegrepen 30-min videocall met Vincent", free: false, paid: true },
+        { feat: "Officiële factuur (PDF + portaal)", free: false, paid: true },
         { feat: "Geld-terug-garantie", free: "n.v.t.", paid: true },
       ],
     },
@@ -173,7 +195,7 @@ const T: Record<Locale, Block> = {
         },
       ],
       conclusion:
-        "Een eerlijke, lokaal-Belgische, middenprijs-audit met persoonlijke verantwoordelijkheid bestond gewoon niet. Daarom dit.",
+        "Een eerlijke, lokaal-Belgische, middenprijs-audit met persoonlijke verantwoordelijkheid bestond gewoon niet. Daarom heb ik de Health Check €99 gemaakt.",
     },
     whatYouGet: {
       title: "Wat krijg je concreet voor €99?",
@@ -212,6 +234,11 @@ const T: Record<Locale, Block> = {
           icon: Video,
           title: "30 min videocall",
           desc: "Ik loop het rapport live met je door, beantwoord je vragen, en zeg eerlijk wat dringend is en wat kan wachten.",
+        },
+        {
+          icon: FileText,
+          title: "Officiële factuur",
+          desc: "Meteen na betaling krijg je een echte factuur (€81,82 excl. + €17,18 btw 21% = €99 incl.) — beschikbaar in je portaal en als PDF in je inbox. Aftrekbaar in de boekhouding.",
         },
         {
           icon: AlertTriangle,
@@ -306,6 +333,32 @@ const T: Record<Locale, Block> = {
           impact: "Hogere click-through op gedeelde links — vooral relevant voor restaurants, winkels, evenementen.",
         },
       ],
+      extras: {
+        intro: "En alles wat na de betaling automatisch op je afkomt:",
+        invoice: {
+          label: "Factuur",
+          fromLabel: "Van",
+          from: "Studio VM · Vincent Montreuil",
+          toLabel: "Voor",
+          to: "monsite.be",
+          descLabel: "Omschrijving",
+          desc: "Site Health Check — monsite.be",
+          exclLabel: "Excl. btw",
+          vatLabel: "Btw 21%",
+          totalLabel: "Totaal incl. btw",
+          stamp: "Betaald",
+        },
+        mail: {
+          from: "Vincent · studio-vm.be",
+          subjectLabel: "Onderwerp",
+          subject: "Je Site Health Check is klaar 🎉",
+          body: "Je rapport staat klaar in je portaal — met je score, de verbeterpunten en mijn actieplan.",
+          cta: "Open mijn rapport",
+        },
+        mobile: {
+          statusBar: "9:41",
+        },
+      },
     },
     faq: {
       title: "Veelgestelde vragen",
@@ -350,13 +403,9 @@ const T: Record<Locale, Block> = {
       "Top-3 priorités avec étapes concrètes",
       "Rapport personnel via votre portail client",
       "Appel vidéo de 30 min avec moi pour tout expliquer",
+      "Facture officielle (TVA incluse) — directement dans votre boîte mail",
       "Pas d'abonnement, pas de vente suivie",
     ],
-    freeFirst: {
-      title: "Vous voulez d'abord regarder gratuitement ?",
-      sub: "Faites un scan rapide sans rien payer — vous obtenez immédiatement votre score et les grands points faibles. Si vous voulez ensuite une analyse plus profonde, vous pouvez payer 99€ ici.",
-      cta: "Lancer le scan gratuit",
-    },
     compare: {
       title: "Scan gratuit versus Health Check 99€",
       sub: "Même moteur de scan, mais le 99€ débloque le rapport complet et le plan d'action personnel. Pas besoin d'appel — vous pouvez commencer directement.",
@@ -375,6 +424,7 @@ const T: Record<Locale, Block> = {
         { feat: "DNS + security headers complets", free: false, paid: true },
         { feat: "Mails de suivi (J+3 et J+7)", free: false, paid: true },
         { feat: "Appel vidéo 30 min inclus", free: false, paid: true },
+        { feat: "Facture officielle (PDF + portail)", free: false, paid: true },
         { feat: "Garantie satisfait ou remboursé", free: "n/a", paid: true },
       ],
     },
@@ -416,7 +466,7 @@ const T: Record<Locale, Block> = {
         },
       ],
       conclusion:
-        "Un audit honnête, local-belge, à prix moyen, avec une responsabilité personnelle, n'existait tout simplement pas. Voilà pourquoi.",
+        "Un audit honnête, local-belge, à prix moyen, avec une responsabilité personnelle, n'existait tout simplement pas. C'est pour cela que j'ai créé le Health Check 99€.",
     },
     whatYouGet: {
       title: "Que recevez-vous concrètement pour 99€ ?",
@@ -455,6 +505,11 @@ const T: Record<Locale, Block> = {
           icon: Video,
           title: "Appel vidéo 30 min",
           desc: "Je passe le rapport en revue en direct, réponds à vos questions, dis honnêtement ce qui est urgent.",
+        },
+        {
+          icon: FileText,
+          title: "Facture officielle",
+          desc: "Immédiatement après paiement, vous recevez une vraie facture (81,82€ HT + 17,18€ TVA 21% = 99€ TTC) — dans le portail et en PDF dans votre boîte mail. Déductible.",
         },
         {
           icon: AlertTriangle,
@@ -549,6 +604,32 @@ const T: Record<Locale, Block> = {
           impact: "Plus de clics sur les liens partagés — surtout pour restaurants, boutiques, événements.",
         },
       ],
+      extras: {
+        intro: "Et tout ce qui arrive automatiquement après le paiement :",
+        invoice: {
+          label: "Facture",
+          fromLabel: "De",
+          from: "Studio VM · Vincent Montreuil",
+          toLabel: "Pour",
+          to: "monsite.be",
+          descLabel: "Description",
+          desc: "Site Health Check — monsite.be",
+          exclLabel: "HT",
+          vatLabel: "TVA 21%",
+          totalLabel: "Total TTC",
+          stamp: "Payé",
+        },
+        mail: {
+          from: "Vincent · studio-vm.be",
+          subjectLabel: "Sujet",
+          subject: "Votre Site Health Check est prêt 🎉",
+          body: "Votre rapport est dans votre portail — avec votre score, les points d'amélioration et mon plan d'action.",
+          cta: "Ouvrir mon rapport",
+        },
+        mobile: {
+          statusBar: "9:41",
+        },
+      },
     },
     faq: {
       title: "Questions fréquentes",
@@ -593,13 +674,9 @@ const T: Record<Locale, Block> = {
       "Top-3 priorities with concrete fix steps",
       "Personal report via your client portal",
       "Written email Q&A — I answer your follow-up questions",
+      "Official invoice (incl. VAT) — sent to your inbox right after payment",
       "No subscription, no follow-up sales pressure",
     ],
-    freeFirst: {
-      title: "Want to look for free first?",
-      sub: "Run a quick scan without paying anything — you'll get your score and the major pain points immediately. If you then want deeper analysis, you can pay €99 here.",
-      cta: "Run free preview scan",
-    },
     compare: {
       title: "Free scan versus Health Check €99",
       sub: "Same scan engine, but the €99 unlocks the full report and personal action plan. No call required — you can start immediately.",
@@ -659,7 +736,7 @@ const T: Record<Locale, Block> = {
         },
       ],
       conclusion:
-        "An honest, locally-Belgian, mid-priced audit with personal responsibility simply didn't exist. That's why this exists.",
+        "An honest, locally-Belgian, mid-priced audit with personal responsibility simply didn't exist. That's why I built the Health Check €99.",
     },
     whatYouGet: {
       title: "What you concretely get for €99",
@@ -780,6 +857,32 @@ const T: Record<Locale, Block> = {
           impact: "Higher click-through on shared links — especially for restaurants, shops, events.",
         },
       ],
+      extras: {
+        intro: "And everything that's automatically triggered after payment:",
+        invoice: {
+          label: "Invoice",
+          fromLabel: "From",
+          from: "Studio VM · Vincent Montreuil",
+          toLabel: "For",
+          to: "monsite.be",
+          descLabel: "Description",
+          desc: "Site Health Check — monsite.be",
+          exclLabel: "Excl. VAT",
+          vatLabel: "VAT 21%",
+          totalLabel: "Total incl. VAT",
+          stamp: "Paid",
+        },
+        mail: {
+          from: "Vincent · studio-vm.be",
+          subjectLabel: "Subject",
+          subject: "Your Site Health Check is ready 🎉",
+          body: "Your report is in your portal — with your score, the improvement points and my action plan.",
+          cta: "Open my report",
+        },
+        mobile: {
+          statusBar: "9:41",
+        },
+      },
     },
     report: {
       title: "What does the report look like?",
@@ -877,26 +980,6 @@ export default async function SiteHealthCheck({
               </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      {/* Gratis voorproef-scan */}
-      <section className="border-b bg-card">
-        <div className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
-          <div className="rounded-2xl bg-background p-6 shadow-sm sm:p-8">
-            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
-              {t.freeFirst.title}
-            </h2>
-            <p className="mt-2 text-muted">{t.freeFirst.sub}</p>
-            <Link
-              href={localePath(locale, "/scan")}
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent px-5 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
-            >
-              <Gauge className="h-4 w-4" strokeWidth={2.5} />
-              {t.freeFirst.cta}
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -1152,6 +1235,141 @@ export default async function SiteHealthCheck({
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Chic collage: factuur + mail + mobile-view */}
+          <div className="mt-16 sm:mt-20">
+            <p className="text-center font-mono text-xs uppercase tracking-widest text-muted">
+              {t.previewReport.extras.intro}
+            </p>
+            <div className="mt-10 flex flex-col items-stretch gap-8 sm:flex-row sm:items-center sm:justify-center sm:gap-0">
+              {/* Factuur-card */}
+              <div className="relative overflow-hidden rounded-2xl border bg-background p-6 shadow-2xl sm:w-72 sm:-mr-6 sm:-rotate-[3deg]">
+                <div className="flex items-baseline justify-between border-b pb-3">
+                  <span className="font-serif text-2xl font-semibold tracking-tight">
+                    vm<span className="text-accent">.</span>
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    {t.previewReport.extras.invoice.label}
+                  </span>
+                </div>
+                <div className="mt-4 space-y-2 text-xs">
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-muted">
+                      {t.previewReport.extras.invoice.fromLabel}
+                    </p>
+                    <p className="mt-0.5">{t.previewReport.extras.invoice.from}</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-muted">
+                      {t.previewReport.extras.invoice.toLabel}
+                    </p>
+                    <p className="mt-0.5">{t.previewReport.extras.invoice.to}</p>
+                  </div>
+                </div>
+                <div className="mt-4 border-t pt-3 text-xs">
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-muted">
+                    {t.previewReport.extras.invoice.descLabel}
+                  </p>
+                  <p className="mt-0.5">{t.previewReport.extras.invoice.desc}</p>
+                  <div className="mt-3 space-y-1">
+                    <div className="flex justify-between text-muted">
+                      <span>{t.previewReport.extras.invoice.exclLabel}</span>
+                      <span className="font-mono">€81,82</span>
+                    </div>
+                    <div className="flex justify-between text-muted">
+                      <span>{t.previewReport.extras.invoice.vatLabel}</span>
+                      <span className="font-mono">€17,18</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-2 font-semibold">
+                      <span>{t.previewReport.extras.invoice.totalLabel}</span>
+                      <span className="font-mono">€99,00</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Betaald-stempel */}
+                <span className="absolute bottom-3 right-3 rotate-[-10deg] rounded border-[3px] border-green-600 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-green-700 opacity-80">
+                  {t.previewReport.extras.invoice.stamp}
+                </span>
+              </div>
+
+              {/* Mail-card (centerpiece, iets groter + ervoor) */}
+              <div className="relative z-10 rounded-2xl border bg-background p-6 shadow-2xl sm:w-80 sm:-translate-y-2">
+                <div className="flex items-start gap-3 border-b pb-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent/15 text-sm font-bold text-accent">
+                    V
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold">
+                      {t.previewReport.extras.mail.from}
+                    </p>
+                    <p className="text-[10px] text-muted">→ {t.previewReport.extras.invoice.to}</p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-muted">
+                    {t.previewReport.extras.mail.subjectLabel}
+                  </p>
+                  <h4 className="mt-1 text-sm font-semibold leading-snug">
+                    {t.previewReport.extras.mail.subject}
+                  </h4>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  {t.previewReport.extras.mail.body}
+                </p>
+                <div className="mt-4 flex items-center justify-center rounded-full bg-accent px-4 py-2 text-center text-xs font-semibold text-white">
+                  {t.previewReport.extras.mail.cta}
+                </div>
+              </div>
+
+              {/* Mobile-phone mockup */}
+              <div className="relative mx-auto rounded-[2.5rem] border-[6px] border-foreground/80 bg-background p-2 shadow-2xl sm:-ml-6 sm:w-52 sm:rotate-[5deg]">
+                {/* Notch */}
+                <div className="mx-auto mb-1 h-1 w-12 rounded-full bg-foreground/40" />
+                {/* Status bar */}
+                <div className="flex items-center justify-between px-3 text-[9px] font-medium text-muted">
+                  <span>{t.previewReport.extras.mobile.statusBar}</span>
+                  <span className="tracking-tighter">•••</span>
+                </div>
+                {/* Mini portal */}
+                <div className="mt-1.5 overflow-hidden rounded-2xl bg-card p-3">
+                  <p className="font-mono text-[8px] uppercase tracking-widest text-accent">
+                    {t.previewReport.portalEyebrow}
+                  </p>
+                  <h5 className="mt-1 text-[11px] font-semibold leading-tight">
+                    {t.previewReport.portalTitle}
+                  </h5>
+                  <div className="mt-3 flex justify-center">
+                    <div className="grid h-16 w-16 place-items-center rounded-full border-[3px] border-amber-500">
+                      <span className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                        62
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-1">
+                    {t.previewReport.cats.slice(0, 3).map((c) => (
+                      <div
+                        key={c.name}
+                        className="rounded-md bg-background p-1.5 text-center"
+                      >
+                        <p
+                          className={`text-sm font-bold ${
+                            c.score < 45
+                              ? "text-red-600 dark:text-red-400"
+                              : c.score < 65
+                                ? "text-amber-600 dark:text-amber-400"
+                                : "text-green-600 dark:text-green-400"
+                          }`}
+                        >
+                          {c.score}
+                        </p>
+                        <p className="truncate text-[7px] text-muted">{c.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
