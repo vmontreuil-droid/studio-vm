@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getOutreachConfig } from "@/lib/admin/outreach";
+import { TestMailButton } from "@/components/test-mail-button";
 import { buildOutreachMail } from "@/lib/admin/outreach-mail";
 import {
   portalEmailHtml,
@@ -210,6 +212,7 @@ export default async function MailPreview({
   const previews = buildPreviews();
   const selected =
     previews.find((p) => p.id === sp.id) ?? previews[0];
+  const cfg = await getOutreachConfig();
 
   return (
     <>
@@ -272,6 +275,15 @@ export default async function MailPreview({
                 <p className="mt-1 font-mono text-sm">{selected.from}</p>
               </>
             )}
+            <div className="mt-4 border-t pt-4">
+              <TestMailButton id={selected.id} to={cfg.senderEmail} />
+              <p className="mt-2 text-xs text-muted">
+                Verzendt naar jouw sender-mail zelf, zodat je live kan
+                checken hoe Gmail/Outlook hem rendert en of hij
+                bezorgd raakt. Voeg <code>[TEST]</code>-prefix toe in
+                onderwerp.
+              </p>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-2xl bg-card shadow-sm">
