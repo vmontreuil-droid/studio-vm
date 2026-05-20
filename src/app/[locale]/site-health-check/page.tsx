@@ -6,6 +6,7 @@ import {
   Gauge,
   Smartphone,
   Shield,
+  ShieldCheck,
   Search,
   Layers,
   AlertTriangle,
@@ -14,6 +15,8 @@ import {
   HelpCircle,
   Sparkles,
   Lock,
+  Mail,
+  Infinity as InfinityIcon,
 } from "lucide-react";
 import { isValidLocale, type Locale, localePath } from "@/lib/i18n/config";
 import { startHealthCheck } from "@/app/actions/health-check";
@@ -130,6 +133,20 @@ type Block = {
       bullets: string[];
     };
   };
+  billing: {
+    title: string;
+    sub: string;
+    typeParticulier: string;
+    typeBedrijf: string;
+    companyName: string;
+    vatNumber: string;
+    vatPlaceholder: string;
+    street: string;
+    postalCode: string;
+    city: string;
+    country: string;
+    countries: { code: string; label: string }[];
+  };
   formTitle: string;
   name: string;
   email: string;
@@ -172,7 +189,7 @@ const T: Record<Locale, Block> = {
         { feat: "Opvolg-mails (op 3 + 7 dagen)", free: false, paid: true },
         { feat: "Inbegrepen 30-min videocall met Vincent", free: false, paid: true },
         { feat: "Officiële factuur (PDF + portaal)", free: false, paid: true },
-        { feat: "Geld-terug-garantie", free: "n.v.t.", paid: true },
+        { feat: "Defect-garantie (7 dagen)", free: "n.v.t.", paid: true },
       ],
     },
     marketGap: {
@@ -256,7 +273,22 @@ const T: Record<Locale, Block> = {
         {
           icon: FileText,
           title: "Officiële factuur",
-          desc: "Meteen na betaling krijg je een echte factuur (€81,82 excl. + €17,18 btw 21% = €99 incl.) — beschikbaar in je portaal en als PDF in je inbox. Aftrekbaar in de boekhouding.",
+          desc: "Meteen na betaling krijg je een echte factuur (excl. btw + 21% btw) — beschikbaar in je portaal en als PDF in je inbox. Aftrekbaar in de boekhouding.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Defect-garantie (7 dagen)",
+          desc: "Feitelijke fouten in het rapport of minder dan 5 concrete acties? Geld terug. Eerlijke garantie, geen open deur.",
+        },
+        {
+          icon: Mail,
+          title: "Opvolg-mails dag 3 + 7",
+          desc: "Twee korte herinneringen om te checken hoe het loopt. Geen marketing-spam — gewoon 'is het gelukt?' en of je nog vragen hebt.",
+        },
+        {
+          icon: InfinityIcon,
+          title: "Portaal blijft eeuwig geldig",
+          desc: "Geen PDF die zoekraakt, geen wachten op mail. Je portaal-link blijft werken — kan je over 6 maanden nog terugkijken hoe het was.",
         },
         {
           icon: AlertTriangle,
@@ -382,8 +414,8 @@ const T: Record<Locale, Block> = {
       title: "Veelgestelde vragen",
       items: [
         {
-          q: "Krijg ik geld terug als ik niet tevreden ben?",
-          a: "Ja. Als je vindt dat het rapport geen €99 waard is, mail je me en je krijgt onmiddellijk volledig terugbetaald. Geen vragen.",
+          q: "Wat als het rapport tegenvalt?",
+          a: "Defect-garantie binnen 7 dagen na levering: als het rapport feitelijke fouten bevat of minder dan 5 concrete, actie-bare bevindingen oplevert, krijg je je geld terug. Mail me met het specifieke punt en ik reageer binnen 24u. Eerlijk en helder.",
         },
         {
           q: "Hoe lang duurt het?",
@@ -434,6 +466,26 @@ const T: Record<Locale, Block> = {
         ],
       },
     },
+    billing: {
+      title: "Facturatiegegevens",
+      sub: "Voor je officiële factuur. Particulier? Adres volstaat. Bedrijf? Btw-nummer is verplicht voor aftrek.",
+      typeParticulier: "Particulier",
+      typeBedrijf: "Bedrijf",
+      companyName: "Bedrijfsnaam",
+      vatNumber: "Btw-nummer",
+      vatPlaceholder: "BE0123.456.789",
+      street: "Straat + nummer",
+      postalCode: "Postcode",
+      city: "Gemeente",
+      country: "Land",
+      countries: [
+        { code: "BE", label: "België" },
+        { code: "NL", label: "Nederland" },
+        { code: "FR", label: "Frankrijk" },
+        { code: "LU", label: "Luxemburg" },
+        { code: "DE", label: "Duitsland" },
+      ],
+    },
     formTitle: "Vul je gegevens in",
     name: "Naam",
     email: "E-mailadres",
@@ -474,7 +526,7 @@ const T: Record<Locale, Block> = {
         { feat: "Mails de suivi (J+3 et J+7)", free: false, paid: true },
         { feat: "Appel vidéo 30 min inclus", free: false, paid: true },
         { feat: "Facture officielle (PDF + portail)", free: false, paid: true },
-        { feat: "Garantie satisfait ou remboursé", free: "n/a", paid: true },
+        { feat: "Garantie défaut (7 jours)", free: "n/a", paid: true },
       ],
     },
     marketGap: {
@@ -558,7 +610,22 @@ const T: Record<Locale, Block> = {
         {
           icon: FileText,
           title: "Facture officielle",
-          desc: "Immédiatement après paiement, vous recevez une vraie facture (81,82€ HT + 17,18€ TVA 21% = 99€ TTC) — dans le portail et en PDF dans votre boîte mail. Déductible.",
+          desc: "Immédiatement après paiement, vous recevez une vraie facture (HT + 21% TVA) — dans le portail et en PDF dans votre boîte mail. Déductible.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Garantie défaut (7 jours)",
+          desc: "Erreurs factuelles dans le rapport ou moins de 5 actions concrètes ? Remboursé. Garantie honnête, pas une porte ouverte.",
+        },
+        {
+          icon: Mail,
+          title: "Mails de suivi J+3 et J+7",
+          desc: "Deux brefs rappels pour voir si tout avance. Pas du spam — juste « ça s'est bien passé ? » et si vous avez des questions.",
+        },
+        {
+          icon: InfinityIcon,
+          title: "Portail valable à vie",
+          desc: "Pas de PDF perdu, pas d'attente d'e-mail. Le lien de votre portail reste actif — vous pouvez y revenir dans 6 mois.",
         },
         {
           icon: AlertTriangle,
@@ -684,8 +751,8 @@ const T: Record<Locale, Block> = {
       title: "Questions fréquentes",
       items: [
         {
-          q: "Suis-je remboursé si je ne suis pas satisfait ?",
-          a: "Oui. Si vous trouvez que le rapport ne vaut pas 99€, un mail suffit et vous êtes immédiatement remboursé intégralement. Sans question.",
+          q: "Et si le rapport est décevant ?",
+          a: "Garantie défaut sous 7 jours après livraison : si le rapport contient des erreurs factuelles ou moins de 5 actions concrètes, vous êtes remboursé. Envoyez-moi simplement un mail avec le point précis et je réponds sous 24h. Honnête et clair.",
         },
         {
           q: "Combien de temps ça prend ?",
@@ -736,6 +803,26 @@ const T: Record<Locale, Block> = {
         ],
       },
     },
+    billing: {
+      title: "Données de facturation",
+      sub: "Pour votre facture officielle. Particulier ? L'adresse suffit. Société ? Le n° TVA est obligatoire pour déduction.",
+      typeParticulier: "Particulier",
+      typeBedrijf: "Société",
+      companyName: "Raison sociale",
+      vatNumber: "N° TVA",
+      vatPlaceholder: "BE0123.456.789",
+      street: "Rue + numéro",
+      postalCode: "Code postal",
+      city: "Ville",
+      country: "Pays",
+      countries: [
+        { code: "BE", label: "Belgique" },
+        { code: "FR", label: "France" },
+        { code: "LU", label: "Luxembourg" },
+        { code: "NL", label: "Pays-Bas" },
+        { code: "DE", label: "Allemagne" },
+      ],
+    },
     formTitle: "Vos coordonnées",
     name: "Nom",
     email: "Adresse e-mail",
@@ -775,7 +862,7 @@ const T: Record<Locale, Block> = {
         { feat: "Full DNS + security headers", free: false, paid: true },
         { feat: "Follow-up emails (day 3 + day 7)", free: false, paid: true },
         { feat: "Email Q&A — written follow-up answers", free: false, paid: true },
-        { feat: "Money-back guarantee", free: "n/a", paid: true },
+        { feat: "7-day defect guarantee", free: "n/a", paid: true },
       ],
     },
     marketGap: {
@@ -855,6 +942,26 @@ const T: Record<Locale, Block> = {
           icon: Video,
           title: "Email Q&A follow-up",
           desc: "After delivery you can email me with follow-up questions on the report — I answer in writing. Honest, no time-cap.",
+        },
+        {
+          icon: FileText,
+          title: "Official invoice",
+          desc: "Right after payment you get a real invoice (excl. VAT + 21% VAT) — in your portal and as PDF in your inbox. Deductible.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "7-day defect guarantee",
+          desc: "Factual errors in the report or fewer than 5 concrete actions? Refund. Honest guarantee, not an open door.",
+        },
+        {
+          icon: Mail,
+          title: "Follow-up mails day 3 + 7",
+          desc: "Two short check-ins to see how things are going. Not marketing spam — just 'did it work out?' and any questions.",
+        },
+        {
+          icon: InfinityIcon,
+          title: "Portal valid forever",
+          desc: "No lost PDF, no waiting for email. Your portal link keeps working — you can revisit it 6 months from now.",
         },
         {
           icon: AlertTriangle,
@@ -980,8 +1087,8 @@ const T: Record<Locale, Block> = {
       title: "Frequently asked questions",
       items: [
         {
-          q: "Refund if I'm not satisfied?",
-          a: "Yes. If you don't think the report is worth €99, email me and you're fully refunded immediately. No questions.",
+          q: "What if the report is disappointing?",
+          a: "7-day defect guarantee after delivery: if the report contains factual errors or yields fewer than 5 concrete action steps, you get a refund. Just email me with the specific point and I respond within 24h. Honest and clear.",
         },
         {
           q: "How long does it take?",
@@ -1031,6 +1138,26 @@ const T: Record<Locale, Block> = {
           "Direct line to me",
         ],
       },
+    },
+    billing: {
+      title: "Billing details",
+      sub: "For your official invoice. Private? Address only. Business? VAT number required for deduction.",
+      typeParticulier: "Private",
+      typeBedrijf: "Business",
+      companyName: "Company name",
+      vatNumber: "VAT number",
+      vatPlaceholder: "BE0123.456.789",
+      street: "Street + number",
+      postalCode: "Postal code",
+      city: "City",
+      country: "Country",
+      countries: [
+        { code: "BE", label: "Belgium" },
+        { code: "NL", label: "Netherlands" },
+        { code: "FR", label: "France" },
+        { code: "LU", label: "Luxembourg" },
+        { code: "DE", label: "Germany" },
+      ],
     },
     formTitle: "Your details",
     name: "Name",
@@ -1579,20 +1706,16 @@ export default async function SiteHealthCheck({
                   defaultChecked
                   className="peer sr-only"
                 />
-                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-xl font-semibold tracking-tight">
-                        {t.tiers.standard.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-muted">
-                        {t.tiers.standard.tagline}
-                      </p>
-                    </div>
-                    <p className="text-3xl font-bold tracking-tight">
-                      {t.tiers.standard.price}
-                    </p>
-                  </div>
+                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 pt-12 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
+                  <h3 className="text-base font-mono uppercase tracking-widest text-muted">
+                    {t.tiers.standard.name}
+                  </h3>
+                  <p className="mt-2 text-4xl font-bold tracking-tight">
+                    {t.tiers.standard.price}
+                  </p>
+                  <p className="mt-2 text-sm text-muted">
+                    {t.tiers.standard.tagline}
+                  </p>
                   <ul className="mt-5 space-y-2">
                     {t.tiers.standard.bullets.map((b) => (
                       <li key={b} className="flex items-start gap-2 text-sm">
@@ -1618,24 +1741,22 @@ export default async function SiteHealthCheck({
                   value="premium"
                   className="peer sr-only"
                 />
-                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground/80">
-                    <Sparkles className="h-3 w-3" strokeWidth={2.5} />
-                    {t.tiers.premium.badge}
-                  </span>
-                  <div className="mt-3 flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-xl font-semibold tracking-tight">
-                        {t.tiers.premium.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-muted">
-                        {t.tiers.premium.tagline}
-                      </p>
-                    </div>
-                    <p className="text-3xl font-bold tracking-tight">
-                      {t.tiers.premium.price}
-                    </p>
+                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 pt-12 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="font-mono text-base uppercase tracking-widest text-muted">
+                      {t.tiers.premium.name}
+                    </h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground/80">
+                      <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                      {t.tiers.premium.badge}
+                    </span>
                   </div>
+                  <p className="mt-2 text-4xl font-bold tracking-tight">
+                    {t.tiers.premium.price}
+                  </p>
+                  <p className="mt-2 text-sm text-muted">
+                    {t.tiers.premium.tagline}
+                  </p>
                   <ul className="mt-5 space-y-2">
                     {t.tiers.premium.bullets.map((b) => (
                       <li key={b} className="flex items-start gap-2 text-sm">
@@ -1686,6 +1807,119 @@ export default async function SiteHealthCheck({
                     className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
                   />
                 </label>
+
+                {/* Facturatie-blok */}
+                <div className="rounded-xl border bg-card/30 p-4">
+                  <p className="text-sm font-semibold tracking-tight">
+                    {t.billing.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">{t.billing.sub}</p>
+
+                  {/* Type-toggle (particulier / bedrijf) */}
+                  <div className="mt-3 grid grid-cols-2 gap-2" id="customer-type-group">
+                    <label className="relative block cursor-pointer">
+                      <input
+                        type="radio"
+                        name="customer_type"
+                        value="particulier"
+                        defaultChecked
+                        className="peer sr-only"
+                      />
+                      <span className="block rounded-lg border bg-background px-3 py-2 text-center text-sm transition peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:font-semibold peer-checked:text-accent">
+                        {t.billing.typeParticulier}
+                      </span>
+                    </label>
+                    <label className="relative block cursor-pointer">
+                      <input
+                        type="radio"
+                        name="customer_type"
+                        value="bedrijf"
+                        className="peer sr-only"
+                      />
+                      <span className="block rounded-lg border bg-background px-3 py-2 text-center text-sm transition peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:font-semibold peer-checked:text-accent">
+                        {t.billing.typeBedrijf}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Bedrijfsvelden — altijd zichtbaar, alleen verplicht bij type=bedrijf
+                      (validatie server-side, want CSS-only voorwaardelijk required is brittle) */}
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="block sm:col-span-1">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.companyName}{" "}
+                        <span className="text-[10px] opacity-60">
+                          (bedrijf)
+                        </span>
+                      </span>
+                      <input
+                        name="company_name"
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                    <label className="block sm:col-span-1">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.vatNumber}{" "}
+                        <span className="text-[10px] opacity-60">
+                          (bedrijf)
+                        </span>
+                      </span>
+                      <input
+                        name="vat_number"
+                        placeholder={t.billing.vatPlaceholder}
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Adres */}
+                  <div className="mt-3 grid gap-3 sm:grid-cols-6">
+                    <label className="block sm:col-span-6">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.street}
+                      </span>
+                      <input
+                        name="street"
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.postalCode}
+                      </span>
+                      <input
+                        name="postal_code"
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.city}
+                      </span>
+                      <input
+                        name="city"
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="text-xs font-medium text-muted">
+                        {t.billing.country}
+                      </span>
+                      <select
+                        name="country"
+                        defaultValue="BE"
+                        className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                      >
+                        {t.billing.countries.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
                   <p className="text-xs text-muted">{t.price}</p>
                   <button

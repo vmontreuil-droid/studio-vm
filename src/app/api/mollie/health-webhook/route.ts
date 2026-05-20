@@ -24,12 +24,15 @@ export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("health_checks")
-    .select("id, email, website, locale, scan_token, status, package, amount_cents")
+    .select(
+      "id, name, email, website, locale, scan_token, status, package, amount_cents, customer_type, company_name, vat_number, street, postal_code, city, country",
+    )
     .eq("mollie_payment_id", paymentId)
     .maybeSingle();
   const hc = data as
     | {
         id: string;
+        name: string | null;
         email: string;
         website: string;
         locale: string;
@@ -37,6 +40,13 @@ export async function POST(req: NextRequest) {
         status: string;
         package: "standard" | "premium" | null;
         amount_cents: number;
+        customer_type: "particulier" | "bedrijf" | null;
+        company_name: string | null;
+        vat_number: string | null;
+        street: string | null;
+        postal_code: string | null;
+        city: string | null;
+        country: string | null;
       }
     | null;
   if (!hc) return NextResponse.json({ ok: true });
@@ -84,8 +94,24 @@ export async function POST(req: NextRequest) {
     const exclCents = Math.round(grossCents / 1.21);
     const publicToken = randomBytes(18).toString("base64url");
     const pkgLabel = pkg === "premium" ? "Premium" : "Standard";
+    // Voor B2B-factuur: bedrijfsnaam, anders persoonsnaam.
+    // Adres opbouwen uit beschikbare velden.
+    const clientName =
+      hc.customer_type === "bedrijf" && hc.company_name
+        ? hc.company_name
+        : hc.name || hc.email;
+    const clientAddress = [
+      hc.street,
+      [hc.postal_code, hc.city].filter(Boolean).join(" "),
+      hc.country && hc.country !== "BE" ? hc.country : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
     await db.from("invoices").insert({
       client_email: hc.email,
+      client_name: clientName,
+      client_address: clientAddress || null,
+      client_vat: hc.vat_number,
       number: invoiceNumber,
       description: `Site Health Check ${pkgLabel} — ${hc.website.replace(/^https?:\/\//, "")}`,
       amount_cents: exclCents,

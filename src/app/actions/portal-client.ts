@@ -13,8 +13,19 @@ import { sendMail } from "@/lib/monitor";
 import { portalEmailHtml } from "@/lib/email";
 import { createMolliePayment } from "@/lib/mollie";
 import { subscriptionTiers } from "@/lib/pricing";
+import { getCompanySettings } from "@/lib/admin/settings";
 
-const STUDIO_INBOX = "hallo@studio-vm.be";
+// Fallback wanneer company_settings.email leeg is.
+const STUDIO_INBOX_FALLBACK = "vmontreuil@outlook.be";
+
+async function getStudioInbox(): Promise<string> {
+  try {
+    const s = await getCompanySettings();
+    return s.email || STUDIO_INBOX_FALLBACK;
+  } catch {
+    return STUDIO_INBOX_FALLBACK;
+  }
+}
 
 async function authedEmail() {
   if (!supabaseConfigured) return null;
@@ -25,9 +36,10 @@ async function authedEmail() {
   return user?.email ? user.email.toLowerCase() : null;
 }
 
-function notifyStudio(subject: string, lines: string[]) {
+async function notifyStudio(subject: string, lines: string[]) {
   // Faalt stil: de actie van de klant mag nooit blokkeren op mail.
-  return sendMail(STUDIO_INBOX, {
+  const inbox = await getStudioInbox();
+  return sendMail(inbox, {
     subject,
     html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.6;color:#111">${lines
       .map((l) => `<p style="margin:0 0 8px">${l}</p>`)

@@ -7,22 +7,36 @@ import { siteUrl } from "@/lib/supabase/config";
 import { createMolliePayment } from "@/lib/mollie";
 
 export type HealthCheckPackage = "standard" | "premium";
+export type CustomerType = "particulier" | "bedrijf";
 
 const PRICES: Record<HealthCheckPackage, number> = {
   standard: 4900, // €49 — volledig automatisch, geen call
   premium: 9900, // €99 — incl. 30-min videocall met Vincent
 };
 
+// Trim + null voor lege strings; behoudt korte non-empty waarden.
+function s(fd: FormData, key: string): string | null {
+  const v = (fd.get(key) as string | null)?.trim();
+  return v ? v : null;
+}
+
 export async function startHealthCheck(fd: FormData): Promise<void> {
-  const name = (fd.get("name") as string | null)?.trim() || null;
-  const emailRaw = (fd.get("email") as string | null)?.trim() || "";
-  const websiteRaw = (fd.get("website") as string | null)?.trim() || "";
+  const name = s(fd, "name");
+  const emailRaw = s(fd, "email") ?? "";
+  const websiteRaw = s(fd, "website") ?? "";
   const locale = ((fd.get("locale") as string | null) || "nl").toLowerCase();
   const packageRaw = ((fd.get("package") as string | null) || "premium")
     .toLowerCase()
     .trim();
   const pkg: HealthCheckPackage =
     packageRaw === "standard" ? "standard" : "premium";
+  const customerTypeRaw = ((fd.get("customer_type") as string | null) ||
+    "particulier")
+    .toLowerCase()
+    .trim();
+  const customerType: CustomerType =
+    customerTypeRaw === "bedrijf" ? "bedrijf" : "particulier";
+
   if (!emailRaw || !websiteRaw) return;
 
   // Normaliseer URL
@@ -35,6 +49,18 @@ export async function startHealthCheck(fd: FormData): Promise<void> {
   } catch {
     return;
   }
+
+  // Voor B2B: bedrijfsnaam + btw-nr zijn vereist voor geldige factuur
+  const companyName = s(fd, "company_name");
+  const vatNumber = s(fd, "vat_number");
+  if (customerType === "bedrijf" && (!companyName || !vatNumber)) {
+    return;
+  }
+
+  const street = s(fd, "street");
+  const postalCode = s(fd, "postal_code");
+  const city = s(fd, "city");
+  const country = s(fd, "country") ?? "BE";
 
   const db = getSupabaseAdmin();
   const scanToken = randomBytes(18).toString("base64url");
@@ -50,6 +76,13 @@ export async function startHealthCheck(fd: FormData): Promise<void> {
       amount_cents: amountCents,
       package: pkg,
       scan_token: scanToken,
+      customer_type: customerType,
+      company_name: companyName,
+      vat_number: vatNumber,
+      street,
+      postal_code: postalCode,
+      city,
+      country,
     })
     .select("id")
     .single();

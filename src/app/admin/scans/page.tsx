@@ -191,20 +191,17 @@ export default async function AdminScans({
               </Link>
               <div className="flex flex-wrap gap-2">
                 <Link
-                  href={`/${r.locale}/portail/${r.token}`}
-                  target="_blank"
+                  href={`/admin/scans/${r.id}`}
                   className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  Portaal
-                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
+                  <BarChart3 className="h-3.5 w-3.5" strokeWidth={2} />
+                  Detail
                 </Link>
                 <Link
-                  href={`/${r.locale}/portail/scan/${r.token}`}
-                  target="_blank"
+                  href={`/admin/klanten/${encodeURIComponent(r.email)}`}
                   className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
                 >
-                  <BarChart3 className="h-3.5 w-3.5" strokeWidth={2} />
-                  Analyse
+                  Klant
                 </Link>
                 <a
                   href={`mailto:${r.email}`}
