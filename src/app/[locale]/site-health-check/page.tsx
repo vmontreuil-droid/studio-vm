@@ -24,6 +24,25 @@ type Block = {
   sub: string;
   bullets: string[];
   freeFirst: { title: string; sub: string; cta: string };
+  compare: {
+    title: string;
+    sub: string;
+    cols: { free: string; paid: string };
+    rows: { feat: string; free: string | boolean; paid: string | boolean }[];
+  };
+  marketGap: {
+    eyebrow: string;
+    title: string;
+    sub: string;
+    rows: {
+      alt: string;
+      kind: string;
+      price: string;
+      missing: string;
+      highlight?: boolean;
+    }[];
+    conclusion: string;
+  };
   whatYouGet: {
     title: string;
     items: { icon: typeof Gauge; title: string; desc: string }[];
@@ -65,6 +84,67 @@ const T: Record<Locale, Block> = {
       title: "Wil je eerst even gratis kijken?",
       sub: "Doe een snelle scan zonder iets te betalen — je krijgt meteen je score en de grote pijnpunten. Als je daarna een diepere analyse wil, kan je hier €99 betalen.",
       cta: "Start gratis preview-scan",
+    },
+    compare: {
+      title: "Gratis scan versus Health Check €99",
+      sub: "Hetzelfde scan-engine, maar de €99 ontgrendelt het volledige rapport en het persoonlijke actieplan. Geen 30-min call nodig — je kan direct aan de slag.",
+      cols: { free: "Gratis scan", paid: "Health Check €99" },
+      rows: [
+        { feat: "Site-scan (snelheid/SEO/mobiel/veiligheid/platform)", free: true, paid: true },
+        { feat: "Score + grade", free: true, paid: true },
+        { feat: "Lijst van bevindingen", free: "kort overzicht", paid: "volledig, gecategoriseerd" },
+        { feat: "Geschreven actieplan per bevinding", free: false, paid: true },
+        { feat: "Prioritering (kritiek / belangrijk / quick win)", free: false, paid: true },
+        { feat: "Concrete fix-stappen ('doe X dan Y dan Z')", free: false, paid: true },
+        { feat: "Impactschatting per probleem", free: false, paid: true },
+        { feat: "PDF-export / afdrukbaar rapport", free: false, paid: true },
+        { feat: "Premium portaal-layout", free: false, paid: true },
+        { feat: "Stack-diepte (plugins, versies, end-of-life)", free: false, paid: true },
+        { feat: "DNS + security headers volledig uitgewerkt", free: false, paid: true },
+        { feat: "Opvolg-mails (op 3 + 7 dagen)", free: false, paid: true },
+        { feat: "Optionele 30-min videocall met Vincent", free: false, paid: true },
+        { feat: "Geld-terug-garantie", free: "n.v.t.", paid: true },
+      ],
+    },
+    marketGap: {
+      eyebrow: "De leemte in de markt",
+      title: "Waarom bestaat dit nog niet bij anderen?",
+      sub: "Als je rondkijkt naar wat er voor je website-audit bestaat, vind je twee uitersten — en niets in het midden. Daar zit jouw kans:",
+      rows: [
+        {
+          alt: "Gratis tools (PageSpeed, GTmetrix, Lighthouse, Hubspot Grader)",
+          kind: "Ruwe tech-data",
+          price: "Gratis",
+          missing: "Geen interpretatie · geen prioritering · geen actieplan",
+        },
+        {
+          alt: "SaaS-abonnementen (Ahrefs, Semrush, Yoast Premium)",
+          kind: "Marketing-tools",
+          price: "€60–300/maand",
+          missing: "Maandelijks geld, gericht op marketeers, geen persoonlijk rapport",
+        },
+        {
+          alt: "Klassieke Belgische webagency-audits",
+          kind: "Pro service",
+          price: "€500–€5.000",
+          missing: "Te duur voor KMO's, vaak verkapte verkooppraat achteraf",
+        },
+        {
+          alt: "Freelancer-audits (Fiverr/Upwork)",
+          kind: "Low-end",
+          price: "€50–€150",
+          missing: "Template-copy-paste, onpersoonlijk, geen NL/FR",
+        },
+        {
+          alt: "Studio VM — Health Check",
+          kind: "Tech + actieplan + persoon",
+          price: "€99 vast",
+          missing: "Geen tekortkomingen — dít is het gat dat we vullen.",
+          highlight: true,
+        },
+      ],
+      conclusion:
+        "Een eerlijke, lokaal-Belgische, middenprijs-audit met persoonlijke verantwoordelijkheid bestond gewoon niet. Daarom dit.",
     },
     whatYouGet: {
       title: "Wat krijg je concreet voor €99?",
@@ -199,6 +279,67 @@ const T: Record<Locale, Block> = {
       sub: "Faites un scan rapide sans rien payer — vous obtenez immédiatement votre score et les grands points faibles. Si vous voulez ensuite une analyse plus profonde, vous pouvez payer 99€ ici.",
       cta: "Lancer le scan gratuit",
     },
+    compare: {
+      title: "Scan gratuit versus Health Check 99€",
+      sub: "Même moteur de scan, mais le 99€ débloque le rapport complet et le plan d'action personnel. Pas besoin d'appel — vous pouvez commencer directement.",
+      cols: { free: "Scan gratuit", paid: "Health Check 99€" },
+      rows: [
+        { feat: "Scan site (vitesse/SEO/mobile/sécurité/plateforme)", free: true, paid: true },
+        { feat: "Score + note", free: true, paid: true },
+        { feat: "Liste de constats", free: "aperçu court", paid: "complet, par catégorie" },
+        { feat: "Plan d'action écrit par constat", free: false, paid: true },
+        { feat: "Priorisation (critique / important / quick win)", free: false, paid: true },
+        { feat: "Étapes concrètes ('faire X puis Y puis Z')", free: false, paid: true },
+        { feat: "Estimation d'impact par problème", free: false, paid: true },
+        { feat: "Export PDF / rapport imprimable", free: false, paid: true },
+        { feat: "Layout portail Premium", free: false, paid: true },
+        { feat: "Stack en détail (plugins, versions, end-of-life)", free: false, paid: true },
+        { feat: "DNS + security headers complets", free: false, paid: true },
+        { feat: "Mails de suivi (J+3 et J+7)", free: false, paid: true },
+        { feat: "Appel vidéo 30 min optionnel", free: false, paid: true },
+        { feat: "Garantie satisfait ou remboursé", free: "n/a", paid: true },
+      ],
+    },
+    marketGap: {
+      eyebrow: "Le vide du marché",
+      title: "Pourquoi cela n'existe pas encore ?",
+      sub: "Quand vous cherchez un audit de site, vous trouvez deux extrêmes — rien au milieu. C'est là votre opportunité :",
+      rows: [
+        {
+          alt: "Outils gratuits (PageSpeed, GTmetrix, Lighthouse)",
+          kind: "Données techniques brutes",
+          price: "Gratuit",
+          missing: "Pas d'interprétation · pas de priorisation · pas de plan",
+        },
+        {
+          alt: "Abonnements SaaS (Ahrefs, Semrush, Yoast)",
+          kind: "Outils marketing",
+          price: "60–300€/mois",
+          missing: "Frais mensuels, pour marketeurs, aucun rapport personnel",
+        },
+        {
+          alt: "Audits d'agences belges classiques",
+          kind: "Service pro",
+          price: "500–5.000€",
+          missing: "Trop cher pour PME, souvent prélude à de la vente",
+        },
+        {
+          alt: "Freelancers (Fiverr/Upwork)",
+          kind: "Bas de gamme",
+          price: "50–150€",
+          missing: "Modèles copiés-collés, impersonnel, pas en NL/FR",
+        },
+        {
+          alt: "Studio VM — Health Check",
+          kind: "Tech + plan d'action + personne",
+          price: "99€ fixe",
+          missing: "Aucune lacune — c'est le vide que nous comblons.",
+          highlight: true,
+        },
+      ],
+      conclusion:
+        "Un audit honnête, local-belge, à prix moyen, avec une responsabilité personnelle, n'existait tout simplement pas. Voilà pourquoi.",
+    },
     whatYouGet: {
       title: "Que recevez-vous concrètement pour 99€ ?",
       items: [
@@ -331,6 +472,67 @@ const T: Record<Locale, Block> = {
       title: "Want to look for free first?",
       sub: "Run a quick scan without paying anything — you'll get your score and the major pain points immediately. If you then want deeper analysis, you can pay €99 here.",
       cta: "Run free preview scan",
+    },
+    compare: {
+      title: "Free scan versus Health Check €99",
+      sub: "Same scan engine, but the €99 unlocks the full report and personal action plan. No call required — you can start immediately.",
+      cols: { free: "Free scan", paid: "Health Check €99" },
+      rows: [
+        { feat: "Site scan (speed/SEO/mobile/security/platform)", free: true, paid: true },
+        { feat: "Score + grade", free: true, paid: true },
+        { feat: "Findings list", free: "short overview", paid: "full, categorized" },
+        { feat: "Written action plan per finding", free: false, paid: true },
+        { feat: "Prioritization (critical / important / quick win)", free: false, paid: true },
+        { feat: "Concrete fix steps ('do X then Y then Z')", free: false, paid: true },
+        { feat: "Impact estimate per issue", free: false, paid: true },
+        { feat: "PDF export / printable report", free: false, paid: true },
+        { feat: "Premium portal layout", free: false, paid: true },
+        { feat: "Stack depth (plugins, versions, end-of-life)", free: false, paid: true },
+        { feat: "Full DNS + security headers", free: false, paid: true },
+        { feat: "Follow-up emails (day 3 + day 7)", free: false, paid: true },
+        { feat: "Optional 30 min video call", free: false, paid: true },
+        { feat: "Money-back guarantee", free: "n/a", paid: true },
+      ],
+    },
+    marketGap: {
+      eyebrow: "The market gap",
+      title: "Why doesn't this exist elsewhere?",
+      sub: "When you look for a website audit, you find two extremes — nothing in between. That's the opportunity:",
+      rows: [
+        {
+          alt: "Free tools (PageSpeed, GTmetrix, Lighthouse)",
+          kind: "Raw tech data",
+          price: "Free",
+          missing: "No interpretation · no prioritization · no plan",
+        },
+        {
+          alt: "SaaS subscriptions (Ahrefs, Semrush, Yoast)",
+          kind: "Marketing tools",
+          price: "€60–300/mo",
+          missing: "Monthly bill, for marketers, no personal report",
+        },
+        {
+          alt: "Classic agency audits",
+          kind: "Pro service",
+          price: "€500–€5,000",
+          missing: "Too pricey for SMEs, often disguised sales pitch",
+        },
+        {
+          alt: "Freelancers (Fiverr/Upwork)",
+          kind: "Low-end",
+          price: "€50–150",
+          missing: "Copy-paste templates, impersonal, EN-only",
+        },
+        {
+          alt: "Studio VM — Health Check",
+          kind: "Tech + action plan + person",
+          price: "€99 flat",
+          missing: "No gap — this is the slot we fill.",
+          highlight: true,
+        },
+      ],
+      conclusion:
+        "An honest, locally-Belgian, mid-priced audit with personal responsibility simply didn't exist. That's why this exists.",
     },
     whatYouGet: {
       title: "What you concretely get for €99",
@@ -509,6 +711,124 @@ export default async function SiteHealthCheck({
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Vergelijkingstabel */}
+      <section className="border-b">
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t.compare.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-muted">{t.compare.sub}</p>
+          <div className="mt-8 overflow-hidden rounded-2xl bg-card shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-background/40 text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <th className="px-5 py-4 font-medium" />
+                    <th className="px-5 py-4 font-medium">
+                      {t.compare.cols.free}
+                    </th>
+                    <th className="bg-accent/5 px-5 py-4 font-medium text-accent">
+                      💎 {t.compare.cols.paid}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {t.compare.rows.map((row) => (
+                    <tr key={row.feat}>
+                      <td className="px-5 py-3 font-medium">{row.feat}</td>
+                      <td className="px-5 py-3">
+                        {typeof row.free === "boolean" ? (
+                          row.free ? (
+                            <CheckCircle2
+                              className="h-5 w-5 text-green-600 dark:text-green-400"
+                              strokeWidth={2.5}
+                            />
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )
+                        ) : (
+                          <span className="text-muted">{row.free}</span>
+                        )}
+                      </td>
+                      <td className="bg-accent/5 px-5 py-3">
+                        {typeof row.paid === "boolean" ? (
+                          row.paid ? (
+                            <CheckCircle2
+                              className="h-5 w-5 text-accent"
+                              strokeWidth={2.5}
+                            />
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )
+                        ) : (
+                          <span className="font-medium">{row.paid}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Marktleemte */}
+      <section className="border-b bg-card">
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            {t.marketGap.eyebrow}
+          </p>
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t.marketGap.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-muted">{t.marketGap.sub}</p>
+          <div className="mt-8 overflow-hidden rounded-2xl bg-background shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-card text-left font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <th className="px-5 py-4 font-medium">Bestaat</th>
+                    <th className="px-5 py-4 font-medium">Soort</th>
+                    <th className="px-5 py-4 font-medium">Prijs</th>
+                    <th className="px-5 py-4 font-medium">Wat missen ze</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {t.marketGap.rows.map((r) => (
+                    <tr
+                      key={r.alt}
+                      className={
+                        r.highlight
+                          ? "bg-accent/10 font-medium"
+                          : "text-muted"
+                      }
+                    >
+                      <td className="px-5 py-3">
+                        {r.highlight && "✨ "}
+                        <span className={r.highlight ? "text-foreground" : ""}>
+                          {r.alt}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">{r.kind}</td>
+                      <td className="px-5 py-3 font-mono">{r.price}</td>
+                      <td className="px-5 py-3">
+                        <span className={r.highlight ? "text-accent" : ""}>
+                          {r.missing}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="mt-6 text-center text-base italic text-muted">
+            "{t.marketGap.conclusion}"
+          </p>
         </div>
       </section>
 

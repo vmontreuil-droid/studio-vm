@@ -169,7 +169,7 @@ export default async function ThanksPage({
             <p className="mt-4 text-lg text-muted">{t.paid.sub}</p>
             {hc.scan_token && (
               <Link
-                href={`/${locale}/portail/scan/${hc.scan_token}`}
+                href={`/${locale}/portail/health-check/${hc.scan_token}`}
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
               >
                 {t.paid.cta}
