@@ -14,6 +14,8 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getOutreachConfig } from "@/lib/admin/outreach";
 import { setOutreachStatus, toggleOutreachPaused } from "@/app/actions/outreach";
+import { TrendChart } from "@/components/trend-chart";
+import { Donut, BarList, ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +76,59 @@ export default async function AdminOutreach({
     { k: "Klant geworden", v: klt.count ?? 0, icon: CheckCircle2 },
     { k: "Geen interesse", v: ngi.count ?? 0, icon: XCircle },
   ];
+
+  // Conversie-funnel: per stap, hoeveel mensen er door geraakten.
+  const funnel = [
+    { label: "Pre-gescand", value: scd.count ?? 0 },
+    { label: "Verzonden", value: snt.count ?? 0 },
+    { label: "Geopend", value: opn.count ?? 0 },
+    { label: "Beantwoord", value: rpl.count ?? 0 },
+    { label: "Klant", value: klt.count ?? 0 },
+  ];
+
+  // Status-donut.
+  const statusSegs = [
+    { label: "Gescand", value: scd.count ?? 0, color: "#3b82f6" },
+    { label: "Verzonden", value: snt.count ?? 0, color: "var(--accent)" },
+    { label: "Geopend", value: opn.count ?? 0, color: "#a855f7" },
+    { label: "Beantwoord", value: rpl.count ?? 0, color: "#16a34a" },
+    { label: "Klant", value: klt.count ?? 0, color: "#059669" },
+    { label: "Geen interesse", value: ngi.count ?? 0, color: "#64748b" },
+  ];
+
+  // Mails per dag — laatste 14 dagen.
+  const since = new Date(Date.now() - 14 * 86_400_000);
+  const { data: sentRows } = await db
+    .from("prospect_outreach")
+    .select("mail_sent_at")
+    .not("mail_sent_at", "is", null)
+    .gte("mail_sent_at", since.toISOString())
+    .limit(2000);
+  const mailsByDay = Array.from({ length: 14 }, (_, k) => {
+    const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
+    dt.setDate(dt.getDate() - (13 - k));
+    const ymd = dt.toISOString().slice(0, 10);
+    return {
+      label: dt.toLocaleDateString("nl-BE", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      value: (
+        (sentRows as { mail_sent_at: string }[] | null) ?? []
+      ).filter((r) => r.mail_sent_at.startsWith(ymd)).length,
+    };
+  });
+
+  const tot_n = tot.count ?? 0;
+  const sent_n = snt.count ?? 0;
+  const opn_n = opn.count ?? 0;
+  const klt_n = klt.count ?? 0;
+  const openRate =
+    sent_n > 0 ? Math.round((opn_n / sent_n) * 100) : 0;
+  const convRate =
+    sent_n > 0 ? Math.round((klt_n / sent_n) * 1000) / 10 : 0; // 1 decimaal
+  void tot_n;
 
   // Lijst
   let q = db
@@ -168,6 +223,33 @@ export default async function AdminOutreach({
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title={`Verzonden mails — laatste 14 dagen (open-rate ${openRate}% · conversie ${convRate}%)`}
+          >
+            <TrendChart
+              id="outreach-trend"
+              color="var(--accent)"
+              height={140}
+              points={mailsByDay}
+            />
+          </ChartCard>
+        </div>
+        <ChartCard title="Status-verdeling">
+          <Donut
+            segments={statusSegs}
+            centerTop={String(tot.count ?? 0)}
+            centerSub="prospects"
+          />
+        </ChartCard>
+      </div>
+      <div className="mt-3">
+        <ChartCard title="Conversie-funnel">
+          <BarList items={funnel} />
+        </ChartCard>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
