@@ -14,7 +14,12 @@
 
 import { getCompanySettings } from "@/lib/admin/settings";
 
-const BILLIT_BASE = "https://api.billit.be/v1";
+// Twee aparte Billit-omgevingen met aparte accounts/credentials.
+// Sandbox blijft de DEFAULT tot Vincent expliciet productie aanzet
+// — voorkomt per-ongeluk-push naar een echte Peppol-ontvanger
+// tijdens onboarding.
+const BILLIT_PROD = "https://api.billit.be/v1";
+const BILLIT_SANDBOX = "https://api.sandbox.billit.be/v1";
 
 export type BillitClient = {
   customer_name: string;
@@ -51,21 +56,28 @@ export type BillitResult =
 type Cfg = {
   apiKey: string;
   companyId: string;
+  baseUrl: string;
+  sandbox: boolean;
 };
 
 // Haalt Billit-config uit company_settings. Returns null als niet
 // geconfigureerd — caller doet dan niets (geen crash, geen Peppol).
+// Sandbox-default: TRUE, switch handmatig in /admin/instellingen.
 async function getCfg(): Promise<Cfg | null> {
   const s = await getCompanySettings();
   type Extra = {
     billit_api_key?: string | null;
     billit_company_id?: string | null;
+    billit_sandbox?: boolean | null;
   };
   const e = s as unknown as Extra;
   if (!e.billit_api_key || !e.billit_company_id) return null;
+  const sandbox = e.billit_sandbox !== false; // default true
   return {
     apiKey: e.billit_api_key,
     companyId: e.billit_company_id,
+    baseUrl: sandbox ? BILLIT_SANDBOX : BILLIT_PROD,
+    sandbox,
   };
 }
 
@@ -75,7 +87,7 @@ async function billitFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const url = `${BILLIT_BASE}${path}`;
+  const url = `${cfg.baseUrl}${path}`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {

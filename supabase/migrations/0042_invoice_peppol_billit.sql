@@ -23,9 +23,13 @@ create index if not exists invoices_peppol_status_idx
   on public.invoices (peppol_status);
 
 -- Billit-configuratie hoort bij de firma — niet hardcoded.
+-- billit_sandbox staat default op TRUE zodat per-ongeluk-push naar
+-- echte Peppol-ontvangers tijdens onboarding uitgesloten is. Pas
+-- expliciet flippen wanneer productie-API + KYC + juridisch doc OK.
 alter table public.company_settings
-  add column if not exists billit_api_key      text,
-  add column if not exists billit_company_id   text,
-  add column if not exists billit_webhook_secret text;
+  add column if not exists billit_api_key        text,
+  add column if not exists billit_company_id     text,
+  add column if not exists billit_webhook_secret text,
+  add column if not exists billit_sandbox        boolean not null default true;
 
 notify pgrst, 'reload schema';
