@@ -19,6 +19,7 @@ import {
   Repeat,
   Headphones,
   Palette,
+  Megaphone,
   LogOut,
   Menu,
   X,
@@ -37,6 +38,7 @@ export type AdminCounts = {
   facturenOpen: number;
   ticketsOpen: number;
   formNieuw: number;
+  socialGepland: number;
 };
 
 const items = [
@@ -69,6 +71,12 @@ const items = [
     badge: "formNieuw",
   },
   { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
+  {
+    href: "/admin/social",
+    label: "Social",
+    icon: Megaphone,
+    badge: "socialGepland",
+  },
   { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
   {
     href: "/admin/monitors",

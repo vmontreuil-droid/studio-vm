@@ -41,6 +41,7 @@ export default async function AdminLayout({
     facturenR,
     ticketsR,
     formR,
+    socialR,
   ] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
@@ -50,6 +51,7 @@ export default async function AdminLayout({
     db.from("invoices").select("id", head).eq("status", "open"),
     db.from("tickets").select("id", head).neq("status", "gesloten"),
     db.from("form_submissions").select("id", head).eq("is_read", false),
+    db.from("social_posts").select("id", head).eq("status", "gepland"),
   ]);
   const emails = (emailsR.data as { email: string }[] | null) ?? [];
   const klanten = new Set(
@@ -64,6 +66,7 @@ export default async function AdminLayout({
     facturenOpen: facturenR.count ?? 0,
     ticketsOpen: ticketsR.count ?? 0,
     formNieuw: formR.count ?? 0,
+    socialGepland: socialR.count ?? 0,
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;

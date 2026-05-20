@@ -39,3 +39,8 @@ export const adminConfigured = Boolean(monitorConfigured && adminPassword);
 // Sleutel: Mollie dashboard → Developers → API keys (test_ of live_).
 export const mollieApiKey = process.env.MOLLIE_API_KEY ?? "";
 export const mollieConfigured = Boolean(mollieApiKey);
+
+// Adres dat de dagelijkse social-reminder ontvangt (copy-paste-modus).
+// Zonder STUDIO_EMAIL wordt geen mail verstuurd — de admin-pagina blijft
+// werken als handmatige planner.
+export const studioEmail = process.env.STUDIO_EMAIL ?? "";
