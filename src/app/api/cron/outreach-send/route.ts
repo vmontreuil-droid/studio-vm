@@ -30,6 +30,7 @@ async function sendPersonal(
   html: string,
   text: string,
   replyTo: string,
+  unsubUrl: string,
 ): Promise<boolean> {
   if (!resendApiKey) return false;
   try {
@@ -46,6 +47,13 @@ async function sendPersonal(
         html,
         text,
         reply_to: replyTo,
+        // RFC 8058 one-click unsubscribe — Gmail/Outlook tonen een
+        // native "Uitschrijven"-knop bovenaan de mail. Verlaagt
+        // spam-meldingen drastisch.
+        headers: {
+          "List-Unsubscribe": `<${unsubUrl}>, <mailto:${replyTo}?subject=Unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       }),
     });
     return r.ok;
@@ -147,6 +155,9 @@ export async function GET(req: NextRequest) {
       "first",
     );
 
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
+    const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${r.scan_token}`;
     const ok = await sendPersonal(
       r.mail_to,
       mail.from,
@@ -154,6 +165,7 @@ export async function GET(req: NextRequest) {
       mail.html,
       mail.text,
       cfg.senderEmail,
+      unsub,
     );
 
     if (ok) {

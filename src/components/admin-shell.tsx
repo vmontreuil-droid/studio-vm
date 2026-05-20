@@ -113,6 +113,7 @@ const groups: {
       { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
       { href: "/admin/prospects", label: "Prospects", icon: Building2 },
       { href: "/admin/outreach", label: "Outreach-engine", icon: Send },
+      { href: "/admin/mail-preview", label: "Mail-preview", icon: MailOpen },
     ],
   },
   {
