@@ -9,6 +9,9 @@ export const metadata = { robots: { index: false, follow: false } };
 
 type Inv = {
   client_email: string;
+  client_name: string | null;
+  client_address: string | null;
+  client_vat: string | null;
   number: string;
   description: string | null;
   amount_cents: number;
@@ -90,7 +93,7 @@ export default async function PublicInvoice({
   const { data } = await getSupabaseAdmin()
     .from("invoices")
     .select(
-      "client_email, number, description, amount_cents, status, issued_at, paid_at",
+      "client_email, client_name, client_address, client_vat, number, description, amount_cents, status, issued_at, paid_at",
     )
     .eq("public_token", token)
     .maybeSingle();
@@ -174,7 +177,22 @@ export default async function PublicInvoice({
               <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
                 {t.to}
               </p>
-              <p className="font-mono text-xs">{i.client_email}</p>
+              {i.client_name && (
+                <p className="font-medium">{i.client_name}</p>
+              )}
+              {i.client_address && (
+                <p className="whitespace-pre-line text-muted">
+                  {i.client_address}
+                </p>
+              )}
+              {i.client_vat && (
+                <p className="font-mono text-xs text-muted">
+                  BTW {i.client_vat}
+                </p>
+              )}
+              <p className="mt-1 font-mono text-xs text-muted">
+                {i.client_email}
+              </p>
             </div>
           </div>
 
