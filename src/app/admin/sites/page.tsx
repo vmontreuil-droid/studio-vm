@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -55,6 +57,7 @@ export default async function AdminSites() {
 
   const sites = MY_SITES.map((s) => {
     const mon = byUrl.get(s.url);
+    const monId = mon?.id ?? null;
     const scans = mon ? (scansByMon.get(mon.id) ?? []) : [];
     // Live status komt van de laatste check (vaak een lichte ping,
     // elke 5 min). Score/SSL/stack/kritische punten blijven staan
@@ -114,6 +117,7 @@ export default async function AdminSites() {
       }));
     return {
       ...s,
+      monId,
       down,
       everScanned,
       everDeep,
@@ -203,12 +207,27 @@ export default async function AdminSites() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-semibold tracking-tight">{s.name}</p>
+                  {s.monId ? (
+                    <Link
+                      href={`/admin/sites/${s.monId}`}
+                      className="group inline-flex items-center gap-1.5 underline-offset-2 hover:underline"
+                    >
+                      <span className="font-semibold tracking-tight">
+                        {s.name}
+                      </span>
+                      <ArrowRight
+                        className="h-3.5 w-3.5 text-muted transition-transform group-hover:translate-x-0.5"
+                        strokeWidth={2.5}
+                      />
+                    </Link>
+                  ) : (
+                    <p className="font-semibold tracking-tight">{s.name}</p>
+                  )}
                   <a
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono text-[11px] text-accent underline"
+                    className="block font-mono text-[11px] text-accent underline"
                   >
                     {s.url.replace(/^https?:\/\//, "")}
                   </a>

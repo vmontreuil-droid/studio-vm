@@ -10,6 +10,8 @@ import {
   type ScanRow,
 } from "@/lib/monitor";
 import { isValidLocale, DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { SITES_OWNER_EMAIL } from "@/lib/my-sites";
+import { getCompanySettings } from "@/lib/admin/settings";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -32,6 +34,18 @@ export async function GET(req: NextRequest) {
     .eq("active", true)
     .order("last_scan_at", { ascending: true, nullsFirst: true })
     .limit(BATCH);
+
+  // Voor MY_SITES (eigen portfolio) leveren alerts aan jouw outlook
+  // i.p.v. info@studio-vm.be. company_settings.email is daarin de
+  // single source of truth, met outlook als fallback.
+  const ownerInbox = await (async () => {
+    try {
+      const s = await getCompanySettings();
+      return s.email || "vmontreuil@outlook.be";
+    } catch {
+      return "vmontreuil@outlook.be";
+    }
+  })();
 
   let scanned = 0;
   let alerted = 0;
@@ -67,8 +81,11 @@ export async function GET(req: NextRequest) {
     const locale = isValidLocale(mon.locale) ? mon.locale : DEFAULT_LOCALE;
     const changes = diffAlert(locale, prev, snap);
     if (changes.length > 0) {
+      // Eigen portfolio-sites → naar jouw inbox; klant-sites → klant.
+      const dest =
+        mon.email === SITES_OWNER_EMAIL ? ownerInbox : mon.email;
       const sent = await sendMail(
-        mon.email,
+        dest,
         alertMail(locale, mon.url, mon.token, changes),
       );
       if (sent) alerted++;
