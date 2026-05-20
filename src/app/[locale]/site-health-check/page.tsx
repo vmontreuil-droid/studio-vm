@@ -112,6 +112,24 @@ type Block = {
     };
   };
   faq: { title: string; items: { q: string; a: string }[] };
+  tiers: {
+    title: string;
+    sub: string;
+    pickLabel: string;
+    standard: {
+      name: string;
+      price: string;
+      tagline: string;
+      bullets: string[];
+    };
+    premium: {
+      name: string;
+      price: string;
+      tagline: string;
+      badge: string;
+      bullets: string[];
+    };
+  };
   formTitle: string;
   name: string;
   email: string;
@@ -385,11 +403,42 @@ const T: Record<Locale, Block> = {
         },
       ],
     },
-    formTitle: "Start je Health Check",
+    tiers: {
+      title: "Kies je pakket",
+      sub: "Beide pakketten geven je hetzelfde grondige rapport, hetzelfde actieplan en dezelfde factuur. Het verschil zit in het persoonlijke gesprek.",
+      pickLabel: "Gekozen",
+      standard: {
+        name: "Standard",
+        price: "€49",
+        tagline: "Volledig automatisch — alles wat je nodig hebt om zelf aan de slag te gaan.",
+        bullets: [
+          "Volledige scan (60+ signalen)",
+          "Persoonlijk actieplan in je portaal",
+          "Prioritering: kritiek / belangrijk / quick win",
+          "Officiële factuur (PDF)",
+          "Opvolg-mails op dag 3 en dag 7",
+          "Eeuwig geldige portaal-link",
+        ],
+      },
+      premium: {
+        name: "Premium",
+        price: "€99",
+        tagline: "Standard + 30-min videocall met mij om alles persoonlijk door te lopen.",
+        badge: "Met persoon",
+        bullets: [
+          "Alles van Standard",
+          "30-min videocall met Vincent",
+          "Ik bel jou binnen 24u om te plannen",
+          "Je vragen rechtstreeks beantwoord",
+          "Eerlijk advies: wat dringend is en wat kan wachten",
+        ],
+      },
+    },
+    formTitle: "Vul je gegevens in",
     name: "Naam",
     email: "E-mailadres",
     website: "Jouw website",
-    cta: "Betaal €99 en start",
+    cta: "Betaal en start",
     price: "Eenmalig, all-in",
     fine: "Veilige betaling via Mollie. Bancontact, kaart, overschrijving.",
   },
@@ -656,11 +705,42 @@ const T: Record<Locale, Block> = {
         },
       ],
     },
-    formTitle: "Lancez votre Health Check",
+    tiers: {
+      title: "Choisissez votre formule",
+      sub: "Les deux formules vous donnent le même rapport approfondi, le même plan d'action et la même facture. La différence : l'entretien personnel.",
+      pickLabel: "Choisi",
+      standard: {
+        name: "Standard",
+        price: "49€",
+        tagline: "Entièrement automatique — tout ce qu'il vous faut pour démarrer vous-même.",
+        bullets: [
+          "Scan complet (60+ signaux)",
+          "Plan d'action personnel dans votre portail",
+          "Priorisation : critique / important / quick win",
+          "Facture officielle (PDF)",
+          "Mails de suivi J+3 et J+7",
+          "Lien portail valable à vie",
+        ],
+      },
+      premium: {
+        name: "Premium",
+        price: "99€",
+        tagline: "Standard + appel vidéo 30 min avec moi pour tout passer en revue ensemble.",
+        badge: "Avec contact humain",
+        bullets: [
+          "Tout ce que Standard inclut",
+          "Appel vidéo 30 min avec Vincent",
+          "Je vous contacte sous 24h pour planifier",
+          "Vos questions répondues directement",
+          "Conseil honnête : urgent vs peut attendre",
+        ],
+      },
+    },
+    formTitle: "Vos coordonnées",
     name: "Nom",
     email: "Adresse e-mail",
     website: "Votre site",
-    cta: "Payer 99€ et démarrer",
+    cta: "Payer et démarrer",
     price: "Unique, tout compris",
     fine: "Paiement sécurisé via Mollie. Bancontact, carte, virement.",
   },
@@ -921,11 +1001,42 @@ const T: Record<Locale, Block> = {
         },
       ],
     },
-    formTitle: "Start your Health Check",
+    tiers: {
+      title: "Pick your package",
+      sub: "Both packages give you the same in-depth report, the same action plan and the same invoice. The difference: written follow-up Q&A.",
+      pickLabel: "Selected",
+      standard: {
+        name: "Standard",
+        price: "€49",
+        tagline: "Fully automated — everything you need to get started on your own.",
+        bullets: [
+          "Full scan (60+ signals)",
+          "Personal action plan in your portal",
+          "Prioritization: critical / important / quick win",
+          "Official invoice (PDF)",
+          "Follow-up emails day 3 and day 7",
+          "Portal link valid forever",
+        ],
+      },
+      premium: {
+        name: "Premium",
+        price: "€99",
+        tagline: "Standard + unlimited email Q&A with me to walk through it all together.",
+        badge: "With personal Q&A",
+        bullets: [
+          "Everything in Standard",
+          "Unlimited written email Q&A",
+          "I answer your follow-up questions in writing",
+          "Honest advice: urgent vs can wait",
+          "Direct line to me",
+        ],
+      },
+    },
+    formTitle: "Your details",
     name: "Name",
     email: "Email address",
     website: "Your website",
-    cta: "Pay €99 and start",
+    cta: "Pay and start",
     price: "One-off, all-in",
     fine: "Secure payment via Mollie. Bancontact, card, transfer.",
   },
@@ -1444,55 +1555,151 @@ export default async function SiteHealthCheck({
         </div>
       </section>
 
-      {/* Form */}
-      <section className="border-b bg-card">
-        <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-          <div className="rounded-3xl bg-background p-8 shadow-sm sm:p-10">
-            <h2 className="text-2xl font-semibold tracking-tight">{t.formTitle}</h2>
-            <form action={startHealthCheck} className="mt-6 space-y-4">
-              <input type="hidden" name="locale" value={locale} />
-              <label className="block">
-                <span className="text-xs font-medium text-muted">{t.name}</span>
+      {/* Tiers + form */}
+      <section id="kies" className="border-b bg-card">
+        <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+          <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t.tiers.title}
+          </h2>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-muted">
+            {t.tiers.sub}
+          </p>
+
+          <form action={startHealthCheck} className="mt-10 space-y-8">
+            <input type="hidden" name="locale" value={locale} />
+
+            {/* Tier-cards als radio-group */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              {/* Standard */}
+              <label className="relative block cursor-pointer">
                 <input
-                  name="name"
-                  required
-                  className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  type="radio"
+                  name="package"
+                  value="standard"
+                  defaultChecked
+                  className="peer sr-only"
                 />
-              </label>
-              <label className="block">
-                <span className="text-xs font-medium text-muted">{t.email}</span>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-medium text-muted">{t.website}</span>
-                <input
-                  name="website"
-                  required
-                  placeholder="bv. monsite.be"
-                  className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-                />
-              </label>
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
-                <div>
-                  <p className="text-3xl font-bold tracking-tight">€99</p>
-                  <p className="text-xs text-muted">{t.price}</p>
+                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-tight">
+                        {t.tiers.standard.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted">
+                        {t.tiers.standard.tagline}
+                      </p>
+                    </div>
+                    <p className="text-3xl font-bold tracking-tight">
+                      {t.tiers.standard.price}
+                    </p>
+                  </div>
+                  <ul className="mt-5 space-y-2">
+                    {t.tiers.standard.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2
+                          className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                          strokeWidth={2.5}
+                        />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
-                >
-                  {t.cta}
-                  <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
-                </button>
+                <span className="absolute right-4 top-4 hidden rounded-full bg-accent px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-white peer-checked:inline-block">
+                  ✓ {t.tiers.pickLabel}
+                </span>
+              </label>
+
+              {/* Premium */}
+              <label className="relative block cursor-pointer">
+                <input
+                  type="radio"
+                  name="package"
+                  value="premium"
+                  className="peer sr-only"
+                />
+                <div className="h-full rounded-2xl border-2 border-border bg-background p-6 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground/80">
+                    <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                    {t.tiers.premium.badge}
+                  </span>
+                  <div className="mt-3 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-tight">
+                        {t.tiers.premium.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted">
+                        {t.tiers.premium.tagline}
+                      </p>
+                    </div>
+                    <p className="text-3xl font-bold tracking-tight">
+                      {t.tiers.premium.price}
+                    </p>
+                  </div>
+                  <ul className="mt-5 space-y-2">
+                    {t.tiers.premium.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2
+                          className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                          strokeWidth={2.5}
+                        />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <span className="absolute right-4 top-4 hidden rounded-full bg-accent px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-white peer-checked:inline-block">
+                  ✓ {t.tiers.pickLabel}
+                </span>
+              </label>
+            </div>
+
+            {/* Gegevens */}
+            <div className="rounded-2xl bg-background p-6 shadow-sm sm:p-8">
+              <h3 className="text-lg font-semibold tracking-tight">
+                {t.formTitle}
+              </h3>
+              <div className="mt-5 space-y-4">
+                <label className="block">
+                  <span className="text-xs font-medium text-muted">{t.name}</span>
+                  <input
+                    name="name"
+                    required
+                    className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-muted">{t.email}</span>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-muted">{t.website}</span>
+                  <input
+                    name="website"
+                    required
+                    placeholder="bv. monsite.be"
+                    className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                  />
+                </label>
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                  <p className="text-xs text-muted">{t.price}</p>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
+                  >
+                    {t.cta}
+                    <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
+                  </button>
+                </div>
+                <p className="text-xs text-muted">{t.fine}</p>
               </div>
-              <p className="text-xs text-muted">{t.fine}</p>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       </section>
 

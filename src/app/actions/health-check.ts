@@ -6,11 +6,23 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/supabase/config";
 import { createMolliePayment } from "@/lib/mollie";
 
+export type HealthCheckPackage = "standard" | "premium";
+
+const PRICES: Record<HealthCheckPackage, number> = {
+  standard: 4900, // €49 — volledig automatisch, geen call
+  premium: 9900, // €99 — incl. 30-min videocall met Vincent
+};
+
 export async function startHealthCheck(fd: FormData): Promise<void> {
   const name = (fd.get("name") as string | null)?.trim() || null;
   const emailRaw = (fd.get("email") as string | null)?.trim() || "";
   const websiteRaw = (fd.get("website") as string | null)?.trim() || "";
   const locale = ((fd.get("locale") as string | null) || "nl").toLowerCase();
+  const packageRaw = ((fd.get("package") as string | null) || "premium")
+    .toLowerCase()
+    .trim();
+  const pkg: HealthCheckPackage =
+    packageRaw === "standard" ? "standard" : "premium";
   if (!emailRaw || !websiteRaw) return;
 
   // Normaliseer URL
@@ -26,7 +38,7 @@ export async function startHealthCheck(fd: FormData): Promise<void> {
 
   const db = getSupabaseAdmin();
   const scanToken = randomBytes(18).toString("base64url");
-  const amountCents = 9900;
+  const amountCents = PRICES[pkg];
 
   const { data, error } = await db
     .from("health_checks")
@@ -36,6 +48,7 @@ export async function startHealthCheck(fd: FormData): Promise<void> {
       website,
       locale,
       amount_cents: amountCents,
+      package: pkg,
       scan_token: scanToken,
     })
     .select("id")
@@ -45,10 +58,10 @@ export async function startHealthCheck(fd: FormData): Promise<void> {
 
   const pay = await createMolliePayment({
     amountCents,
-    description: `Site Health Check — ${website.replace(/^https?:\/\//, "")}`,
+    description: `Site Health Check ${pkg === "premium" ? "Premium" : "Standard"} — ${website.replace(/^https?:\/\//, "")}`,
     redirectUrl: `${siteUrl}/${locale}/site-health-check/dank/${id}`,
     webhookUrl: `${siteUrl}/api/mollie/health-webhook`,
-    metadata: { kind: "health_check", id },
+    metadata: { kind: "health_check", id, package: pkg },
   });
   if (!pay) return;
   await db

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("health_checks")
-    .select("id, email, website, locale, scan_token, status")
+    .select("id, email, website, locale, scan_token, status, package, amount_cents")
     .eq("mollie_payment_id", paymentId)
     .maybeSingle();
   const hc = data as
@@ -35,10 +35,14 @@ export async function POST(req: NextRequest) {
         locale: string;
         scan_token: string;
         status: string;
+        package: "standard" | "premium" | null;
+        amount_cents: number;
       }
     | null;
   if (!hc) return NextResponse.json({ ok: true });
   if (hc.status === "betaald") return NextResponse.json({ ok: true });
+  const pkg: "standard" | "premium" = hc.package === "standard" ? "standard" : "premium";
+  const grossCents = hc.amount_cents || (pkg === "standard" ? 4900 : 9900);
 
   if (p.status === "paid") {
     // Scan de site nu pas (na betaling) — geeft de prospect z'n
@@ -73,16 +77,17 @@ export async function POST(req: NextRequest) {
 
     const portal = `${siteUrl}/${hc.locale}/portail/health-check/${hc.scan_token}`;
 
-    // Automatische factuur (volledig betaald) — €99 incl btw 21%.
-    // amount_cents wordt opgeslagen als EXCL btw (zoals de rest
-    // van het systeem), 99,00 incl → 81,82 excl + 17,18 btw.
+    // Automatische factuur (volledig betaald) — Standard €49 incl
+    // of Premium €99 incl btw 21%. amount_cents wordt opgeslagen
+    // als EXCL btw (zoals de rest van het systeem).
     const invoiceNumber = await nextDocNumber("invoice");
-    const exclCents = Math.round(9900 / 1.21);
+    const exclCents = Math.round(grossCents / 1.21);
     const publicToken = randomBytes(18).toString("base64url");
+    const pkgLabel = pkg === "premium" ? "Premium" : "Standard";
     await db.from("invoices").insert({
       client_email: hc.email,
       number: invoiceNumber,
-      description: `Site Health Check — ${hc.website.replace(/^https?:\/\//, "")}`,
+      description: `Site Health Check ${pkgLabel} — ${hc.website.replace(/^https?:\/\//, "")}`,
       amount_cents: exclCents,
       status: "betaald",
       issued_at: new Date().toISOString().slice(0, 10),
@@ -91,35 +96,51 @@ export async function POST(req: NextRequest) {
       public_token: publicToken,
     });
     const invoiceUrl = `${siteUrl}/${hc.locale}/factuur/${publicToken}`;
+    const isPremium = pkg === "premium";
     const T =
       hc.locale === "fr"
         ? {
-            subject: "Votre Site Health Check est prêt 🎉",
+            subject: `Votre Site Health Check ${pkgLabel} est prêt 🎉`,
             title: "Merci pour votre paiement !",
             lines: [
               `Votre Site Health Check pour <strong>${hc.website.replace(/^https?:\/\//, "")}</strong> est prêt.`,
               "Vous y trouverez votre score, les points concrets à améliorer et mon plan d'action.",
+              ...(isPremium
+                ? [
+                    "🎙️ Comme vous avez choisi <strong>Premium</strong>, je vous contacte personnellement dans les 24h pour planifier votre appel vidéo de 30 min.",
+                  ]
+                : []),
             ],
             cta: "Ouvrir mon rapport",
             foot: `Votre facture (téléchargeable) : <a href="${invoiceUrl}" style="color:#e08214">${invoiceUrl}</a>`,
           }
         : hc.locale === "en"
           ? {
-              subject: "Your Site Health Check is ready 🎉",
+              subject: `Your Site Health Check ${pkgLabel} is ready 🎉`,
               title: "Thanks for your payment!",
               lines: [
                 `Your Site Health Check for <strong>${hc.website.replace(/^https?:\/\//, "")}</strong> is ready.`,
                 "You'll find your score, the concrete improvement points and my action plan.",
+                ...(isPremium
+                  ? [
+                      "🎙️ Since you picked <strong>Premium</strong>, I'll reach out within 24h to schedule your 30-min video call.",
+                    ]
+                  : []),
               ],
               cta: "Open my report",
               foot: `Your invoice (downloadable): <a href="${invoiceUrl}" style="color:#e08214">${invoiceUrl}</a>`,
             }
           : {
-              subject: "Je Site Health Check is klaar 🎉",
+              subject: `Je Site Health Check ${pkgLabel} is klaar 🎉`,
               title: "Bedankt voor je betaling!",
               lines: [
                 `Je Site Health Check voor <strong>${hc.website.replace(/^https?:\/\//, "")}</strong> staat klaar.`,
                 "Je vindt er je score, de concrete verbeterpunten en mijn actieplan.",
+                ...(isPremium
+                  ? [
+                      "🎙️ Omdat je voor <strong>Premium</strong> gekozen hebt, neem ik binnen 24u persoonlijk contact op om je 30-min videocall te plannen.",
+                    ]
+                  : []),
               ],
               cta: "Open mijn rapport",
               foot: `Je factuur (downloadbaar): <a href="${invoiceUrl}" style="color:#e08214">${invoiceUrl}</a>`,
