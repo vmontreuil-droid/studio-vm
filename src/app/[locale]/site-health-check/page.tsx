@@ -321,6 +321,26 @@ const T: Record<Locale, Block> = {
           tag: "Architect 1050 Brussel",
           text: "Site oogt mooi, maar Largest Contentful Paint = 4,3s (zou <2,5s moeten). Pagespeed-impact: 14% bezoekers haken af voor de pagina geladen is.",
         },
+        {
+          score: "39",
+          tag: "Schoonheidssalon 9100 Sint-Niklaas",
+          text: "HTTP-versie blijft bereikbaar zonder redirect (= moderne browser-waarschuwing). WP-installatie heeft 14 plugins waarvan 3 al 2 jaar niet meer geüpdatet. Geen cookie-consent-banner zichtbaar → GDPR-risico.",
+        },
+        {
+          score: "44",
+          tag: "Aannemer 8500 Kortrijk",
+          text: "DNS mist SPF én DMARC → je domein kan voor phishing misbruikt worden (klanten krijgen mails 'van jou'). 0 structured data → Google toont basis-snippet i.p.v. rich result. 4 interne links zijn 404.",
+        },
+        {
+          score: "56",
+          tag: "Yogastudio 3500 Hasselt",
+          text: "Wix-lock-in: vendor-fee + geen exporteerbaarheid. Beelden zonder srcset → mobiel downloadt desktop-resolutie (3-4× zwaarder). Geen CSP/HSTS/X-Frame-Options security headers.",
+        },
+        {
+          score: "67",
+          tag: "Notariskantoor 1200 Brussel",
+          text: "Copyright '© 2021' zichtbaar in footer → 'verlaten'-signaal naar bezoekers én Google. 38 inline-style attributes verspreid (moeilijk te onderhouden). Niet-bestaande URL's geven 200-status i.p.v. 404 (soft-404).",
+        },
       ],
     },
     report: {
@@ -432,6 +452,26 @@ const T: Record<Locale, Block> = {
         {
           q: "Is dit hetzelfde als de gratis scan op studio-vm.be/scan?",
           a: "De gratis scan geeft je score + grote pijnpunten. De €99 Health Check gaat veel dieper: geschreven analyse per bevinding, prioritering, fix-stappen, én een echt gesprek met mij. Een vakman die mee-kijkt vs een tool die meet.",
+        },
+        {
+          q: "Werkt dit ook voor Wix, Squarespace of een custom site?",
+          a: "Ja. De scan-engine herkent WordPress, Shopify, Wix, Squarespace, Webflow, Drupal, Joomla, PrestaShop, Next.js, Nuxt, Astro, SvelteKit, Gatsby en custom-builds. Voor elk platform pas ik het advies aan — een Wix-site krijgt andere tips dan een WordPress met Elementor.",
+        },
+        {
+          q: "Snap ik het rapport als ik niet technisch ben?",
+          a: "Ja, dat is het hele punt. Elk probleem krijgt een 'waarom is dit erg' in mensentaal én een concrete 'wat moet er gebeuren'. Geen muur van jargon. Bij Premium loop ik het bovendien live met je door — zelfs als je nog nooit gehoord hebt van HSTS of LCP.",
+        },
+        {
+          q: "Hoeveel sites kan ik laten controleren voor de prijs?",
+          a: "Eén hoofddomein per Health Check (subdomeinen tellen mee). Heb je meerdere sites of ben je een agency? Mail me even — voor 3+ sites maak ik een staffel.",
+        },
+        {
+          q: "Is de factuur fiscaal aftrekbaar?",
+          a: "Ja. Vul je bedrijfsnaam + btw-nummer in bij bestelling en je krijgt automatisch een geldige B2B-factuur (excl. btw + 21% btw, conform FOD Financiën). Volledig aftrekbaar als professionele uitgave.",
+        },
+        {
+          q: "Wat is exact het verschil tussen Standard en Premium?",
+          a: "Inhoud van het rapport is identiek: zelfde scan, zelfde actieplan, zelfde portaal, zelfde factuur. Premium voegt één ding toe — een 30-min videocall met mij om alles persoonlijk door te lopen. Standard is voor wie zelf wil starten, Premium voor wie de uitleg in real-time wil.",
         },
       ],
     },
@@ -658,6 +698,26 @@ const T: Record<Locale, Block> = {
           tag: "Architecte 1050 Bruxelles",
           text: "Site visuellement joli, mais Largest Contentful Paint = 4,3s (devrait être <2,5s). 14% des visiteurs partent avant chargement.",
         },
+        {
+          score: "39",
+          tag: "Salon de beauté 5000 Namur",
+          text: "La version HTTP reste accessible sans redirection (= alerte navigateur moderne). Installation WP avec 14 plugins dont 3 sans mise à jour depuis 2 ans. Pas de bannière cookies visible → risque RGPD.",
+        },
+        {
+          score: "44",
+          tag: "Entrepreneur 7500 Tournai",
+          text: "DNS sans SPF ni DMARC → votre domaine peut être usurpé pour du phishing. 0 données structurées → Google n'affiche que le snippet basique. 4 liens internes en 404.",
+        },
+        {
+          score: "56",
+          tag: "Studio yoga 6700 Arlon",
+          text: "Lock-in Wix : frais vendor + pas d'export possible. Images sans srcset → mobile télécharge la résolution desktop (3-4× plus lourd). Pas de headers CSP/HSTS/X-Frame-Options.",
+        },
+        {
+          score: "67",
+          tag: "Étude notariale 1200 Bruxelles",
+          text: "Copyright '© 2021' visible dans le footer → signal 'abandonné' aux visiteurs et à Google. 38 styles inline répartis (maintenance compliquée). URLs inexistantes renvoient 200 au lieu de 404 (soft-404).",
+        },
       ],
     },
     report: {
@@ -769,6 +829,26 @@ const T: Record<Locale, Block> = {
         {
           q: "C'est la même chose que le scan gratuit ?",
           a: "Le scan gratuit donne votre score + grands points faibles. Le Health Check 99€ va beaucoup plus loin : analyse écrite par trouvaille, priorisation, étapes concrètes, et un vrai entretien avec moi.",
+        },
+        {
+          q: "Ça marche aussi pour Wix, Squarespace ou un site sur-mesure ?",
+          a: "Oui. Le scanner reconnaît WordPress, Shopify, Wix, Squarespace, Webflow, Drupal, Joomla, PrestaShop, Next.js, Nuxt, Astro, SvelteKit, Gatsby et les sites sur-mesure. J'adapte les conseils par plateforme — un site Wix ne reçoit pas les mêmes recommandations qu'un WordPress avec Elementor.",
+        },
+        {
+          q: "Vais-je comprendre le rapport sans être technique ?",
+          a: "Oui, c'est tout le but. Chaque problème reçoit un 'pourquoi c'est grave' en français clair et un 'que faire' concret. Pas de mur de jargon. En Premium je le parcours en plus en direct avec vous — même si vous n'avez jamais entendu parler de HSTS ou de LCP.",
+        },
+        {
+          q: "Combien de sites pour le prix ?",
+          a: "Un seul domaine principal par Health Check (les sous-domaines comptent). Plusieurs sites ou agence ? Écrivez-moi — pour 3+ sites je prévois un tarif dégressif.",
+        },
+        {
+          q: "La facture est-elle déductible fiscalement ?",
+          a: "Oui. Indiquez votre raison sociale + n° TVA à la commande et vous recevez automatiquement une facture B2B valable (HT + 21% TVA, conforme SPF Finances). Entièrement déductible comme dépense professionnelle.",
+        },
+        {
+          q: "Quelle est la différence exacte entre Standard et Premium ?",
+          a: "Contenu du rapport identique : même scan, même plan d'action, même portail, même facture. Premium ajoute une chose — un appel vidéo de 30 min avec moi pour tout passer en revue ensemble. Standard pour commencer seul, Premium pour une explication en direct.",
         },
       ],
     },
@@ -994,6 +1074,26 @@ const T: Record<Locale, Block> = {
           tag: "Architect Brussels",
           text: "Site looks great, but Largest Contentful Paint = 4.3s (should be <2.5s). 14% of visitors bounce before page load completes.",
         },
+        {
+          score: "39",
+          tag: "Beauty salon Ghent",
+          text: "HTTP version still reachable without redirect (= modern-browser warning). WP install with 14 plugins, 3 unmaintained for 2+ years. No visible cookie-consent banner → GDPR risk.",
+        },
+        {
+          score: "44",
+          tag: "Contractor Kortrijk",
+          text: "DNS missing SPF and DMARC → your domain can be spoofed for phishing. 0 structured data → Google shows basic snippet instead of rich result. 4 internal links return 404.",
+        },
+        {
+          score: "56",
+          tag: "Yoga studio Hasselt",
+          text: "Wix lock-in: vendor fee + no exportability. Images without srcset → mobile downloads desktop resolution (3-4× heavier). No CSP/HSTS/X-Frame-Options security headers.",
+        },
+        {
+          score: "67",
+          tag: "Notary office Brussels",
+          text: "Copyright '© 2021' visible in footer → 'abandoned' signal to visitors and Google. 38 inline-style attributes scattered (hard to maintain). Non-existent URLs return 200 instead of 404 (soft-404).",
+        },
       ],
     },
     previewReport: {
@@ -1105,6 +1205,26 @@ const T: Record<Locale, Block> = {
         {
           q: "Is this the same as the free scan?",
           a: "The free scan gives your score + major pain points. The €99 Health Check goes much deeper: written analysis per finding, prioritization, fix steps, and email Q&A with me afterwards.",
+        },
+        {
+          q: "Does it work for Wix, Squarespace or a custom site too?",
+          a: "Yes. The scanner detects WordPress, Shopify, Wix, Squarespace, Webflow, Drupal, Joomla, PrestaShop, Next.js, Nuxt, Astro, SvelteKit, Gatsby and custom builds. Advice is platform-tailored — a Wix site gets different tips than a WordPress with Elementor.",
+        },
+        {
+          q: "Will I understand the report if I'm not technical?",
+          a: "Yes, that's the whole point. Each issue gets a 'why this matters' in plain English and a concrete 'what to do'. No jargon wall. Premium adds unlimited email Q&A so you can ask anything afterwards.",
+        },
+        {
+          q: "How many sites for the price?",
+          a: "One main domain per Health Check (subdomains included). Multiple sites or agency? Email me — for 3+ sites I offer tiered pricing.",
+        },
+        {
+          q: "Is the invoice tax-deductible?",
+          a: "Yes. Provide your company name + VAT number at checkout and you automatically get a valid B2B invoice (excl. VAT + 21% VAT, FOD Financiën-compliant). Fully deductible as a professional expense.",
+        },
+        {
+          q: "What's the exact difference between Standard and Premium?",
+          a: "Report content is identical: same scan, same action plan, same portal, same invoice. Premium adds unlimited email Q&A with me. Standard is for self-starters, Premium for ongoing written follow-up.",
         },
       ],
     },
@@ -1742,15 +1862,9 @@ export default async function SiteHealthCheck({
                   className="peer sr-only"
                 />
                 <div className="h-full rounded-2xl border-2 border-border bg-background p-6 pt-12 transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:shadow-xl">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-mono text-base uppercase tracking-widest text-muted">
-                      {t.tiers.premium.name}
-                    </h3>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground/80">
-                      <Sparkles className="h-3 w-3" strokeWidth={2.5} />
-                      {t.tiers.premium.badge}
-                    </span>
-                  </div>
+                  <h3 className="font-mono text-base uppercase tracking-widest text-muted">
+                    {t.tiers.premium.name}
+                  </h3>
                   <p className="mt-2 text-4xl font-bold tracking-tight">
                     {t.tiers.premium.price}
                   </p>
@@ -1769,6 +1883,11 @@ export default async function SiteHealthCheck({
                     ))}
                   </ul>
                 </div>
+                {/* 'Met persoon'-badge: absolute top-left = zelfde hoogte als 'Gekozen' rechts */}
+                <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground/80">
+                  <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                  {t.tiers.premium.badge}
+                </span>
                 <span className="absolute right-4 top-4 hidden rounded-full bg-accent px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-white peer-checked:inline-block">
                   ✓ {t.tiers.pickLabel}
                 </span>

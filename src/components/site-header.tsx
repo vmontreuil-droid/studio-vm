@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search";
 import { MobileMenu } from "@/components/mobile-menu";
@@ -79,6 +80,15 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           </div>
           <SearchTrigger locale={locale} />
           <ThemeToggle />
+          <Link
+            href="/admin"
+            aria-label="Admin"
+            title="Admin"
+            className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+          >
+            <Lock className="h-3 w-3" strokeWidth={2.5} />
+            Admin
+          </Link>
           <MobileMenu locale={locale} />
         </div>
       </div>
