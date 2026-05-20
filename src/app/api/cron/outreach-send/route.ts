@@ -5,7 +5,7 @@ import {
   cronSecret,
   resendApiKey,
 } from "@/lib/supabase/config";
-import { getOutreachConfig, detectLang } from "@/lib/admin/outreach";
+import { getOutreachConfig, detectLang, warmUpQuota } from "@/lib/admin/outreach";
 import { buildOutreachMail } from "@/lib/admin/outreach-mail";
 import { sourceFromLand } from "@/lib/admin/prospect-source";
 
@@ -31,8 +31,8 @@ async function sendPersonal(
   text: string,
   replyTo: string,
   unsubUrl: string,
-): Promise<boolean> {
-  if (!resendApiKey) return false;
+): Promise<{ ok: boolean; id?: string }> {
+  if (!resendApiKey) return { ok: false };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -47,20 +47,21 @@ async function sendPersonal(
         html,
         text,
         reply_to: replyTo,
-        // RFC 8058 one-click unsubscribe — Gmail/Outlook tonen een
-        // native "Uitschrijven"-knop bovenaan de mail. Verlaagt
-        // spam-meldingen drastisch.
         headers: {
           "List-Unsubscribe": `<${unsubUrl}>, <mailto:${replyTo}?subject=Unsubscribe>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
       }),
     });
-    return r.ok;
+    if (!r.ok) return { ok: false };
+    const j = (await r.json().catch(() => ({}))) as { id?: string };
+    return { ok: true, id: j.id };
   } catch {
-    return false;
+    return { ok: false };
   }
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function GET(req: NextRequest) {
   if (
@@ -82,6 +83,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // Warm-up: jonge afzender-domeinen mogen nog niet aan volle quota.
+  const todayQuota = warmUpQuota(cfg.dailyQuota, cfg.startedAt);
+
   const db = getSupabaseAdmin();
   let q = db
     .from("prospect_outreach")
@@ -90,10 +94,12 @@ export async function GET(req: NextRequest) {
     )
     .eq("status", "gescand")
     .is("mail_sent_at", null)
+    .is("bounced_at", null)
+    .is("complaint_at", null)
     .not("mail_to", "is", null)
     .gte("scan_score", cfg.minScore)
     .lte("scan_score", cfg.maxScore)
-    .limit(cfg.dailyQuota);
+    .limit(todayQuota);
   if (cfg.lands.length > 0) q = q.in("land", cfg.lands);
   const { data } = await q;
   const rows = (data as OutreachRow[] | null) ?? [];
@@ -158,7 +164,7 @@ export async function GET(req: NextRequest) {
     const baseUrl =
       process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
     const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${r.scan_token}`;
-    const ok = await sendPersonal(
+    const res = await sendPersonal(
       r.mail_to,
       mail.from,
       mail.subject,
@@ -168,12 +174,13 @@ export async function GET(req: NextRequest) {
       unsub,
     );
 
-    if (ok) {
+    if (res.ok) {
       sent++;
       await db
         .from("prospect_outreach")
         .update({
           mail_sent_at: new Date().toISOString(),
+          resend_message_id: res.id ?? null,
           status: "verzonden",
           updated_at: new Date().toISOString(),
         })
@@ -182,6 +189,24 @@ export async function GET(req: NextRequest) {
     } else {
       failed++;
     }
+    // Natuurlijk patroon — niet 20 mails in 30 sec, maar verspreid
+    // over ~5 min zodat mailproviders geen burst-signaal zien.
+    await sleep(12_000);
   }
-  return NextResponse.json({ ok: true, sent, failed, scope: filtered.length });
+
+  // Eerste-keer-marker: bij allereerste succesvolle send registreren
+  // we de startdatum voor de warm-up-curve.
+  if (sent > 0 && !cfg.startedAt) {
+    await db
+      .from("company_settings")
+      .update({ outreach_started_at: new Date().toISOString().slice(0, 10) })
+      .eq("id", "default");
+  }
+  return NextResponse.json({
+    ok: true,
+    sent,
+    failed,
+    scope: filtered.length,
+    todayQuota,
+  });
 }

@@ -15,6 +15,7 @@ export type OutreachConfig = {
   maxScore: number;
   nacePrefixes: string[];
   lands: Land[];
+  startedAt: string | null;
 };
 
 const DEFAULT_CONFIG: OutreachConfig = {
@@ -27,14 +28,37 @@ const DEFAULT_CONFIG: OutreachConfig = {
   maxScore: 65,
   nacePrefixes: [],
   lands: ["be"],
+  startedAt: null,
 };
+
+// Warm-up-curve: nieuwe afzender-domeinen moeten gradueel opbouwen
+// om bij mailproviders niet als "plotseling agressief" gezien te
+// worden. We capen de configurabele dagquota op een curve:
+//
+//   dag  0-6  → max 5
+//   dag  7-13 → max 10
+//   dag 14-20 → max 15
+//   dag 21+  → volle configuratie-quota
+//
+// Stelt vanzelf in zodra de eerste mail uitgaat (outreach_started_at).
+export function warmUpQuota(
+  configured: number,
+  startedAt: string | null,
+): number {
+  if (!startedAt) return Math.min(configured, 5);
+  const days = Math.floor(
+    (Date.now() - new Date(startedAt).getTime()) / 86_400_000,
+  );
+  const cap = days < 7 ? 5 : days < 14 ? 10 : days < 21 ? 15 : configured;
+  return Math.min(configured, cap);
+}
 
 export async function getOutreachConfig(): Promise<OutreachConfig> {
   try {
     const { data } = await getSupabaseAdmin()
       .from("company_settings")
       .select(
-        "outreach_paused, outreach_daily_quota, outreach_cal_link, outreach_sender_name, outreach_sender_email, outreach_min_score, outreach_max_score, outreach_nace_prefixes, outreach_lands",
+        "outreach_paused, outreach_daily_quota, outreach_cal_link, outreach_sender_name, outreach_sender_email, outreach_min_score, outreach_max_score, outreach_nace_prefixes, outreach_lands, outreach_started_at",
       )
       .eq("id", "default")
       .maybeSingle();
@@ -55,6 +79,7 @@ export async function getOutreachConfig(): Promise<OutreachConfig> {
         ((r.outreach_lands as string[] | null) ?? ["be"]).filter(
           (l): l is Land => l === "be" || l === "fr" || l === "uk",
         ) || ["be"],
+      startedAt: (r.outreach_started_at as string | null) ?? null,
     };
   } catch {
     return DEFAULT_CONFIG;

@@ -48,6 +48,7 @@ const sampleCfg = {
   maxScore: 65,
   nacePrefixes: [],
   lands: ["be" as const],
+  startedAt: null,
 };
 
 const sampleOffer = {

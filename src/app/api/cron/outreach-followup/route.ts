@@ -102,9 +102,12 @@ export async function GET(req: NextRequest) {
     .eq("status", "verzonden")
     .is("replied_at", null)
     .is("followup_sent_at", null)
+    .is("bounced_at", null)
+    .is("complaint_at", null)
     .lt("mail_sent_at", cutoff)
     .limit(cfg.dailyQuota);
   const rows = (data as Row[] | null) ?? [];
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   let sent = 0;
   let failed = 0;
@@ -166,6 +169,7 @@ export async function GET(req: NextRequest) {
     } else {
       failed++;
     }
+    await sleep(12_000);
   }
   return NextResponse.json({ ok: true, sent, failed });
 }
