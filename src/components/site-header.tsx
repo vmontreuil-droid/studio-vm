@@ -29,6 +29,15 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       label: locale === "fr" ? "Scan" : "Scan",
     },
     {
+      href: localePath(locale, "/site-health-check"),
+      label:
+        locale === "fr"
+          ? "Health Check €99"
+          : locale === "en"
+            ? "Health Check €99"
+            : "Health Check €99",
+    },
+    {
       href: localePath(locale, "/offerte"),
       label:
         locale === "fr"
