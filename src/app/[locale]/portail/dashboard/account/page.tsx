@@ -1,5 +1,13 @@
 import { redirect, notFound } from "next/navigation";
-import { LogOut } from "lucide-react";
+import {
+  LogOut,
+  User2,
+  Mail,
+  Globe2,
+  ShieldCheck,
+  KeyRound,
+  BellRing,
+} from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
@@ -14,24 +22,33 @@ export const dynamic = "force-dynamic";
 const L: Record<
   Locale,
   {
+    sub: string;
+    profile: string;
     email: string;
     lang: string;
     sessionTitle: string;
     sessionText: string;
+    securityNote: string;
+    verified: string;
     mailTitle: string;
     mailText: string;
     mailOn: string;
     mailOff: string;
     subOn: string;
     subOff: string;
+    memberSince: string;
   }
 > = {
   nl: {
+    sub: "Profiel, taal, sessie en e-mailvoorkeuren — alles op één plek.",
+    profile: "Profiel",
     email: "E-mailadres",
     lang: "Taal",
-    sessionTitle: "Sessie",
+    sessionTitle: "Sessie & beveiliging",
     sessionText:
       "Je blijft ingelogd op dit toestel tot je uitlogt. Inloggen gaat altijd via een veilige login-link — geen wachtwoord.",
+    securityNote: "Wachtwoordloze login via magic link",
+    verified: "Geverifieerd",
     mailTitle: "Mailvoorkeuren",
     mailText:
       "Belangrijke mails over je project (offertes, facturen, tickets) krijg je altijd. Updates & tips zijn optioneel.",
@@ -39,13 +56,18 @@ const L: Record<
     mailOff: "Updates & tips: uit",
     subOn: "Uitschrijven",
     subOff: "Inschrijven",
+    memberSince: "Lid sinds",
   },
   fr: {
+    sub: "Profil, langue, session et préférences e-mail — tout au même endroit.",
+    profile: "Profil",
     email: "Adresse e-mail",
     lang: "Langue",
-    sessionTitle: "Session",
+    sessionTitle: "Session & sécurité",
     sessionText:
       "Vous restez connecté sur cet appareil jusqu'à la déconnexion. La connexion se fait toujours via un lien sécurisé — sans mot de passe.",
+    securityNote: "Connexion sans mot de passe via lien magique",
+    verified: "Vérifié",
     mailTitle: "Préférences e-mail",
     mailText:
       "Les e-mails importants (devis, factures, tickets) sont toujours envoyés. Les updates & astuces sont optionnels.",
@@ -53,13 +75,18 @@ const L: Record<
     mailOff: "Updates & astuces : désactivé",
     subOn: "Se désinscrire",
     subOff: "S'inscrire",
+    memberSince: "Membre depuis",
   },
   en: {
+    sub: "Profile, language, session and email preferences — all in one place.",
+    profile: "Profile",
     email: "Email address",
     lang: "Language",
-    sessionTitle: "Session",
+    sessionTitle: "Session & security",
     sessionText:
       "You stay logged in on this device until you sign out. Login is always via a secure link — no password.",
+    securityNote: "Passwordless login via magic link",
+    verified: "Verified",
     mailTitle: "Email preferences",
     mailText:
       "Important project emails (quotes, invoices, tickets) are always sent. Updates & tips are optional.",
@@ -67,6 +94,7 @@ const L: Record<
     mailOff: "Updates & tips: off",
     subOn: "Unsubscribe",
     subOff: "Subscribe",
+    memberSince: "Member since",
   },
 };
 
@@ -96,6 +124,23 @@ export default async function PortalAccount({
     newsletterOn = Boolean((sub as { active?: boolean } | null)?.active);
   }
 
+  // Account-leeftijd uit user.created_at (van Supabase auth)
+  const createdAt = user?.created_at ? new Date(user.created_at) : null;
+  const memberSinceLabel = createdAt
+    ? createdAt.toLocaleDateString(
+        locale === "fr" ? "fr-BE" : locale === "en" ? "en-GB" : "nl-BE",
+        { day: "2-digit", month: "long", year: "numeric" },
+      )
+    : null;
+  const memberMonths = createdAt
+    ? Math.max(
+        0,
+        Math.floor(
+          (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30),
+        ),
+      )
+    : 0;
+
   async function out() {
     "use server";
     await signOut();
@@ -104,34 +149,86 @@ export default async function PortalAccount({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-        {t.account}
-      </h1>
-
-      <dl className="mt-8 grid gap-x-8 gap-y-5 rounded-2xl bg-card shadow-sm p-6 sm:grid-cols-2">
-        <div>
-          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            {l.email}
-          </dt>
-          <dd className="mt-1 break-all text-sm">{user?.email ?? "—"}</dd>
+      {/* Header met icon-bowl */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/15 text-accent">
+            <User2 className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t.account}
+            </h1>
+            <p className="mt-0.5 text-sm text-muted">{l.sub}</p>
+          </div>
         </div>
-        <div>
-          <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            {l.lang}
-          </dt>
-          <dd className="mt-2">
-            <LangSwitcher current={locale} />
-          </dd>
-        </div>
-      </dl>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-green-600 dark:text-green-400">
+          <ShieldCheck className="h-3 w-3" strokeWidth={2.5} />
+          {l.verified}
+        </span>
+      </div>
 
-      <div className="mt-6 rounded-2xl bg-card shadow-sm p-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+      {/* Profiel-card */}
+      <div className="mt-6 rounded-2xl bg-card p-6 shadow-sm">
+        <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <User2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+          {l.profile}
+        </p>
+        <div className="mt-4 grid gap-x-8 gap-y-5 sm:grid-cols-2">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              {l.email}
+            </p>
+            <p className="mt-1 flex items-center gap-2 break-all text-sm">
+              <Mail className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={2} />
+              {user?.email ?? "—"}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              {l.lang}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <Globe2 className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={2} />
+              <LangSwitcher current={locale} />
+            </div>
+          </div>
+          {memberSinceLabel && (
+            <div className="sm:col-span-2">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {l.memberSince}
+              </p>
+              <p className="mt-1 text-sm">
+                {memberSinceLabel}
+                {memberMonths > 0 && (
+                  <span className="ml-2 font-mono text-xs text-muted">
+                    ({memberMonths}{" "}
+                    {locale === "fr"
+                      ? "mois"
+                      : locale === "en"
+                        ? "months"
+                        : "maanden"})
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Session & security */}
+      <div className="mt-4 rounded-2xl bg-card p-6 shadow-sm">
+        <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+          <KeyRound className="h-3.5 w-3.5" strokeWidth={2.5} />
           {l.sessionTitle}
         </p>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
           {l.sessionText}
         </p>
+        <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-green-600 dark:text-green-400">
+          <ShieldCheck className="h-3 w-3" strokeWidth={2.5} />
+          {l.securityNote}
+        </div>
         <form action={out} className="mt-5">
           <button
             type="submit"
@@ -143,8 +240,10 @@ export default async function PortalAccount({
         </form>
       </div>
 
-      <div className="mt-6 rounded-2xl bg-card shadow-sm p-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+      {/* Mailvoorkeuren */}
+      <div className="mt-4 rounded-2xl bg-card p-6 shadow-sm">
+        <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+          <BellRing className="h-3.5 w-3.5" strokeWidth={2.5} />
           {l.mailTitle}
         </p>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
@@ -152,12 +251,17 @@ export default async function PortalAccount({
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <span
-            className={`rounded-full px-3 py-1 font-mono text-[11px] ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[11px] ${
               newsletterOn
                 ? "bg-green-500/15 text-green-600 dark:text-green-400"
                 : "bg-muted/15 text-muted"
             }`}
           >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                newsletterOn ? "bg-green-500" : "bg-muted"
+              }`}
+            />
             {newsletterOn ? l.mailOn : l.mailOff}
           </span>
           <form action={setNewsletter.bind(null, !newsletterOn)}>

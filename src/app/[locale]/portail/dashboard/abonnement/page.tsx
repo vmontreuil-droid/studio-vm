@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  Repeat,
+  Globe2,
+  Calendar,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
@@ -192,9 +199,14 @@ export default async function PortalSubscription({
     const delta = target.cents - (currentTier?.cents ?? 0);
     return (
       <>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          {t.subscription}
-        </h1>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/15 text-accent">
+            <Repeat className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t.subscription}
+          </h1>
+        </div>
         <div className="mt-8 max-w-xl rounded-2xl border border-accent/40 bg-accent/5 p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             {l.cfTitle}
@@ -281,14 +293,54 @@ export default async function PortalSubscription({
     );
   }
 
+  // KPI-context voor in de header
+  const activeSubs = subs.filter((s) => s.status === "actief");
+  const totalMonthly = activeSubs.reduce(
+    (sum, s) => sum + (s.price_cents ?? 0),
+    0,
+  );
+
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-        {t.subscription}
-      </h1>
+      {/* Header met icon-bowl + KPI's */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/15 text-accent">
+            <Repeat className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t.subscription}
+            </h1>
+            <p className="mt-0.5 text-sm text-muted">
+              {activeSubs.length > 0
+                ? `${activeSubs.length} actief · ${eur(totalMonthly)} ${l.per}`
+                : l.none}
+            </p>
+          </div>
+        </div>
+        {activeSubs.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-green-600 dark:text-green-400">
+              <TrendingUp className="h-3 w-3" strokeWidth={2.5} />
+              {locale === "fr"
+                ? "Actif"
+                : locale === "en"
+                  ? "Active"
+                  : "Actief"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+              <Calendar className="h-3 w-3" strokeWidth={2.5} />
+              {eur(totalMonthly)}
+              {l.per}
+            </span>
+          </div>
+        )}
+      </div>
 
-      <div className="mt-5 rounded-xl bg-card shadow-sm p-4">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+      <div className="mt-6 rounded-xl bg-card shadow-sm p-4">
+        <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <Globe2 className="h-3 w-3" strokeWidth={2.5} />
           {locale === "fr"
             ? "Abonnement site web"
             : locale === "en"
@@ -452,7 +504,8 @@ export default async function PortalSubscription({
         ))}
       </div>
 
-      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
+      <h2 className="mt-12 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+        <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
         {l.change}
       </h2>
       <p className="mt-2 text-sm text-muted">{l.note}</p>

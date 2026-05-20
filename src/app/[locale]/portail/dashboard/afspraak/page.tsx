@@ -9,12 +9,15 @@ import {
   ExternalLink,
   Sparkles,
   Clock3,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { PORTAL_T } from "@/lib/portal-shared";
 import { getCompanySettings } from "@/lib/admin/settings";
 import { getOutreachConfig } from "@/lib/admin/outreach";
 import { requestAppointment } from "@/app/actions/portal-client";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +47,14 @@ const L: Record<
     message: string;
     messagePh: string;
     send: string;
+    sending: string;
     mailOnly: string;
     sla: string;
     confirm: string;
+    sentTitle: string;
+    sentBody: string;
+    errorTitle: string;
+    errorBody: string;
   }
 > = {
   nl: {
@@ -73,9 +81,16 @@ const L: Record<
     message: "Bericht (optioneel)",
     messagePh: "Waar wil je het over hebben? Welk topic, welke vraag, welk besluit?",
     send: "Aanvraag versturen",
+    sending: "Bezig met versturen…",
     mailOnly: "Liever direct mailen?",
     sla: "Ik antwoord binnen 24u op werkdagen.",
     confirm: "Na bevestiging zie je de afspraak terug bij 'Berichten'.",
+    sentTitle: "Aanvraag verstuurd ✓",
+    sentBody:
+      "Ik kreeg je voorkeuren binnen en kom binnen 24u met 2-3 concrete voorstellen terug. Je vindt de aanvraag ook bij 'Berichten'.",
+    errorTitle: "Er ging iets mis",
+    errorBody:
+      "De aanvraag kon niet bewaard worden. Mail me even rechtstreeks, dan plan ik het manueel in.",
   },
   fr: {
     intro: "Planifier un échange",
@@ -101,9 +116,16 @@ const L: Record<
     message: "Message (optionnel)",
     messagePh: "De quoi voulez-vous parler ? Quel sujet, quelle question, quelle décision ?",
     send: "Envoyer la demande",
+    sending: "Envoi en cours…",
     mailOnly: "Vous préférez écrire ?",
     sla: "Je réponds sous 24h les jours ouvrés.",
     confirm: "Après confirmation vous retrouvez le rendez-vous dans 'Messages'.",
+    sentTitle: "Demande envoyée ✓",
+    sentBody:
+      "J'ai reçu vos préférences et je reviens sous 24h avec 2-3 propositions concrètes. Vous retrouvez la demande dans 'Messages'.",
+    errorTitle: "Quelque chose a mal tourné",
+    errorBody:
+      "La demande n'a pas pu être enregistrée. Écrivez-moi directement et je planifierai manuellement.",
   },
   en: {
     intro: "Schedule a conversation",
@@ -129,21 +151,33 @@ const L: Record<
     message: "Message (optional)",
     messagePh: "What would you like to talk about? Which topic, question, decision?",
     send: "Send request",
+    sending: "Sending…",
     mailOnly: "Rather email directly?",
     sla: "I reply within 24h on weekdays.",
     confirm: "After confirmation you'll find the appointment under 'Messages'.",
+    sentTitle: "Request sent ✓",
+    sentBody:
+      "I received your preferences and will come back within 24h with 2-3 concrete proposals. You'll find the request under 'Messages' too.",
+    errorTitle: "Something went wrong",
+    errorBody:
+      "The request couldn't be saved. Email me directly and I'll schedule it manually.",
   },
 };
 
 export default async function PortalAppointment({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ sent?: string; error?: string }>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   if (!isValidLocale(locale)) notFound();
   const t = PORTAL_T[locale];
   const l = L[locale];
+  const justSent = sp.sent === "1";
+  const hadError = sp.error === "1";
 
   // Echte e-mail uit company_settings; vroeger stond hier hardcoded
   // hallo@studio-vm.be (kwam niet aan). Cal.com-link komt uit outreach-
@@ -174,6 +208,42 @@ export default async function PortalAppointment({
           {l.sla}
         </div>
       </div>
+
+      {/* Succes-banner na verzending */}
+      {justSent && (
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-green-600/40 bg-green-500/10 p-4">
+          <CheckCircle2
+            className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+            strokeWidth={2.5}
+          />
+          <div>
+            <p className="font-semibold text-green-700 dark:text-green-300">
+              {l.sentTitle}
+            </p>
+            <p className="mt-0.5 text-sm text-green-800/90 dark:text-green-100/90">
+              {l.sentBody}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error-banner */}
+      {hadError && (
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-red-600/40 bg-red-500/10 p-4">
+          <AlertCircle
+            className="mt-0.5 h-5 w-5 shrink-0 text-red-500"
+            strokeWidth={2.5}
+          />
+          <div>
+            <p className="font-semibold text-red-600 dark:text-red-300">
+              {l.errorTitle}
+            </p>
+            <p className="mt-0.5 text-sm text-red-700/90 dark:text-red-100/90">
+              {l.errorBody}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 lg:grid-cols-5">
         {/* Cal.com kolom (1/2 op lg) */}
@@ -217,6 +287,7 @@ export default async function PortalAppointment({
             action={requestAppointment}
             className="rounded-2xl bg-card p-6 shadow-sm sm:p-8"
           >
+            <input type="hidden" name="locale" value={locale} />
             <h2 className="text-xl font-semibold tracking-tight">
               {calLink ? l.requestTitle : l.intro}
             </h2>
@@ -296,12 +367,12 @@ export default async function PortalAppointment({
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted">{l.confirm}</p>
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              <SubmitButton
+                pendingLabel={l.sending}
+                className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 {l.send}
-              </button>
+              </SubmitButton>
             </div>
 
             {!calLink && (

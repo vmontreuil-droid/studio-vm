@@ -229,11 +229,16 @@ export async function openTicket(
 // in het onderwerp en een nette body met de gekozen voorkeuren.
 // Vincent krijgt de notificatie via notifyStudio (= company_settings
 // .email). Klant ziet de aanvraag terug bij Berichten/Tickets.
+// Bij succes: redirect naar dezelfde pagina met ?sent=1 zodat de
+// page een groene bevestiging kan tonen.
 export async function requestAppointment(
   formData: FormData,
 ): Promise<void> {
   const email = await authedEmail();
   if (!email) return;
+  const rawLoc = String(formData.get("locale") ?? "nl");
+  const dloc: "nl" | "fr" | "en" =
+    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
   const kind = String(formData.get("kind") ?? "").trim() || "videocall";
   const when = String(formData.get("when") ?? "").trim() || "deze week";
   const slot = String(formData.get("slot") ?? "").trim() || "doorlopend";
@@ -252,7 +257,9 @@ export async function requestAppointment(
     .insert({ client_email: email, subject })
     .select("id")
     .single();
-  if (error || !data) return;
+  if (error || !data) {
+    redirect(`/${dloc}/portail/dashboard/afspraak?error=1`);
+  }
   await sb
     .from("ticket_messages")
     .insert({ ticket_id: data.id, sender: "klant", body });
@@ -265,7 +272,7 @@ export async function requestAppointment(
       : "Geen extra bericht.",
   ]);
   revalidatePath("/[locale]/portail/dashboard", "page");
-  return;
+  redirect(`/${dloc}/portail/dashboard/afspraak?sent=1`);
 }
 
 export async function replyTicket(
