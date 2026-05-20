@@ -64,7 +64,46 @@ export async function saveCompanySettingsAction(
   _prev: { ok: boolean; error?: string } | null,
   fd: FormData,
 ): Promise<{ ok: boolean; error?: string }> {
-  return saveCompanySettings(fd);
+  const base = await saveCompanySettings(fd);
+  if (!base.ok) return base;
+  // Sla in dezelfde call ook de outreach-config op (zelfde rij in
+  // company_settings, andere kolommen).
+  try {
+    const naceRaw = (fd.get("outreach_nace_prefixes") as string | null) ?? "";
+    const lands: ("be" | "fr" | "uk")[] = [];
+    for (const l of ["be", "fr", "uk"] as const) {
+      if (fd.get(`outreach_land_${l}`) != null) lands.push(l);
+    }
+    const patch = {
+      outreach_paused: fd.get("outreach_paused") != null,
+      outreach_daily_quota: int(fd, "outreach_daily_quota", 20),
+      outreach_cal_link: str(fd, "outreach_cal_link"),
+      outreach_sender_name:
+        str(fd, "outreach_sender_name") || "Vincent Montreuil",
+      outreach_sender_email:
+        str(fd, "outreach_sender_email") || "vincent@studio-vm.be",
+      outreach_min_score: int(fd, "outreach_min_score", 30),
+      outreach_max_score: int(fd, "outreach_max_score", 65),
+      outreach_nace_prefixes: naceRaw
+        .split(/[\s,;]+/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+      outreach_lands: lands.length > 0 ? lands : ["be"],
+    };
+    const { error } = await getSupabaseAdmin()
+      .from("company_settings")
+      .update(patch)
+      .eq("id", "default");
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/admin/instellingen");
+    revalidatePath("/admin/outreach");
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Outreach-config fout.",
+    };
+  }
 }
 
 // ---------- Module 3a — productcatalogus ----------

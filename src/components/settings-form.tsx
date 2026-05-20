@@ -5,6 +5,7 @@ import { Save, Check, AlertCircle } from "lucide-react";
 import { saveCompanySettingsAction } from "@/app/actions/accounting";
 import { SubmitButton } from "@/components/submit-button";
 import type { CompanySettings } from "@/lib/admin/settings";
+import type { OutreachConfig } from "@/lib/admin/outreach";
 
 function Field({
   label,
@@ -54,9 +55,16 @@ function Section({
   );
 }
 
-export function SettingsForm({ settings }: { settings: CompanySettings }) {
+export function SettingsForm({
+  settings,
+  outreach,
+}: {
+  settings: CompanySettings;
+  outreach: OutreachConfig;
+}) {
   const [state, formAction] = useActionState(saveCompanySettingsAction, null);
   const s = settings;
+  const o = outreach;
 
   return (
     <form action={formAction} className="mt-6 space-y-3">
@@ -102,6 +110,62 @@ export function SettingsForm({ settings }: { settings: CompanySettings }) {
             className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
           />
         </label>
+      </Section>
+
+      <Section title="Outreach-engine">
+        <label className="flex items-center gap-3 sm:col-span-2">
+          <input
+            type="checkbox"
+            name="outreach_paused"
+            defaultChecked={o.paused}
+            className="h-4 w-4 accent-[var(--accent)]"
+          />
+          <span className="text-sm">
+            <strong>Pauze actief</strong> — geen automatische mails. Vink uit om de engine te starten.
+          </span>
+        </label>
+        <Field label="Afzender-naam" name="outreach_sender_name" defaultValue={o.senderName} hint="Verschijnt als 'Van' in de mail" />
+        <Field label="Afzender-mail" name="outreach_sender_email" type="email" defaultValue={o.senderEmail} hint="Moet geverifieerd zijn in Resend" />
+        <Field label="Dagquota" name="outreach_daily_quota" type="number" defaultValue={o.dailyQuota} hint="Warm-up curve cap't dit eerste 3 weken" />
+        <Field label="Cal.com-link (optioneel)" name="outreach_cal_link" defaultValue={o.calLink} placeholder="https://cal.com/vincent-montreuil/30min" hint="Verschijnt als CTA in het scan-portaal" />
+        <Field label="Min. score (te-mailen-range)" name="outreach_min_score" type="number" defaultValue={o.minScore} hint="0=alles, 30=enkel sites met echt probleem" />
+        <Field label="Max. score (te-mailen-range)" name="outreach_max_score" type="number" defaultValue={o.maxScore} hint="65=skip al goeie sites — geen nood aan jou" />
+        <label className="block sm:col-span-2">
+          <span className="text-xs font-medium text-muted">NACE-prefixen (kommagescheiden)</span>
+          <input
+            name="outreach_nace_prefixes"
+            defaultValue={o.nacePrefixes.join(", ")}
+            placeholder="bv. 56, 74, 47, 96"
+            className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
+          />
+          <span className="mt-1 block text-[11px] text-muted">
+            Enkel prospects met hoofdactiviteit binnen deze prefixen worden gemaild. Leeg = alle sectoren.
+          </span>
+        </label>
+        <div className="block sm:col-span-2">
+          <span className="text-xs font-medium text-muted">Landen actief</span>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {(["be", "fr", "uk"] as const).map((l) => (
+              <label
+                key={l}
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  name={`outreach_land_${l}`}
+                  defaultChecked={o.lands.includes(l)}
+                  className="h-4 w-4 accent-[var(--accent)]"
+                />
+                {l === "be" ? "🇧🇪 België" : l === "fr" ? "🇫🇷 Frankrijk" : "🇬🇧 UK"}
+              </label>
+            ))}
+          </div>
+        </div>
+        {o.startedAt && (
+          <p className="sm:col-span-2 text-xs text-muted">
+            Warm-up actief sinds <strong className="text-foreground">{o.startedAt}</strong> — engine bouwt afzender-reputatie geleidelijk op (week 1: max 5/dag, week 2: 10, week 3: 15, week 4+: jouw quota).
+          </p>
+        )}
       </Section>
 
       <div className="flex flex-wrap items-center gap-3">
