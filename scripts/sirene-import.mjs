@@ -103,12 +103,25 @@ async function upsertWithRetry(table, chunk, conflict) {
   return false;
 }
 
-// 1) UniteLegale → naam + rechtsvorm per SIREN
-const legal = new Map();
+// 1) UniteLegale → naam + rechtsvorm per SIREN.
+// V8 Maps hebben een hard plafond van 2^24 (~16,7 M) entries; Sirene
+// heeft er meer. Daarom sharden we over 100 Maps op basis van de
+// laatste 2 cijfers van de SIREN.
+const LEGAL_SHARDS = 100;
+const legal = Array.from({ length: LEGAL_SHARDS }, () => new Map());
+const legalKey = (siren) => {
+  const k = Number(siren.slice(-2));
+  return Number.isFinite(k) ? k % LEGAL_SHARDS : 0;
+};
+const legalGet = (siren) => legal[legalKey(siren)].get(siren);
+const legalSet = (siren, v) => legal[legalKey(siren)].set(siren, v);
+const legalSize = () =>
+  legal.reduce((t, m) => t + m.size, 0);
+
 await readCsv("StockUniteLegale_utf8.csv", (r) => {
   const siren = r.siren;
   if (!siren) return;
-  legal.set(siren, {
+  legalSet(siren, {
     name:
       r.denominationUniteLegale ||
       r.denominationUsuelle1UniteLegale ||
@@ -117,7 +130,7 @@ await readCsv("StockUniteLegale_utf8.csv", (r) => {
     form: r.categorieJuridiqueUniteLegale || null,
   });
 });
-console.log(`${legal.size} unités légales geladen\n`);
+console.log(`${legalSize()} unités légales geladen\n`);
 
 // 2) Etablissement-stream → bouw rijen + bulk-upsert in batches.
 const BATCH = 1000;
@@ -140,7 +153,7 @@ await readCsv("StockEtablissement_utf8.csv", async (r) => {
   const siret = r.siret;
   if (!siret) return;
   const siren = r.siren ?? siret.slice(0, 9);
-  const ul = legal.get(siren);
+  const ul = legalGet(siren);
   const street =
     [
       r.numeroVoieEtablissement,
