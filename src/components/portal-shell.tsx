@@ -399,7 +399,7 @@ export function PortalShell({
             : "min-w-0 flex-1 px-5 pb-16 pt-20 sm:px-8 md:px-10 md:pt-10"
         }
       >
-        <div className={wide ? "w-full" : "mx-auto max-w-4xl"}>{children}</div>
+        <div className={wide ? "w-full" : "mx-auto w-full max-w-7xl"}>{children}</div>
       </main>
     </div>
   );

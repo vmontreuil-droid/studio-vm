@@ -225,6 +225,49 @@ export async function openTicket(
   return;
 }
 
+// Afspraak-aanvraag: maakt een ticket aan met '[Afspraak]'-prefix
+// in het onderwerp en een nette body met de gekozen voorkeuren.
+// Vincent krijgt de notificatie via notifyStudio (= company_settings
+// .email). Klant ziet de aanvraag terug bij Berichten/Tickets.
+export async function requestAppointment(
+  formData: FormData,
+): Promise<void> {
+  const email = await authedEmail();
+  if (!email) return;
+  const kind = String(formData.get("kind") ?? "").trim() || "videocall";
+  const when = String(formData.get("when") ?? "").trim() || "deze week";
+  const slot = String(formData.get("slot") ?? "").trim() || "doorlopend";
+  const message = String(formData.get("message") ?? "").trim().slice(0, 2000);
+
+  const subject = `[Afspraak] ${kind} · ${when} · ${slot}`.slice(0, 160);
+  const body =
+    `Type: ${kind}\n` +
+    `Periode: ${when}\n` +
+    `Tijdsvoorkeur: ${slot}\n\n` +
+    (message ? `Bericht:\n${message}` : "Geen extra bericht.");
+
+  const sb = await getSupabaseServer();
+  const { data, error } = await sb
+    .from("tickets")
+    .insert({ client_email: email, subject })
+    .select("id")
+    .single();
+  if (error || !data) return;
+  await sb
+    .from("ticket_messages")
+    .insert({ ticket_id: data.id, sender: "klant", body });
+
+  await notifyStudio(`Afspraak-aanvraag — ${email}`, [
+    `<strong>${email}</strong> vraagt een ${kind} aan.`,
+    `Periode: ${when} · Tijdsvoorkeur: ${slot}`,
+    message
+      ? `Bericht:<br>${message.replace(/</g, "&lt;").replace(/\n/g, "<br>")}`
+      : "Geen extra bericht.",
+  ]);
+  revalidatePath("/[locale]/portail/dashboard", "page");
+  return;
+}
+
 export async function replyTicket(
   formData: FormData,
 ): Promise<void> {
