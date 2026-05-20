@@ -7,6 +7,7 @@ import { sendMail } from "@/lib/monitor";
 import { portalEmailHtml } from "@/lib/email";
 import { buildActionPlan } from "@/lib/health-check-actionplan";
 import { nextDocNumber } from "@/lib/admin/numbering";
+import { sendInvoiceViaBillit } from "@/lib/billit";
 import { randomBytes } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -107,20 +108,72 @@ export async function POST(req: NextRequest) {
     ]
       .filter(Boolean)
       .join("\n");
+    const issuedAt = new Date().toISOString().slice(0, 10);
+    const invoiceDesc = `Site Health Check ${pkgLabel} — ${hc.website.replace(/^https?:\/\//, "")}`;
     await db.from("invoices").insert({
       client_email: hc.email,
       client_name: clientName,
       client_address: clientAddress || null,
       client_vat: hc.vat_number,
       number: invoiceNumber,
-      description: `Site Health Check ${pkgLabel} — ${hc.website.replace(/^https?:\/\//, "")}`,
+      description: invoiceDesc,
       amount_cents: exclCents,
       status: "betaald",
-      issued_at: new Date().toISOString().slice(0, 10),
+      issued_at: issuedAt,
       paid_at: new Date().toISOString(),
       mollie_payment_id: paymentId,
       public_token: publicToken,
+      peppol_status: hc.vat_number ? "wachten" : "niet_vereist",
     });
+
+    // Peppol-verzending via Billit — faalt-stil. Particulier (geen
+    // btw-nr) krijgt direct 'niet_vereist'; B2B gaat naar Billit's
+    // Peppol Access Point. De resultaten worden naar de invoice
+    // gesynct zodat /admin/facturen de status toont.
+    const billit = await sendInvoiceViaBillit({
+      number: invoiceNumber,
+      issued_at: issuedAt,
+      lines: [
+        {
+          description: invoiceDesc,
+          amount_excl_cents: exclCents,
+          vat_rate: 21,
+        },
+      ],
+      client: {
+        customer_name: clientName,
+        customer_vat: hc.vat_number,
+        customer_email: hc.email,
+        customer_address: hc.street,
+        postal_code: hc.postal_code,
+        city: hc.city,
+        country: hc.country || "BE",
+      },
+    }).catch((e) => ({
+      ok: false as const,
+      error: e instanceof Error ? e.message : String(e),
+    }));
+    if (billit.ok) {
+      await db
+        .from("invoices")
+        .update({
+          billit_order_id: billit.billit_order_id || null,
+          peppol_status: billit.peppol_status,
+          peppol_sent_at:
+            billit.peppol_status === "verzonden"
+              ? new Date().toISOString()
+              : null,
+        })
+        .eq("number", invoiceNumber);
+    } else {
+      await db
+        .from("invoices")
+        .update({
+          peppol_status: "mislukt",
+          peppol_error: billit.error,
+        })
+        .eq("number", invoiceNumber);
+    }
     const invoiceUrl = `${siteUrl}/${hc.locale}/factuur/${publicToken}`;
     const isPremium = pkg === "premium";
     const T =

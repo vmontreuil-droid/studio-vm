@@ -154,6 +154,7 @@ type Block = {
   cta: string;
   price: string;
   fine: string;
+  peppol: string;
 };
 
 const T: Record<Locale, Block> = {
@@ -533,6 +534,8 @@ const T: Record<Locale, Block> = {
     cta: "Betaal en start",
     price: "Eenmalig, all-in",
     fine: "Veilige betaling via Mollie. Bancontact, kaart, overschrijving.",
+    peppol:
+      "B2B-facturen worden automatisch via Peppol e-invoicing verzonden — verplicht in België sinds 1 januari 2026.",
   },
   fr: {
     eyebrow: "Site Health Check — 99€",
@@ -910,6 +913,8 @@ const T: Record<Locale, Block> = {
     cta: "Payer et démarrer",
     price: "Unique, tout compris",
     fine: "Paiement sécurisé via Mollie. Bancontact, carte, virement.",
+    peppol:
+      "Les factures B2B sont automatiquement envoyées via Peppol e-invoicing — obligatoire en Belgique depuis le 1er janvier 2026.",
   },
   en: {
     eyebrow: "Site Health Check — €99",
@@ -1286,6 +1291,8 @@ const T: Record<Locale, Block> = {
     cta: "Pay and start",
     price: "One-off, all-in",
     fine: "Secure payment via Mollie. Bancontact, card, transfer.",
+    peppol:
+      "B2B invoices are automatically sent via Peppol e-invoicing — mandatory in Belgium since January 1, 2026.",
   },
 };
 
@@ -2050,6 +2057,13 @@ export default async function SiteHealthCheck({
                   </button>
                 </div>
                 <p className="text-xs text-muted">{t.fine}</p>
+                <div className="flex items-start gap-2 rounded-lg bg-[#ef7e22]/10 px-3 py-2 text-xs">
+                  <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-[#ef7e22] px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    Peppol
+                  </span>
+                  <span className="text-foreground/80">{t.peppol}</span>
+                </div>
               </div>
             </div>
           </form>
