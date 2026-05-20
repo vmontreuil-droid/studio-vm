@@ -29,10 +29,16 @@ with checks as (
 
   union all select
     '0036_outreach_deliverability.sql',
-    'List-Unsubscribe + bounce/spam tracking',
+    'bounce/complaint tracking op prospect_outreach + outreach_webhook_secret op company_settings',
     exists(
-      select 1 from information_schema.tables
-      where table_schema = 'public' and table_name = 'bounce_log'
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'prospect_outreach'
+        and column_name = 'bounced_at'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'company_settings'
+        and column_name = 'outreach_webhook_secret'
     )
 
   union all select
