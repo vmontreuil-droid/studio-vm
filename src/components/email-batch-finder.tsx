@@ -24,9 +24,11 @@ type BatchResult = {
 export function EmailBatchFinder({
   filter,
   initial,
+  land,
 }: {
   filter: Filter;
   initial?: { remaining: number; scanned: number; withEmails: number };
+  land?: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"idle" | "single" | "auto">("idle");
@@ -62,7 +64,7 @@ export function EmailBatchFinder({
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filter, limit: 20 }),
+        body: JSON.stringify({ filter, limit: 20, land }),
         signal: ctrl.signal,
       });
       if (!res.ok) {

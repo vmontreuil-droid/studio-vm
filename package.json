@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "kbo:import": "node --max-old-space-size=4096 scripts/kbo-import.mjs"
+    "kbo:import": "node --max-old-space-size=4096 scripts/kbo-import.mjs",
+    "sirene:import": "node --max-old-space-size=8192 scripts/sirene-import.mjs",
+    "uk:import": "node --max-old-space-size=4096 scripts/uk-companies-import.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

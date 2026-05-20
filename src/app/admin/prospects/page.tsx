@@ -4,26 +4,25 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { EmailBatchFinder } from "@/components/email-batch-finder";
+import { SOURCES, sourceFromLand } from "@/lib/admin/prospect-source";
 
 export const dynamic = "force-dynamic";
 
-type KboRow = {
-  enterprise_number: string;
-  juridical_form: string | null;
-  juridical_status: string | null;
-  start_date: string | null;
+type Row = {
+  // alle landen kennen deze velden
   name: string | null;
   postcode: string | null;
   city: string | null;
   street: string | null;
-  house_number: string | null;
-  nace_main: string | null;
-  nace_codes: string[] | null;
   email: string | null;
   phone: string | null;
   website: string | null;
   email_found: string[] | null;
   email_scanned_at: string | null;
+  // dynamische kolomnamen (worden via select-alias geleverd)
+  id_col: string;
+  code_col: string | null;
+  form_col: string | null;
 };
 
 const PAGE_SIZE = 50;
@@ -32,9 +31,10 @@ export default async function AdminProspects({
   searchParams,
 }: {
   searchParams: Promise<{
+    land?: string;
     q?: string;
     postcode?: string;
-    nace?: string;
+    code?: string;
     form?: string;
     active?: string;
     page?: string;
@@ -42,46 +42,45 @@ export default async function AdminProspects({
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const sp = await searchParams;
+  const source = sourceFromLand(sp.land);
   const q = (sp.q ?? "").trim();
   const postcode = (sp.postcode ?? "").trim();
-  const nace = (sp.nace ?? "").trim();
+  const code = (sp.code ?? "").trim();
   const form = (sp.form ?? "").trim();
   const active = sp.active !== "0";
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
   const db = getSupabaseAdmin();
+  const selectCols = `${source.idCol}::text as id_col, ${source.codeCol} as code_col, ${source.formCol} as form_col, name, postcode, city, street, email, phone, website, email_found, email_scanned_at`;
+
   let qy = db
-    .from("kbo_enterprises")
-    .select(
-      "enterprise_number, juridical_form, juridical_status, start_date, name, postcode, city, street, house_number, nace_main, nace_codes, email, phone, website, email_found, email_scanned_at",
-      { count: "exact" },
-    )
+    .from(source.table)
+    .select(selectCols, { count: "exact" })
     .order("name", { ascending: true });
   if (q) qy = qy.ilike("name", `%${q}%`);
   if (postcode) qy = qy.like("postcode", `${postcode}%`);
-  if (nace) qy = qy.like("nace_main", `${nace}%`);
-  if (form) qy = qy.eq("juridical_form", form);
-  if (active) qy = qy.eq("juridical_status", "000");
+  if (code) qy = qy.like(source.codeCol, `${code}%`);
+  if (form) qy = qy.eq(source.formCol, form);
+  if (active) qy = qy.eq(source.statusCol, source.activeValue);
   qy = qy.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   const { data, count } = await qy;
-  const rows = (data as KboRow[] | null) ?? [];
+  const rows = (data as Row[] | null) ?? [];
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // Persistente tellers (uit DB) voor de batch-finder. Overleven
-  // browser sluiten / stop & herstart.
+  // Persistente DB-tellers
   let q1 = db
-    .from("kbo_enterprises")
-    .select("enterprise_number", { count: "exact", head: true })
+    .from(source.table)
+    .select(source.idCol, { count: "exact", head: true })
     .not("website", "is", null)
     .is("email_scanned_at", null);
   let q2 = db
-    .from("kbo_enterprises")
-    .select("enterprise_number", { count: "exact", head: true })
+    .from(source.table)
+    .select(source.idCol, { count: "exact", head: true })
     .not("email_scanned_at", "is", null);
   let q3 = db
-    .from("kbo_enterprises")
-    .select("enterprise_number", { count: "exact", head: true })
+    .from(source.table)
+    .select(source.idCol, { count: "exact", head: true })
     .not("email_found", "is", null)
     .neq("email_found", "[]");
   if (q) {
@@ -94,32 +93,44 @@ export default async function AdminProspects({
     q2 = q2.like("postcode", `${postcode}%`);
     q3 = q3.like("postcode", `${postcode}%`);
   }
-  if (nace) {
-    q1 = q1.like("nace_main", `${nace}%`);
-    q2 = q2.like("nace_main", `${nace}%`);
-    q3 = q3.like("nace_main", `${nace}%`);
+  if (code) {
+    q1 = q1.like(source.codeCol, `${code}%`);
+    q2 = q2.like(source.codeCol, `${code}%`);
+    q3 = q3.like(source.codeCol, `${code}%`);
   }
   if (form) {
-    q1 = q1.eq("juridical_form", form);
-    q2 = q2.eq("juridical_form", form);
-    q3 = q3.eq("juridical_form", form);
+    q1 = q1.eq(source.formCol, form);
+    q2 = q2.eq(source.formCol, form);
+    q3 = q3.eq(source.formCol, form);
   }
   if (active) {
-    q1 = q1.eq("juridical_status", "000");
-    q2 = q2.eq("juridical_status", "000");
-    q3 = q3.eq("juridical_status", "000");
+    q1 = q1.eq(source.statusCol, source.activeValue);
+    q2 = q2.eq(source.statusCol, source.activeValue);
+    q3 = q3.eq(source.statusCol, source.activeValue);
   }
-  const [{ count: scanRemaining }, { count: alreadyScanned }, { count: withEmails }] =
-    await Promise.all([q1, q2, q3]);
+  const [
+    { count: scanRemaining },
+    { count: alreadyScanned },
+    { count: withEmails },
+  ] = await Promise.all([q1, q2, q3]);
 
   const mkLink = (p: Record<string, string | number | undefined>) => {
     const u = new URLSearchParams();
-    const base = { q, postcode, nace, form, active: active ? "1" : "0", page };
+    const base = {
+      land: source.land === "be" ? undefined : source.land,
+      q,
+      postcode,
+      code,
+      form,
+      active: active ? "1" : "0",
+      page,
+    };
     for (const [k, v] of Object.entries({ ...base, ...p })) {
       if (v !== "" && v !== undefined && v !== null) u.set(k, String(v));
     }
     return `/admin/prospects?${u.toString()}`;
   };
+  const switchLand = (l: string) => mkLink({ land: l === "be" ? "" : l, page: 1 });
 
   return (
     <>
@@ -127,35 +138,87 @@ export default async function AdminProspects({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Prospects</h1>
           <p className="mt-0.5 text-sm text-muted">
-            KBO Open Data — {total.toLocaleString("nl-BE")} onderneming(en)
-            in deze weergave. Filter, klik "Zoek contact" om hun publiek
-            mailadres te halen.
+            {source.flag} {source.label} — {total.toLocaleString("nl-BE")}{" "}
+            onderneming(en) in deze weergave.
           </p>
+        </div>
+        <div className="flex gap-1.5">
+          {(["be", "fr", "uk"] as const).map((l) => {
+            const s = SOURCES[l];
+            const sel = source.land === l;
+            return (
+              <Link
+                key={l}
+                href={switchLand(l)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  sel
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "hover:bg-card-hover"
+                }`}
+              >
+                <span className="text-base leading-none">{s.flag}</span>
+                {l.toUpperCase()}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
-      {total === 0 && !q && !postcode && !nace && !form && (
+      {total === 0 && !q && !postcode && !code && !form && (
         <div className="mt-6 rounded-2xl bg-amber-500/10 p-5 text-sm text-amber-700 dark:text-amber-300">
-          <p className="font-medium">KBO nog niet geïmporteerd.</p>
+          <p className="font-medium">
+            {source.label} nog niet geïmporteerd.
+          </p>
           <p className="mt-1 text-amber-700/90 dark:text-amber-300/90">
-            Maak een account op{" "}
-            <a
-              className="underline"
-              href="https://kbopub.economie.fgov.be/kbo-open-data"
-              target="_blank"
-              rel="noreferrer"
-            >
-              kbopub.economie.fgov.be/kbo-open-data
-            </a>
-            , download de maandelijkse full-dump (.zip), pak ze uit en run
-            lokaal in studio-vm: <code>node --max-old-space-size=4096
-            scripts/kbo-import.mjs /pad/naar/uitgepakte-folder</code>. Set
-            <code> SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>.
+            {source.land === "be" && (
+              <>
+                Download de KBO Open Data dump op{" "}
+                <a
+                  className="underline"
+                  href="https://kbopub.economie.fgov.be/kbo-open-data"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  kbopub.economie.fgov.be
+                </a>{" "}
+                en run <code>npm run kbo:import /pad/naar/folder</code>.
+              </>
+            )}
+            {source.land === "fr" && (
+              <>
+                Download Sirene stock-CSV op{" "}
+                <a
+                  className="underline"
+                  href="https://www.data.gouv.fr/fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  data.gouv.fr
+                </a>{" "}
+                en run <code>npm run sirene:import /pad/naar/folder</code>.
+              </>
+            )}
+            {source.land === "uk" && (
+              <>
+                Download "BasicCompanyDataAsOneFile-..." op{" "}
+                <a
+                  className="underline"
+                  href="http://download.companieshouse.gov.uk/en_output.html"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  download.companieshouse.gov.uk
+                </a>{" "}
+                en run{" "}
+                <code>npm run uk:import /pad/naar/file.csv</code>.
+              </>
+            )}
           </p>
         </div>
       )}
 
       <form className="mt-6 grid gap-3 rounded-2xl bg-card p-4 shadow-sm sm:grid-cols-5">
+        <input type="hidden" name="land" value={source.land} />
         <label className="block sm:col-span-2">
           <span className="text-xs font-medium text-muted">Naam bevat</span>
           <input
@@ -166,20 +229,24 @@ export default async function AdminProspects({
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-muted">Postcode (prefix)</span>
+          <span className="text-xs font-medium text-muted">
+            Postcode (prefix)
+          </span>
           <input
             name="postcode"
             defaultValue={postcode}
-            placeholder="bv. 9"
+            placeholder={source.postcodeExample}
             className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-muted">NACE-code (prefix)</span>
+          <span className="text-xs font-medium text-muted">
+            {source.codeLabel} (prefix)
+          </span>
           <input
-            name="nace"
-            defaultValue={nace}
-            placeholder="bv. 56 (horeca)"
+            name="code"
+            defaultValue={code}
+            placeholder={source.codeExample}
             className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </label>
@@ -188,7 +255,7 @@ export default async function AdminProspects({
           <input
             name="form"
             defaultValue={form}
-            placeholder="code, bv. 014"
+            placeholder="code"
             className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </label>
@@ -200,7 +267,7 @@ export default async function AdminProspects({
             defaultChecked={active}
             className="h-4 w-4 accent-[var(--accent)]"
           />
-          Enkel juridisch actief (status 000)
+          Enkel actief ({source.statusCol}={source.activeValue})
         </label>
         <button
           type="submit"
@@ -212,7 +279,8 @@ export default async function AdminProspects({
 
       <div className="mt-4">
         <EmailBatchFinder
-          filter={{ q, postcode, nace, form, active }}
+          filter={{ q, postcode, nace: code, form, active }}
+          land={source.land}
           initial={{
             remaining: scanRemaining ?? 0,
             scanned: alreadyScanned ?? 0,
@@ -228,22 +296,25 @@ export default async function AdminProspects({
               <tr className="border-b bg-background/40 text-left font-mono text-[10px] uppercase tracking-widest text-muted">
                 <th className="px-4 py-3 font-medium">Naam</th>
                 <th className="px-4 py-3 font-medium">Plaats</th>
-                <th className="px-4 py-3 font-medium">NACE</th>
-                <th className="px-4 py-3 font-medium">Contact (KBO)</th>
+                <th className="px-4 py-3 font-medium">{source.codeLabel}</th>
+                <th className="px-4 py-3 font-medium">Contact</th>
                 <th className="px-4 py-3 text-right font-medium">Actie</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-10 text-center text-sm text-muted"
+                  >
                     Geen resultaten in deze filter.
                   </td>
                 </tr>
               )}
               {rows.map((r) => (
                 <tr
-                  key={r.enterprise_number}
+                  key={r.id_col}
                   className="transition-colors hover:bg-card-hover"
                 >
                   <td className="px-4 py-3">
@@ -254,21 +325,14 @@ export default async function AdminProspects({
                       </span>
                     </span>
                     <span className="block font-mono text-[10px] text-muted">
-                      {r.enterprise_number} ·{" "}
-                      {r.juridical_form ? `vorm ${r.juridical_form}` : ""}
+                      {r.id_col} ·{" "}
+                      {r.form_col ? `vorm ${r.form_col}` : ""}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted">
                     {r.postcode} {r.city}
                   </td>
-                  <td className="px-4 py-3 text-muted">
-                    {r.nace_main || "—"}
-                    {r.nace_codes && r.nace_codes.length > 1 && (
-                      <span className="text-[10px]">
-                        {" "}+{r.nace_codes.length - 1}
-                      </span>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 text-muted">{r.code_col || "—"}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
                       {r.email && (
