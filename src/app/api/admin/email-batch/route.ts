@@ -46,50 +46,39 @@ export async function POST(req: NextRequest) {
 
   const db = getSupabaseAdmin();
 
-  // Geen exact count — die is veel te traag op 1,95 M rijen. We
-  // halen LIMIT+1 rijen op zodat we kunnen vertellen "is er nog
-  // meer" zonder een count-scan over de hele tabel.
-  let q = db
-    .from("kbo_enterprises")
-    .select("enterprise_number, website", { count: "exact" })
-    .not("website", "is", null)
-    .is("email_scanned_at", null)
-    .limit(limit + 1);
-  q = applyFilter(q, f);
-
-  const { data, error, count } = await q;
-  if (error) {
+  // Atomic claim — meerdere parallelle clients (laptop, desktop, …)
+  // krijgen elk een eigen exclusieve batch via FOR UPDATE SKIP LOCKED.
+  // De rijen worden meteen gemarkeerd als gescand zodat geen andere
+  // worker ze opnieuw oppakt; de echte email_found wordt verderop
+  // ingevuld als we klaar zijn.
+  const { data: claimed, error: claimErr } = await db.rpc(
+    "claim_kbo_for_scan",
+    {
+      p_limit: limit,
+      p_q: f.q || null,
+      p_postcode: f.postcode || null,
+      p_nace: f.nace || null,
+      p_form: f.form || null,
+      p_active: f.active !== false,
+    },
+  );
+  if (claimErr) {
     return NextResponse.json(
-      { error: error.message, hint: "select" },
+      { error: claimErr.message, hint: "claim" },
       { status: 500 },
     );
   }
-  const all =
-    (data as { enterprise_number: string; website: string }[] | null) ?? [];
-
-  // Diagnose: als de SELECT 0 rijen geeft, run een 2e probe met
-  // alleen `website not null` om te zien of de filter ergens stukt.
-  if (all.length === 0) {
-    const probe = await db
-      .from("kbo_enterprises")
-      .select("enterprise_number, website, email_scanned_at")
-      .not("website", "is", null)
-      .limit(3);
-    return NextResponse.json({
-      scanned: 0,
-      withEmails: 0,
-      emailsTotal: 0,
-      hasMore: false,
-      _debug: {
-        filter: f,
-        probeRows: probe.data ?? [],
-        probeError: probe.error?.message,
-      },
-    });
-  }
-
-  const hasMore = all.length > limit;
-  const rows = hasMore ? all.slice(0, limit) : all;
+  const rows =
+    (claimed as { enterprise_number: string; website: string }[] | null) ?? [];
+  // Snel "te gaan"-cijfer na de claim — exact, via de partiële index.
+  let cq = db
+    .from("kbo_enterprises")
+    .select("enterprise_number", { count: "exact", head: true })
+    .not("website", "is", null)
+    .is("email_scanned_at", null);
+  cq = applyFilter(cq, f);
+  const { count: remainingAfter } = await cq;
+  const hasMore = rows.length === limit;
 
   // Parallel scannen — CONCURRENCY workers nemen één voor één een
   // prospect uit de wachtrij.
@@ -140,6 +129,7 @@ export async function POST(req: NextRequest) {
     withEmails,
     emailsTotal,
     hasMore,
-    remaining: typeof count === "number" ? Math.max(0, count - scanned) : null,
+    remaining:
+      typeof remainingAfter === "number" ? remainingAfter : null,
   });
 }
