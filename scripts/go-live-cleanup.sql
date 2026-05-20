@@ -66,14 +66,17 @@ truncate table public.prospect_outreach restart identity cascade;
 
 -- ────────────────────────────────────────────────────────────
 -- BLOK 5 — Test-offertes opruimen, Carpentier behouden
+-- N.B.: quotes-tabel heeft 'name' (contactpersoon) + 'company',
+-- NIET 'client_name' (dat staat alleen op invoices na 0041).
 -- Eerst kijken wat er staat:
---   select id, client_name, status, created_at
+--   select id, name, company, email, status, created_at
 --     from public.quotes
 --     order by created_at desc;
 -- Daarna deze regel uitvoeren (Carpentier blijft staan):
 -- ────────────────────────────────────────────────────────────
 delete from public.quotes
-  where lower(coalesce(client_name, '')) not like '%carpentier%';
+  where lower(coalesce(name,    '')) not like '%carpentier%'
+    and lower(coalesce(company, '')) not like '%carpentier%';
 
 
 -- ────────────────────────────────────────────────────────────
