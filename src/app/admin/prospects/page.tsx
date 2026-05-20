@@ -51,7 +51,8 @@ export default async function AdminProspects({
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
   const db = getSupabaseAdmin();
-  const selectCols = `${source.idCol}::text as id_col, ${source.codeCol} as code_col, ${source.formCol} as form_col, name, postcode, city, street, email, phone, website, email_found, email_scanned_at`;
+  // PostgREST-alias-syntax: 'alias:column' (niet 'column AS alias')
+  const selectCols = `id_col:${source.idCol},code_col:${source.codeCol},form_col:${source.formCol},name,postcode,city,street,email,phone,website,email_found,email_scanned_at`;
 
   let qy = db
     .from(source.table)
