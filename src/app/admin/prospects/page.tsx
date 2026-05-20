@@ -268,7 +268,11 @@ export default async function AdminProspects({
             defaultChecked={active}
             className="h-4 w-4 accent-[var(--accent)]"
           />
-          Enkel actief ({source.statusCol}={source.activeValue})
+          {source.land === "fr"
+            ? "Seulement actif"
+            : source.land === "uk"
+              ? "Active only"
+              : "Enkel juridisch actief"}
         </label>
         <button
           type="submit"

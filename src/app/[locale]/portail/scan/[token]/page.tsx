@@ -7,6 +7,7 @@ import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import type { ScanResult } from "@/app/actions/scan";
 import { ScanReport } from "@/components/scan-report";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getOutreachConfig } from "@/lib/admin/outreach";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -169,9 +170,25 @@ export default async function ScanPortalPage({
   if (!row || !row.scan || !row.scan.ok) notFound();
   const s = row.scan;
 
-  // Bekijk je dit als ingelogde admin, dan terug naar admin i.p.v.
-  // in het klantportaal vallen.
+  // Outreach-tracking: als deze token gekoppeld is aan een prospect,
+  // log de opening. Idempotent (overschrijft niet als al gelogd).
   const isAdmin = await requireAdmin();
+  if (!isAdmin) {
+    try {
+      await getSupabaseAdmin()
+        .from("prospect_outreach")
+        .update({
+          opened_at: new Date().toISOString(),
+          status: "geopend",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("scan_token", token)
+        .is("opened_at", null);
+    } catch {
+      /* niet kritisch, log enkel als het kan */
+    }
+  }
+  const outreachCfg = await getOutreachConfig();
   const backHref = isAdmin
     ? "/admin/scans"
     : localePath(locale, `/portail/${token}`);
@@ -234,6 +251,35 @@ export default async function ScanPortalPage({
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             {c.nextTitle}
           </h2>
+          {outreachCfg.calLink && (
+            <a
+              href={outreachCfg.calLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-8 flex flex-col items-start rounded-2xl bg-accent p-6 text-white shadow-md transition-opacity hover:opacity-95 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <span>
+                <span className="block text-lg font-semibold">
+                  {locale === "fr"
+                    ? "Réservez 30 min — gratuit"
+                    : locale === "en"
+                      ? "Book a free 30-min call"
+                      : "Boek een gratis videocall van 30 min"}
+                </span>
+                <span className="mt-1 block text-sm opacity-90">
+                  {locale === "fr"
+                    ? "Je parcours votre rapport en direct et propose un plan d'action."
+                    : locale === "en"
+                      ? "I walk you through your report live and propose an action plan."
+                      : "Ik loop live door je rapport en stel een actieplan voor."}
+                </span>
+              </span>
+              <ArrowRight
+                className="mt-4 h-5 w-5 sm:mt-0"
+                strokeWidth={2.5}
+              />
+            </a>
+          )}
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
               { t: c.quote, d: c.quoteD, href: "/offerte" },
