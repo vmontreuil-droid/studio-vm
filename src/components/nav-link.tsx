@@ -24,8 +24,8 @@ export function NavLink({
       aria-current={active ? "page" : undefined}
       className={
         active
-          ? "font-medium text-foreground underline decoration-accent decoration-2 underline-offset-8"
-          : "text-muted underline-offset-8 transition-colors hover:text-foreground"
+          ? "whitespace-nowrap font-medium text-foreground underline decoration-accent decoration-2 underline-offset-8"
+          : "whitespace-nowrap text-muted underline-offset-8 transition-colors hover:text-foreground"
       }
     >
       {label}

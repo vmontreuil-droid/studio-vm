@@ -12,6 +12,8 @@ import {
   FileText,
   Video,
   HelpCircle,
+  Sparkles,
+  Lock,
 } from "lucide-react";
 import { isValidLocale, type Locale, localePath } from "@/lib/i18n/config";
 import { startHealthCheck } from "@/app/actions/health-check";
@@ -56,6 +58,33 @@ type Block = {
     title: string;
     sub: string;
     sections: string[];
+  };
+  previewReport: {
+    eyebrow: string;
+    title: string;
+    sub: string;
+    badge: string;
+    mockUrl: string;
+    portalEyebrow: string;
+    portalTitle: string;
+    scoreLabel: string;
+    gradeLabel: string;
+    catTitle: string;
+    cats: { name: string; score: number }[];
+    planTitle: string;
+    prioCritical: string;
+    prioImportant: string;
+    prioQuick: string;
+    whyLabel: string;
+    fixLabel: string;
+    impactLabel: string;
+    items: {
+      prio: "critical" | "important" | "quick";
+      title: string;
+      why: string;
+      fix: string;
+      impact: string;
+    }[];
   };
   faq: { title: string; items: { q: string; a: string }[] };
   formTitle: string;
@@ -102,7 +131,7 @@ const T: Record<Locale, Block> = {
         { feat: "Stack-diepte (plugins, versies, end-of-life)", free: false, paid: true },
         { feat: "DNS + security headers volledig uitgewerkt", free: false, paid: true },
         { feat: "Opvolg-mails (op 3 + 7 dagen)", free: false, paid: true },
-        { feat: "Optionele 30-min videocall met Vincent", free: false, paid: true },
+        { feat: "Inbegrepen 30-min videocall met Vincent", free: false, paid: true },
         { feat: "Geld-terug-garantie", free: "n.v.t.", paid: true },
       ],
     },
@@ -151,13 +180,13 @@ const T: Record<Locale, Block> = {
       items: [
         {
           icon: Gauge,
-          title: "Volledige technische scan",
-          desc: "Snelheid (Core Web Vitals), reactietijd op 4G, paginalast, beeldoptimalisatie en hoster-prestaties.",
+          title: "Performance-scan (60+ signalen)",
+          desc: "Server-reactietijd (TTFB), paginalast, render-blocking JS/CSS, beeldoptimalisatie, compressie, externe domeinen, cache-headers. Plus een CWV-risico-indicator.",
         },
         {
           icon: Smartphone,
-          title: "Mobiel-audit",
-          desc: "Echte test op iPhone Safari en Android Chrome. Wat klemt, wat overlapt, wat niet werkt op touchscreen.",
+          title: "Mobiel-check + manuele test",
+          desc: "Auto-checks: viewport, zoomverbod, taal-attribuut, ARIA-landmarks, responsive images. + ik open je site zelf in Chrome DevTools mobile-emulator om visuele issues te spotten die geen scanner ziet.",
         },
         {
           icon: Search,
@@ -222,11 +251,60 @@ const T: Record<Locale, Block> = {
       sub: "Direct in je persoonlijk klantenportaal — geen PDF die zoekraakt, geen wachten op mail. De link blijft eeuwig geldig zodat je later kan terugkijken.",
       sections: [
         "Hoofdscore + grade (A–F) en uitleg per categorie",
-        "Per categorie: score, top-3 bevindingen, met-uitleg-waarom",
-        "Stack-detectie (WordPress/Wix/custom + alle plugins)",
-        "Veiligheid: SSL, headers, DNS-records",
-        "Mobiel: echte screenshot + interactietest",
+        "Per categorie: score, top bevindingen, met-uitleg-waarom",
+        "Stack-detectie (WordPress/Wix/Shopify/custom + alle plugins)",
+        "Veiligheid: SSL-expiry, security headers, DNS (SPF/DMARC/CAA)",
+        "Mobiel: viewport-/zoom-/landmark-checks + manuele DevTools-test",
         "Actieplan: wat eerst, wat later, wat optioneel",
+      ],
+    },
+    previewReport: {
+      eyebrow: "Voorbeeld-rapport",
+      title: "Zo ziet jouw portaal eruit na betaling",
+      sub: "Een echt voorbeeld van het rapport dat jij krijgt — opgebouwd uit dezelfde scan-engine. Geen mock-up, dit is de échte layout.",
+      badge: "Voorbeeld",
+      mockUrl: "studio-vm.be/portail/health-check/uniek-token",
+      portalEyebrow: "Site Health Check",
+      portalTitle: "Health-rapport voor monsite.be",
+      scoreLabel: "Hoofdscore",
+      gradeLabel: "Grade",
+      catTitle: "Per categorie",
+      cats: [
+        { name: "Snelheid", score: 71 },
+        { name: "SEO", score: 58 },
+        { name: "Mobiel", score: 45 },
+        { name: "Veiligheid", score: 80 },
+        { name: "Platform", score: 65 },
+      ],
+      planTitle: "Persoonlijk actieplan",
+      prioCritical: "Kritiek",
+      prioImportant: "Belangrijk",
+      prioQuick: "Quick win",
+      whyLabel: "Waarom",
+      fixLabel: "Wat te doen",
+      impactLabel: "Impact",
+      items: [
+        {
+          prio: "critical",
+          title: "Mobiel-viewport ontbreekt — site rendert te klein op smartphone",
+          why: "Zonder <meta name=\"viewport\"> dwingt iOS Safari de site in desktop-modus → gebruikers moeten constant inzoomen.",
+          fix: "Voeg <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> toe in de <head>. 1 regel code.",
+          impact: "Mobiel verkeer is ~58% van bezoeken (BE gemiddelde). Direct effect op bounce-rate.",
+        },
+        {
+          prio: "important",
+          title: "Largest Contentful Paint = 4,1s (Google-doel: < 2,5s)",
+          why: "De hero-foto (2,4 MB, niet gecomprimeerd) is het traagste element. Google straft dit af in mobiele rankings sinds 2021.",
+          fix: "Hero-foto omzetten naar WebP + responsive srcset. Gemeten gain in onze testen: −2,1s.",
+          impact: "Pagespeed-score: 38 → ~72. SEO-ranking en conversie schalen mee.",
+        },
+        {
+          prio: "quick",
+          title: "OpenGraph-tags ontbreken — links delen toont geen voorvertoning",
+          why: "Wanneer iemand je site deelt op Facebook of WhatsApp, ziet die alleen een lege link in plaats van titel + foto.",
+          fix: "Voeg og:title, og:description en og:image toe aan de <head>. 5 minuten werk.",
+          impact: "Hogere click-through op gedeelde links — vooral relevant voor restaurants, winkels, evenementen.",
+        },
       ],
     },
     faq: {
@@ -296,7 +374,7 @@ const T: Record<Locale, Block> = {
         { feat: "Stack en détail (plugins, versions, end-of-life)", free: false, paid: true },
         { feat: "DNS + security headers complets", free: false, paid: true },
         { feat: "Mails de suivi (J+3 et J+7)", free: false, paid: true },
-        { feat: "Appel vidéo 30 min optionnel", free: false, paid: true },
+        { feat: "Appel vidéo 30 min inclus", free: false, paid: true },
         { feat: "Garantie satisfait ou remboursé", free: "n/a", paid: true },
       ],
     },
@@ -345,13 +423,13 @@ const T: Record<Locale, Block> = {
       items: [
         {
           icon: Gauge,
-          title: "Scan technique complet",
-          desc: "Vitesse (Core Web Vitals), temps de réponse en 4G, poids des pages, optimisation des images.",
+          title: "Scan performance (60+ signaux)",
+          desc: "TTFB serveur, poids des pages, JS/CSS bloquants au rendu, optimisation des images, compression, domaines externes, headers cache. Plus un indicateur de risque CWV.",
         },
         {
           icon: Smartphone,
-          title: "Audit mobile",
-          desc: "Test réel sur iPhone Safari et Android Chrome. Ce qui coince, se chevauche, ne marche pas au toucher.",
+          title: "Check mobile + test manuel",
+          desc: "Auto-checks : viewport, blocage du zoom, attribut lang, landmarks ARIA, images responsives. + j'ouvre votre site moi-même dans l'émulateur mobile Chrome DevTools pour repérer les problèmes visuels qu'aucun scanner ne voit.",
         },
         {
           icon: Search,
@@ -416,11 +494,60 @@ const T: Record<Locale, Block> = {
       sub: "Directement dans votre portail client personnel — pas de PDF qui se perd, pas d'attente d'e-mail. Le lien reste valable éternellement.",
       sections: [
         "Score principal + note (A–F) et explication par catégorie",
-        "Par catégorie : score, top-3 trouvailles, explication du pourquoi",
-        "Détection du stack (WordPress/Wix/custom + tous plugins)",
-        "Sécurité : SSL, headers, DNS",
-        "Mobile : capture d'écran réelle + test d'interaction",
+        "Par catégorie : score, top trouvailles, explication du pourquoi",
+        "Détection du stack (WordPress/Wix/Shopify/custom + tous plugins)",
+        "Sécurité : expiration SSL, headers, DNS (SPF/DMARC/CAA)",
+        "Mobile : checks viewport/zoom/landmarks + test manuel DevTools",
         "Plan d'action : prioritaire, plus tard, optionnel",
+      ],
+    },
+    previewReport: {
+      eyebrow: "Exemple de rapport",
+      title: "À quoi ressemble votre portail après paiement",
+      sub: "Un véritable exemple du rapport que vous recevez — construit avec le même moteur de scan. Pas une maquette, c'est la vraie mise en page.",
+      badge: "Exemple",
+      mockUrl: "studio-vm.be/portail/health-check/jeton-unique",
+      portalEyebrow: "Site Health Check",
+      portalTitle: "Rapport de santé pour monsite.be",
+      scoreLabel: "Score principal",
+      gradeLabel: "Note",
+      catTitle: "Par catégorie",
+      cats: [
+        { name: "Vitesse", score: 71 },
+        { name: "SEO", score: 58 },
+        { name: "Mobile", score: 45 },
+        { name: "Sécurité", score: 80 },
+        { name: "Plateforme", score: 65 },
+      ],
+      planTitle: "Plan d'action personnel",
+      prioCritical: "Critique",
+      prioImportant: "Important",
+      prioQuick: "Quick win",
+      whyLabel: "Pourquoi",
+      fixLabel: "Que faire",
+      impactLabel: "Impact",
+      items: [
+        {
+          prio: "critical",
+          title: "Meta-viewport manquant — le site s'affiche trop petit sur smartphone",
+          why: "Sans <meta name=\"viewport\">, iOS Safari force le site en mode bureau → les utilisateurs doivent zoomer en permanence.",
+          fix: "Ajoutez <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> dans le <head>. Une ligne de code.",
+          impact: "Le trafic mobile représente ~58 % des visites (moyenne BE). Effet direct sur le taux de rebond.",
+        },
+        {
+          prio: "important",
+          title: "Largest Contentful Paint = 4,1s (objectif Google : < 2,5s)",
+          why: "L'image hero (2,4 MB, non compressée) est l'élément le plus lent. Google pénalise depuis 2021 dans le ranking mobile.",
+          fix: "Convertir l'image hero en WebP + srcset responsive. Gain mesuré sur nos tests : −2,1s.",
+          impact: "Score Pagespeed : 38 → ~72. SEO et conversion suivent.",
+        },
+        {
+          prio: "quick",
+          title: "Tags OpenGraph manquants — partage de liens sans aperçu",
+          why: "Quand quelqu'un partage votre site sur Facebook ou WhatsApp, il ne voit qu'un lien vide au lieu du titre + image.",
+          fix: "Ajoutez og:title, og:description et og:image dans le <head>. 5 minutes de travail.",
+          impact: "Plus de clics sur les liens partagés — surtout pour restaurants, boutiques, événements.",
+        },
       ],
     },
     faq: {
@@ -460,12 +587,12 @@ const T: Record<Locale, Block> = {
     eyebrow: "Site Health Check — €99",
     title:
       "Get an honest, concrete report on your website within 24 hours.",
-    sub: "I scan your site, write a 3-5 page report on what's solid and what's broken, and call you for 30 min to go through everything. No sales pitch — just clarity.",
+    sub: "I scan your site and write a 3-5 page report on what's solid and what's broken — with priority order and concrete fix steps. No sales pitch, just clarity.",
     bullets: [
       "Complete scan: speed, mobile, SEO, security, platform",
       "Top-3 priorities with concrete fix steps",
       "Personal report via your client portal",
-      "30 min video call with me to explain it all",
+      "Written email Q&A — I answer your follow-up questions",
       "No subscription, no follow-up sales pressure",
     ],
     freeFirst: {
@@ -490,7 +617,7 @@ const T: Record<Locale, Block> = {
         { feat: "Stack depth (plugins, versions, end-of-life)", free: false, paid: true },
         { feat: "Full DNS + security headers", free: false, paid: true },
         { feat: "Follow-up emails (day 3 + day 7)", free: false, paid: true },
-        { feat: "Optional 30 min video call", free: false, paid: true },
+        { feat: "Email Q&A — written follow-up answers", free: false, paid: true },
         { feat: "Money-back guarantee", free: "n/a", paid: true },
       ],
     },
@@ -539,13 +666,13 @@ const T: Record<Locale, Block> = {
       items: [
         {
           icon: Gauge,
-          title: "Full technical scan",
-          desc: "Speed (Core Web Vitals), 4G response time, page weight, image optimization, host performance.",
+          title: "Performance scan (60+ signals)",
+          desc: "Server response time (TTFB), page weight, render-blocking JS/CSS, image optimization, compression, external domains, cache headers. Plus a CWV risk indicator.",
         },
         {
           icon: Smartphone,
-          title: "Mobile audit",
-          desc: "Real test on iPhone Safari and Android Chrome. What sticks, overlaps, or doesn't work on touch.",
+          title: "Mobile check + manual test",
+          desc: "Auto-checks: viewport meta, zoom-blocking, lang attribute, ARIA landmarks, responsive images. + I open your site myself in Chrome DevTools mobile emulator to spot visual issues no scanner catches.",
         },
         {
           icon: Search,
@@ -569,8 +696,8 @@ const T: Record<Locale, Block> = {
         },
         {
           icon: Video,
-          title: "30 min video call",
-          desc: "I walk through the report with you live, answer questions, honestly say what's urgent.",
+          title: "Email Q&A follow-up",
+          desc: "After delivery you can email me with follow-up questions on the report — I answer in writing. Honest, no time-cap.",
         },
         {
           icon: AlertTriangle,
@@ -605,15 +732,64 @@ const T: Record<Locale, Block> = {
         },
       ],
     },
+    previewReport: {
+      eyebrow: "Sample report",
+      title: "Here's what your portal looks like after payment",
+      sub: "A real example of the report you receive — built with the same scan engine. Not a mock-up, this is the actual layout.",
+      badge: "Sample",
+      mockUrl: "studio-vm.be/portail/health-check/unique-token",
+      portalEyebrow: "Site Health Check",
+      portalTitle: "Health report for monsite.be",
+      scoreLabel: "Main score",
+      gradeLabel: "Grade",
+      catTitle: "By category",
+      cats: [
+        { name: "Speed", score: 71 },
+        { name: "SEO", score: 58 },
+        { name: "Mobile", score: 45 },
+        { name: "Security", score: 80 },
+        { name: "Platform", score: 65 },
+      ],
+      planTitle: "Personal action plan",
+      prioCritical: "Critical",
+      prioImportant: "Important",
+      prioQuick: "Quick win",
+      whyLabel: "Why",
+      fixLabel: "What to do",
+      impactLabel: "Impact",
+      items: [
+        {
+          prio: "critical",
+          title: "Mobile viewport meta missing — site renders too small on phones",
+          why: "Without <meta name=\"viewport\">, iOS Safari forces desktop mode → users have to pinch-zoom constantly.",
+          fix: "Add <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> in the <head>. One line of code.",
+          impact: "Mobile traffic is ~58% of all visits (BE avg). Direct effect on bounce rate.",
+        },
+        {
+          prio: "important",
+          title: "Largest Contentful Paint = 4.1s (Google target: < 2.5s)",
+          why: "The hero photo (2.4 MB, uncompressed) is the slowest element. Google has penalized this in mobile rankings since 2021.",
+          fix: "Convert hero to WebP + responsive srcset. Measured gain in our tests: −2.1s.",
+          impact: "Pagespeed score: 38 → ~72. SEO ranking and conversion follow.",
+        },
+        {
+          prio: "quick",
+          title: "OpenGraph tags missing — shared links show no preview",
+          why: "When someone shares your site on Facebook or WhatsApp, they only see a bare link instead of title + image.",
+          fix: "Add og:title, og:description, and og:image to the <head>. 5 minutes of work.",
+          impact: "Higher click-through on shared links — especially for restaurants, shops, events.",
+        },
+      ],
+    },
     report: {
       title: "What does the report look like?",
       sub: "Directly in your personal client portal — no PDF that gets lost, no waiting for email. The link stays valid forever so you can revisit later.",
       sections: [
         "Main score + grade (A–F) with explanation per category",
-        "Per category: score, top-3 findings, why-it-matters",
-        "Stack detection (WordPress/Wix/custom + all plugins)",
-        "Security: SSL, headers, DNS records",
-        "Mobile: real screenshot + interaction test",
+        "Per category: score, top findings, why-it-matters",
+        "Stack detection (WordPress/Wix/Shopify/custom + all plugins)",
+        "Security: SSL expiry, headers, DNS records (SPF/DMARC/CAA)",
+        "Mobile: viewport/zoom/landmark checks + manual DevTools test",
         "Action plan: what first, what later, what optional",
       ],
     },
@@ -626,7 +802,7 @@ const T: Record<Locale, Block> = {
         },
         {
           q: "How long does it take?",
-          a: "The automated scan is ready in 30 sec. The written report and the video call are scheduled within 24h (working days).",
+          a: "The automated scan is ready in 30 sec. The written report is delivered within 24h (working days).",
         },
         {
           q: "If you find the problems, do I have to buy from you?",
@@ -638,7 +814,7 @@ const T: Record<Locale, Block> = {
         },
         {
           q: "Is this the same as the free scan?",
-          a: "The free scan gives your score + major pain points. The €99 Health Check goes much deeper: written analysis per finding, prioritization, fix steps, and a real talk with me.",
+          a: "The free scan gives your score + major pain points. The €99 Health Check goes much deeper: written analysis per finding, prioritization, fix steps, and email Q&A with me afterwards.",
         },
       ],
     },
@@ -658,6 +834,16 @@ const scoreColor = (s: string) => {
   if (n < 65) return "border-amber-500 text-amber-600 dark:text-amber-400";
   return "border-green-500 text-green-600 dark:text-green-400";
 };
+
+const grade = (n: number) =>
+  n >= 90 ? "A" : n >= 75 ? "B" : n >= 60 ? "C" : n >= 45 ? "D" : "E";
+
+const prioStyle = (p: "critical" | "important" | "quick") =>
+  p === "critical"
+    ? "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-200"
+    : p === "important"
+      ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200"
+      : "bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-200";
 
 export default async function SiteHealthCheck({
   params,
@@ -814,7 +1000,7 @@ export default async function SiteHealthCheck({
                         </span>
                       </td>
                       <td className="px-5 py-3">{r.kind}</td>
-                      <td className="px-5 py-3 font-mono">{r.price}</td>
+                      <td className="whitespace-nowrap px-5 py-3 font-mono">{r.price}</td>
                       <td className="px-5 py-3">
                         <span className={r.highlight ? "text-accent" : ""}>
                           {r.missing}
@@ -829,6 +1015,146 @@ export default async function SiteHealthCheck({
           <p className="mt-6 text-center text-base italic text-muted">
             "{t.marketGap.conclusion}"
           </p>
+        </div>
+      </section>
+
+      {/* Voorbeeld-rapport — visuele preview van het portaal */}
+      <section className="border-b bg-gradient-to-b from-card to-background">
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">
+            {t.previewReport.eyebrow}
+          </p>
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t.previewReport.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-muted">{t.previewReport.sub}</p>
+
+          {/* Browser-frame mockup van het portaal */}
+          <div className="mt-10 overflow-hidden rounded-2xl border bg-background shadow-2xl">
+            {/* Browser chrome */}
+            <div className="flex items-center gap-2 border-b bg-card px-4 py-2.5">
+              <span className="h-3 w-3 rounded-full bg-red-400/70" />
+              <span className="h-3 w-3 rounded-full bg-amber-400/70" />
+              <span className="h-3 w-3 rounded-full bg-green-400/70" />
+              <div className="ml-3 flex flex-1 items-center gap-2 rounded-md bg-background px-3 py-1 text-[11px] text-muted">
+                <Lock className="h-3 w-3" strokeWidth={2.5} />
+                <span className="truncate font-mono">{t.previewReport.mockUrl}</span>
+              </div>
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-accent">
+                <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                {t.previewReport.badge}
+              </span>
+            </div>
+
+            {/* Portal hero */}
+            <div className="border-b bg-gradient-to-br from-accent/10 via-background to-background p-6 sm:p-10">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                {t.previewReport.portalEyebrow}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+                {t.previewReport.portalTitle}
+              </h3>
+              <div className="mt-6 flex flex-wrap items-end gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-24 w-24 place-items-center rounded-full border-4 border-amber-500">
+                    <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                      62
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {t.previewReport.scoreLabel}
+                    </p>
+                    <p className="mt-0.5 text-2xl font-semibold">62 / 100</p>
+                    <p className="mt-1 inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
+                      {t.previewReport.gradeLabel} {grade(62)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Per-categorie grid */}
+            <div className="border-b p-6 sm:p-8">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {t.previewReport.catTitle}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {t.previewReport.cats.map((c) => (
+                  <div
+                    key={c.name}
+                    className="rounded-xl border bg-card p-3 text-center"
+                  >
+                    <p
+                      className={`text-2xl font-bold ${
+                        c.score < 45
+                          ? "text-red-600 dark:text-red-400"
+                          : c.score < 65
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-green-600 dark:text-green-400"
+                      }`}
+                    >
+                      {c.score}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">{c.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actieplan */}
+            <div className="p-6 sm:p-8">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {t.previewReport.planTitle}
+              </p>
+              <div className="mt-4 space-y-4">
+                {t.previewReport.items.map((it, i) => (
+                  <div
+                    key={it.title}
+                    className="rounded-xl border bg-card p-5"
+                  >
+                    <div className="flex flex-wrap items-start gap-3">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent/10 text-xs font-bold text-accent">
+                        {i + 1}
+                      </span>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${prioStyle(it.prio)}`}
+                      >
+                        {it.prio === "critical"
+                          ? t.previewReport.prioCritical
+                          : it.prio === "important"
+                            ? t.previewReport.prioImportant
+                            : t.previewReport.prioQuick}
+                      </span>
+                      <h4 className="min-w-0 flex-1 text-sm font-semibold sm:text-base">
+                        {it.title}
+                      </h4>
+                    </div>
+                    <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {t.previewReport.whyLabel}
+                        </p>
+                        <p className="mt-1 text-muted">{it.why}</p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                          {t.previewReport.fixLabel}
+                        </p>
+                        <p className="mt-1">{it.fix}</p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                          {t.previewReport.impactLabel}
+                        </p>
+                        <p className="mt-1 text-muted">{it.impact}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

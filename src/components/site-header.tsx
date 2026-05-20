@@ -30,12 +30,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     },
     {
       href: localePath(locale, "/site-health-check"),
-      label:
-        locale === "fr"
-          ? "Health Check €99"
-          : locale === "en"
-            ? "Health Check €99"
-            : "Health Check €99",
+      label: "Health Check",
     },
     {
       href: localePath(locale, "/offerte"),
