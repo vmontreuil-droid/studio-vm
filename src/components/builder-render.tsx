@@ -596,7 +596,7 @@ export function BuilderRender({
 // builder ze automatisch in 2026-stijl rendert.
 // ────────────────────────────────────────────────────────────────
 
-const HIGHTECH_HERO_VARIANTS = new Set([
+export const HIGHTECH_HERO_VARIANTS = new Set([
   "glass",
   "large-bg",
   "manifest",
@@ -606,20 +606,20 @@ const HIGHTECH_HERO_VARIANTS = new Set([
   "split-right",
   "compact",
 ]);
-const HIGHTECH_FEATURES_VARIANTS = new Set([
+export const HIGHTECH_FEATURES_VARIANTS = new Set([
   "bento",
   "icon-grid",
   "three-col",
   "timeline",
 ]);
-const HIGHTECH_CTA_VARIANTS = new Set([
+export const HIGHTECH_CTA_VARIANTS = new Set([
   "wide",
   "dark",
   "soft",
   "centered",
   "gradient-mesh",
 ]);
-const HIGHTECH_ABOUT_VARIANTS = new Set([
+export const HIGHTECH_ABOUT_VARIANTS = new Set([
   "split",
   "long-form",
   "compact",
@@ -632,7 +632,7 @@ function safeStr(v: unknown): string {
 
 // HeroGlass — fullbleed gradient-mesh + glow-blob + glassmorphism-card
 // in het midden. Werkt voor de meeste "large"-achtige _variant-types.
-function HeroHighTech({
+export function HeroHighTech({
   d,
   accent,
   variant,
@@ -749,7 +749,7 @@ function HeroHighTech({
 // Vervangt de saaie 3-koloms grid. Werkt voor _variant 'bento' en als
 // upgrade voor 'three-col' / 'icon-grid' / 'timeline' wanneer er <=6
 // items zijn.
-function FeaturesHighTech({
+export function FeaturesHighTech({
   d,
   accent,
   fg,
@@ -869,7 +869,7 @@ function FBCell({
 
 // CtaHighTech — gradient-mesh achtergrond met animerende conic-gradient
 // + grote knop met glow. Voor de meeste cta-varianten.
-function CtaHighTech({
+export function CtaHighTech({
   d,
   accent,
 }: {
@@ -922,7 +922,7 @@ function CtaHighTech({
 
 // AboutHighTech — twee kolommen split met visueel beeldvlak en
 // glow-accent op de tekstkant. Eenvoudige parallax via subtle CSS.
-function AboutHighTech({
+export function AboutHighTech({
   d,
   accent,
   fg,
