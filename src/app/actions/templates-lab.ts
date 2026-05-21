@@ -83,6 +83,28 @@ export async function duplicateTemplate(formData: FormData): Promise<void> {
   revalidatePath("/admin/templates-lab");
 }
 
+// Publieke loader voor /builder?template=slug — geen admin-check;
+// alleen LIVE templates worden teruggegeven (drafts blijven verborgen
+// achter is_live = false). Caller-side wordt deze response gemerged
+// in de localstorage-state van de builder.
+export async function loadTemplateBySlug(slug: string): Promise<{
+  ok: boolean;
+  template?: BuilderTemplate;
+  error?: string;
+}> {
+  if (!slug) return { ok: false, error: "missing slug" };
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("builder_templates")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_live", true)
+    .maybeSingle();
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "not found or not live" };
+  return { ok: true, template: data as BuilderTemplate };
+}
+
 // Insert-helper voor seed-script (alleen voor admin).
 export async function seedTemplate(
   input: Omit<BuilderTemplate, "id" | "created_at" | "updated_at">,
