@@ -587,6 +587,414 @@ export function BuilderRender({
   );
 }
 
+// ────────────────────────────────────────────────────────────────
+// HIGH-TECH SECTION-VARIANTS
+// Geactiveerd wanneer block.data._variant matcht. Anders valt het
+// terug op de klassieke render hieronder. Templates uit
+// /admin/templates-lab zetten _variant flags zoals "glass",
+// "bento", "gradient-mesh", "split", "video-bg", ... waardoor de
+// builder ze automatisch in 2026-stijl rendert.
+// ────────────────────────────────────────────────────────────────
+
+const HIGHTECH_HERO_VARIANTS = new Set([
+  "glass",
+  "large-bg",
+  "manifest",
+  "video-bg",
+  "modern",
+  "compact-cta",
+  "split-right",
+  "compact",
+]);
+const HIGHTECH_FEATURES_VARIANTS = new Set([
+  "bento",
+  "icon-grid",
+  "three-col",
+  "timeline",
+]);
+const HIGHTECH_CTA_VARIANTS = new Set([
+  "wide",
+  "dark",
+  "soft",
+  "centered",
+  "gradient-mesh",
+]);
+const HIGHTECH_ABOUT_VARIANTS = new Set([
+  "split",
+  "long-form",
+  "compact",
+  "parallax-split",
+]);
+
+function safeStr(v: unknown): string {
+  return v == null ? "" : String(v);
+}
+
+// HeroGlass — fullbleed gradient-mesh + glow-blob + glassmorphism-card
+// in het midden. Werkt voor de meeste "large"-achtige _variant-types.
+function HeroHighTech({
+  d,
+  accent,
+  variant,
+}: {
+  d: Record<string, unknown>;
+  accent: string;
+  variant: string;
+}) {
+  const eyebrow = safeStr(d.eyebrow) || "Welkom";
+  const heading = safeStr(d.heading) || safeStr(d.title) || "Jouw merk hier";
+  const sub =
+    safeStr(d.sub) ||
+    "Een korte intro die meteen duidelijk maakt wat je doet en waarom mensen je nodig hebben.";
+  const button = safeStr(d.button) || "Aan de slag";
+
+  const isSplit = variant === "split-right";
+  const isCompact = variant === "compact" || variant === "compact-cta";
+  const minH = isCompact ? "min-h-[55vh]" : "min-h-[78vh]";
+
+  if (isSplit) {
+    return (
+      <section
+        className={`relative overflow-hidden ${minH}`}
+        style={{
+          background: `
+            radial-gradient(circle at 90% 50%, ${accent}33 0%, transparent 60%),
+            linear-gradient(135deg, #050505 0%, #131316 100%)
+          `,
+        }}
+      >
+        <div
+          className="absolute -right-32 top-1/3 h-96 w-96 rounded-full opacity-50 blur-3xl"
+          style={{ background: accent }}
+        />
+        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-widest text-white/60">
+              {eyebrow}
+            </p>
+            <h1 className="mt-4 text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
+              {heading}
+            </h1>
+            <p className="mt-6 max-w-md text-lg text-white/75">{sub}</p>
+            <button
+              type="button"
+              className="mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+              style={{
+                background: accent,
+                boxShadow: `0 12px 32px ${accent}88`,
+              }}
+            >
+              {button}
+              <span aria-hidden>→</span>
+            </button>
+          </div>
+          <div
+            className="relative aspect-square rounded-3xl border border-white/10 backdrop-blur-xl"
+            style={{
+              background: `linear-gradient(135deg, ${accent}33 0%, ${accent}11 60%, rgba(255,255,255,0.04) 100%)`,
+              boxShadow: `0 32px 80px ${accent}44`,
+            }}
+          >
+            <div className="absolute inset-6 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className={`relative overflow-hidden ${minH}`}
+      style={{
+        background: `
+          radial-gradient(circle at 20% 25%, ${accent}55 0%, transparent 50%),
+          radial-gradient(circle at 82% 78%, ${accent}88 0%, transparent 52%),
+          linear-gradient(135deg, #050505 0%, #0f0f10 60%, #1a1a1c 100%)
+        `,
+      }}
+    >
+      <div
+        className="absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-50 blur-3xl"
+        style={{ background: accent }}
+      />
+      <div
+        className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
+        style={{ background: accent }}
+      />
+      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center justify-center px-6 py-24 text-center md:py-32">
+        <p className="font-mono text-xs uppercase tracking-widest text-white/60">
+          {eyebrow}
+        </p>
+        <h1 className="mt-4 text-5xl font-bold leading-tight text-white sm:text-6xl md:text-7xl">
+          {heading}
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-white/80 md:text-xl">{sub}</p>
+        <button
+          type="button"
+          className="mt-10 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white transition hover:brightness-110"
+          style={{
+            background: accent,
+            boxShadow: `0 12px 40px ${accent}99`,
+          }}
+        >
+          {button}
+          <span aria-hidden>→</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// FeaturesBento — asymmetrisch 5-cell raster met glow + glass.
+// Vervangt de saaie 3-koloms grid. Werkt voor _variant 'bento' en als
+// upgrade voor 'three-col' / 'icon-grid' / 'timeline' wanneer er <=6
+// items zijn.
+function FeaturesHighTech({
+  d,
+  accent,
+  fg,
+}: {
+  d: Record<string, unknown>;
+  accent: string;
+  fg: string;
+}) {
+  const title = safeStr(d.title) || "Wat ons onderscheidt";
+  const sub =
+    safeStr(d.sub) ||
+    "Een paar kerneigenschappen waarmee we het verschil maken voor onze klanten.";
+  const rawItems = Array.isArray(d.items) ? (d.items as Record<string, unknown>[]) : [];
+  const items =
+    rawItems.length > 0
+      ? rawItems
+      : [
+          { title: "Snel & gefocust", desc: "Geen ruis, alleen resultaat." },
+          { title: "Persoonlijk", desc: "Geen template, jouw verhaal." },
+          { title: "Transparant", desc: "Heldere prijs, eerlijk advies." },
+          { title: "Onderhoud", desc: "Wij houden alles up-to-date." },
+          { title: "Resultaat", desc: "Meer bezoekers, meer klanten." },
+        ];
+  const slice = items.slice(0, 5);
+
+  return (
+    <section
+      className="relative overflow-hidden py-20 md:py-28"
+      style={{
+        background: `linear-gradient(180deg, #fafafa 0%, #ffffff 100%)`,
+        color: fg,
+      }}
+    >
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {title}
+          </h2>
+          <p className="mt-4 text-base opacity-70">{sub}</p>
+        </div>
+        <div className="mt-12 grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 md:grid-cols-3">
+          {/* Featured cell (1) — spans 2 cols on md */}
+          <FBCell
+            featured
+            accent={accent}
+            title={safeStr(slice[0]?.title)}
+            desc={safeStr(slice[0]?.desc)}
+          />
+          {/* Cells 2-5 */}
+          {slice.slice(1, 5).map((it, i) => (
+            <FBCell
+              key={i}
+              accent={accent}
+              title={safeStr(it?.title)}
+              desc={safeStr(it?.desc)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FBCell({
+  title,
+  desc,
+  accent,
+  featured,
+}: {
+  title: string;
+  desc: string;
+  accent: string;
+  featured?: boolean;
+}) {
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-3xl border border-black/5 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl md:p-8 ${
+        featured ? "md:col-span-2 md:row-span-2" : ""
+      }`}
+      style={{
+        boxShadow: featured
+          ? `0 8px 32px ${accent}1a, 0 2px 8px rgba(0,0,0,0.04)`
+          : undefined,
+      }}
+    >
+      {featured && (
+        <div
+          className="absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-40"
+          style={{ background: accent }}
+        />
+      )}
+      <div className="relative z-10">
+        <div
+          className="grid h-10 w-10 place-items-center rounded-xl text-white shadow"
+          style={{
+            background: accent,
+            boxShadow: `0 6px 16px ${accent}55`,
+          }}
+        >
+          ✦
+        </div>
+        <h3
+          className={`mt-4 font-semibold tracking-tight ${
+            featured ? "text-2xl sm:text-3xl" : "text-lg"
+          }`}
+        >
+          {title || "Eigenschap"}
+        </h3>
+        <p className={`mt-2 opacity-70 ${featured ? "text-base" : "text-sm"}`}>
+          {desc ||
+            "Korte uitleg waarom dit belangrijk is voor jouw klanten."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// CtaHighTech — gradient-mesh achtergrond met animerende conic-gradient
+// + grote knop met glow. Voor de meeste cta-varianten.
+function CtaHighTech({
+  d,
+  accent,
+}: {
+  d: Record<string, unknown>;
+  accent: string;
+}) {
+  const title = safeStr(d.title) || "Klaar om te starten?";
+  const text =
+    safeStr(d.text) ||
+    safeStr(d.sub) ||
+    "Eén klik en we maken samen tijd om je idee scherp te zetten.";
+  const button = safeStr(d.button) || safeStr(d.ctaBtn) || "Plan een gesprek";
+
+  return (
+    <section className="relative overflow-hidden py-20 md:py-28">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(circle at 15% 30%, ${accent}66 0%, transparent 55%),
+            radial-gradient(circle at 85% 70%, ${accent}99 0%, transparent 55%),
+            linear-gradient(135deg, #0a0a0b 0%, #16161a 50%, #0a0a0b 100%)
+          `,
+        }}
+      />
+      <div
+        className="absolute -left-32 top-1/3 h-96 w-96 rounded-full opacity-30 blur-3xl"
+        style={{ background: accent }}
+      />
+      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
+        <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
+          {title}
+        </h2>
+        <p className="mt-6 text-lg text-white/75 md:text-xl">{text}</p>
+        <button
+          type="button"
+          className="mt-10 inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-semibold text-white transition hover:brightness-110"
+          style={{
+            background: accent,
+            boxShadow: `0 16px 48px ${accent}99, 0 0 0 1px ${accent}66 inset`,
+          }}
+        >
+          {button}
+          <span aria-hidden>→</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// AboutHighTech — twee kolommen split met visueel beeldvlak en
+// glow-accent op de tekstkant. Eenvoudige parallax via subtle CSS.
+function AboutHighTech({
+  d,
+  accent,
+  fg,
+  variant,
+}: {
+  d: Record<string, unknown>;
+  accent: string;
+  fg: string;
+  variant: string;
+}) {
+  const eyebrow = safeStr(d.eyebrow) || "Over ons";
+  const title = safeStr(d.title) || "Een verhaal dat klopt";
+  const text =
+    safeStr(d.text) ||
+    safeStr(d.aboutText) ||
+    "Hier vertel je wie jullie zijn, waar de passie ligt en waarom klanten al jaren terugkomen. Houd het persoonlijk — dat is wat connectie maakt.";
+  const isLong = variant === "long-form";
+
+  return (
+    <section
+      className="relative overflow-hidden py-20 md:py-28"
+      style={{
+        background: "#fafafa",
+        color: fg,
+      }}
+    >
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16">
+        <div className="order-2 md:order-1">
+          <p
+            className="font-mono text-xs uppercase tracking-widest"
+            style={{ color: accent }}
+          >
+            {eyebrow}
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            {title}
+          </h2>
+          <p
+            className={`mt-6 opacity-80 ${
+              isLong ? "text-base leading-relaxed" : "text-lg"
+            }`}
+          >
+            {text}
+          </p>
+          {isLong && (
+            <p className="mt-4 text-base leading-relaxed opacity-70">
+              Een tweede paragraaf voor wat meer context — wat jullie
+              motiveert, welke waarden centraal staan, en wat klanten
+              concreet aan jullie hebben. Maak het persoonlijk.
+            </p>
+          )}
+        </div>
+        <div className="order-1 md:order-2">
+          <div
+            className="relative aspect-[4/5] overflow-hidden rounded-3xl"
+            style={{
+              background: `linear-gradient(135deg, ${accent}22 0%, ${accent}66 100%)`,
+              boxShadow: `0 32px 80px ${accent}33`,
+            }}
+          >
+            <div className="absolute inset-0 rounded-3xl border border-white/30" />
+            <div
+              className="absolute -right-12 -top-12 h-48 w-48 rounded-full opacity-50 blur-3xl"
+              style={{ background: accent }}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function BlockView({
   block,
   fg,
@@ -675,6 +1083,11 @@ function BlockView({
 
   switch (block.kind) {
     case "hero": {
+      // High-tech variant? Korte route naar de moderne render.
+      const _v = typeof d._variant === "string" ? (d._variant as string) : "";
+      if (HIGHTECH_HERO_VARIANTS.has(_v)) {
+        return <HeroHighTech d={d} accent={accent} variant={_v} />;
+      }
       type HSlide = {
         bg?: string;
         eyebrow?: string;
@@ -887,7 +1300,15 @@ function BlockView({
     case "pricing":
     case "faq":
     case "pricelist":
-    case "hours":
+    case "hours": {
+      // Alleen "features" mag high-tech. De andere blijven klassiek.
+      if (block.kind === "features") {
+        const _v =
+          typeof d._variant === "string" ? (d._variant as string) : "";
+        if (HIGHTECH_FEATURES_VARIANTS.has(_v)) {
+          return <FeaturesHighTech d={d} accent={accent} fg={fg} />;
+        }
+      }
       return (
         <div className="border-t px-6 py-10" style={border}>
           <H>{s(d.title)}</H>
@@ -970,7 +1391,12 @@ function BlockView({
           </div>
         </div>
       );
-    case "about":
+    }
+    case "about": {
+      const _v = typeof d._variant === "string" ? (d._variant as string) : "";
+      if (HIGHTECH_ABOUT_VARIANTS.has(_v)) {
+        return <AboutHighTech d={d} accent={accent} fg={fg} variant={_v} />;
+      }
       return (
         <div className="border-t px-6 py-10" style={border}>
           <div
@@ -1046,6 +1472,7 @@ function BlockView({
           </div>
         </div>
       );
+    }
     case "gallery":
       return (
         <div className="border-t px-6 py-10" style={border}>
@@ -1116,7 +1543,12 @@ function BlockView({
         </div>
       );
     }
-    case "cta":
+    case "cta": {
+      const _vCta =
+        typeof d._variant === "string" ? (d._variant as string) : "";
+      if (HIGHTECH_CTA_VARIANTS.has(_vCta)) {
+        return <CtaHighTech d={d} accent={accent} />;
+      }
       return (
         <div
           className="border-t px-6 py-12 text-center"
@@ -1136,6 +1568,7 @@ function BlockView({
           )}
         </div>
       );
+    }
     case "contact": {
       const cf = arr(d.items);
       const crows: Record<string, string>[] =
