@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-// Seed-script: vult builder_templates tabel met ALLE 130 sectoren uit
-// builder-presets.ts. Genereert per sector 1 default template + voor
-// een set populaire sectoren extra visual-variants → ~150 templates
-// totaal, voldoende voor een eerste indrukwekkende gallery-launch.
+// Seed-script v2 — Layout-archetypes × Style-variants.
 //
-// Idempotent: gebruikt upsert on (slug). Opnieuw runnen = updates
-// alleen waar nodig.
+// 10 LAYOUT-ARCHETYPES bepalen WELKE secties in welke volgorde
+// een template heeft (de echte visuele identiteit), en 6 STYLE-
+// VARIANTS bepalen de look (kleur + radius + tone).
+//
+//   10 × 6 = 60 templates die écht visueel onderscheidend zijn.
+//
+// Sector-agnostic: een template heeft (nog) geen sector. Bij Phase 2
+// (builder leest ?template=slug) wordt de sector geïnjecteerd door
+// de klant-keuze; de sector-content komt dan uit builder-presets.ts.
+//
+// Idempotent: wist eerst alle bestaande rows en insert opnieuw.
+// Vincent hoeft geen TRUNCATE meer manueel te doen.
 //
 // Run:
 //   node scripts/seed-builder-templates.mjs
 
 import { createClient } from "@supabase/supabase-js";
 import * as dotenv from "dotenv";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -26,149 +31,214 @@ if (!url || !key) {
 }
 const sb = createClient(url, key, { auth: { persistSession: false } });
 
-// Lees sectoren uit builder-presets.ts via regex (de file is TS,
-// geen runtime-import zonder bouw-stap; regex is robuust genoeg).
-const src = readFileSync(
-  resolve("src/lib/builder-presets.ts"),
-  "utf8",
-);
-const sectorRegex =
-  /\{\s*key:\s*"([^"]+)",\s*base:\s*"([^"]+)",\s*nl:\s*"([^"]+)",\s*fr:\s*"([^"]+)",\s*en:\s*"([^"]+)"\s*\}/g;
-const sectors = [];
-let m;
-while ((m = sectorRegex.exec(src))) {
-  sectors.push({
-    key: m[1],
-    base: m[2],
-    nl: m[3],
-    fr: m[4],
-    en: m[5],
-  });
-}
-console.log(`✓ ${sectors.length} sectoren ingelezen uit builder-presets.ts`);
+// ────────────────────────────────────────────────────────────────
+// 10 LAYOUT-ARCHETYPES
+// Elk archetype = unieke section-volgorde + section-types. Het
+// _variant-veld in de data is een hint voor de builder-render om
+// een specifieke variatie te kiezen (groot beeld, split, ...).
+// ────────────────────────────────────────────────────────────────
+const ARCHETYPES = [
+  {
+    slug: "magazine",
+    name: "Magazine",
+    description:
+      "Groot beeld + magazine-intro + drie features + gesplitste about. Voor verhalende merken.",
+    sections: [
+      { kind: "hero", data: { _variant: "large-bg" } },
+      { kind: "features", data: { _variant: "three-col", _count: 3 } },
+      { kind: "about", data: { _variant: "split" } },
+      { kind: "gallery", data: { _variant: "masonry", _count: 6 } },
+      { kind: "cta", data: { _variant: "wide" } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "split-hero",
+    name: "Split-hero",
+    description:
+      "Tekst links, beeld rechts. Stats en CTA. Voor consulting, B2B, services.",
+    sections: [
+      { kind: "hero", data: { _variant: "split-right" } },
+      { kind: "features", data: { _variant: "icon-grid", _count: 6 } },
+      { kind: "stats", data: { _count: 4 } },
+      { kind: "testimonials", data: { _variant: "compact" } },
+      { kind: "cta", data: { _variant: "centered" } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "video-hero",
+    name: "Video-hero",
+    description:
+      "Hero met video-achtergrond, timeline-features en testimonials-slider. Voor premium en architect/fitness.",
+    sections: [
+      { kind: "hero", data: { _variant: "video-bg" } },
+      { kind: "features", data: { _variant: "timeline", _count: 4 } },
+      { kind: "testimonials", data: { _variant: "slider", _count: 3 } },
+      { kind: "logos", data: { _variant: "row" } },
+      { kind: "cta", data: { _variant: "dark" } },
+      { kind: "contact", data: { _variant: "boxed" } },
+    ],
+  },
+  {
+    slug: "grid-portfolio",
+    name: "Grid-portfolio",
+    description:
+      "Compact intro + meteen 9-cells gallery. Voor fotograaf, designer, bouw, ambacht.",
+    sections: [
+      { kind: "hero", data: { _variant: "compact" } },
+      { kind: "gallery", data: { _variant: "grid-9", _count: 9 } },
+      { kind: "about", data: { _variant: "compact" } },
+      { kind: "cta", data: { _variant: "soft" } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "compact-cta",
+    name: "Compact-CTA",
+    description:
+      "Strakke hero + tarieven + 3 stappen. Voor kapper, salon, retail met directe conversie.",
+    sections: [
+      { kind: "hero", data: { _variant: "compact-cta" } },
+      { kind: "pricelist", data: { _variant: "rows", _count: 6 } },
+      { kind: "steps", data: { _count: 3 } },
+      { kind: "testimonials", data: { _variant: "compact", _count: 2 } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "story",
+    name: "Story",
+    description:
+      "Manifest-hero + lang-formaat about + testimonials. Voor ambacht, kunst, slowfood.",
+    sections: [
+      { kind: "hero", data: { _variant: "manifest" } },
+      { kind: "about", data: { _variant: "long-form" } },
+      { kind: "gallery", data: { _variant: "two-col", _count: 4 } },
+      { kind: "testimonials", data: { _variant: "quote", _count: 2 } },
+      { kind: "cta", data: { _variant: "soft" } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "booking-first",
+    name: "Booking-first",
+    description:
+      "Hero + reserveerwidget meteen bovenaan. Voor wellness, tandarts, kinesist.",
+    sections: [
+      { kind: "hero", data: { _variant: "compact-cta" } },
+      { kind: "form", data: { _variant: "booking" } },
+      { kind: "features", data: { _variant: "three-col", _count: 3 } },
+      { kind: "hours", data: {} },
+      { kind: "map", data: {} },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "pricelist-first",
+    name: "Pricelist-first",
+    description:
+      "Compacte hero + tarieven dominant + kleine gallery. Voor coiffeur, garage, schoonheidssalon.",
+    sections: [
+      { kind: "hero", data: { _variant: "compact" } },
+      { kind: "pricelist", data: { _variant: "cards", _count: 8 } },
+      { kind: "gallery", data: { _variant: "row", _count: 4 } },
+      { kind: "faq", data: { _count: 4 } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+  {
+    slug: "hours-prominent",
+    name: "Hours-prominent",
+    description:
+      "Hero + openingsuren groot + kaart. Voor lokale handelszaken met fysieke aanwezigheid.",
+    sections: [
+      { kind: "hero", data: { _variant: "compact" } },
+      { kind: "hours", data: { _variant: "prominent" } },
+      { kind: "map", data: { _variant: "prominent" } },
+      { kind: "features", data: { _variant: "icon-grid", _count: 4 } },
+      { kind: "gallery", data: { _variant: "row", _count: 3 } },
+      { kind: "contact", data: { _variant: "boxed" } },
+    ],
+  },
+  {
+    slug: "newsletter-led",
+    name: "Newsletter-led",
+    description:
+      "Modern hero + nieuwsbrief-opt-in vooraan. Voor merken die lijst willen opbouwen.",
+    sections: [
+      { kind: "hero", data: { _variant: "modern" } },
+      { kind: "newsletter", data: { _variant: "wide" } },
+      { kind: "features", data: { _variant: "three-col", _count: 3 } },
+      { kind: "about", data: { _variant: "compact" } },
+      { kind: "testimonials", data: { _variant: "quote", _count: 2 } },
+      { kind: "contact", data: { _variant: "simple" } },
+    ],
+  },
+];
 
-// 6 visueel onderscheiden style-presets — elk een combinatie van
-// accent-kleur, radius en tone. Een sector × style = 1 template.
+// ────────────────────────────────────────────────────────────────
+// 6 STYLE-VARIANTS — kleur + radius + tone
+// ────────────────────────────────────────────────────────────────
 const STYLES = [
   {
     suffix: "bold",
     label: "Bold",
-    accent: "#ef7e22", // studio-vm oranje
+    accent: "#ef7e22",
     radius: "strak",
     tone: "zakelijk",
-    desc: "Donker, krachtig contrast — voor wie indruk wil maken",
+    desc: "Donker contrast, krachtig oranje accent",
   },
   {
     suffix: "warm",
     label: "Warm",
-    accent: "#d97706", // warm amber
+    accent: "#d97706",
     radius: "zacht",
     tone: "warm",
-    desc: "Aardetinten en zachte hoeken — gastvrij, vertrouwd",
+    desc: "Aardetinten, zachte hoeken, gastvrij",
   },
   {
     suffix: "sharp",
     label: "Sharp",
-    accent: "#2563eb", // strak blauw
+    accent: "#2563eb",
     radius: "strak",
     tone: "zakelijk",
-    desc: "Strak, minimalistisch — professional en helder",
+    desc: "Minimalistisch blauw, professional",
   },
   {
     suffix: "soft",
     label: "Soft",
-    accent: "#db2777", // pastel-roze
+    accent: "#db2777",
     radius: "rond",
     tone: "warm",
-    desc: "Licht, rustig en gerond — vriendelijk en open",
+    desc: "Pastel-roze, ronde corners, open",
   },
   {
     suffix: "fresh",
     label: "Fresh",
-    accent: "#16a34a", // fris groen
+    accent: "#16a34a",
     radius: "zacht",
     tone: "speels",
-    desc: "Levendig groen, optimistisch en uitnodigend",
+    desc: "Levendig groen, optimistisch",
   },
   {
     suffix: "elegant",
     label: "Elegant",
-    accent: "#7c3aed", // diep paars
+    accent: "#7c3aed",
     radius: "zacht",
     tone: "zakelijk",
-    desc: "Verfijnd paars, premium-uitstraling",
+    desc: "Diep paars, premium-uitstraling",
   },
 ];
 
-// Welke sectoren krijgen meerdere style-variants? (= 'top'-sectoren
-// met meeste outreach-potentieel). De rest krijgt enkel 1 default.
-const POPULAR = new Set([
-  "restaurant",
-  "brasserie",
-  "cafe",
-  "bar",
-  "pizzeria",
-  "bakkerij",
-  "kapper",
-  "barbier",
-  "schoonheidssalon",
-  "spa",
-  "kledingwinkel",
-  "juwelier",
-  "bloemist",
-  "interieurwinkel",
-  "fitness",
-  "tandarts",
-  "kinesist",
-  "huisarts",
-  "advocaat",
-  "notaris",
-  "boekhouder",
-  "architect",
-  "fotograaf",
-  "garage",
-]);
-
-// Default-style-rotatie voor niet-populaire sectoren (1 style per sector,
-// op basis van een hash van de key → blijft stabiel over runs).
-function defaultStyleFor(sectorKey) {
-  let h = 0;
-  for (const c of sectorKey) h = (h * 31 + c.charCodeAt(0)) | 0;
-  return STYLES[Math.abs(h) % STYLES.length];
-}
-
-// Minimal page-structuur per template — de échte sectie-content komt
-// uit builder-presets via de bestaande engine. Hier alleen het 'recept':
-// welke pagina's en welke sectie-volgorde. De builder hydrateert met
-// sector-specifieke teksten zodra klant 'kies dit template' klikt.
-function pagesFor(sectorKey, baseSector, locale) {
-  const home = {
-    id: "p_home",
-    name: locale === "fr" ? "Accueil" : locale === "en" ? "Home" : "Home",
-    sections: [
-      { id: "s_hero", kind: "hero", data: { _sector: sectorKey } },
-      { id: "s_features", kind: "features", data: { _sector: sectorKey } },
-      { id: "s_about", kind: "about", data: { _sector: sectorKey } },
-      { id: "s_offer", kind: "features", data: { _sector: sectorKey, _alt: "offer" } },
-      { id: "s_cta", kind: "cta", data: { _sector: sectorKey } },
-      { id: "s_contact", kind: "contact", data: { _sector: sectorKey } },
-    ],
-  };
-  const contact = {
-    id: "p_contact",
-    name:
-      locale === "fr" ? "Contact" : locale === "en" ? "Contact" : "Contact",
-    sections: [
-      { id: "s2_contact", kind: "contact", data: { _sector: sectorKey } },
-    ],
-  };
-  return [home, contact];
-}
-
-function headerFor(sectorName, accent) {
+// ────────────────────────────────────────────────────────────────
+// Header- en page-bouw per template
+// ────────────────────────────────────────────────────────────────
+function buildHeader(style) {
   return {
-    logo_text: sectorName,
-    accent,
+    logo_text: "Studio VM",
+    accent: style.accent,
+    radius: style.radius,
     nav: [
       { label: "Home", page: "p_home" },
       { label: "Contact", page: "p_contact" },
@@ -176,37 +246,76 @@ function headerFor(sectorName, accent) {
   };
 }
 
-const ALL = [];
+function buildPages(archetype) {
+  const home = {
+    id: "p_home",
+    name: "Home",
+    sections: archetype.sections.map((s, i) => ({
+      id: `s_${archetype.slug}_${i}`,
+      kind: s.kind,
+      data: s.data,
+    })),
+  };
+  // Elk template krijgt ook een eenvoudige contact-pagina.
+  const contact = {
+    id: "p_contact",
+    name: "Contact",
+    sections: [
+      {
+        id: `s_${archetype.slug}_contact`,
+        kind: "contact",
+        data: { _variant: "boxed" },
+      },
+    ],
+  };
+  return [home, contact];
+}
 
-// Voor elke sector: bepaal welke styles toepassen.
-for (const sec of sectors) {
-  const styles = POPULAR.has(sec.key) ? STYLES : [defaultStyleFor(sec.key)];
-  let sortOffset = 0;
-  for (const style of styles) {
-    const isDefault = styles.length === 1;
-    const slug = isDefault ? sec.key : `${sec.key}-${style.suffix}`;
-    const name = isDefault ? sec.nl : `${sec.nl} — ${style.label}`;
+// ────────────────────────────────────────────────────────────────
+// Bouw alle 60 templates
+// ────────────────────────────────────────────────────────────────
+const ALL = [];
+for (let i = 0; i < ARCHETYPES.length; i++) {
+  const arch = ARCHETYPES[i];
+  for (let j = 0; j < STYLES.length; j++) {
+    const style = STYLES[j];
     ALL.push({
-      slug,
-      name,
-      sector: sec.key,
+      slug: `${arch.slug}-${style.suffix}`,
+      name: `${arch.name} — ${style.label}`,
+      sector: null,
       tone: style.tone,
       accent_color: style.accent,
       radius: style.radius,
       preview_url: null,
-      description: `${sec.nl} · ${style.desc}`,
-      header: headerFor(sec.nl, style.accent),
-      pages: pagesFor(sec.key, sec.base, "nl"),
-      is_live: false, // pas zichtbaar maken na review
-      sort_order: sortOffset++,
+      description: `${arch.description}\n${style.desc}.`,
+      header: buildHeader(style),
+      pages: buildPages(arch),
+      is_live: false,
+      sort_order: i * 10 + j,
     });
   }
 }
 
-console.log(`✓ ${ALL.length} templates voorbereid (${sectors.length} sectoren × varianten)`);
+console.log(
+  `✓ ${ARCHETYPES.length} archetypes × ${STYLES.length} styles = ${ALL.length} templates voorbereid`,
+);
 
-// Batch-upsert per 50 om de payload-size te beperken.
-const CHUNK = 50;
+// ────────────────────────────────────────────────────────────────
+// Eerst alles wissen (idempotent reset), dan opnieuw seeden
+// ────────────────────────────────────────────────────────────────
+console.log("→ huidige builder_templates wissen…");
+const { error: delErr } = await sb
+  .from("builder_templates")
+  .delete()
+  .neq("id", "00000000-0000-0000-0000-000000000000"); // match-all hack
+if (delErr) {
+  console.error("⚠ delete fout:", delErr.message);
+  process.exit(1);
+}
+console.log("  oude rows weg.\n");
+
+// Insert nieuwe batch
+const CHUNK = 30;
 let inserted = 0;
 for (let i = 0; i < ALL.length; i += CHUNK) {
   const batch = ALL.slice(i, i + CHUNK);
@@ -221,5 +330,10 @@ for (let i = 0; i < ALL.length; i += CHUNK) {
   console.log(`  upserted ${inserted}/${ALL.length}`);
 }
 
-console.log(`\n✓ Klaar — ${inserted} templates in de DB (status: draft / niet-live).`);
-console.log(`  Activeer via /admin/templates-lab → "Live"-toggle per template.`);
+console.log(
+  `\n✓ Klaar — ${inserted} archetype-templates in de DB (status: draft).`,
+);
+console.log(`  Bekijk in /admin/templates-lab en activeer per template.`);
+console.log(
+  `  Volgende sessie: builder leest ?template=slug + hydrateert met sector-content.`,
+);
