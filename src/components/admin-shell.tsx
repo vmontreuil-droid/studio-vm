@@ -38,6 +38,7 @@ import {
   MailSearch,
   Building2,
   Send,
+  LayoutTemplate,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -110,6 +111,7 @@ const groups: {
       { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
       { href: "/admin/monitors", label: "Monitors", icon: Activity, badge: "monitorsActief" },
       { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
+      { href: "/admin/templates-lab", label: "Templates-lab", icon: LayoutTemplate },
       { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
       { href: "/admin/prospects", label: "Prospects", icon: Building2 },
       { href: "/admin/outreach", label: "Outreach-engine", icon: Send },
