@@ -16,16 +16,6 @@ import {
 import { importSite } from "@/app/actions/import-site";
 import { loadTemplateBySlug } from "@/app/actions/templates-lab";
 import { BuilderOnboard } from "@/components/builder-onboard";
-import {
-  HeroHighTech,
-  FeaturesHighTech,
-  CtaHighTech,
-  AboutHighTech,
-  HIGHTECH_HERO_VARIANTS,
-  HIGHTECH_FEATURES_VARIANTS,
-  HIGHTECH_CTA_VARIANTS,
-  HIGHTECH_ABOUT_VARIANTS,
-} from "@/components/builder-render";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -8006,18 +7996,7 @@ function PreviewSection({
     });
 
   switch (kind) {
-    case "hero": {
-      const _v =
-        typeof data._variant === "string" ? (data._variant as string) : "";
-      if (HIGHTECH_HERO_VARIANTS.has(_v)) {
-        return (
-          <HeroHighTech
-            d={data as Record<string, unknown>}
-            accent={theme.accent || "#ef7e22"}
-            variant={_v}
-          />
-        );
-      }
+    case "hero":
       return (
         <HeroPreview
           data={data}
@@ -8027,19 +8006,7 @@ function PreviewSection({
           p={p}
         />
       );
-    }
-    case "features": {
-      const _vF =
-        typeof data._variant === "string" ? (data._variant as string) : "";
-      if (HIGHTECH_FEATURES_VARIANTS.has(_vF)) {
-        return (
-          <FeaturesHighTech
-            d={data as Record<string, unknown>}
-            accent={theme.accent || "#ef7e22"}
-            fg={theme.fg || "#111"}
-          />
-        );
-      }
+    case "features":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <SectionHead
@@ -8127,7 +8094,6 @@ function PreviewSection({
           })()}
         </div>
       );
-    }
     case "steps":
       return (
         <div className="border-t px-8 py-12" style={border}>
@@ -8490,19 +8456,7 @@ function PreviewSection({
           })()}
         </div>
       );
-    case "about": {
-      const _vA =
-        typeof data._variant === "string" ? (data._variant as string) : "";
-      if (HIGHTECH_ABOUT_VARIANTS.has(_vA)) {
-        return (
-          <AboutHighTech
-            d={data as Record<string, unknown>}
-            accent={theme.accent || "#ef7e22"}
-            fg={theme.fg || "#111"}
-            variant={_vA}
-          />
-        );
-      }
+    case "about":
       return (
         <div className="border-t px-8 py-12" style={border}>
           <div
@@ -8574,7 +8528,6 @@ function PreviewSection({
           </div>
         </div>
       );
-    }
     case "stats":
       return (
         <div className="border-t px-8 py-12" style={border}>
@@ -9008,17 +8961,7 @@ function PreviewSection({
         </div>
       );
     }
-    case "cta": {
-      const _vC =
-        typeof data._variant === "string" ? (data._variant as string) : "";
-      if (HIGHTECH_CTA_VARIANTS.has(_vC)) {
-        return (
-          <CtaHighTech
-            d={data as Record<string, unknown>}
-            accent={theme.accent || "#ef7e22"}
-          />
-        );
-      }
+    case "cta":
       return (
         <div
           className="border-t px-8 py-14 text-center"
@@ -9048,7 +8991,6 @@ function PreviewSection({
           </button>
         </div>
       );
-    }
     case "contact": {
       const cFields = Array.isArray(data.items)
         ? (data.items as Record<string, string>[])
