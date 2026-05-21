@@ -117,28 +117,61 @@ export default async function TemplatesLab() {
                 t.is_live ? "ring-1 ring-green-500/30" : ""
               }`}
             >
-              {/* Preview: kleurvlak met accent + sector-naam — later
-                  vervangen door echte screenshot of mini-render. */}
+              {/* High-tech preview-card — pure CSS, geen externe imagery.
+                  Gradient-mesh achtergrond met glow-blob, glass-overlay
+                  bovenaan met archetype-naam, en een mock-layout-skelet
+                  dat een hint geeft van de section-structuur. */}
               <div
-                className="relative h-32"
+                className="relative h-44 overflow-hidden"
                 style={{
-                  background: t.accent_color
-                    ? `linear-gradient(135deg, ${t.accent_color}, ${t.accent_color}cc 40%, #0a0a0acc 100%)`
-                    : "#0a0a0a",
+                  background: `
+                    radial-gradient(circle at 22% 18%, ${(t.accent_color ?? "#ef7e22")}55 0%, transparent 48%),
+                    radial-gradient(circle at 82% 78%, ${(t.accent_color ?? "#ef7e22")}88 0%, transparent 52%),
+                    linear-gradient(135deg, #050505 0%, #0f0f10 60%, #1a1a1c 100%)
+                  `,
                 }}
               >
-                <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white backdrop-blur">
-                  {t.tone ?? "—"} · {t.radius ?? "—"}
-                </span>
+                {/* Soft glow-blob in de hoek */}
+                <div
+                  className="absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-40 blur-3xl"
+                  style={{ background: t.accent_color ?? "#ef7e22" }}
+                />
+                {/* Mock-layout-skelet: hints naar section-structuur per archetype */}
+                <div className="absolute inset-0 grid place-items-center p-5">
+                  <MockLayout
+                    archetype={t.slug.split("-").slice(0, -1).join("-")}
+                    accent={t.accent_color ?? "#ef7e22"}
+                  />
+                </div>
+                {/* Top-left: status pill */}
                 <span
-                  className={`absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest backdrop-blur ${
+                  className={`absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest backdrop-blur-md ${
                     t.is_live
-                      ? "bg-green-500/80 text-white"
-                      : "bg-black/40 text-white/80"
+                      ? "bg-green-500/90 text-white shadow-lg shadow-green-500/30"
+                      : "bg-black/40 text-white/70"
                   }`}
                 >
-                  {t.is_live ? "✓ Live" : "Draft"}
+                  {t.is_live ? "● Live" : "Draft"}
                 </span>
+                {/* Top-right: tone/radius chip */}
+                <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white/80 backdrop-blur-md">
+                  {t.tone ?? "—"} · {t.radius ?? "—"}
+                </span>
+                {/* Bottom: glass-overlay card met archetype + accent-dot */}
+                <div className="absolute inset-x-2.5 bottom-2.5 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full shadow"
+                      style={{
+                        background: t.accent_color ?? "#ef7e22",
+                        boxShadow: `0 0 12px ${t.accent_color ?? "#ef7e22"}`,
+                      }}
+                    />
+                    <p className="truncate font-mono text-[10px] uppercase tracking-widest text-white/90">
+                      {t.slug.split("-").slice(0, -1).join("-") || t.slug}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Meta */}
@@ -214,4 +247,157 @@ export default async function TemplatesLab() {
       )}
     </>
   );
+}
+
+// MockLayout — hint visueel naar de section-structuur van het archetype.
+// Pure CSS skeletons (rechthoeken) zonder echte content, maar de
+// VERHOUDINGEN en POSITIES verschillen per archetype zodat templates
+// op een glance verschillen.
+function MockLayout({
+  archetype,
+  accent,
+}: {
+  archetype: string;
+  accent: string;
+}) {
+  const cls = "rounded-md bg-white/[0.08] backdrop-blur-sm";
+  const accentCls = "rounded-md backdrop-blur-sm";
+  const accentStyle = { background: `${accent}40` };
+
+  switch (archetype) {
+    case "magazine":
+      return (
+        <div className="grid w-full max-w-[180px] grid-cols-3 gap-1">
+          <div className={`${cls} col-span-3 h-10`} />
+          <div className={`${cls} h-4`} />
+          <div className={`${cls} h-4`} />
+          <div className={`${cls} h-4`} />
+          <div className={`${cls} col-span-2 h-6`} />
+          <div className={`${accentCls} h-6`} style={accentStyle} />
+        </div>
+      );
+    case "split-hero":
+      return (
+        <div className="grid w-full max-w-[180px] grid-cols-2 gap-1.5">
+          <div className="space-y-1">
+            <div className={`${cls} h-3`} />
+            <div className={`${cls} h-3 w-2/3`} />
+            <div className={`${accentCls} h-4 w-1/2`} style={accentStyle} />
+          </div>
+          <div className={`${cls} h-12`} />
+          <div className={`${cls} col-span-2 h-4`} />
+        </div>
+      );
+    case "video-hero":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} relative h-14`}>
+            <div
+              className={`${accentCls} absolute inset-x-3 bottom-1 h-3`}
+              style={accentStyle}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            <div className={`${cls} h-3`} />
+            <div className={`${cls} h-3`} />
+            <div className={`${cls} h-3`} />
+          </div>
+        </div>
+      );
+    case "grid-portfolio":
+      return (
+        <div className="grid w-full max-w-[180px] grid-cols-3 gap-1">
+          <div className={`${cls} col-span-3 h-6`} />
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className={`${cls} aspect-square`} />
+          ))}
+        </div>
+      );
+    case "compact-cta":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-6`} />
+          <div className={`${accentCls} h-4 w-2/3`} style={accentStyle} />
+          <div className="space-y-0.5">
+            <div className={`${cls} h-2`} />
+            <div className={`${cls} h-2`} />
+            <div className={`${cls} h-2`} />
+            <div className={`${cls} h-2`} />
+          </div>
+        </div>
+      );
+    case "story":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-3 w-1/3`} />
+          <div className={`${cls} h-7`} />
+          <div className={`${cls} h-2`} />
+          <div className={`${cls} h-2`} />
+          <div className={`${cls} h-2 w-2/3`} />
+          <div className={`${accentCls} h-4 w-1/2`} style={accentStyle} />
+        </div>
+      );
+    case "booking-first":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-5`} />
+          <div className={`${accentCls} h-8`} style={accentStyle} />
+          <div className="grid grid-cols-3 gap-1">
+            <div className={`${cls} h-3`} />
+            <div className={`${cls} h-3`} />
+            <div className={`${cls} h-3`} />
+          </div>
+        </div>
+      );
+    case "pricelist-first":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-4`} />
+          <div className="grid grid-cols-2 gap-1">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={`${cls} h-5`} />
+            ))}
+          </div>
+          <div className="flex gap-1">
+            <div className={`${cls} h-3 flex-1`} />
+            <div className={`${cls} h-3 flex-1`} />
+            <div className={`${cls} h-3 flex-1`} />
+          </div>
+        </div>
+      );
+    case "hours-prominent":
+      return (
+        <div className="grid w-full max-w-[180px] grid-cols-2 gap-1">
+          <div className={`${cls} col-span-2 h-4`} />
+          <div className={`${accentCls} h-10`} style={accentStyle} />
+          <div className={`${cls} h-10`} />
+          <div className={`${cls} col-span-2 h-3`} />
+        </div>
+      );
+    case "newsletter-led":
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-5`} />
+          <div className={`${cls} flex h-5 items-center justify-end`}>
+            <div
+              className={`${accentCls} mr-1 h-3 w-1/3`}
+              style={accentStyle}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            <div className={`${cls} h-4`} />
+            <div className={`${cls} h-4`} />
+            <div className={`${cls} h-4`} />
+          </div>
+        </div>
+      );
+    default:
+      return (
+        <div className="w-full max-w-[180px] space-y-1.5">
+          <div className={`${cls} h-6`} />
+          <div className={`${cls} h-3`} />
+          <div className={`${cls} h-3 w-2/3`} />
+        </div>
+      );
+  }
 }
