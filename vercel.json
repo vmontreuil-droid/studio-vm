@@ -22,6 +22,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/outreach-email-finder",
+      "schedule": "0 4 * * *"
+    },
+    {
       "path": "/api/cron/outreach-prescan",
       "schedule": "0 5 * * *"
     },
