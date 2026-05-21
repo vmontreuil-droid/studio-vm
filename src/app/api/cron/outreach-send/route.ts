@@ -87,6 +87,38 @@ export async function GET(req: NextRequest) {
   const todayQuota = warmUpQuota(cfg.dailyQuota, cfg.startedAt);
 
   const db = getSupabaseAdmin();
+
+  // Per-tick verdeling: cron loopt elke 30 min van 06:00 tot 22:30
+  // (ma-za) = 34 ticks per dag. We willen de quota gelijkmatig
+  // verspreiden over de overgebleven ticks van vandaag — lijkt op een
+  // mens die af en toe een mail tikt, geen burst om 10:30 's morgens.
+  const TICKS_PER_DAY = 34;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const { count: sentTodayCount } = await db
+    .from("prospect_outreach")
+    .select("prospect_id", { count: "exact", head: true })
+    .gte("mail_sent_at", todayStart.toISOString());
+  const sentToday = sentTodayCount ?? 0;
+  const remainingToday = Math.max(0, todayQuota - sentToday);
+  if (remainingToday === 0) {
+    return NextResponse.json({
+      ok: true,
+      quotaReached: true,
+      sentToday,
+      todayQuota,
+    });
+  }
+  // Ticks die nog vandaag firen (inclusief deze).
+  const now = new Date();
+  const curHr = now.getHours();
+  const curMin = now.getMinutes();
+  const totalSlotsFromStart =
+    Math.max(0, curHr - 6) * 2 + (curMin >= 30 ? 1 : 0);
+  const ticksLeftToday = Math.max(1, TICKS_PER_DAY - totalSlotsFromStart);
+  const perTick = Math.max(1, Math.ceil(remainingToday / ticksLeftToday));
+  const sendLimit = Math.min(perTick, remainingToday);
+
   let q = db
     .from("prospect_outreach")
     .select(
@@ -99,7 +131,7 @@ export async function GET(req: NextRequest) {
     .not("mail_to", "is", null)
     .gte("scan_score", cfg.minScore)
     .lte("scan_score", cfg.maxScore)
-    .limit(todayQuota);
+    .limit(sendLimit);
   if (cfg.lands.length > 0) q = q.in("land", cfg.lands);
   const { data } = await q;
   const rows = (data as OutreachRow[] | null) ?? [];
@@ -208,5 +240,8 @@ export async function GET(req: NextRequest) {
     failed,
     scope: filtered.length,
     todayQuota,
+    sentToday: sentToday + sent,
+    perTick,
+    ticksLeftToday,
   });
 }
