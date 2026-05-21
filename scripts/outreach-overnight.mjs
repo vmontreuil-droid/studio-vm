@@ -21,10 +21,14 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
-const base =
+// LET OP: gebruik altijd de www-host. studio-vm.be → www-redirect dropt
+// de Authorization-header (standaard browser/curl-gedrag). Direct naar
+// www voorkomt dat probleem.
+const rawBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.SITE_URL ||
-  "https://studio-vm.be";
+  "https://www.studio-vm.be";
+const base = rawBase.replace(/^https?:\/\/(?!www\.)/, "https://www.");
 const secret = process.env.CRON_SECRET;
 
 if (!secret) {
