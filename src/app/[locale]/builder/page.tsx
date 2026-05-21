@@ -14,7 +14,6 @@ import {
   type PageKey,
 } from "@/lib/builder-presets";
 import { importSite } from "@/app/actions/import-site";
-import { loadTemplateBySlug } from "@/app/actions/templates-lab";
 import { BuilderOnboard } from "@/components/builder-onboard";
 import { useParams } from "next/navigation";
 import {
@@ -1306,83 +1305,48 @@ export default function BuilderPage({
   const [hydrated, setHydrated] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
 
-  // Concept herstellen: prio = ?template=slug uit URL > serverontwerp
-  // (account) > localStorage-draft. Template uit URL overschrijft alles
-  // en geeft de klant meteen de gekozen layout — autosave bewaart later.
+  // Concept herstellen: serverontwerp (account) heeft voorrang op de
+  // lokale draft; anders de localStorage-draft.
   useEffect(() => {
-    (async () => {
-      try {
-        // 1) URL-template heeft hoogste prioriteit
-        const params = new URLSearchParams(window.location.search);
-        const templateSlug = params.get("template");
-        let templateData: BuilderSnapshot | null = null;
-        if (templateSlug) {
-          const res = await loadTemplateBySlug(templateSlug);
-          if (res.ok && res.template) {
-            const t = res.template;
-            templateData = {
-              businessName: (t.header as { logo_text?: string })?.logo_text || t.name,
-              theme:
-                t.accent_color
-                  ? { accent: t.accent_color }
-                  : undefined,
-              radius: (t.radius ?? undefined) as BuilderSnapshot["radius"],
-              header: t.header as Record<string, unknown>,
-              pages: t.pages as BuilderSnapshot["pages"],
-              activeId: undefined,
-            } as BuilderSnapshot;
-          }
+    try {
+      const fromServer =
+        initialSnapshot && Object.keys(initialSnapshot).length > 0;
+      // Migratie: bestaand NL-concept onder de oude globale sleutel
+      // blijft werken; FR/EN starten schoon (geen taalmix meer).
+      const raw = fromServer
+        ? null
+        : localStorage.getItem(storageKey) ??
+          (locale === DEFAULT_LOCALE
+            ? localStorage.getItem(STORAGE_KEY)
+            : null);
+      const d = fromServer
+        ? initialSnapshot!
+        : raw
+          ? (JSON.parse(raw) as BuilderSnapshot)
+          : null;
+      if (d) {
+        if (d.businessName) setBusinessName(d.businessName);
+        if (d.theme) setTheme(d.theme);
+        if (d.font) setFont(d.font);
+        if (d.radius) setRadius(d.radius);
+        if (d.align) setAlign(d.align);
+        if (typeof d.scale === "number") setScale(d.scale);
+        if (typeof d.logo === "string") setLogo(d.logo);
+        if (d.navAlign) setNavAlign(d.navAlign);
+        if (d.btnShape) setBtnShape(d.btnShape);
+        if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
+        if (d.header && typeof d.header === "object")
+          setHeader(d.header as Record<string, unknown>);
+        if (d.pages && d.pages.length) {
+          syncId(d.pages);
+          setPages(d.pages);
+          setActiveId(d.activeId ?? d.pages[0].id);
         }
-
-        // 2) Fallback: serverontwerp of localStorage
-        const fromServer =
-          initialSnapshot && Object.keys(initialSnapshot).length > 0;
-        const raw =
-          templateData || fromServer
-            ? null
-            : localStorage.getItem(storageKey) ??
-              (locale === DEFAULT_LOCALE
-                ? localStorage.getItem(STORAGE_KEY)
-                : null);
-        const d: BuilderSnapshot | null = templateData
-          ? templateData
-          : fromServer
-            ? initialSnapshot!
-            : raw
-              ? (JSON.parse(raw) as BuilderSnapshot)
-              : null;
-
-        if (d) {
-          if (d.businessName) setBusinessName(d.businessName);
-          if (d.theme) setTheme(d.theme);
-          if (d.font) setFont(d.font);
-          if (d.radius) setRadius(d.radius);
-          if (d.align) setAlign(d.align);
-          if (typeof d.scale === "number") setScale(d.scale);
-          if (typeof d.logo === "string") setLogo(d.logo);
-          if (d.navAlign) setNavAlign(d.navAlign);
-          if (d.btnShape) setBtnShape(d.btnShape);
-          if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
-          if (d.header && typeof d.header === "object")
-            setHeader(d.header as Record<string, unknown>);
-          if (d.pages && d.pages.length) {
-            syncId(d.pages);
-            setPages(d.pages);
-            setActiveId(d.activeId ?? d.pages[0].id);
-          }
-        }
-
-        // 3) Schoon de URL op zodat refresh niet opnieuw template laadt
-        if (templateSlug && templateData) {
-          const url = new URL(window.location.href);
-          url.searchParams.delete("template");
-          window.history.replaceState({}, "", url.toString());
-        }
-      } catch {
-        /* corrupt draft / template-fetch faalt → negeren */
       }
-      setHydrated(true);
-    })();
+    } catch {
+      /* corrupt draft → negeren */
+    }
+    setHydrated(true);
   }, []);
 
   // Autosave (foto's bewust niet — te groot voor localStorage).
