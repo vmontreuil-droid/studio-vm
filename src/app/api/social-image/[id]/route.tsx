@@ -50,12 +50,48 @@ async function getMontserratExtraBold(): Promise<ArrayBuffer | null> {
   }
 }
 
-// Screenshot via WordPress mShots — gratis, geen API-key. Werkt voor élke
-// publieke URL. Cache ~1u op hun kant; we vragen 1200×900 voor scherpte.
-function mShotsUrl(domain: string): string {
-  const clean = domain.replace(/^https?:\/\//, "").replace(/^www\./, "");
-  const full = `https://${clean}`;
-  return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(full)}?w=1200&h=900`;
+// Screenshot via lokale files in public/social/portfolio/{slug}.png —
+// vooraf gegenereerd via `node scripts/screenshot-portfolio.mjs`. Geeft
+// betrouwbare images zonder externe API-afhankelijkheid (mShots geeft 403
+// sinds mei 2026). Domain → slug via mapping.
+const SCREENSHOT_SLUG: Record<string, string> = {
+  "celine-interieur.vercel.app": "celine-interieur",
+  "jp-montreuil.vercel.app": "jp-montreuil",
+  "allardphilippe.vercel.app": "allardphilippe",
+  "mari-lines.vercel.app": "mari-lines",
+  "barbotte.vercel.app": "barbotte",
+  "cottage-waregem.vercel.app": "cottage-waregem",
+  "favesan.be": "favesan",
+  "studio-vm.be": "studio-vm",
+};
+
+function screenshotPathFor(domain: string): string | null {
+  const slug = SCREENSHOT_SLUG[domain];
+  return slug ? `/social/portfolio/${slug}.png` : null;
+}
+
+// Cache screenshots als data-URLs zodat Satori ze betrouwbaar inlinet
+const SHOT_CACHE = new Map<string, string>();
+async function getScreenshotDataUrl(domain: string): Promise<string | null> {
+  const cached = SHOT_CACHE.get(domain);
+  if (cached) return cached;
+  const slug = SCREENSHOT_SLUG[domain];
+  if (!slug) return null;
+  try {
+    const p = path.join(
+      process.cwd(),
+      "public",
+      "social",
+      "portfolio",
+      `${slug}.png`,
+    );
+    const buf = await fs.readFile(p);
+    const dataUrl = `data:image/png;base64,${buf.toString("base64")}`;
+    SHOT_CACHE.set(domain, dataUrl);
+    return dataUrl;
+  } catch {
+    return null;
+  }
 }
 
 // ============================================================================
@@ -180,6 +216,10 @@ export async function GET(
   const theme = THEMES[platform] ?? THEMES.algemeen!;
   const useScreenshot = !!featuredSite;
   const montserratData = await getMontserratExtraBold();
+  const screenshotData = featuredSite
+    ? await getScreenshotDataUrl(featuredSite)
+    : null;
+  void screenshotPathFor; // alias-only — niet rechtstreeks gebruikt
 
   // Schaal hero-tekst op basis van lengte. In screenshot-layout iets kleiner.
   const fontSize = useScreenshot
@@ -404,21 +444,41 @@ export async function GET(
                   {featuredSite}
                 </div>
               </div>
-              {/* Screenshot */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={mShotsUrl(featuredSite!)}
-                alt={featuredSite!}
-                width={620}
-                height={400}
-                style={{
-                  display: "flex",
-                  width: "100%",
-                  height: 360,
-                  objectFit: "cover",
-                  objectPosition: "top center",
-                }}
-              />
+              {/* Screenshot — local file via data-URL voor betrouwbaarheid */}
+              {screenshotData ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={screenshotData}
+                  alt={featuredSite!}
+                  width={620}
+                  height={400}
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    height: 360,
+                    objectFit: "cover",
+                    objectPosition: "top center",
+                  }}
+                />
+              ) : (
+                // Fallback: gradient-placeholder als screenshot-file ontbreekt
+                <div
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    height: 360,
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "ui-monospace, Menlo, monospace",
+                    fontSize: 16,
+                    color: "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  {featuredSite}
+                </div>
+              )}
             </div>
           </div>
         ) : (
