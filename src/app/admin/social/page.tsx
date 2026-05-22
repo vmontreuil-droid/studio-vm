@@ -35,6 +35,7 @@ import {
   getSocialClicksByDay,
   getPlatformBreakdown,
   getTopPosts,
+  generateNow,
   type SocialPost,
   type TopPost,
 } from "@/app/actions/social";
@@ -288,13 +289,47 @@ export default async function AdminSocial() {
             </p>
           </div>
         </div>
-        <Link
-          href="/admin/webactiviteit"
-          className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:bg-card-hover hover:text-foreground"
-        >
-          <Activity className="h-3 w-3" strokeWidth={2.5} />
-          Webactiviteit
-        </Link>
+        <div className="flex items-center gap-2">
+          <form action={generateNow}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-3.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-white shadow-sm transition-opacity hover:opacity-90"
+              title="Roept de AI Content Engine direct aan — 3 nieuwe posts in social_posts, mail in je inbox"
+            >
+              <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+              Genereer 3 posts NU
+            </button>
+          </form>
+          <Link
+            href="/admin/webactiviteit"
+            className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+          >
+            <Activity className="h-3 w-3" strokeWidth={2.5} />
+            Webactiviteit
+          </Link>
+        </div>
+      </div>
+
+      {/* Engine-status-banner */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 p-4">
+        <div className="flex items-center gap-3">
+          <span className="relative grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+            <Sparkles className="h-4 w-4" strokeWidth={2.5} />
+            <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+            </span>
+          </span>
+          <div>
+            <p className="text-sm font-semibold">AI Content Engine — actief</p>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              dagelijks 07:00 (ma-vr) · 3 posts · FB + LinkedIn · template-modus
+            </p>
+          </div>
+        </div>
+        <p className="max-w-md text-[11px] text-muted">
+          Voeg <code className="rounded bg-foreground/10 px-1 py-0.5 font-mono text-[10px]">ANTHROPIC_API_KEY</code> toe in Vercel-env voor AI-rewrites (variabele toon per dag, ~€0.05/dag).
+        </p>
       </div>
 
       {/* KPI-strip — 8 metrics in 2 rijen */}

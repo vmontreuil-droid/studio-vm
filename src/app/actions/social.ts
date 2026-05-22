@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { generateDailyPosts } from "@/lib/admin/social-generator";
+import { buildSocialDigestMail } from "@/lib/admin/social-mail";
+import { sendMail } from "@/lib/monitor";
+import { getCompanySettings } from "@/lib/admin/settings";
 
 export type SocialPost = {
   id: string;
@@ -192,6 +196,26 @@ export async function setAppSetting(formData: FormData): Promise<void> {
     );
   revalidatePath("/admin/social");
   revalidatePath("/", "layout"); // pixel-IDs zitten straks in root-layout
+}
+
+// =====================================================================
+// AI Content Engine — handmatige trigger vanaf /admin/social-knop.
+// Genereert 3 posts NU, stuurt digest-mail, revalidates pagina.
+// =====================================================================
+export async function generateNow(): Promise<void> {
+  if (!adminConfigured || !(await requireAdmin())) return;
+  const result = await generateDailyPosts({ count: 3 });
+  if (result.generated > 0) {
+    try {
+      const s = await getCompanySettings();
+      const to = s.email || "vmontreuil@outlook.be";
+      const mail = buildSocialDigestMail(result.posts);
+      await sendMail(to, mail).catch(() => false);
+    } catch {
+      // mail-fout mag de generatie niet ongedaan maken
+    }
+  }
+  revalidatePath("/admin/social");
 }
 
 // =====================================================================
