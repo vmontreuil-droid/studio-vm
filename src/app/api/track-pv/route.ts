@@ -15,7 +15,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = (await req.json().catch(() => null)) as
-      | { path?: string; locale?: string; referrer?: string }
+      | {
+          path?: string;
+          locale?: string;
+          referrer?: string;
+          utm_source?: string | null;
+          utm_medium?: string | null;
+          utm_campaign?: string | null;
+        }
       | null;
     if (!body) return NextResponse.json({ ok: true });
 
@@ -63,6 +70,13 @@ export async function POST(req: NextRequest) {
       .digest("hex")
       .slice(0, 16);
 
+    // UTM-velden — lichte sanitatie
+    const cleanUtm = (v: unknown) => {
+      if (!v) return null;
+      const s = String(v).slice(0, 80).replace(/[^a-zA-Z0-9_\-\.]/g, "");
+      return s || null;
+    };
+
     await getSupabaseAdmin().from("page_views").insert({
       path,
       locale,
@@ -70,6 +84,9 @@ export async function POST(req: NextRequest) {
       visitor_hash: visitorHash,
       ua_family: uaFamily,
       country,
+      utm_source: cleanUtm(body.utm_source),
+      utm_medium: cleanUtm(body.utm_medium),
+      utm_campaign: cleanUtm(body.utm_campaign),
     });
 
     return NextResponse.json({ ok: true });

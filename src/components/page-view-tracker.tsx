@@ -20,11 +20,28 @@ export function PageViewTracker({ locale }: { locale?: string }) {
       return;
     }
 
+    // UTM-params uit huidige URL halen — usePathname() bevat geen query,
+    // daarom apart via window.location.search lezen.
+    let utmSource: string | null = null;
+    let utmMedium: string | null = null;
+    let utmCampaign: string | null = null;
+    if (typeof window !== "undefined") {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        utmSource = sp.get("utm_source");
+        utmMedium = sp.get("utm_medium");
+        utmCampaign = sp.get("utm_campaign");
+      } catch {}
+    }
+
     const body = JSON.stringify({
       path,
       locale: locale ?? "nl",
       referrer:
         typeof document !== "undefined" ? document.referrer || null : null,
+      utm_source: utmSource,
+      utm_medium: utmMedium,
+      utm_campaign: utmCampaign,
     });
 
     try {

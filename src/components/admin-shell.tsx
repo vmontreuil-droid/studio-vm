@@ -40,6 +40,7 @@ import {
   Send,
   LayoutTemplate,
   LineChart,
+  Share2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -117,6 +118,7 @@ const groups: {
       { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
       { href: "/admin/prospects", label: "Prospects", icon: Building2 },
       { href: "/admin/outreach", label: "Outreach-engine", icon: Send },
+      { href: "/admin/social", label: "Social Media", icon: Share2 },
       { href: "/admin/mail-preview", label: "Mail-preview", icon: MailOpen },
     ],
   },
