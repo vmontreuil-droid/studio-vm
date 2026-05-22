@@ -13,29 +13,37 @@
 // Outlook) zonder cookies opgehaald. Inhoud is sowieso marketing.
 
 import { ImageResponse } from "next/og";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Logo wordt INLINE gerenderd als JSX (vm wit + . in amber #f59e0b),
-// in Montserrat ExtraBold zodat het exact matcht met de site's huisstijl
+// Logo wordt INLINE gerenderd als JSX (vm wit + . in amber #f59e0b) in
+// Montserrat ExtraBold zodat het exact matcht met de site's huisstijl
 // (layout.tsx gebruikt Montserrat als --font-geist-sans).
-
-// Font-cache — Montserrat ExtraBold (weight 800) wordt 1× geladen vanuit
-// de Google Fonts mirror op jsdelivr. Stabiele CDN-URL, TTF-formaat dat
-// Satori begrijpt.
+//
+// Font wordt gebundeld via @fontsource/montserrat — geen onbetrouwbare
+// runtime-CDN-fetch. Wordt 1× geladen en in memory gecached.
 let MONTSERRAT_CACHE: ArrayBuffer | null = null;
 async function getMontserratExtraBold(): Promise<ArrayBuffer | null> {
   if (MONTSERRAT_CACHE) return MONTSERRAT_CACHE;
   try {
-    const res = await fetch(
-      "https://cdn.jsdelivr.net/gh/google/fonts/ofl/montserrat/static/Montserrat-ExtraBold.ttf",
-      { cache: "force-cache" },
+    const p = path.join(
+      process.cwd(),
+      "node_modules",
+      "@fontsource",
+      "montserrat",
+      "files",
+      "montserrat-latin-800-normal.woff",
     );
-    if (!res.ok) return null;
-    MONTSERRAT_CACHE = await res.arrayBuffer();
+    const buf = await fs.readFile(p);
+    MONTSERRAT_CACHE = buf.buffer.slice(
+      buf.byteOffset,
+      buf.byteOffset + buf.byteLength,
+    ) as ArrayBuffer;
     return MONTSERRAT_CACHE;
   } catch {
     return null;

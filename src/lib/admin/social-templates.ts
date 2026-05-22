@@ -46,45 +46,48 @@ export type Template = {
 //   build     — site die ik bouwde voor de klant
 //   own       — eigen bureau-site
 //   migration — site die nog niet gemigreerd is (toekomstige case)
+// LET OP: site = production-URL voor mShots-screenshot. De meeste klanten
+// draaien nog op .vercel.app preview-URL (geen eigen domein gekoppeld).
+// Studio-vm en favesan hebben wel eigen domein.
 export const PORTFOLIO = [
   {
     name: "Céline (zus)",
-    site: "celine-interieur.be",
+    site: "celine-interieur.vercel.app",
     sector: "interieur",
     kind: "build",
     angle: "webshop + offerte-aanvragen + admin",
   },
   {
     name: "Jean-Paul Montreuil (vader)",
-    site: "jp-montreuil.be",
+    site: "jp-montreuil.vercel.app",
     sector: "fotografie",
     kind: "build",
     angle: "galerie + boekverkoop + tentoonstellingen",
   },
   {
     name: "Allard Philippe",
-    site: "allardphilippe.be",
+    site: "allardphilippe.vercel.app",
     sector: "wildlife-fotografie",
     kind: "build",
     angle: "portfolio + e-commerce voor prints",
   },
   {
     name: "Mari-Lines (Rik)",
-    site: "mari-lines.be",
+    site: "mari-lines.vercel.app",
     sector: "wegmarkeringen",
     kind: "build",
     angle: "B2B-presentatie + werkenoverzicht + offerte-flow",
   },
   {
     name: "Bar'Botte",
-    site: "barbotte.be",
+    site: "barbotte.vercel.app",
     sector: "horeca",
     kind: "build",
     angle: "menu's + dagsuggesties + reservaties",
   },
   {
     name: "Cottage Waregem",
-    site: "cottagewaregem.be",
+    site: "cottage-waregem.vercel.app",
     sector: "horeca",
     kind: "build",
     angle: "restaurant + eventruimte + menu's",
@@ -126,8 +129,8 @@ export const TEMPLATES: Template[] = [
     days: [1, 3],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: celine-interieur.be",
-      body: `Voor mijn zus Céline bouwde ik celine-interieur.be — interieurzaak in Waregem.
+      title: "Site die ik maakte: celine-interieur.vercel.app",
+      body: `Voor mijn zus Céline bouwde ik celine-interieur.vercel.app — interieurzaak in Waregem.
 
 Wat zit erin?
 • Webshop voor de productlijn
@@ -139,7 +142,7 @@ Vaste prijs, opgeleverd in 3 weken. Geen WordPress, geen plugin-jungle, geen maa
 
 Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → start met een gratis scan.`,
       hashtags: "",
-      site: "celine-interieur.be",
+      site: "celine-interieur.vercel.app",
     }),
   },
   {
@@ -150,8 +153,8 @@ Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → star
     days: [2, 4],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: jp-montreuil.be",
-      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik jp-montreuil.be.
+      title: "Site die ik maakte: jp-montreuil.vercel.app",
+      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik jp-montreuil.vercel.app.
 
 Drie functies:
 1. Galerie van zijn werk (volledig responsive, foto's vooraf geoptimaliseerd, laadt razendsnel)
@@ -164,7 +167,7 @@ Vaste prijs, eigen admin. Solo gebouwd in Waregem.
 
 Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage portfolio-site? Stuur ze door.`,
       hashtags: "",
-      site: "jp-montreuil.be",
+      site: "jp-montreuil.vercel.app",
     }),
   },
   {
@@ -175,10 +178,10 @@ Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage p
     days: [3, 5],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: allardphilippe.be",
+      title: "Site die ik maakte: allardphilippe.vercel.app",
       body: `Allard Philippe — wildlife-fotograaf — wou een site die zijn werk laat ademen, met de mogelijkheid om prints te verkopen.
 
-Resultaat: allardphilippe.be.
+Resultaat: allardphilippe.vercel.app.
 
 → Volledige portfolio met collecties
 → Webshop voor prints in verschillende formaten
@@ -189,7 +192,7 @@ Laadtijd 0.9s, PageSpeed 96. Vaste prijs, oplevering in 3 weken.
 
 Studio-vm.be — websites voor creatieven, KMO's en zelfstandigen in Vlaanderen.`,
       hashtags: "",
-      site: "allardphilippe.be",
+      site: "allardphilippe.vercel.app",
     }),
   },
   {
@@ -200,8 +203,8 @@ Studio-vm.be — websites voor creatieven, KMO's en zelfstandigen in Vlaanderen.
     days: [1, 4],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: mari-lines.be",
-      body: `B2B-site die ik dit jaar bouwde: mari-lines.be — wegmarkeringen-bedrijf van een vriend.
+      title: "Site die ik maakte: mari-lines.vercel.app",
+      body: `B2B-site die ik dit jaar bouwde: mari-lines.vercel.app — wegmarkeringen-bedrijf van een vriend.
 
 Wat doet hij anders dan een typische "showcase-site"?
 • Werkenoverzicht met écht uitgevoerde projecten + foto's
@@ -213,7 +216,7 @@ Vaste prijs, in 3 weken klaar. Geen Webflow, geen WordPress, gewoon goed gebouwd
 
 Ken je een B2B-bedrijf dat zijn site al jaren niet meer durft te updaten? Stuur ze door.`,
       hashtags: "",
-      site: "mari-lines.be",
+      site: "mari-lines.vercel.app",
     }),
   },
   {
@@ -224,7 +227,7 @@ Ken je een B2B-bedrijf dat zijn site al jaren niet meer durft te updaten? Stuur 
     days: [2, 5],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: barbotte.be",
+      title: "Site die ik maakte: barbotte.vercel.app",
       body: `Bar'Botte Waregem — een van de horeca-zaken waar ik dit jaar de site voor bouwde.
 
 Wat doet hij?
@@ -237,7 +240,7 @@ Vaste prijs, opgeleverd in 3 weken. Eigen admin, geen maandkost-truc.
 
 Ken je een horeca-zaak die nog op een trage Squarespace of WordPress zit? Studio-vm.be → gratis scan.`,
       hashtags: "",
-      site: "barbotte.be",
+      site: "barbotte.vercel.app",
     }),
   },
   {
@@ -248,8 +251,8 @@ Ken je een horeca-zaak die nog op een trage Squarespace of WordPress zit? Studio
     days: [3, 4],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: cottagewaregem.be",
-      body: `Cottage Waregem — brasserie met eventruimte. Site door mij gebouwd: cottagewaregem.be.
+      title: "Site die ik maakte: cottage-waregem.vercel.app",
+      body: `Cottage Waregem — brasserie met eventruimte. Site door mij gebouwd: cottage-waregem.vercel.app.
 
 Drie modules in één site:
 1. Restaurant — menu's, dagsuggesties, reserveren
@@ -262,7 +265,7 @@ Vaste prijs vanaf de Starter-formule. Geen maandelijkse "service-factuur" voor n
 
 Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       hashtags: "",
-      site: "cottagewaregem.be",
+      site: "cottage-waregem.vercel.app",
     }),
   },
 
@@ -280,7 +283,7 @@ Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       title: "Case — B2B-site voor Mari-Lines",
       body: `Case: B2B-website voor een wegmarkeringen-bedrijf in Vlaanderen.
 
-🔹 Klant: Mari-Lines (mari-lines.be)
+🔹 Klant: Mari-Lines (mari-lines.vercel.app)
 🔹 Sector: wegmarkeringen — B2B (aannemers, bouwheren, gemeentes)
 🔹 Doel: prospects laten zien wat ze realiseerden + offertes structureren
 
@@ -301,7 +304,7 @@ B2B-sites krijgen vaak een "info-folder"-behandeling. Dat is een gemiste kans �
 Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
       hashtags:
         "#b2b #website #kmo #vlaanderen #wegmarkering #digitalisering",
-      site: "mari-lines.be",
+      site: "mari-lines.vercel.app",
     }),
   },
   {
@@ -315,7 +318,7 @@ Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
       title: "Case — webshop + offerte-flow voor interieurzaak",
       body: `Case: e-commerce + offerte-flow voor een interieurzaak.
 
-🔹 Klant: Céline Interieur (celine-interieur.be)
+🔹 Klant: Céline Interieur (celine-interieur.vercel.app)
 🔹 Sector: interieur (B2C, regionaal)
 🔹 Doel: webshop voor producten + structurele offerte-aanvragen voor maatwerk
 
@@ -334,7 +337,7 @@ Vaste prijs vooraf, opgeleverd in 3 weken. Onderhoud klant zelf — hosting <€
 
 Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       hashtags: "#ecommerce #interieur #kmo #website #vlaanderen",
-      site: "celine-interieur.be",
+      site: "celine-interieur.vercel.app",
     }),
   },
   {
@@ -348,7 +351,7 @@ Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       title: "Case — galerie + boekverkoop voor wildlife-fotograaf",
       body: `Case: portfolio + e-commerce voor wildlife-fotografie.
 
-🔹 Klant: Jean-Paul Montreuil (jp-montreuil.be)
+🔹 Klant: Jean-Paul Montreuil (jp-montreuil.vercel.app)
 🔹 Sector: wildlife-fotografie (B2C, internationaal)
 🔹 Doel: galerie laten ademen + boekverkoop + tentoonstellingen-agenda
 
@@ -368,7 +371,7 @@ Voor creatieven die hun werk online willen tonen — vraag NIET aan een WordPres
 
 Studio-vm.be — geen WordPress, geen plugin-stress, eigen admin.`,
       hashtags: "#fotografie #portfolio #kunstenaar #website #ecommerce",
-      site: "jp-montreuil.be",
+      site: "jp-montreuil.vercel.app",
     }),
   },
   {
@@ -382,7 +385,7 @@ Studio-vm.be — geen WordPress, geen plugin-stress, eigen admin.`,
       title: "Case — horeca-site met reservatie-module",
       body: `Case: restaurant-website met reservaties en dagsuggesties.
 
-🔹 Klant: Bar'Botte Waregem (barbotte.be)
+🔹 Klant: Bar'Botte Waregem (barbotte.vercel.app)
 🔹 Sector: horeca (B2C, regionaal)
 🔹 Doel: bezoekers zonder telefoongesprek tot een reservatie krijgen
 
@@ -401,7 +404,7 @@ Vaste prijs vanaf de Starter-formule. Opgeleverd in 3 weken. Geen externe abonne
 
 Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       hashtags: "#horeca #website #vlaanderen #reservatie #kmo",
-      site: "barbotte.be",
+      site: "barbotte.vercel.app",
     }),
   },
   {
@@ -415,7 +418,7 @@ Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       title: "Case — restaurant + eventruimte in één site",
       body: `Case: brasserie met eventruimte — twee diensten, één site.
 
-🔹 Klant: Cottage Waregem (cottagewaregem.be)
+🔹 Klant: Cottage Waregem (cottage-waregem.vercel.app)
 🔹 Sector: horeca + events (B2C + B2B)
 🔹 Doel: bezoekers naar restaurant OF eventruimte sturen zonder ze te verwarren
 
@@ -435,7 +438,7 @@ Resultaten:
 
 Studio-vm.be — geen WordPress, geen externe widgets, eigen admin.`,
       hashtags: "#horeca #events #website #waregem #kmo",
-      site: "cottagewaregem.be",
+      site: "cottage-waregem.vercel.app",
     }),
   },
 
@@ -819,8 +822,8 @@ Bedankt op voorhand — de meeste van mijn opdrachten komen zo via een doorverwi
       title: "Case — horeca-sites",
       body: `Twee horeca-sites die ik dit jaar live zette:
 
-→ Bar'Botte Waregem (barbotte.be) — bar/bistro met dagsuggesties en reservatiemodule
-→ Cottage Waregem (cottagewaregem.be) — restaurant met menu's en eventruimte
+→ Bar'Botte Waregem (barbotte.vercel.app) — bar/bistro met dagsuggesties en reservatiemodule
+→ Cottage Waregem (cottage-waregem.vercel.app) — restaurant met menu's en eventruimte
 
 Beide vorige sites waren op WordPress + traag + niemand in huis kon ze aanpassen.
 
