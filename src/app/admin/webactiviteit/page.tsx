@@ -13,6 +13,10 @@ import {
   Inbox,
   CheckCircle2,
   ExternalLink,
+  Users,
+  FileText,
+  MapPin,
+  Link2,
 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
@@ -41,6 +45,16 @@ const fmt = (d: string | null) =>
         minute: "2-digit",
       })
     : "—";
+
+// 2-letter country-code → vlag-emoji. "??" → globe.
+function countryFlag(cc: string): string {
+  if (!cc || cc === "??" || cc.length !== 2) return "🌍";
+  const codePoints = cc
+    .toUpperCase()
+    .split("")
+    .map((c) => 0x1f1a5 + c.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
 
 function relative(iso: string) {
   const d = new Date(iso);
@@ -156,6 +170,163 @@ export default async function AdminWebActivity() {
       .select("created_at")
       .gte("created_at", fiveMinAgo.toISOString()),
   ]);
+
+  // === BEZOEKERS-TRACKING — uit tabel page_views (mag leeg zijn vóór migratie 0044) ===
+  const [
+    pvLive,
+    pvToday,
+    pvWeek,
+    pvUniqueToday,
+    pvUniqueWeek,
+    pvRecent,
+    pvByDay,
+    pvByHour,
+  ] = await Promise.all([
+    db
+      .from("page_views")
+      .select("visitor_hash")
+      .gte("created_at", fiveMinAgo.toISOString()),
+    db
+      .from("page_views")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", todayStart.toISOString()),
+    db
+      .from("page_views")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", last7.toISOString()),
+    db
+      .from("page_views")
+      .select("visitor_hash")
+      .gte("created_at", todayStart.toISOString()),
+    db
+      .from("page_views")
+      .select("visitor_hash")
+      .gte("created_at", last7.toISOString()),
+    db
+      .from("page_views")
+      .select("created_at, path, locale, referrer, country, ua_family")
+      .order("created_at", { ascending: false })
+      .limit(30),
+    db
+      .from("page_views")
+      .select("created_at, path, referrer, country, locale")
+      .gte("created_at", last30.toISOString())
+      .limit(5000),
+    db
+      .from("page_views")
+      .select("created_at")
+      .gte("created_at", new Date(now.getTime() - 24 * 60 * 60_000).toISOString())
+      .limit(5000),
+  ]).catch(() => [
+    // Voor migratie 0044 nog niet bestaat — alle queries falen, lege fallback
+    { data: [] as Array<{ visitor_hash: string }> },
+    { count: 0 },
+    { count: 0 },
+    { data: [] as Array<{ visitor_hash: string }> },
+    { data: [] as Array<{ visitor_hash: string }> },
+    { data: [] as Array<unknown> },
+    { data: [] as Array<{ created_at: string; path: string; referrer?: string; country?: string; locale?: string }> },
+    { data: [] as Array<{ created_at: string }> },
+  ] as const);
+
+  type PvRow = {
+    created_at: string;
+    path: string;
+    referrer?: string | null;
+    country?: string | null;
+    locale?: string | null;
+  };
+  const pvAll = (pvByDay.data as PvRow[] | null) ?? [];
+
+  // Live: unieke bezoekers in laatste 5 min
+  const liveVisitors = new Set(
+    (pvLive.data as Array<{ visitor_hash: string }> | null)?.map(
+      (r) => r.visitor_hash,
+    ) ?? [],
+  ).size;
+  const uniqueToday = new Set(
+    (pvUniqueToday.data as Array<{ visitor_hash: string }> | null)?.map(
+      (r) => r.visitor_hash,
+    ) ?? [],
+  ).size;
+  const uniqueWeek = new Set(
+    (pvUniqueWeek.data as Array<{ visitor_hash: string }> | null)?.map(
+      (r) => r.visitor_hash,
+    ) ?? [],
+  ).size;
+
+  // Top-paginas (laatste 7d)
+  const pathCount = new Map<string, number>();
+  const sevenDaysAgo = last7.getTime();
+  for (const r of pvAll) {
+    if (new Date(r.created_at).getTime() < sevenDaysAgo) continue;
+    pathCount.set(r.path, (pathCount.get(r.path) ?? 0) + 1);
+  }
+  const topPaths = [...pathCount.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([label, value]) => ({ label, value }));
+
+  // Top-referrers (laatste 7d), genormaliseerd
+  const refCount = new Map<string, number>();
+  for (const r of pvAll) {
+    if (new Date(r.created_at).getTime() < sevenDaysAgo) continue;
+    if (!r.referrer) {
+      refCount.set("(direct)", (refCount.get("(direct)") ?? 0) + 1);
+      continue;
+    }
+    let host = "";
+    try {
+      host = new URL(r.referrer).hostname.replace(/^www\./, "");
+    } catch {
+      host = "(onbekend)";
+    }
+    if (host.includes("studio-vm")) continue; // intern, niet boeiend
+    refCount.set(host || "(direct)", (refCount.get(host || "(direct)") ?? 0) + 1);
+  }
+  const topRefs = [...refCount.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([label, value]) => ({ label, value }));
+
+  // Per land (laatste 7d)
+  const countryCount = new Map<string, number>();
+  for (const r of pvAll) {
+    if (new Date(r.created_at).getTime() < sevenDaysAgo) continue;
+    const c = (r.country ?? "??").toUpperCase();
+    countryCount.set(c, (countryCount.get(c) ?? 0) + 1);
+  }
+  const topCountries = [...countryCount.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([label, value]) => ({ label: countryFlag(label) + " " + label, value }));
+
+  // Pageviews per uur (laatste 24u)
+  const pvHourRows =
+    (pvByHour.data as Array<{ created_at: string }> | null) ?? [];
+  const pvHours = Array.from({ length: 24 }, (_, k) => {
+    const dt = new Date(now.getTime() - (23 - k) * 60 * 60_000);
+    const hr = dt.getHours();
+    const startMs = new Date(dt).setMinutes(0, 0, 0);
+    const endMs = startMs + 60 * 60_000;
+    return {
+      label: `${String(hr).padStart(2, "0")}u`,
+      value: pvHourRows.filter((r) => {
+        const t = new Date(r.created_at).getTime();
+        return t >= startMs && t < endMs;
+      }).length,
+    };
+  });
+
+  const pvRecentRows =
+    (pvRecent.data as Array<{
+      created_at: string;
+      path: string;
+      locale?: string;
+      referrer?: string;
+      country?: string;
+      ua_family?: string;
+    }> | null) ?? [];
 
   // Trend laatste 30 dagen: scan_requests per dag.
   type Row = { created_at: string; locale?: string; url?: string };
@@ -395,6 +566,165 @@ export default async function AdminWebActivity() {
           hint="vereisen reactie"
           tone={(ticketsActive.count ?? 0) > 0 ? "bad" : "good"}
         />
+      </div>
+
+      {/* === BEZOEKERS — sectie === */}
+      <div className="mt-8 flex items-center gap-3">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400">
+          <Users className="h-4 w-4" strokeWidth={2} />
+        </span>
+        <h2 className="text-lg font-semibold tracking-tight">Bezoekers</h2>
+        <span className="rounded-full bg-sky-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-sky-600 dark:text-sky-400">
+          first-party · cookieloos
+        </span>
+      </div>
+
+      {/* Bezoekers-KPIs */}
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi
+          icon={Activity}
+          label="Bezoekers nu (5 min)"
+          value={String(liveVisitors)}
+          hint={liveVisitors > 0 ? "actief op de site" : "stil moment"}
+          tone={liveVisitors > 0 ? "good" : "neutral"}
+        />
+        <Kpi
+          icon={Users}
+          label="Unieke bezoekers vandaag"
+          value={String(uniqueToday)}
+          hint={`${pvToday.count ?? 0} pageviews`}
+          tone="accent"
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="Unieke bezoekers — 7 dagen"
+          value={String(uniqueWeek)}
+          hint={`${pvWeek.count ?? 0} pageviews`}
+        />
+        <Kpi
+          icon={FileText}
+          label="Gemiddeld pages/sessie"
+          value={
+            uniqueToday > 0
+              ? ((pvToday.count ?? 0) / uniqueToday).toFixed(1)
+              : "—"
+          }
+          hint="vandaag"
+        />
+      </div>
+
+      {/* Bezoekers-grafieken: per uur + top-paginas */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ChartCard title="Pageviews per uur — laatste 24u">
+          {pvHourRows.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Tracking start zodra je migratie 0044 hebt gerund en de site
+              opnieuw bezocht wordt.
+            </p>
+          ) : (
+            <TrendChart
+              id="pv-24h"
+              color="#0ea5e9"
+              height={160}
+              points={pvHours}
+            />
+          )}
+        </ChartCard>
+        <ChartCard title="Top 10 bekeken paginas — 7 dagen">
+          {topPaths.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Nog geen pageviews. Migratie 0044 nodig.
+            </p>
+          ) : (
+            <BarList items={topPaths} color="#0ea5e9" />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* Referrers + landen */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ChartCard title="Verwijzers — 7 dagen">
+          {topRefs.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Geen verwijzer-data.
+            </p>
+          ) : (
+            <BarList items={topRefs} color="#a855f7" />
+          )}
+        </ChartCard>
+        <ChartCard title="Per land — 7 dagen">
+          {topCountries.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Geen land-data.
+            </p>
+          ) : (
+            <BarList items={topCountries} color="#16a34a" />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* Live bezoekers-stream */}
+      <div className="mt-3 rounded-2xl bg-card p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+            <Eye className="h-3 w-3" strokeWidth={2.5} />
+            Live page-view-stream
+          </p>
+          <span className="font-mono text-[10px] text-muted">
+            {pvRecentRows.length} laatste
+          </span>
+        </div>
+        {pvRecentRows.length === 0 ? (
+          <p className="mt-6 rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+            Geen pageviews geregistreerd. Run migratie 0044 in Supabase en
+            heropen de site om de eerste pings binnen te krijgen.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-1">
+            {pvRecentRows.map((r, i) => (
+              <li
+                key={i}
+                className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-background/40"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                  <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{r.path}</p>
+                  <p className="truncate font-mono text-[10px] text-muted">
+                    {r.country ? countryFlag(r.country) + " " : ""}
+                    {(r.locale ?? "?").toUpperCase()} · {r.ua_family ?? "?"}
+                    {r.referrer
+                      ? ` · via ${(() => {
+                          try {
+                            return new URL(r.referrer).hostname.replace(
+                              /^www\./,
+                              "",
+                            );
+                          } catch {
+                            return "?";
+                          }
+                        })()}`
+                      : " · direct"}
+                  </p>
+                </div>
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {relative(r.created_at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* === SCAN-TOOL & ENGINE — sectie === */}
+      <div className="mt-8 flex items-center gap-3">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-accent/15 text-accent">
+          <MapPin className="h-4 w-4" strokeWidth={2} />
+        </span>
+        <h2 className="text-lg font-semibold tracking-tight">
+          Scan-tool & outreach
+        </h2>
       </div>
 
       {/* Grafieken — eerste rij: trend 30d + locale-mix */}

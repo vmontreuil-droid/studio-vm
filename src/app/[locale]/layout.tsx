@@ -8,6 +8,7 @@ import { CookieBanner } from "@/components/cookie-banner";
 import { ShortcutsOverlay } from "@/components/shortcuts-overlay";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/json-ld";
 import { SiteChrome } from "@/components/site-chrome";
+import { PageViewTracker } from "@/components/page-view-tracker";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
           <WebsiteJsonLd locale={typedLocale} />
           <CookieBanner />
           <ShortcutsOverlay locale={typedLocale} />
+          <PageViewTracker locale={typedLocale} />
         </>
       }
     >
