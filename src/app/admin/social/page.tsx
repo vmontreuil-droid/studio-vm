@@ -1,9 +1,6 @@
 import Link from "next/link";
 import {
   Share2,
-  Facebook,
-  Linkedin,
-  Instagram,
   Send,
   Sparkles,
   FileText,
@@ -35,37 +32,49 @@ import { CopyButton } from "./copy-button";
 
 export const dynamic = "force-dynamic";
 
-// X (Twitter) heeft geen lucide-icoon; we gebruiken een mini-letter-tile.
+// Lucide-react (huidige versie) heeft geen brand-icons meer voor FB/LinkedIn/IG —
+// we renderen letter-tiles met de officiële brand-kleur per platform.
 const platformMeta: Record<
   SocialPost["platform"],
-  { icon: typeof Facebook | null; label: string; bg: string; color: string }
+  {
+    icon: typeof Globe | null;
+    letter: string;
+    label: string;
+    bg: string;
+    color: string;
+  }
 > = {
   facebook: {
-    icon: Facebook,
+    icon: null,
+    letter: "f",
     label: "Facebook",
     bg: "bg-[#1877F2]/15",
     color: "text-[#1877F2]",
   },
   linkedin: {
-    icon: Linkedin,
+    icon: null,
+    letter: "in",
     label: "LinkedIn",
     bg: "bg-[#0A66C2]/15",
     color: "text-[#0A66C2]",
   },
   instagram: {
-    icon: Instagram,
+    icon: null,
+    letter: "IG",
     label: "Instagram",
     bg: "bg-pink-500/15",
     color: "text-pink-500",
   },
   x: {
     icon: null,
+    letter: "X",
     label: "X",
     bg: "bg-foreground/10",
     color: "text-foreground",
   },
   algemeen: {
     icon: Globe,
+    letter: "",
     label: "Algemeen",
     bg: "bg-accent/15",
     color: "text-accent",
@@ -497,7 +506,9 @@ function PostCard({ post }: { post: SocialPost }) {
           {PIcon ? (
             <PIcon className="h-4 w-4" strokeWidth={2} />
           ) : (
-            <span className="font-mono text-xs font-bold">X</span>
+            <span className="font-mono text-xs font-bold lowercase">
+              {meta.letter}
+            </span>
           )}
         </span>
         <div className="min-w-0 flex-1">
