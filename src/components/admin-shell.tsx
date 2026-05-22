@@ -39,6 +39,7 @@ import {
   Building2,
   Send,
   LayoutTemplate,
+  LineChart,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -70,6 +71,7 @@ const groups: {
     title: "Overzicht",
     items: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { href: "/admin/webactiviteit", label: "Webactiviteit", icon: LineChart },
     ],
   },
   {
