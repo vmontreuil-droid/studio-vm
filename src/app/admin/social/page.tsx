@@ -13,6 +13,12 @@ import {
   Plus,
   Archive,
   Globe,
+  Heart,
+  MessageCircle,
+  Repeat2,
+  Trophy,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -25,9 +31,15 @@ import {
   setAppSetting,
   updateSocialPost,
   getUtmStats,
+  getMonthlyStats,
+  getSocialClicksByDay,
+  getPlatformBreakdown,
+  getTopPosts,
   type SocialPost,
+  type TopPost,
 } from "@/app/actions/social";
-import { BarList, ChartCard } from "@/components/charts";
+import { BarList, ChartCard, Donut } from "@/components/charts";
+import { TrendChart } from "@/components/trend-chart";
 import { CopyButton } from "./copy-button";
 
 export const dynamic = "force-dynamic";
@@ -126,10 +138,22 @@ function buildUtmLink(p: SocialPost): string {
 export default async function AdminSocial() {
   if (!adminConfigured || !(await requireAdmin())) return null;
 
-  const [posts, settings, utmStats] = await Promise.all([
+  const [
+    posts,
+    settings,
+    utmStats,
+    monthly,
+    clicksByDay,
+    platformBreak,
+    topPosts,
+  ] = await Promise.all([
     listSocialPosts(),
     listAppSettings(),
     getUtmStats(),
+    getMonthlyStats(),
+    getSocialClicksByDay(),
+    getPlatformBreakdown(),
+    getTopPosts(),
   ]);
 
   const now = new Date();
@@ -155,6 +179,80 @@ export default async function AdminSocial() {
       ["facebook", "linkedin", "instagram", "x"].includes(s.source),
     )
     .reduce((s, x) => s + x.views, 0);
+
+  // Engagement totalen + maand-deltas
+  const totalEngagement = posts.reduce(
+    (s, p) =>
+      s +
+      (p.result_likes ?? 0) +
+      (p.result_comments ?? 0) +
+      (p.result_shares ?? 0),
+    0,
+  );
+  const totalLikes = posts.reduce((s, p) => s + (p.result_likes ?? 0), 0);
+  const totalComments = posts.reduce(
+    (s, p) => s + (p.result_comments ?? 0),
+    0,
+  );
+  const totalShares = posts.reduce((s, p) => s + (p.result_shares ?? 0), 0);
+  const totalPosted = postsByStatus.gepost.length;
+  const avgEngagementPerPost =
+    totalPosted > 0 ? Math.round(totalEngagement / totalPosted) : 0;
+  const thisMonthEngagement = monthly[monthly.length - 1]?.engagement ?? 0;
+  const prevMonthEngagement = monthly[monthly.length - 2]?.engagement ?? 0;
+  const engagementDelta =
+    prevMonthEngagement > 0
+      ? Math.round(
+          ((thisMonthEngagement - prevMonthEngagement) / prevMonthEngagement) *
+            100,
+        )
+      : null;
+
+  // Trend-grafiek data uit monthly
+  const postsTrend = monthly.map((m) => ({ label: m.label, value: m.posts }));
+  const engagementTrend = monthly.map((m) => ({
+    label: m.label,
+    value: m.engagement,
+  }));
+
+  // Donut per platform (gepost-posts)
+  const platformDonut = platformBreak
+    .filter((b) => b.posted > 0)
+    .map((b) => {
+      const meta = platformMeta[b.platform as SocialPost["platform"]] ?? null;
+      const colors: Record<string, string> = {
+        facebook: "#1877F2",
+        linkedin: "#0A66C2",
+        instagram: "#EC4899",
+        x: "#0f172a",
+        algemeen: "var(--accent)",
+      };
+      return {
+        label: meta?.label ?? b.platform,
+        value: b.posted,
+        color: colors[b.platform] ?? "#6b7280",
+      };
+    });
+
+  // Donut per status
+  const statusDonut = (
+    ["idee", "concept", "klaar", "gepost", "gearchiveerd"] as const
+  )
+    .map((s) => {
+      const colors: Record<string, string> = {
+        idee: "#94a3b8",
+        concept: "#f59e0b",
+        klaar: "#0ea5e9",
+        gepost: "#22c55e",
+        gearchiveerd: "#475569",
+      };
+      return {
+        label: statusMeta[s].label,
+        value: postsByStatus[s].length,
+        color: colors[s],
+      };
+    })
+    .filter((s) => s.value > 0);
 
   const settingsByKey = new Map(settings.map((s) => [s.key, s.value]));
   const pixelKeys: Array<{ key: string; label: string; placeholder: string }> = [
@@ -199,7 +297,7 @@ export default async function AdminSocial() {
         </Link>
       </div>
 
-      {/* KPIs */}
+      {/* KPI-strip — 8 metrics in 2 rijen */}
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           icon={FileText}
@@ -218,7 +316,7 @@ export default async function AdminSocial() {
           icon={CheckCircle2}
           label="Gepost vandaag"
           value={String(postedToday)}
-          hint={`${postsByStatus.gepost.length} totaal gepost`}
+          hint={`${totalPosted} totaal gepost ooit`}
         />
         <Kpi
           icon={TrendingUp}
@@ -227,6 +325,276 @@ export default async function AdminSocial() {
           hint="uit page_views met UTM"
           tone={totalClicksFromSocial > 0 ? "accent" : "neutral"}
         />
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi
+          icon={Heart}
+          label="Totale likes"
+          value={String(totalLikes)}
+          hint={`${avgEngagementPerPost} gem. engagement / post`}
+          tone={totalLikes > 0 ? "accent" : "neutral"}
+        />
+        <Kpi
+          icon={MessageCircle}
+          label="Totale comments"
+          value={String(totalComments)}
+          hint="discussie-gehalte van je posts"
+        />
+        <Kpi
+          icon={Repeat2}
+          label="Totale shares"
+          value={String(totalShares)}
+          hint="organisch bereik via vriendennetwerk"
+        />
+        <Kpi
+          icon={Zap}
+          label="Engagement deze maand"
+          value={String(thisMonthEngagement)}
+          hint={
+            engagementDelta === null
+              ? "geen vergelijking nog"
+              : `${engagementDelta > 0 ? "+" : ""}${engagementDelta}% vs vorige maand`
+          }
+          tone={
+            engagementDelta === null
+              ? "neutral"
+              : engagementDelta >= 0
+                ? "good"
+                : "bad"
+          }
+        />
+      </div>
+
+      {/* === GRAFIEKEN SECTIE — eerste rij === */}
+      <div className="mt-8 flex items-center gap-3">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-accent/15 text-accent">
+          <BarChart3 className="h-4 w-4" strokeWidth={2} />
+        </span>
+        <h2 className="text-lg font-semibold tracking-tight">Trends</h2>
+        <span className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+          laatste 12 maanden
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ChartCard title="Aantal posts per maand">
+          {postsTrend.every((p) => p.value === 0) ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Nog geen posts. Begin met "Nieuwe post" hieronder.
+            </p>
+          ) : (
+            <TrendChart
+              id="social-posts-12m"
+              color="var(--accent)"
+              height={180}
+              points={postsTrend}
+            />
+          )}
+        </ChartCard>
+        <ChartCard title="Engagement per maand (likes + comments + shares)">
+          {engagementTrend.every((p) => p.value === 0) ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Geen engagement-data. Vul likes/comments/shares in bij geposte
+              posts (via 'bewerken').
+            </p>
+          ) : (
+            <TrendChart
+              id="social-eng-12m"
+              color="#ec4899"
+              height={180}
+              points={engagementTrend}
+            />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* === Tweede rij grafieken === */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ChartCard title="Klikken via UTM — laatste 30 dagen">
+            {clicksByDay.every((p) => p.value === 0) ? (
+              <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+                Nog geen geklikte UTM-links. Plaats een post en deel z'n
+                gegenereerde link.
+              </p>
+            ) : (
+              <TrendChart
+                id="social-clicks-30d"
+                color="#a855f7"
+                height={180}
+                points={clicksByDay}
+              />
+            )}
+          </ChartCard>
+        </div>
+        <ChartCard title="Verdeling per platform">
+          {platformDonut.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Nog geen geposte posts.
+            </p>
+          ) : (
+            <Donut
+              segments={platformDonut}
+              centerTop={String(totalPosted)}
+              centerSub="gepost"
+            />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* === PER-PLATFORM TABEL + STATUS DONUT === */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2 rounded-2xl bg-card p-5 shadow-sm">
+          <p className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+            <Trophy className="h-3 w-3" strokeWidth={2.5} />
+            Per-platform leaderboard
+          </p>
+          {platformBreak.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Nog geen platform-data.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <th className="py-2 text-left">Platform</th>
+                    <th className="py-2 text-right">Posts</th>
+                    <th className="py-2 text-right">Gepost</th>
+                    <th className="py-2 text-right">Engagement</th>
+                    <th className="py-2 text-right">Gem./post</th>
+                    <th className="py-2 text-right">Klikken (30d)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {platformBreak.map((b) => {
+                    const meta =
+                      platformMeta[b.platform as SocialPost["platform"]] ??
+                      null;
+                    return (
+                      <tr key={b.platform} className="border-b last:border-0">
+                        <td className="py-2.5">
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`grid h-6 w-6 place-items-center rounded ${meta?.bg ?? "bg-foreground/10"} ${meta?.color ?? "text-muted"}`}
+                            >
+                              <span className="font-mono text-[10px] font-bold lowercase">
+                                {meta?.letter ?? b.platform.charAt(0)}
+                              </span>
+                            </span>
+                            <span className="font-medium">
+                              {meta?.label ?? b.platform}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-xs text-muted">
+                          {b.posts}
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-xs">
+                          {b.posted}
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-xs font-semibold text-pink-600 dark:text-pink-400">
+                          {b.engagement}
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-xs text-muted">
+                          {b.avgEngagement}
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-xs font-semibold text-accent">
+                          {b.clicks}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        <ChartCard title="Verdeling per status">
+          {statusDonut.length === 0 ? (
+            <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+              Geen posts.
+            </p>
+          ) : (
+            <Donut
+              segments={statusDonut}
+              centerTop={String(posts.length)}
+              centerSub="totaal"
+            />
+          )}
+        </ChartCard>
+      </div>
+
+      {/* === TOP-10 POSTS LEADERBOARD === */}
+      <div className="mt-3 rounded-2xl bg-card p-5 shadow-sm">
+        <p className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <Trophy className="h-3 w-3" strokeWidth={2.5} />
+          Top-10 best presterende posts (op engagement)
+        </p>
+        {topPosts.length === 0 || topPosts[0]._eng === 0 ? (
+          <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
+            Vul likes/comments/shares in bij geposte posts om de leaderboard
+            te vullen.
+          </p>
+        ) : (
+          <ol className="space-y-2">
+            {topPosts.map((p, i) => {
+              if (p._eng === 0) return null;
+              const meta = platformMeta[p.platform];
+              return (
+                <li
+                  key={p.id}
+                  className="flex items-center gap-3 rounded-xl bg-background/40 p-3"
+                >
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg font-mono text-sm font-bold ${
+                      i === 0
+                        ? "bg-yellow-500/20 text-yellow-600"
+                        : i === 1
+                          ? "bg-slate-400/20 text-slate-500"
+                          : i === 2
+                            ? "bg-amber-700/20 text-amber-700"
+                            : "bg-foreground/10 text-muted"
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <span
+                    className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${meta.bg} ${meta.color}`}
+                  >
+                    <span className="font-mono text-[10px] font-bold lowercase">
+                      {meta.letter}
+                    </span>
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{p.title}</p>
+                    <p className="truncate font-mono text-[10px] text-muted">
+                      {meta.label} · {p.post_kind ?? "—"} ·{" "}
+                      {p.posted_at?.slice(0, 10) ?? "—"}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3 font-mono text-[11px]">
+                    <span className="flex items-center gap-1 text-pink-600 dark:text-pink-400">
+                      <Heart className="h-3 w-3" strokeWidth={2.5} />
+                      {p.result_likes ?? 0}
+                    </span>
+                    <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                      <MessageCircle className="h-3 w-3" strokeWidth={2.5} />
+                      {p.result_comments ?? 0}
+                    </span>
+                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <Repeat2 className="h-3 w-3" strokeWidth={2.5} />
+                      {p.result_shares ?? 0}
+                    </span>
+                    <span className="rounded-full bg-accent/15 px-2 py-0.5 font-bold text-accent">
+                      {p._eng}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </div>
 
       {/* === NIEUWE POST === */}

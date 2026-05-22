@@ -195,6 +195,193 @@ export async function setAppSetting(formData: FormData): Promise<void> {
 }
 
 // =====================================================================
+// Posts-per-maand + engagement-per-maand (laatste 12 maanden)
+// =====================================================================
+export type MonthBucket = {
+  month: string; // YYYY-MM
+  label: string;
+  posts: number;
+  engagement: number;
+  posted: number;
+};
+
+export async function getMonthlyStats(): Promise<MonthBucket[]> {
+  if (!adminConfigured) return [];
+  const since = new Date();
+  since.setMonth(since.getMonth() - 11);
+  since.setDate(1);
+  since.setHours(0, 0, 0, 0);
+
+  const { data } = await getSupabaseAdmin()
+    .from("social_posts")
+    .select(
+      "created_at, posted_at, status, result_likes, result_comments, result_shares",
+    )
+    .gte("created_at", since.toISOString())
+    .limit(5_000);
+
+  const rows =
+    (data as Array<{
+      created_at: string;
+      posted_at: string | null;
+      status: string;
+      result_likes: number | null;
+      result_comments: number | null;
+      result_shares: number | null;
+    }> | null) ?? [];
+
+  const months: MonthBucket[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    d.setDate(1);
+    const ym = d.toISOString().slice(0, 7);
+    const label = d.toLocaleDateString("nl-BE", { month: "short" });
+    months.push({ month: ym, label, posts: 0, engagement: 0, posted: 0 });
+  }
+  for (const r of rows) {
+    const ym = (r.posted_at ?? r.created_at).slice(0, 7);
+    const m = months.find((x) => x.month === ym);
+    if (!m) continue;
+    m.posts += 1;
+    if (r.status === "gepost") m.posted += 1;
+    m.engagement +=
+      (r.result_likes ?? 0) +
+      (r.result_comments ?? 0) +
+      (r.result_shares ?? 0);
+  }
+  return months;
+}
+
+// =====================================================================
+// Klikken per dag uit page_views (laatste 30d, alleen rijen met utm_source)
+// =====================================================================
+export async function getSocialClicksByDay(): Promise<
+  Array<{ label: string; value: number }>
+> {
+  if (!adminConfigured) return [];
+  const since = new Date(Date.now() - 30 * 86_400_000);
+  const { data } = await getSupabaseAdmin()
+    .from("page_views")
+    .select("created_at, utm_source")
+    .not("utm_source", "is", null)
+    .gte("created_at", since.toISOString())
+    .limit(20_000);
+
+  const rows =
+    (data as Array<{ created_at: string; utm_source: string }> | null) ?? [];
+  const now = new Date();
+  return Array.from({ length: 30 }, (_, k) => {
+    const dt = new Date(now);
+    dt.setDate(dt.getDate() - (29 - k));
+    const ymd = dt.toISOString().slice(0, 10);
+    return {
+      label: dt.toLocaleDateString("nl-BE", {
+        day: "2-digit",
+        month: "short",
+      }),
+      value: rows.filter((r) => r.created_at.startsWith(ymd)).length,
+    };
+  });
+}
+
+// =====================================================================
+// Per-platform breakdown — posts, engagement, clicks, avg/post
+// =====================================================================
+export type PlatformBreakdown = {
+  platform: string;
+  posts: number;
+  posted: number;
+  engagement: number;
+  clicks: number;
+  avgEngagement: number;
+};
+
+export async function getPlatformBreakdown(): Promise<PlatformBreakdown[]> {
+  if (!adminConfigured) return [];
+  const sb = getSupabaseAdmin();
+  const [postsRes, viewsRes] = await Promise.all([
+    sb
+      .from("social_posts")
+      .select("platform, status, result_likes, result_comments, result_shares")
+      .limit(5_000),
+    sb
+      .from("page_views")
+      .select("utm_source")
+      .not("utm_source", "is", null)
+      .limit(20_000),
+  ]);
+
+  const map = new Map<
+    string,
+    { posts: number; posted: number; engagement: number; clicks: number }
+  >();
+  const ensure = (k: string) => {
+    let e = map.get(k);
+    if (!e) {
+      e = { posts: 0, posted: 0, engagement: 0, clicks: 0 };
+      map.set(k, e);
+    }
+    return e;
+  };
+
+  for (const p of (postsRes.data as Array<{
+    platform: string | null;
+    status: string;
+    result_likes: number | null;
+    result_comments: number | null;
+    result_shares: number | null;
+  }> | null) ?? []) {
+    const k = p.platform ?? "algemeen";
+    const e = ensure(k);
+    e.posts += 1;
+    if (p.status === "gepost") e.posted += 1;
+    e.engagement +=
+      (p.result_likes ?? 0) +
+      (p.result_comments ?? 0) +
+      (p.result_shares ?? 0);
+  }
+  for (const v of (viewsRes.data as Array<{ utm_source: string | null }> | null) ??
+    []) {
+    if (!v.utm_source) continue;
+    ensure(v.utm_source).clicks += 1;
+  }
+
+  return [...map.entries()]
+    .map(([platform, x]) => ({
+      platform,
+      ...x,
+      avgEngagement: x.posted > 0 ? Math.round(x.engagement / x.posted) : 0,
+    }))
+    .sort((a, b) => b.engagement + b.clicks - (a.engagement + a.clicks));
+}
+
+// =====================================================================
+// Top-10 best-presterende posts (op engagement)
+// =====================================================================
+export type TopPost = SocialPost & { _eng: number };
+
+export async function getTopPosts(): Promise<TopPost[]> {
+  if (!adminConfigured) return [];
+  const { data } = await getSupabaseAdmin()
+    .from("social_posts")
+    .select("*")
+    .eq("status", "gepost")
+    .limit(500);
+  const posts = (data as SocialPost[] | null) ?? [];
+  return posts
+    .map((p) => ({
+      ...p,
+      _eng:
+        (p.result_likes ?? 0) +
+        (p.result_comments ?? 0) +
+        (p.result_shares ?? 0),
+    }))
+    .sort((a, b) => b._eng - a._eng)
+    .slice(0, 10);
+}
+
+// =====================================================================
 // Stats — pageviews per UTM-source/campaign (laatste 30d)
 // =====================================================================
 export type UtmStat = {
