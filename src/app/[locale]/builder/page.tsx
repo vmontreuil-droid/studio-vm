@@ -14,7 +14,18 @@ import {
   type PageKey,
 } from "@/lib/builder-presets";
 import { importSite } from "@/app/actions/import-site";
+import { loadTemplateBySlug } from "@/app/actions/templates-lab";
 import { BuilderOnboard } from "@/components/builder-onboard";
+import {
+  HeroHighTech,
+  FeaturesHighTech,
+  CtaHighTech,
+  AboutHighTech,
+  HIGHTECH_HERO_VARIANTS,
+  HIGHTECH_FEATURES_VARIANTS,
+  HIGHTECH_CTA_VARIANTS,
+  HIGHTECH_ABOUT_VARIANTS,
+} from "@/components/builder-render";
 import { useParams } from "next/navigation";
 import {
   Plus,
@@ -1305,48 +1316,80 @@ export default function BuilderPage({
   const [hydrated, setHydrated] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
 
-  // Concept herstellen: serverontwerp (account) heeft voorrang op de
-  // lokale draft; anders de localStorage-draft.
+  // Concept herstellen: prio = ?template=slug uit URL > serverontwerp
+  // (account) > localStorage-draft. Template-load is async (server-action),
+  // de IIFE-pattern houdt useEffect synchroon zoals React verwacht.
   useEffect(() => {
-    try {
-      const fromServer =
-        initialSnapshot && Object.keys(initialSnapshot).length > 0;
-      // Migratie: bestaand NL-concept onder de oude globale sleutel
-      // blijft werken; FR/EN starten schoon (geen taalmix meer).
-      const raw = fromServer
-        ? null
-        : localStorage.getItem(storageKey) ??
-          (locale === DEFAULT_LOCALE
-            ? localStorage.getItem(STORAGE_KEY)
-            : null);
-      const d = fromServer
-        ? initialSnapshot!
-        : raw
-          ? (JSON.parse(raw) as BuilderSnapshot)
-          : null;
-      if (d) {
-        if (d.businessName) setBusinessName(d.businessName);
-        if (d.theme) setTheme(d.theme);
-        if (d.font) setFont(d.font);
-        if (d.radius) setRadius(d.radius);
-        if (d.align) setAlign(d.align);
-        if (typeof d.scale === "number") setScale(d.scale);
-        if (typeof d.logo === "string") setLogo(d.logo);
-        if (d.navAlign) setNavAlign(d.navAlign);
-        if (d.btnShape) setBtnShape(d.btnShape);
-        if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
-        if (d.header && typeof d.header === "object")
-          setHeader(d.header as Record<string, unknown>);
-        if (d.pages && d.pages.length) {
-          syncId(d.pages);
-          setPages(d.pages);
-          setActiveId(d.activeId ?? d.pages[0].id);
+    let cancelled = false;
+    const hydrate = async () => {
+      let templateData: BuilderSnapshot | null = null;
+      try {
+        // 1) URL-template heeft hoogste prioriteit
+        const params = new URLSearchParams(window.location.search);
+        const templateSlug = params.get("template");
+        if (templateSlug) {
+          const res = await loadTemplateBySlug(templateSlug);
+          if (res.ok && res.template) {
+            const t = res.template;
+            templateData = {
+              businessName:
+                (t.header as { logo_text?: string })?.logo_text || t.name,
+              header: t.header as Record<string, unknown>,
+              pages: t.pages as BuilderSnapshot["pages"],
+            } as BuilderSnapshot;
+          }
         }
+      } catch {
+        /* template-load mag nooit de editor breken */
       }
-    } catch {
-      /* corrupt draft → negeren */
-    }
-    setHydrated(true);
+      if (cancelled) return;
+
+      try {
+        // 2) Fallback: serverontwerp of localStorage
+        const fromServer =
+          initialSnapshot && Object.keys(initialSnapshot).length > 0;
+        const raw =
+          templateData || fromServer
+            ? null
+            : localStorage.getItem(storageKey) ??
+              (locale === DEFAULT_LOCALE
+                ? localStorage.getItem(STORAGE_KEY)
+                : null);
+        const d: BuilderSnapshot | null = templateData
+          ? templateData
+          : fromServer
+            ? initialSnapshot!
+            : raw
+              ? (JSON.parse(raw) as BuilderSnapshot)
+              : null;
+        if (d) {
+          if (d.businessName) setBusinessName(d.businessName);
+          if (d.theme) setTheme(d.theme);
+          if (d.font) setFont(d.font);
+          if (d.radius) setRadius(d.radius);
+          if (d.align) setAlign(d.align);
+          if (typeof d.scale === "number") setScale(d.scale);
+          if (typeof d.logo === "string") setLogo(d.logo);
+          if (d.navAlign) setNavAlign(d.navAlign);
+          if (d.btnShape) setBtnShape(d.btnShape);
+          if (typeof d.btnColor === "string") setBtnColor(d.btnColor);
+          if (d.header && typeof d.header === "object")
+            setHeader(d.header as Record<string, unknown>);
+          if (d.pages && d.pages.length) {
+            syncId(d.pages);
+            setPages(d.pages);
+            setActiveId(d.activeId ?? d.pages[0].id);
+          }
+        }
+      } catch {
+        /* corrupt draft → negeren */
+      }
+      if (!cancelled) setHydrated(true);
+    };
+    hydrate();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Autosave (foto's bewust niet — te groot voor localStorage).
@@ -7960,7 +8003,19 @@ function PreviewSection({
     });
 
   switch (kind) {
-    case "hero":
+    case "hero": {
+      const _v =
+        typeof data._variant === "string" ? (data._variant as string) : "";
+      if (HIGHTECH_HERO_VARIANTS.has(_v)) {
+        return (
+          <HeroHighTech
+            d={data as Record<string, unknown>}
+            accent={theme.accent || "#ef7e22"}
+            variant={_v}
+            edit={edit}
+          />
+        );
+      }
       return (
         <HeroPreview
           data={data}
@@ -7970,7 +8025,20 @@ function PreviewSection({
           p={p}
         />
       );
-    case "features":
+    }
+    case "features": {
+      const _vF =
+        typeof data._variant === "string" ? (data._variant as string) : "";
+      if (HIGHTECH_FEATURES_VARIANTS.has(_vF)) {
+        return (
+          <FeaturesHighTech
+            d={data as Record<string, unknown>}
+            accent={theme.accent || "#ef7e22"}
+            fg={theme.fg || "#111"}
+            edit={edit}
+          />
+        );
+      }
       return (
         <div className="border-t px-8 py-12" style={border}>
           <SectionHead
@@ -8058,6 +8126,7 @@ function PreviewSection({
           })()}
         </div>
       );
+    }
     case "steps":
       return (
         <div className="border-t px-8 py-12" style={border}>
@@ -8420,7 +8489,20 @@ function PreviewSection({
           })()}
         </div>
       );
-    case "about":
+    case "about": {
+      const _vA =
+        typeof data._variant === "string" ? (data._variant as string) : "";
+      if (HIGHTECH_ABOUT_VARIANTS.has(_vA)) {
+        return (
+          <AboutHighTech
+            d={data as Record<string, unknown>}
+            accent={theme.accent || "#ef7e22"}
+            fg={theme.fg || "#111"}
+            variant={_vA}
+            edit={edit}
+          />
+        );
+      }
       return (
         <div className="border-t px-8 py-12" style={border}>
           <div
@@ -8492,6 +8574,7 @@ function PreviewSection({
           </div>
         </div>
       );
+    }
     case "stats":
       return (
         <div className="border-t px-8 py-12" style={border}>
@@ -8925,7 +9008,18 @@ function PreviewSection({
         </div>
       );
     }
-    case "cta":
+    case "cta": {
+      const _vC =
+        typeof data._variant === "string" ? (data._variant as string) : "";
+      if (HIGHTECH_CTA_VARIANTS.has(_vC)) {
+        return (
+          <CtaHighTech
+            d={data as Record<string, unknown>}
+            accent={theme.accent || "#ef7e22"}
+            edit={edit}
+          />
+        );
+      }
       return (
         <div
           className="border-t px-8 py-14 text-center"
@@ -8955,6 +9049,7 @@ function PreviewSection({
           </button>
         </div>
       );
+    }
     case "contact": {
       const cFields = Array.isArray(data.items)
         ? (data.items as Record<string, string>[])

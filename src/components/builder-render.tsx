@@ -630,74 +630,333 @@ function safeStr(v: unknown): string {
   return v == null ? "" : String(v);
 }
 
-// HeroGlass — fullbleed gradient-mesh + glow-blob + glassmorphism-card
-// in het midden. Werkt voor de meeste "large"-achtige _variant-types.
+// Inline-editable text — wanneer 'onChange' meegegeven wordt, kan de
+// gebruiker direct op de tekst klikken en die typen. Anders gewoon
+// statisch (publieke render). Bewaart bij onBlur.
+type ETTag = "span" | "h1" | "h2" | "h3" | "h4" | "p";
+type ETProps = {
+  value: string;
+  onChange?: (v: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: ETTag;
+  placeholder?: string;
+};
+function ET({
+  value,
+  onChange,
+  className,
+  style,
+  as = "span",
+  placeholder,
+}: ETProps) {
+  const display = value || placeholder || "";
+  if (!onChange) {
+    if (as === "h1")
+      return (
+        <h1 className={className} style={style}>
+          {display}
+        </h1>
+      );
+    if (as === "h2")
+      return (
+        <h2 className={className} style={style}>
+          {display}
+        </h2>
+      );
+    if (as === "h3")
+      return (
+        <h3 className={className} style={style}>
+          {display}
+        </h3>
+      );
+    if (as === "h4")
+      return (
+        <h4 className={className} style={style}>
+          {display}
+        </h4>
+      );
+    if (as === "p")
+      return (
+        <p className={className} style={style}>
+          {display}
+        </p>
+      );
+    return (
+      <span className={className} style={style}>
+        {display}
+      </span>
+    );
+  }
+  // Edit-mode: contentEditable handlers
+  const editClass = `${className ?? ""} outline-none focus:ring-2 focus:ring-white/20 rounded`;
+  const onBlur = (e: React.FocusEvent<HTMLElement>) => {
+    const next = (e.currentTarget.textContent || "").trim();
+    if (next !== value) onChange(next);
+  };
+  const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" && as !== "p") {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).blur();
+    }
+  };
+  const common = {
+    className: editClass,
+    style,
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    onBlur,
+    onKeyDown,
+  } as const;
+  if (as === "h1") return <h1 {...common}>{display}</h1>;
+  if (as === "h2") return <h2 {...common}>{display}</h2>;
+  if (as === "h3") return <h3 {...common}>{display}</h3>;
+  if (as === "h4") return <h4 {...common}>{display}</h4>;
+  if (as === "p") return <p {...common}>{display}</p>;
+  return <span {...common}>{display}</span>;
+}
+
+// HeroHighTech v2 — luxury edition met optionele inline-edit. Wanneer
+// 'edit' meegegeven wordt (= editor-mode), worden titel/eyebrow/sub/
+// button direct klikbaar-bewerkbaar via contentEditable. Anders pure
+// statische render (publieke site).
 export function HeroHighTech({
   d,
   accent,
   variant,
+  edit,
 }: {
   d: Record<string, unknown>;
   accent: string;
   variant: string;
+  edit?: (patch: Record<string, unknown>) => void;
 }) {
-  const eyebrow = safeStr(d.eyebrow) || "Welkom";
-  const heading = safeStr(d.heading) || safeStr(d.title) || "Jouw merk hier";
+  const eyebrow = safeStr(d.eyebrow) || "Studio · 2026";
+  const heading = safeStr(d.heading) || safeStr(d.title) || "Verfijn jouw merk";
   const sub =
     safeStr(d.sub) ||
-    "Een korte intro die meteen duidelijk maakt wat je doet en waarom mensen je nodig hebben.";
-  const button = safeStr(d.button) || "Aan de slag";
+    "Premium digitale aanwezigheid voor merken die opvallen. Strak ontworpen, krachtig opgebouwd, klaar om te schalen.";
+  const button = safeStr(d.button) || "Ontdek mijn werk";
+
+  // Foto-ondersteuning:
+  // 1) d.bg / d.slides[0].bg → full-bleed achtergrond
+  // 2) d._ov array → floating overlays (uit '+Foto'-knop, gepositioneerd
+  //    op x/y/w in % zoals klassieke editor het opslaat).
+  const bg = (() => {
+    const direct = safeStr(d.bg);
+    if (direct) return direct;
+    const slides = Array.isArray(d.slides) ? (d.slides as Record<string, unknown>[]) : [];
+    return safeStr(slides[0]?.bg);
+  })();
+  const bgRight = safeStr(d.bgRight) || bg;
+  type Ov = { id?: string; t?: string; x?: number; y?: number; w?: number; src?: string };
+  const overlays = Array.isArray(d._ov) ? (d._ov as Ov[]) : [];
+  const renderOverlays = () =>
+    overlays.length > 0 ? (
+      <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+        {overlays.map((ov, i) =>
+          ov && ov.t === "img" && ov.src ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={ov.id ?? i}
+              src={ov.src}
+              alt=""
+              className="absolute rounded-2xl shadow-2xl"
+              style={{
+                left: `${ov.x ?? 50}%`,
+                top: `${ov.y ?? 50}%`,
+                width: `${ov.w ?? 34}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+          ) : null,
+        )}
+      </div>
+    ) : null;
 
   const isSplit = variant === "split-right";
   const isCompact = variant === "compact" || variant === "compact-cta";
-  const minH = isCompact ? "min-h-[55vh]" : "min-h-[78vh]";
+  const minH = isCompact ? "min-h-[60vh]" : "min-h-[90vh]";
+
+  const sharedKeyframes = (
+    <style>{`
+      @keyframes svm-mesh{0%{transform:translate(0,0) scale(1)}33%{transform:translate(2%,-2%) scale(1.08)}66%{transform:translate(-2%,2%) scale(0.96)}100%{transform:translate(0,0) scale(1)}}
+      @keyframes svm-orb{0%,100%{transform:translate(0,0) scale(1);opacity:.5}50%{transform:translate(20px,-15px) scale(1.15);opacity:.75}}
+      @keyframes svm-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+      @keyframes svm-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+      .svm-rise{animation:svm-rise .9s cubic-bezier(.22,.7,.2,1) both}
+      .svm-rise-1{animation-delay:.05s}.svm-rise-2{animation-delay:.18s}.svm-rise-3{animation-delay:.32s}.svm-rise-4{animation-delay:.48s}
+    `}</style>
+  );
 
   if (isSplit) {
     return (
       <section
         className={`relative overflow-hidden ${minH}`}
         style={{
-          background: `
-            radial-gradient(circle at 90% 50%, ${accent}33 0%, transparent 60%),
-            linear-gradient(135deg, #050505 0%, #131316 100%)
-          `,
+          background: `linear-gradient(135deg, #050507 0%, #0a0a0e 50%, #0f0f14 100%)`,
         }}
       >
-        <div
-          className="absolute -right-32 top-1/3 h-96 w-96 rounded-full opacity-50 blur-3xl"
-          style={{ background: accent }}
-        />
-        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-widest text-white/60">
-              {eyebrow}
-            </p>
-            <h1 className="mt-4 text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
-              {heading}
-            </h1>
-            <p className="mt-6 max-w-md text-lg text-white/75">{sub}</p>
-            <button
-              type="button"
-              className="mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+        {/* Foto als achtergrond met donker overlay — alleen wanneer
+            gebruiker een bg-foto heeft toegevoegd via +Foto. */}
+        {bg && (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${bg})` }}
+            />
+            <div
+              className="absolute inset-0"
               style={{
-                background: accent,
-                boxShadow: `0 12px 32px ${accent}88`,
+                background: `linear-gradient(135deg, rgba(5,5,7,0.85) 0%, rgba(10,10,14,0.65) 50%, rgba(15,15,20,0.55) 100%)`,
+              }}
+            />
+          </>
+        )}
+        {sharedKeyframes}
+        {/* Animerende mesh-orbs */}
+        <div
+          className="pointer-events-none absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full opacity-50 blur-[100px]"
+          style={{
+            background: accent,
+            animation: "svm-orb 14s ease-in-out infinite",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -left-32 top-1/2 h-80 w-80 rounded-full opacity-30 blur-[80px]"
+          style={{
+            background: accent,
+            animation: "svm-orb 18s ease-in-out infinite reverse",
+          }}
+        />
+        {/* Subtiele grain-texture voor diepte */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+          }}
+        />
+        <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-16 px-6 py-28 md:grid-cols-2 md:py-40">
+          <div>
+            {/* Eyebrow met gradient-lijn */}
+            <div className="svm-rise svm-rise-1 flex items-center gap-3">
+              <span
+                className="h-px w-10"
+                style={{
+                  background: `linear-gradient(90deg, ${accent} 0%, transparent 100%)`,
+                }}
+              />
+              <ET
+                as="p"
+                value={eyebrow}
+                onChange={edit ? (v) => edit({ eyebrow: v }) : undefined}
+                className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/70"
+                placeholder="Eyebrow"
+              />
+            </div>
+            <ET
+              as="h1"
+              value={heading}
+              onChange={edit ? (v) => edit({ heading: v }) : undefined}
+              className="svm-rise svm-rise-2 mt-6 block text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
+              style={{
+                backgroundImage: `linear-gradient(180deg, #ffffff 0%, #ffffff 55%, ${accent}cc 100%)`,
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+              placeholder="Hoofdtitel"
+            />
+            <ET
+              as="p"
+              value={sub}
+              onChange={edit ? (v) => edit({ sub: v }) : undefined}
+              className="svm-rise svm-rise-3 mt-7 max-w-md text-lg leading-relaxed text-white/65"
+              placeholder="Korte ondertitel"
+            />
+            <div className="svm-rise svm-rise-4 mt-10 flex flex-wrap items-center gap-4">
+              <span
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-7 py-3.5 text-sm font-medium text-white transition hover:scale-[1.02]"
+                style={{
+                  background: `linear-gradient(135deg, ${accent} 0%, ${accent}dd 100%)`,
+                  boxShadow: `0 16px 48px ${accent}66, 0 0 0 1px ${accent}33 inset`,
+                }}
+              >
+                <ET
+                  as="span"
+                  value={button}
+                  onChange={edit ? (v) => edit({ button: v }) : undefined}
+                  className="relative z-10"
+                  placeholder="Knop-tekst"
+                />
+                <span
+                  aria-hidden
+                  className="relative z-10 transition-transform group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
+              </span>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
+                · Premium · 2026
+              </p>
+            </div>
+          </div>
+          <div className="svm-rise svm-rise-3 relative">
+            {/* Glass card met diepe shadow + reflectie */}
+            <div
+              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-white/[0.08] backdrop-blur-xl"
+              style={{
+                background: bgRight
+                  ? `url(${bgRight}) center/cover, linear-gradient(135deg, ${accent}33 0%, ${accent}0a 60%, rgba(255,255,255,0.02) 100%)`
+                  : `linear-gradient(135deg, ${accent}33 0%, ${accent}0a 60%, rgba(255,255,255,0.02) 100%)`,
+                boxShadow: `0 60px 120px -20px ${accent}33, 0 0 0 1px rgba(255,255,255,0.05) inset`,
               }}
             >
-              {button}
-              <span aria-hidden>→</span>
-            </button>
-          </div>
-          <div
-            className="relative aspect-square rounded-3xl border border-white/10 backdrop-blur-xl"
-            style={{
-              background: `linear-gradient(135deg, ${accent}33 0%, ${accent}11 60%, rgba(255,255,255,0.04) 100%)`,
-              boxShadow: `0 32px 80px ${accent}44`,
-            }}
-          >
-            <div className="absolute inset-6 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm" />
+              {!bgRight && (
+                <>
+                  <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-white/0 via-white/[0.04] to-white/[0.08]" />
+                  <div className="absolute inset-8 rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/0 backdrop-blur-sm" />
+                </>
+              )}
+              {bgRight && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              )}
+              {/* Mini stats overlay */}
+              <div className="absolute bottom-8 left-8 right-8 grid grid-cols-3 gap-3">
+                {[
+                  { n: "12+", l: "jaar" },
+                  { n: "200", l: "merken" },
+                  { n: "4.9", l: "score" },
+                ].map((s) => (
+                  <div
+                    key={s.l}
+                    className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-md"
+                  >
+                    <p
+                      className="text-xl font-semibold"
+                      style={{ color: accent }}
+                    >
+                      {s.n}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-widest text-white/50">
+                      {s.l}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Floating decoratieve orb */}
+            <div
+              className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full opacity-60 blur-2xl"
+              style={{
+                background: accent,
+                animation: "svm-orb 8s ease-in-out infinite",
+              }}
+            />
           </div>
         </div>
+        {renderOverlays()}
       </section>
     );
   }
@@ -706,105 +965,283 @@ export function HeroHighTech({
     <section
       className={`relative overflow-hidden ${minH}`}
       style={{
-        background: `
-          radial-gradient(circle at 20% 25%, ${accent}55 0%, transparent 50%),
-          radial-gradient(circle at 82% 78%, ${accent}88 0%, transparent 52%),
-          linear-gradient(135deg, #050505 0%, #0f0f10 60%, #1a1a1c 100%)
-        `,
+        background: `linear-gradient(180deg, #030305 0%, #0a0a0f 60%, #0f0f15 100%)`,
       }}
     >
+      {sharedKeyframes}
+      {/* Foto-achtergrond (alleen als +Foto toegevoegd is) */}
+      {bg && (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bg})` }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(180deg, rgba(3,3,5,0.78) 0%, rgba(10,10,15,0.72) 60%, rgba(15,15,21,0.85) 100%)`,
+            }}
+          />
+        </>
+      )}
+      {/* Animerende gradient-mesh achterin */}
       <div
-        className="absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-50 blur-3xl"
-        style={{ background: accent }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse at 18% 22%, ${accent}55 0%, transparent 45%),
+            radial-gradient(ellipse at 84% 76%, ${accent}77 0%, transparent 45%),
+            radial-gradient(ellipse at 50% 50%, ${accent}22 0%, transparent 60%)
+          `,
+          animation: "svm-mesh 20s ease-in-out infinite",
+        }}
+      />
+      {/* Pulsing orbs */}
+      <div
+        className="pointer-events-none absolute -right-40 -top-40 h-[32rem] w-[32rem] rounded-full opacity-40 blur-[120px]"
+        style={{
+          background: accent,
+          animation: "svm-orb 16s ease-in-out infinite",
+        }}
       />
       <div
-        className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
-        style={{ background: accent }}
+        className="pointer-events-none absolute -bottom-40 -left-40 h-[28rem] w-[28rem] rounded-full opacity-25 blur-[100px]"
+        style={{
+          background: accent,
+          animation: "svm-orb 22s ease-in-out infinite reverse",
+        }}
       />
-      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center justify-center px-6 py-24 text-center md:py-32">
-        <p className="font-mono text-xs uppercase tracking-widest text-white/60">
-          {eyebrow}
-        </p>
-        <h1 className="mt-4 text-5xl font-bold leading-tight text-white sm:text-6xl md:text-7xl">
-          {heading}
-        </h1>
-        <p className="mt-6 max-w-xl text-lg text-white/80 md:text-xl">{sub}</p>
-        <button
-          type="button"
-          className="mt-10 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white transition hover:brightness-110"
+      {/* Grain */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+        }}
+      />
+      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center justify-center px-6 py-32 text-center md:py-40">
+        {/* Eyebrow met gradient-lijntjes */}
+        <div className="svm-rise svm-rise-1 flex items-center gap-3">
+          <span
+            className="h-px w-10"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${accent} 100%)`,
+            }}
+          />
+          <ET
+            as="p"
+            value={eyebrow}
+            onChange={edit ? (v) => edit({ eyebrow: v }) : undefined}
+            className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/70"
+            placeholder="Eyebrow"
+          />
+          <span
+            className="h-px w-10"
+            style={{
+              background: `linear-gradient(90deg, ${accent} 0%, transparent 100%)`,
+            }}
+          />
+        </div>
+        <ET
+          as="h1"
+          value={heading}
+          onChange={edit ? (v) => edit({ heading: v }) : undefined}
+          className="svm-rise svm-rise-2 mt-7 block text-balance text-6xl font-semibold leading-[1.02] tracking-tight sm:text-7xl md:text-8xl"
           style={{
-            background: accent,
-            boxShadow: `0 12px 40px ${accent}99`,
+            backgroundImage: `linear-gradient(180deg, #ffffff 0%, #ffffff 50%, ${accent}cc 100%)`,
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+            filter: `drop-shadow(0 4px 24px ${accent}55)`,
           }}
-        >
-          {button}
-          <span aria-hidden>→</span>
-        </button>
+          placeholder="Jouw hoofdtitel hier"
+        />
+        <ET
+          as="p"
+          value={sub}
+          onChange={edit ? (v) => edit({ sub: v }) : undefined}
+          className="svm-rise svm-rise-3 mt-8 max-w-2xl text-balance text-lg leading-relaxed text-white/65 md:text-xl"
+          placeholder="Korte ondertitel die de hoofdboodschap aanvult"
+        />
+        <div className="svm-rise svm-rise-4 mt-12 flex flex-wrap items-center justify-center gap-4">
+          <span
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-8 py-4 text-base font-medium text-white transition hover:scale-[1.02]"
+            style={{
+              background: `linear-gradient(135deg, ${accent} 0%, ${accent}dd 100%)`,
+              boxShadow: `0 20px 60px ${accent}77, 0 0 0 1px ${accent}55 inset`,
+            }}
+          >
+            <ET
+              as="span"
+              value={button}
+              onChange={edit ? (v) => edit({ button: v }) : undefined}
+              className="relative z-10"
+              placeholder="Knop-tekst"
+            />
+            <span
+              aria-hidden
+              className="relative z-10 transition-transform group-hover:translate-x-0.5"
+            >
+              →
+            </span>
+          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-white/80 backdrop-blur-sm transition hover:bg-white/[0.08] hover:text-white"
+          >
+            Meer info
+          </button>
+        </div>
+        {/* Subtle trust-indicators */}
+        <div className="svm-rise svm-rise-4 mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+          <span>✦ Premium design</span>
+          <span>✦ Volledig responsive</span>
+          <span>✦ SEO-ready</span>
+        </div>
       </div>
+      {renderOverlays()}
     </section>
   );
 }
 
-// FeaturesBento — asymmetrisch 5-cell raster met glow + glass.
-// Vervangt de saaie 3-koloms grid. Werkt voor _variant 'bento' en als
-// upgrade voor 'three-col' / 'icon-grid' / 'timeline' wanneer er <=6
-// items zijn.
+// FeaturesHighTech v2 — luxury bento op donkere achtergrond met
+// genummerde indicatoren, gradient-tiles, hover-tilt en gloeiende accent-
+// orbs. Featured-cell krijgt eigen mini-illustratie via gradient.
 export function FeaturesHighTech({
   d,
   accent,
   fg,
+  edit,
 }: {
   d: Record<string, unknown>;
   accent: string;
   fg: string;
+  edit?: (patch: Record<string, unknown>) => void;
 }) {
-  const title = safeStr(d.title) || "Wat ons onderscheidt";
+  void fg;
+  const eyebrow = safeStr(d.eyebrow) || "Wat ons onderscheidt";
+  const title = safeStr(d.title) || "Gemaakt om indruk te maken";
   const sub =
     safeStr(d.sub) ||
-    "Een paar kerneigenschappen waarmee we het verschil maken voor onze klanten.";
-  const rawItems = Array.isArray(d.items) ? (d.items as Record<string, unknown>[]) : [];
+    "Elk merk verdient een digitale aanwezigheid die net zo verfijnd is als het verhaal erachter.";
+  const rawItems = Array.isArray(d.items)
+    ? (d.items as Record<string, unknown>[])
+    : [];
   const items =
     rawItems.length > 0
       ? rawItems
       : [
-          { title: "Snel & gefocust", desc: "Geen ruis, alleen resultaat." },
-          { title: "Persoonlijk", desc: "Geen template, jouw verhaal." },
-          { title: "Transparant", desc: "Heldere prijs, eerlijk advies." },
-          { title: "Onderhoud", desc: "Wij houden alles up-to-date." },
-          { title: "Resultaat", desc: "Meer bezoekers, meer klanten." },
+          {
+            title: "Maatwerk zonder grenzen",
+            desc: "Elke pixel exact zoals het hoort. Geen template-klem, alleen jouw merk.",
+          },
+          { title: "Razend snel", desc: "Top-3% laadprestaties wereldwijd." },
+          { title: "SEO-first", desc: "Bovenaan in Google, niet erna." },
+          { title: "Toekomstvast", desc: "Schaalt mee met jouw groei." },
+          { title: "Persoonlijk", desc: "Eén aanspreekpunt, geen ticket." },
         ];
   const slice = items.slice(0, 5);
 
   return (
     <section
-      className="relative overflow-hidden py-20 md:py-28"
+      className="relative overflow-hidden py-24 md:py-32"
       style={{
-        background: `linear-gradient(180deg, #fafafa 0%, #ffffff 100%)`,
-        color: fg,
+        background: `linear-gradient(180deg, #050507 0%, #0a0a0e 60%, #060608 100%)`,
       }}
     >
-      <div className="mx-auto max-w-6xl px-6">
+      <style>{`
+        @keyframes svm-tilt{0%,100%{transform:rotate(0deg)}50%{transform:rotate(0.5deg)}}
+      `}</style>
+      {/* Decoratieve achtergrond-orbs */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-96 w-[80%] -translate-x-1/2 opacity-20 blur-[120px]"
+        style={{ background: accent }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+        }}
+      />
+      <div className="relative z-10 mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {title}
-          </h2>
-          <p className="mt-4 text-base opacity-70">{sub}</p>
+          <div className="flex items-center justify-center gap-3">
+            <span
+              className="h-px w-10"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${accent})`,
+              }}
+            />
+            <ET
+              as="p"
+              value={eyebrow}
+              onChange={edit ? (v) => edit({ eyebrow: v }) : undefined}
+              className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/60"
+              placeholder="Sectie-label"
+            />
+            <span
+              className="h-px w-10"
+              style={{
+                background: `linear-gradient(90deg, ${accent}, transparent)`,
+              }}
+            />
+          </div>
+          <ET
+            as="h2"
+            value={title}
+            onChange={edit ? (v) => edit({ title: v }) : undefined}
+            className="mt-6 block text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl"
+            style={{
+              backgroundImage: `linear-gradient(180deg, #ffffff 0%, #ffffff 55%, ${accent}cc 100%)`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+            placeholder="Sectie-titel"
+          />
+          <ET
+            as="p"
+            value={sub}
+            onChange={edit ? (v) => edit({ sub: v }) : undefined}
+            className="mt-5 text-balance text-base leading-relaxed text-white/55 md:text-lg"
+            placeholder="Korte ondertitel"
+          />
         </div>
-        <div className="mt-12 grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Featured cell (1) — spans 2 cols on md */}
+        <div className="mt-16 grid auto-rows-[minmax(200px,auto)] grid-cols-1 gap-5 md:grid-cols-3">
           <FBCell
             featured
             accent={accent}
+            index={1}
             title={safeStr(slice[0]?.title)}
             desc={safeStr(slice[0]?.desc)}
+            onChange={
+              edit
+                ? (patch) => {
+                    const next = [...items];
+                    next[0] = { ...(next[0] ?? {}), ...patch };
+                    edit({ items: next });
+                  }
+                : undefined
+            }
           />
-          {/* Cells 2-5 */}
           {slice.slice(1, 5).map((it, i) => (
             <FBCell
               key={i}
               accent={accent}
+              index={i + 2}
               title={safeStr(it?.title)}
               desc={safeStr(it?.desc)}
+              onChange={
+                edit
+                  ? (patch) => {
+                      const next = [...items];
+                      const idx = i + 1;
+                      next[idx] = { ...(next[idx] ?? {}), ...patch };
+                      edit({ items: next });
+                    }
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -818,176 +1255,369 @@ function FBCell({
   desc,
   accent,
   featured,
+  index,
+  onChange,
 }: {
   title: string;
   desc: string;
   accent: string;
   featured?: boolean;
+  index?: number;
+  onChange?: (patch: { title?: string; desc?: string }) => void;
 }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl border border-black/5 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl md:p-8 ${
+      className={`group relative overflow-hidden rounded-3xl border border-white/[0.08] p-7 transition-all duration-500 hover:-translate-y-1 hover:border-white/15 md:p-9 ${
         featured ? "md:col-span-2 md:row-span-2" : ""
       }`}
       style={{
+        background: featured
+          ? `linear-gradient(135deg, ${accent}1a 0%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0) 100%)`
+          : `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
         boxShadow: featured
-          ? `0 8px 32px ${accent}1a, 0 2px 8px rgba(0,0,0,0.04)`
-          : undefined,
+          ? `0 30px 80px -20px ${accent}33, 0 0 0 1px rgba(255,255,255,0.05) inset`
+          : `0 8px 32px -8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset`,
+        backdropFilter: "blur(20px)",
       }}
     >
       {featured && (
         <div
-          className="absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-40"
+          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-30 blur-3xl transition-opacity duration-500 group-hover:opacity-60"
           style={{ background: accent }}
         />
       )}
-      <div className="relative z-10">
-        <div
-          className="grid h-10 w-10 place-items-center rounded-xl text-white shadow"
-          style={{
-            background: accent,
-            boxShadow: `0 6px 16px ${accent}55`,
-          }}
-        >
-          ✦
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-center gap-3">
+          <div
+            className={`grid place-items-center rounded-xl text-white ${
+              featured ? "h-12 w-12" : "h-10 w-10"
+            }`}
+            style={{
+              background: `linear-gradient(135deg, ${accent} 0%, ${accent}cc 100%)`,
+              boxShadow: `0 8px 24px ${accent}55`,
+            }}
+          >
+            <span className={featured ? "text-xl" : "text-base"}>✦</span>
+          </div>
+          {index !== undefined && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30">
+              0{index} ·
+            </span>
+          )}
         </div>
-        <h3
-          className={`mt-4 font-semibold tracking-tight ${
-            featured ? "text-2xl sm:text-3xl" : "text-lg"
+        <ET
+          as="h3"
+          value={title}
+          onChange={onChange ? (v) => onChange({ title: v }) : undefined}
+          className={`mt-5 block font-semibold tracking-tight text-white ${
+            featured ? "text-2xl sm:text-3xl md:text-4xl" : "text-lg"
           }`}
-        >
-          {title || "Eigenschap"}
-        </h3>
-        <p className={`mt-2 opacity-70 ${featured ? "text-base" : "text-sm"}`}>
-          {desc ||
-            "Korte uitleg waarom dit belangrijk is voor jouw klanten."}
-        </p>
+          placeholder="Eigenschap"
+        />
+        <ET
+          as="p"
+          value={desc}
+          onChange={onChange ? (v) => onChange({ desc: v }) : undefined}
+          className={`mt-3 leading-relaxed text-white/55 ${
+            featured ? "text-base md:text-lg" : "text-sm"
+          }`}
+          placeholder="Korte uitleg waarom dit belangrijk is voor jouw klanten."
+        />
+        {featured && (
+          <div className="mt-auto pt-6">
+            <span
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.25em] transition-transform group-hover:translate-x-1"
+              style={{ color: accent }}
+            >
+              Ontdek meer →
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// CtaHighTech — gradient-mesh achtergrond met animerende conic-gradient
-// + grote knop met glow. Voor de meeste cta-varianten.
+// CtaHighTech v2 — luxury edition met conic-rotating gradient, glass-
+// frame, dual-button (primary + ghost), gloeiende decoratie en eyebrow.
 export function CtaHighTech({
   d,
   accent,
+  edit,
 }: {
   d: Record<string, unknown>;
   accent: string;
+  edit?: (patch: Record<string, unknown>) => void;
 }) {
-  const title = safeStr(d.title) || "Klaar om te starten?";
+  const eyebrow = safeStr(d.eyebrow) || "Volgende stap";
+  const title = safeStr(d.title) || "Laten we iets moois bouwen";
   const text =
     safeStr(d.text) ||
     safeStr(d.sub) ||
-    "Eén klik en we maken samen tijd om je idee scherp te zetten.";
+    "Eén gesprek van 30 minuten en we weten of het klikt. Geen verkoop, geen druk — wel duidelijkheid.";
   const button = safeStr(d.button) || safeStr(d.ctaBtn) || "Plan een gesprek";
 
   return (
-    <section className="relative overflow-hidden py-20 md:py-28">
+    <section className="relative overflow-hidden py-28 md:py-40">
+      <style>{`
+        @keyframes svm-conic{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+      `}</style>
+      {/* Animerende conic-gradient achterin */}
       <div
-        className="absolute inset-0"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, #050507 0%, #0a0a0e 50%, #050507 100%)`,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[180%] w-[180%] -translate-x-1/2 -translate-y-1/2 opacity-25"
+        style={{
+          background: `conic-gradient(from 0deg, transparent 0deg, ${accent} 90deg, transparent 180deg, ${accent}55 270deg, transparent 360deg)`,
+          animation: "svm-conic 30s linear infinite",
+          filter: "blur(80px)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
         style={{
           background: `
-            radial-gradient(circle at 15% 30%, ${accent}66 0%, transparent 55%),
-            radial-gradient(circle at 85% 70%, ${accent}99 0%, transparent 55%),
-            linear-gradient(135deg, #0a0a0b 0%, #16161a 50%, #0a0a0b 100%)
+            radial-gradient(circle at 18% 35%, ${accent}77 0%, transparent 50%),
+            radial-gradient(circle at 82% 65%, ${accent}aa 0%, transparent 50%)
           `,
         }}
       />
       <div
-        className="absolute -left-32 top-1/3 h-96 w-96 rounded-full opacity-30 blur-3xl"
-        style={{ background: accent }}
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+        }}
       />
-      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-        <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
-          {title}
-        </h2>
-        <p className="mt-6 text-lg text-white/75 md:text-xl">{text}</p>
-        <button
-          type="button"
-          className="mt-10 inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-semibold text-white transition hover:brightness-110"
+      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
+        {/* Glass-frame met inhoud */}
+        <div
+          className="relative rounded-[2.5rem] border border-white/[0.08] px-8 py-16 backdrop-blur-2xl md:px-16 md:py-24"
           style={{
-            background: accent,
-            boxShadow: `0 16px 48px ${accent}99, 0 0 0 1px ${accent}66 inset`,
+            background: `linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)`,
+            boxShadow: `0 50px 100px -20px ${accent}44, 0 0 0 1px rgba(255,255,255,0.04) inset`,
           }}
         >
-          {button}
-          <span aria-hidden>→</span>
-        </button>
+          <div className="flex items-center justify-center gap-3">
+            <span
+              className="h-px w-10"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${accent})`,
+              }}
+            />
+            <ET
+              as="p"
+              value={eyebrow}
+              onChange={edit ? (v) => edit({ eyebrow: v }) : undefined}
+              className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/70"
+              placeholder="Volgende stap"
+            />
+            <span
+              className="h-px w-10"
+              style={{
+                background: `linear-gradient(90deg, ${accent}, transparent)`,
+              }}
+            />
+          </div>
+          <ET
+            as="h2"
+            value={title}
+            onChange={edit ? (v) => edit({ title: v }) : undefined}
+            className="mt-7 block text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
+            style={{
+              backgroundImage: `linear-gradient(180deg, #ffffff 0%, #ffffff 50%, ${accent}cc 100%)`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+              filter: `drop-shadow(0 4px 24px ${accent}55)`,
+            }}
+            placeholder="Call-to-action titel"
+          />
+          <ET
+            as="p"
+            value={text}
+            onChange={edit ? (v) => edit({ text: v }) : undefined}
+            className="mx-auto mt-7 max-w-xl text-balance text-lg leading-relaxed text-white/65 md:text-xl"
+            placeholder="Korte toelichting"
+          />
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <span
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full px-9 py-4 text-base font-medium text-white transition hover:scale-[1.03]"
+              style={{
+                background: `linear-gradient(135deg, ${accent} 0%, ${accent}dd 100%)`,
+                boxShadow: `0 24px 64px ${accent}88, 0 0 0 1px ${accent}55 inset`,
+              }}
+            >
+              <ET
+                as="span"
+                value={button}
+                onChange={edit ? (v) => edit({ button: v }) : undefined}
+                className="relative z-10"
+                placeholder="Knop-tekst"
+              />
+              <span
+                aria-hidden
+                className="relative z-10 transition-transform group-hover:translate-x-0.5"
+              >
+                →
+              </span>
+            </span>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-7 py-4 text-sm font-medium text-white/80 backdrop-blur-sm transition hover:bg-white/[0.08] hover:text-white"
+            >
+              Bekijk portfolio
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-// AboutHighTech — twee kolommen split met visueel beeldvlak en
-// glow-accent op de tekstkant. Eenvoudige parallax via subtle CSS.
+// AboutHighTech v2 — luxe split met glass-image-frame, eyebrow met
+// gradient-lijn, gradient-text titel, mini-stats blok onder de tekst.
 export function AboutHighTech({
   d,
   accent,
   fg,
   variant,
+  edit,
 }: {
   d: Record<string, unknown>;
   accent: string;
   fg: string;
   variant: string;
+  edit?: (patch: Record<string, unknown>) => void;
 }) {
-  const eyebrow = safeStr(d.eyebrow) || "Over ons";
-  const title = safeStr(d.title) || "Een verhaal dat klopt";
+  void fg;
+  const eyebrow = safeStr(d.eyebrow) || "Het verhaal";
+  const title = safeStr(d.title) || "Waarom mensen voor ons kiezen";
   const text =
     safeStr(d.text) ||
     safeStr(d.aboutText) ||
-    "Hier vertel je wie jullie zijn, waar de passie ligt en waarom klanten al jaren terugkomen. Houd het persoonlijk — dat is wat connectie maakt.";
+    "We bouwen niet zomaar websites. We vertellen verhalen die blijven hangen, met design dat ademt en techniek die naadloos werkt. Geen template-aanpak, geen compromis.";
   const isLong = variant === "long-form";
 
   return (
     <section
-      className="relative overflow-hidden py-20 md:py-28"
+      className="relative overflow-hidden py-24 md:py-32"
       style={{
-        background: "#fafafa",
-        color: fg,
+        background: `linear-gradient(180deg, #060608 0%, #0a0a0e 50%, #060608 100%)`,
       }}
     >
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16">
+      <div
+        className="pointer-events-none absolute right-0 top-1/4 h-96 w-96 rounded-full opacity-20 blur-[100px]"
+        style={{ background: accent }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+        }}
+      />
+      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:gap-20">
         <div className="order-2 md:order-1">
-          <p
-            className="font-mono text-xs uppercase tracking-widest"
-            style={{ color: accent }}
-          >
-            {eyebrow}
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            {title}
-          </h2>
-          <p
-            className={`mt-6 opacity-80 ${
-              isLong ? "text-base leading-relaxed" : "text-lg"
+          <div className="flex items-center gap-3">
+            <span
+              className="h-px w-10"
+              style={{
+                background: `linear-gradient(90deg, ${accent}, transparent)`,
+              }}
+            />
+            <ET
+              as="p"
+              value={eyebrow}
+              onChange={edit ? (v) => edit({ eyebrow: v }) : undefined}
+              className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/70"
+              placeholder="Sectie-label"
+            />
+          </div>
+          <ET
+            as="h2"
+            value={title}
+            onChange={edit ? (v) => edit({ title: v }) : undefined}
+            className="mt-6 block text-balance text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl"
+            style={{
+              backgroundImage: `linear-gradient(180deg, #ffffff 0%, #ffffff 60%, ${accent}cc 100%)`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+            placeholder="Sectie-titel"
+          />
+          <ET
+            as="p"
+            value={text}
+            onChange={edit ? (v) => edit({ text: v }) : undefined}
+            className={`mt-7 text-balance leading-relaxed text-white/65 ${
+              isLong ? "text-base md:text-lg" : "text-lg md:text-xl"
             }`}
-          >
-            {text}
-          </p>
+            placeholder="Vertel hier kort jullie verhaal."
+          />
           {isLong && (
-            <p className="mt-4 text-base leading-relaxed opacity-70">
-              Een tweede paragraaf voor wat meer context — wat jullie
-              motiveert, welke waarden centraal staan, en wat klanten
-              concreet aan jullie hebben. Maak het persoonlijk.
+            <p className="mt-5 text-balance text-base leading-relaxed text-white/55">
+              Klein team, persoonlijke aanpak. Elk project krijgt onze
+              volledige aandacht. Eén aanspreekpunt van eerste schets tot
+              live-gaan en daarna. Geen lange Slack-threads of ticket-
+              systemen — gewoon een korte mail en het is geregeld.
             </p>
           )}
+          {/* Mini stats-row */}
+          <div className="mt-10 grid grid-cols-3 gap-6 border-t border-white/[0.08] pt-8">
+            {[
+              { n: "12+", l: "jaar ervaring" },
+              { n: "200+", l: "merken geholpen" },
+              { n: "4.9", l: "tevredenheidsscore" },
+            ].map((s) => (
+              <div key={s.l}>
+                <p
+                  className="text-2xl font-semibold tracking-tight md:text-3xl"
+                  style={{ color: accent }}
+                >
+                  {s.n}
+                </p>
+                <p className="mt-1 text-[11px] uppercase tracking-widest text-white/45">
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="order-1 md:order-2">
-          <div
-            className="relative aspect-[4/5] overflow-hidden rounded-3xl"
-            style={{
-              background: `linear-gradient(135deg, ${accent}22 0%, ${accent}66 100%)`,
-              boxShadow: `0 32px 80px ${accent}33`,
-            }}
-          >
-            <div className="absolute inset-0 rounded-3xl border border-white/30" />
+          <div className="relative">
+            {/* Hoofd-image-frame: glass + gradient + diepe shadow */}
             <div
-              className="absolute -right-12 -top-12 h-48 w-48 rounded-full opacity-50 blur-3xl"
-              style={{ background: accent }}
-            />
+              className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-white/[0.08] backdrop-blur-xl"
+              style={{
+                background: `linear-gradient(135deg, ${accent}33 0%, ${accent}0a 60%, rgba(255,255,255,0.02) 100%)`,
+                boxShadow: `0 50px 100px -20px ${accent}44, 0 0 0 1px rgba(255,255,255,0.05) inset`,
+              }}
+            >
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-transparent via-white/[0.03] to-white/[0.08]" />
+              <div className="absolute inset-8 rounded-3xl border border-white/[0.08]" />
+              <div
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-60 blur-3xl"
+                style={{ background: accent }}
+              />
+            </div>
+            {/* Floating badge linksboven het frame */}
+            <div
+              className="absolute -left-4 -top-4 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-xl"
+              style={{ boxShadow: `0 16px 48px rgba(0,0,0,0.5)` }}
+            >
+              <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/40">
+                Sinds 2014
+              </p>
+              <p className="mt-1 text-sm font-medium text-white">
+                Verfijnd vakmanschap
+              </p>
+            </div>
           </div>
         </div>
       </div>
