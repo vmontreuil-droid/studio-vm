@@ -13,28 +13,15 @@
 // Outlook) zonder cookies opgehaald. Inhoud is sowieso marketing.
 
 import { ImageResponse } from "next/og";
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Logo-SVG inlinen als data-URL. Satori-renderer kan zo de echte studio-vm
-// huisstijl gebruiken ipv een fake "vm." opnieuw te tekenen.
-let LOGO_CACHE: string | null = null;
-async function getLogoDataUrl(): Promise<string | null> {
-  if (LOGO_CACHE) return LOGO_CACHE;
-  try {
-    const p = path.join(process.cwd(), "public", "studio-vm-logo-white.svg");
-    const svg = await fs.readFile(p, "utf-8");
-    LOGO_CACHE = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-    return LOGO_CACHE;
-  } catch {
-    return null;
-  }
-}
+// Logo wordt INLINE gerenderd als JSX (vm wit + . in amber #f59e0b), niet
+// via SVG-data-URL omdat Satori daar wisselvallig mee omspringt. Brand-
+// kleur (#f59e0b = amber-500) komt uit public/studio-vm-logo-white.svg.
 
 // Screenshot via WordPress mShots — gratis, geen API-key. Werkt voor élke
 // publieke URL. Cache ~1u op hun kant; we vragen 1200×900 voor scherpte.
@@ -164,7 +151,6 @@ export async function GET(
   }
 
   const theme = THEMES[platform] ?? THEMES.algemeen!;
-  const logoUrl = await getLogoDataUrl();
   const useScreenshot = !!featuredSite;
 
   // Schaal hero-tekst op basis van lengte. In screenshot-layout iets kleiner.
@@ -427,7 +413,7 @@ export async function GET(
           </div>
         )}
 
-        {/* BOTTOM — echt logo + URL */}
+        {/* BOTTOM — logo (inline JSX matching SVG exact: vm in wit, . in amber #f59e0b) + URL */}
         <div
           style={{
             display: "flex",
@@ -436,31 +422,20 @@ export async function GET(
             marginTop: 24,
           }}
         >
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt="studio-vm"
-              width={180}
-              height={72}
-              style={{ display: "flex" }}
-            />
-          ) : (
-            // Fallback als logo-bestand niet inleesbaar is
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                fontSize: 90,
-                fontWeight: 900,
-                letterSpacing: -4,
-                lineHeight: 0.9,
-              }}
-            >
-              <span style={{ display: "flex" }}>vm</span>
-              <span style={{ display: "flex", color: "#f59e0b" }}>.</span>
-            </div>
-          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              fontSize: 96,
+              fontWeight: 800,
+              letterSpacing: -3,
+              lineHeight: 1,
+              fontFamily: "system-ui, -apple-system, sans-serif",
+            }}
+          >
+            <span style={{ display: "flex", color: "#ffffff" }}>vm</span>
+            <span style={{ display: "flex", color: "#f59e0b" }}>.</span>
+          </div>
           <div
             style={{
               display: "flex",
@@ -498,7 +473,10 @@ export async function GET(
       width: 1200,
       height: 630,
       headers: {
-        "cache-control": "public, max-age=86400, immutable",
+        // Korte cache + must-revalidate zodat een design-fix snel zichtbaar
+        // wordt. Edge cachet 60s, browser revalidates.
+        "cache-control":
+          "public, max-age=60, s-maxage=300, must-revalidate",
       },
     },
   );

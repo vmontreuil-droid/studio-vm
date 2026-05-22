@@ -898,7 +898,12 @@ function PostCard({ post }: { post: SocialPost }) {
   const sm = statusMeta[post.status];
   const utmLink = buildUtmLink(post);
   const PIcon = meta.icon;
-  const imageUrl = `/api/social-image/${post.id}`;
+  // Cache-buster: vernieuw image wanneer de post-tekst wijzigt (op
+  // updated_at-timestamp). Voorkomt 24u stale-image-issues.
+  const imageVersion = post.updated_at
+    ? Date.parse(post.updated_at).toString(36)
+    : "";
+  const imageUrl = `/api/social-image/${post.id}${imageVersion ? `?v=${imageVersion}` : ""}`;
 
   return (
     <li className="rounded-xl bg-background/40 p-3">
