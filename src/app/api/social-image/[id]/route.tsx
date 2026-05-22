@@ -19,9 +19,28 @@ import { adminConfigured } from "@/lib/supabase/config";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Logo wordt INLINE gerenderd als JSX (vm wit + . in amber #f59e0b), niet
-// via SVG-data-URL omdat Satori daar wisselvallig mee omspringt. Brand-
-// kleur (#f59e0b = amber-500) komt uit public/studio-vm-logo-white.svg.
+// Logo wordt INLINE gerenderd als JSX (vm wit + . in amber #f59e0b),
+// in Montserrat ExtraBold zodat het exact matcht met de site's huisstijl
+// (layout.tsx gebruikt Montserrat als --font-geist-sans).
+
+// Font-cache — Montserrat ExtraBold (weight 800) wordt 1× geladen vanuit
+// de Google Fonts mirror op jsdelivr. Stabiele CDN-URL, TTF-formaat dat
+// Satori begrijpt.
+let MONTSERRAT_CACHE: ArrayBuffer | null = null;
+async function getMontserratExtraBold(): Promise<ArrayBuffer | null> {
+  if (MONTSERRAT_CACHE) return MONTSERRAT_CACHE;
+  try {
+    const res = await fetch(
+      "https://cdn.jsdelivr.net/gh/google/fonts/ofl/montserrat/static/Montserrat-ExtraBold.ttf",
+      { cache: "force-cache" },
+    );
+    if (!res.ok) return null;
+    MONTSERRAT_CACHE = await res.arrayBuffer();
+    return MONTSERRAT_CACHE;
+  } catch {
+    return null;
+  }
+}
 
 // Screenshot via WordPress mShots — gratis, geen API-key. Werkt voor élke
 // publieke URL. Cache ~1u op hun kant; we vragen 1200×900 voor scherpte.
@@ -152,6 +171,7 @@ export async function GET(
 
   const theme = THEMES[platform] ?? THEMES.algemeen!;
   const useScreenshot = !!featuredSite;
+  const montserratData = await getMontserratExtraBold();
 
   // Schaal hero-tekst op basis van lengte. In screenshot-layout iets kleiner.
   const fontSize = useScreenshot
@@ -426,11 +446,11 @@ export async function GET(
             style={{
               display: "flex",
               alignItems: "baseline",
-              fontSize: 96,
+              fontSize: 110,
               fontWeight: 800,
-              letterSpacing: -3,
+              letterSpacing: -5,
               lineHeight: 1,
-              fontFamily: "system-ui, -apple-system, sans-serif",
+              fontFamily: "Montserrat, system-ui, sans-serif",
             }}
           >
             <span style={{ display: "flex", color: "#ffffff" }}>vm</span>
@@ -472,6 +492,16 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      fonts: montserratData
+        ? [
+            {
+              name: "Montserrat",
+              data: montserratData,
+              weight: 800,
+              style: "normal",
+            },
+          ]
+        : undefined,
       headers: {
         // Korte cache + must-revalidate zodat een design-fix snel zichtbaar
         // wordt. Edge cachet 60s, browser revalidates.
