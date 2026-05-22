@@ -161,6 +161,7 @@ export async function generateDailyPosts(opts: {
   const posts: GeneratedPost[] = [];
   const skipped: string[] = [];
 
+  const sites: (string | undefined)[] = [];
   for (const t of templates) {
     const { client, altClient } = pickClients();
     const ctx: TemplateCtx = {
@@ -191,10 +192,11 @@ export async function generateDailyPosts(opts: {
       hashtags: built.hashtags,
       target_url: t.target_url,
     });
+    sites.push(built.site);
   }
 
   // 5. Insert in DB (status=klaar zodat ze meteen klaar staan voor review)
-  const inserts = posts.map((p) => ({
+  const inserts = posts.map((p, i) => ({
     platform: p.platform,
     post_kind: p.post_kind,
     status: "klaar" as const,
@@ -205,7 +207,7 @@ export async function generateDailyPosts(opts: {
     utm_source: p.platform,
     utm_medium: "social",
     utm_campaign: `${now.toISOString().slice(0, 7).replace("-", "")}-${p.templateId}`,
-    notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}`,
+    notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}${sites[i] ? ` · site:${sites[i]}` : ""}`,
   }));
 
   const { data: inserted, error } = await db

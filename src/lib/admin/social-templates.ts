@@ -22,65 +22,709 @@ export type Template = {
   post_kind: "persoonlijk" | "page" | "group" | "article";
   target_url: string;
   days?: number[]; // 1-5 = ma-vr
-  category: "showcase" | "tip" | "case" | "question" | "story" | "case-study";
-  build: (ctx: TemplateCtx) => { title: string; body: string; hashtags: string };
+  category:
+    | "showcase"
+    | "tip"
+    | "case"
+    | "question"
+    | "story"
+    | "case-study"
+    | "service"
+    | "positie";
+  build: (ctx: TemplateCtx) => {
+    title: string;
+    body: string;
+    hashtags: string;
+    site?: string; // optioneel: feature-site (domain) voor screenshot-layout
+  };
 };
 
 // Klanten-portfolio — wordt in roterende slots gebruikt voor variatie.
 // Allemaal publieke sites; geen privacy-issue om te vermelden.
+//
+// kind:
+//   build     — site die ik bouwde voor de klant
+//   own       — eigen bureau-site
+//   migration — site die nog niet gemigreerd is (toekomstige case)
 export const PORTFOLIO = [
   {
-    name: "Céline (zus, interieur)",
+    name: "Céline (zus)",
     site: "celine-interieur.be",
     sector: "interieur",
+    kind: "build",
+    angle: "webshop + offerte-aanvragen + admin",
   },
   {
-    name: "Jean-Paul Montreuil (vader, wildlife)",
+    name: "Jean-Paul Montreuil (vader)",
     site: "jp-montreuil.be",
     sector: "fotografie",
+    kind: "build",
+    angle: "galerie + boekverkoop + tentoonstellingen",
   },
   {
     name: "Allard Philippe",
     site: "allardphilippe.be",
     sector: "wildlife-fotografie",
+    kind: "build",
+    angle: "portfolio + e-commerce voor prints",
   },
-  { name: "Rik (Mari-Lines)", site: "mari-lines.be", sector: "wegmarkeringen" },
-  { name: "Bar'Botte Waregem", site: "barbotte.be", sector: "horeca" },
+  {
+    name: "Mari-Lines (Rik)",
+    site: "mari-lines.be",
+    sector: "wegmarkeringen",
+    kind: "build",
+    angle: "B2B-presentatie + werkenoverzicht + offerte-flow",
+  },
+  {
+    name: "Bar'Botte",
+    site: "barbotte.be",
+    sector: "horeca",
+    kind: "build",
+    angle: "menu's + dagsuggesties + reservaties",
+  },
   {
     name: "Cottage Waregem",
     site: "cottagewaregem.be",
     sector: "horeca",
+    kind: "build",
+    angle: "restaurant + eventruimte + menu's",
+  },
+  {
+    name: "favesan",
+    site: "favesan.be",
+    sector: "klant in transitie",
+    kind: "migration",
+    angle: "huidige WordPress-site — migratie-kandidaat naar moderne stack",
+  },
+  {
+    name: "Studio-vm (eigen bureau)",
+    site: "studio-vm.be",
+    sector: "eigen bureau",
+    kind: "own",
+    angle: "het bewijs van wat ik predik — 100/100 PageSpeed, eigen admin",
   },
 ] as const;
 
 // ============================================================================
-// TEMPLATES — handgeschreven, geen LLM nodig. AI-modus voegt variatie toe.
+// TEMPLATES — portfolio-eerst, dan service-uitleg en positionering.
+// Mix per week (3 posts/dag × 5 dagen = 15 posts):
+//   40% showcase (gemaakte site)
+//   20% case-study (LinkedIn deep-dive)
+//   15% service-uitleg (Health Check, migratie, admin)
+//   15% positionering (WP-kritiek, snelheid, prijs)
+//   10% persoonlijk (vraag, dank)
 // ============================================================================
 export const TEMPLATES: Template[] = [
-  // ---------- 1. FB persoonlijk — recente build showcase ----------
+  // ============================================================================
+  // SHOWCASE — één per portfolio-build-site (6 stuks)
+  // ============================================================================
   {
-    id: "fb-showcase-recent",
+    id: "showcase-celine-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
     target_url: "/",
-    days: [2, 4], // dinsdag + donderdag
+    days: [1, 3],
     category: "showcase",
-    build: ({ client }) => ({
-      title: `Showcase ${client.name} — FB persoonlijk`,
-      body: `Eén van de sites die ik dit jaar bouwde: ${client.site}.
+    build: () => ({
+      title: "Site die ik maakte: celine-interieur.be",
+      body: `Voor mijn zus Céline bouwde ik celine-interieur.be — interieurzaak in Waregem.
 
-Voor ${client.name}.
+Wat zit erin?
+• Webshop voor de productlijn
+• Offerte-aanvraag-formulier voor maatwerk
+• Eigen admin-paneel — Céline past zelf prijzen, foto's, beschikbaarheid aan zonder mij te bellen
+• Laadt in 0.8s op mobiel, 98/100 PageSpeed
 
-Wat erin zit:
-• Eigen admin-paneel zodat ze zelf hun teksten/foto's/prijzen kunnen aanpassen (geen telefoontje meer nodig)
-• Laadt onder 1 seconde op mobiel — Google's Core Web Vitals goedgekeurd
-• Vaste prijs vooraf, geen verrassingen achteraf
-• Mobile-first design (60-80% van bezoekers komt via telefoon)
+Vaste prijs, opgeleverd in 3 weken. Geen WordPress, geen plugin-jungle, geen maandelijkse "onderhoudsfactuur" voor niets.
 
-Solo gebouwd vanuit Waregem.
-
-Ken jij een zelfstandige of KMO die vastzit met een trage of onbeheerbare site? Stuur ze even door. Of doe zelf de gratis scan op studio-vm.be — duurt 30 seconden, geeft je site een eerlijke score.`,
+Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → start met een gratis scan.`,
       hashtags: "",
+      site: "celine-interieur.be",
+    }),
+  },
+  {
+    id: "showcase-jp-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [2, 4],
+    category: "showcase",
+    build: () => ({
+      title: "Site die ik maakte: jp-montreuil.be",
+      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik jp-montreuil.be.
+
+Drie functies:
+1. Galerie van zijn werk (volledig responsive, foto's vooraf geoptimaliseerd, laadt razendsnel)
+2. Boekverkoop — direct via de site
+3. Tentoonstellingen-agenda die hij zelf bijhoudt
+
+Voor een fotograaf is laadtijd cruciaal — niemand wacht 5 seconden op een foto. Zijn site laadt in 0.7s op mobiel.
+
+Vaste prijs, eigen admin. Solo gebouwd in Waregem.
+
+Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage portfolio-site? Stuur ze door.`,
+      hashtags: "",
+      site: "jp-montreuil.be",
+    }),
+  },
+  {
+    id: "showcase-allard-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3, 5],
+    category: "showcase",
+    build: () => ({
+      title: "Site die ik maakte: allardphilippe.be",
+      body: `Allard Philippe — wildlife-fotograaf — wou een site die zijn werk laat ademen, met de mogelijkheid om prints te verkopen.
+
+Resultaat: allardphilippe.be.
+
+→ Volledige portfolio met collecties
+→ Webshop voor prints in verschillende formaten
+→ Bestelflow via Mollie
+→ Eigen admin om foto's, collecties en prijzen toe te voegen
+
+Laadtijd 0.9s, PageSpeed 96. Vaste prijs, oplevering in 3 weken.
+
+Studio-vm.be — websites voor creatieven, KMO's en zelfstandigen in Vlaanderen.`,
+      hashtags: "",
+      site: "allardphilippe.be",
+    }),
+  },
+  {
+    id: "showcase-marilines-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [1, 4],
+    category: "showcase",
+    build: () => ({
+      title: "Site die ik maakte: mari-lines.be",
+      body: `B2B-site die ik dit jaar bouwde: mari-lines.be — wegmarkeringen-bedrijf van een vriend.
+
+Wat doet hij anders dan een typische "showcase-site"?
+• Werkenoverzicht met écht uitgevoerde projecten + foto's
+• Offerte-aanvraagflow specifiek voor bouwheren en aannemers
+• Eigen admin waarop hij zelf nieuwe werven kan toevoegen
+• Mobile-first — zijn klanten bekijken offertes vanaf de werf
+
+Vaste prijs, in 3 weken klaar. Geen Webflow, geen WordPress, gewoon goed gebouwd.
+
+Ken je een B2B-bedrijf dat zijn site al jaren niet meer durft te updaten? Stuur ze door.`,
+      hashtags: "",
+      site: "mari-lines.be",
+    }),
+  },
+  {
+    id: "showcase-barbotte-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [2, 5],
+    category: "showcase",
+    build: () => ({
+      title: "Site die ik maakte: barbotte.be",
+      body: `Bar'Botte Waregem — een van de horeca-zaken waar ik dit jaar de site voor bouwde.
+
+Wat doet hij?
+• Menu + dagsuggesties die ze zélf bijwerken (geen Photoshop-pdf meer)
+• Reservatie rechtstreeks op de site
+• Foto's automatisch geoptimaliseerd (geen 5MB-blunder)
+• Laadt in <1s op mobiel — belangrijk, want 70%+ horeca-zoekopdrachten gebeuren op telefoon
+
+Vaste prijs, opgeleverd in 3 weken. Eigen admin, geen maandkost-truc.
+
+Ken je een horeca-zaak die nog op een trage Squarespace of WordPress zit? Studio-vm.be → gratis scan.`,
+      hashtags: "",
+      site: "barbotte.be",
+    }),
+  },
+  {
+    id: "showcase-cottage-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3, 4],
+    category: "showcase",
+    build: () => ({
+      title: "Site die ik maakte: cottagewaregem.be",
+      body: `Cottage Waregem — brasserie met eventruimte. Site door mij gebouwd: cottagewaregem.be.
+
+Drie modules in één site:
+1. Restaurant — menu's, dagsuggesties, reserveren
+2. Eventruimte — aanvraag voor recepties, familiefeesten, B2B-events
+3. Galerie van de zaak en eerdere events
+
+Zelf gebouwd in moderne code (geen WordPress-plugin-soep), eigen admin voor wijzigingen, laadtijd <1 seconde.
+
+Vaste prijs vanaf de Starter-formule. Geen maandelijkse "service-factuur" voor niets.
+
+Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
+      hashtags: "",
+      site: "cottagewaregem.be",
+    }),
+  },
+
+  // ============================================================================
+  // CASE-STUDY — LinkedIn deep-dives (1 per sector, 5 stuks)
+  // ============================================================================
+  {
+    id: "case-marilines-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [2],
+    category: "case-study",
+    build: () => ({
+      title: "Case — B2B-site voor Mari-Lines",
+      body: `Case: B2B-website voor een wegmarkeringen-bedrijf in Vlaanderen.
+
+🔹 Klant: Mari-Lines (mari-lines.be)
+🔹 Sector: wegmarkeringen — B2B (aannemers, bouwheren, gemeentes)
+🔹 Doel: prospects laten zien wat ze realiseerden + offertes structureren
+
+Wat zit erin?
+→ Werkenoverzicht met échte uitgevoerde projecten (geen stockfoto's)
+→ Offerte-aanvraag specifiek voor bouwheren — vragenset afgestemd op project-type
+→ Eigen admin-paneel: nieuwe werven toevoegen in 5 minuten
+→ Mobile-first design — hun klanten kijken vanaf de werf, niet vanaf desk
+
+Resultaten:
+• PageSpeed 97/100 mobiel
+• Laadtijd 0.9s
+• Vaste prijs vooraf — geen scope-creep-facturen
+• Opgeleverd in 3 weken
+
+B2B-sites krijgen vaak een "info-folder"-behandeling. Dat is een gemiste kans — zelfs in technische sectoren beslist een prospect binnen 5 seconden of jouw site vertrouwen wekt.
+
+Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
+      hashtags:
+        "#b2b #website #kmo #vlaanderen #wegmarkering #digitalisering",
+      site: "mari-lines.be",
+    }),
+  },
+  {
+    id: "case-celine-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3],
+    category: "case-study",
+    build: () => ({
+      title: "Case — webshop + offerte-flow voor interieurzaak",
+      body: `Case: e-commerce + offerte-flow voor een interieurzaak.
+
+🔹 Klant: Céline Interieur (celine-interieur.be)
+🔹 Sector: interieur (B2C, regionaal)
+🔹 Doel: webshop voor producten + structurele offerte-aanvragen voor maatwerk
+
+Twee verkoopsporen in één site:
+→ Webshop met productcatalogus, voorraad, Mollie-checkout
+→ Offerte-aanvraag-flow voor maatwerk (afmetingen, stijl, budget)
+→ Eigen admin-paneel: ze beheert producten, prijzen, foto's en lopende offertes zelf
+
+Technische kenmerken:
+• PageSpeed 98/100 op mobiel
+• Laadtijd <1 seconde
+• Foto's automatisch geoptimaliseerd (1 product = 1 upload, niet 1 product = 6 formaten)
+• Geen externe plugin-tickets, geen WordPress-updatestress
+
+Vaste prijs vooraf, opgeleverd in 3 weken. Onderhoud klant zelf — hosting <€10/maand bij de provider naar keuze.
+
+Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
+      hashtags: "#ecommerce #interieur #kmo #website #vlaanderen",
+      site: "celine-interieur.be",
+    }),
+  },
+  {
+    id: "case-jp-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [4],
+    category: "case-study",
+    build: () => ({
+      title: "Case — galerie + boekverkoop voor wildlife-fotograaf",
+      body: `Case: portfolio + e-commerce voor wildlife-fotografie.
+
+🔹 Klant: Jean-Paul Montreuil (jp-montreuil.be)
+🔹 Sector: wildlife-fotografie (B2C, internationaal)
+🔹 Doel: galerie laten ademen + boekverkoop + tentoonstellingen-agenda
+
+Voor een fotograaf draait alles om hoe de foto's getoond worden. Daarom:
+→ Galerie met grote responsive beelden + lichte transitions
+→ Vooraf geoptimaliseerde foto's (geen 8MB-bestanden)
+→ Lazy-loading per scroll-stap
+→ Boekverkoop direct via de site (Mollie + verzendmodule)
+→ Eigen agenda voor tentoonstellingen die hij zelf bijhoudt
+
+Resultaten:
+• PageSpeed 96/100 mobiel ondanks zware foto-content
+• Laadtijd 0.7s op de homepage
+• Foto's blijven scherp op alle schermen (1×/2×/3× density)
+
+Voor creatieven die hun werk online willen tonen — vraag NIET aan een WordPress-bouwer om dit te doen. Vraag aan iemand die snapt hoe images werken in moderne browsers.
+
+Studio-vm.be — geen WordPress, geen plugin-stress, eigen admin.`,
+      hashtags: "#fotografie #portfolio #kunstenaar #website #ecommerce",
+      site: "jp-montreuil.be",
+    }),
+  },
+  {
+    id: "case-barbotte-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3],
+    category: "case-study",
+    build: () => ({
+      title: "Case — horeca-site met reservatie-module",
+      body: `Case: restaurant-website met reservaties en dagsuggesties.
+
+🔹 Klant: Bar'Botte Waregem (barbotte.be)
+🔹 Sector: horeca (B2C, regionaal)
+🔹 Doel: bezoekers zonder telefoongesprek tot een reservatie krijgen
+
+Horeca-sites zien er vaak uit als folders uit 2014. Dat is een gemiste kans:
+→ 70%+ van horeca-zoekopdrachten gebeurt op mobiel
+→ De gemiddelde bezoeker neemt binnen 5 seconden de beslissing om te reserveren of weg te klikken
+→ Reservatie-friction = direct verloren omzet
+
+Wat we deden:
+• Menu's + dagsuggesties beheren via eigen admin (geen Photoshop-pdf-handwerk meer)
+• Reservatie rechtstreeks op de site — geen externe widget die het design verkracht
+• Foto's automatisch geoptimaliseerd (niet 5MB per bord)
+• Laadtijd <1s op mobiel
+
+Vaste prijs vanaf de Starter-formule. Opgeleverd in 3 weken. Geen externe abonnementen voor het "reservatie-systeem".
+
+Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
+      hashtags: "#horeca #website #vlaanderen #reservatie #kmo",
+      site: "barbotte.be",
+    }),
+  },
+  {
+    id: "case-cottage-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [1],
+    category: "case-study",
+    build: () => ({
+      title: "Case — restaurant + eventruimte in één site",
+      body: `Case: brasserie met eventruimte — twee diensten, één site.
+
+🔹 Klant: Cottage Waregem (cottagewaregem.be)
+🔹 Sector: horeca + events (B2C + B2B)
+🔹 Doel: bezoekers naar restaurant OF eventruimte sturen zonder ze te verwarren
+
+Uitdaging: een klant zoekt soms een restaurant, soms een eventruimte. Dezelfde site moet beide doelen scherp bedienen — niet half-half.
+
+Oplossing:
+→ Twee duidelijke landing-paths vanaf de homepage
+→ Restaurant-flow: menu's + dagsuggesties + reserveren
+→ Event-flow: aanvraagformulier met type event, aantal personen, gewenste datum
+→ Galerie laat beide werelden zien
+→ Eigen admin: ze beheren alles zelf
+
+Resultaten:
+• PageSpeed 95/100 mobiel
+• Laadtijd onder de seconde
+• Vaste prijs vooraf, opgeleverd in 4 weken (één extra week vs standaard wegens dubbele flow)
+
+Studio-vm.be — geen WordPress, geen externe widgets, eigen admin.`,
+      hashtags: "#horeca #events #website #waregem #kmo",
+      site: "cottagewaregem.be",
+    }),
+  },
+
+  // ============================================================================
+  // SERVICE-UITLEG — wat je biedt (3 stuks)
+  // ============================================================================
+  {
+    id: "service-healthcheck-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/nl/health-check",
+    days: [2, 5],
+    category: "service",
+    build: () => ({
+      title: "Service — Health Check €99",
+      body: `Studio-vm Health Check — voor wie eerst wil weten of hun site echt een probleem heeft, vóór ze investeren in iets nieuws.
+
+€99, eenmalig, geen abonnement.
+
+Wat je krijgt:
+✓ Volledige scan van je site (snelheid, SEO, security, mobile, accessibility)
+✓ Rapport van 5 paginas met concrete bevindingen
+✓ Top 3 fixes die het meeste verschil maken — uitgelegd zodat je bouwer ze meteen kan toepassen
+✓ Vergelijking met je belangrijkste concurrent
+
+Wie heeft hier baat bij?
+→ Zelfstandige die voelt dat de site "iets niet doet" maar niet weet wat
+→ KMO die jaarlijks €1.000+ aan onderhoud betaalt en wil weten of dat terecht is
+→ Bouwers die een second opinion willen op iemand anders' werk
+
+Studio-vm.be → Health Check.`,
+      hashtags: "",
+    }),
+  },
+  {
+    id: "service-migration-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [4],
+    category: "service",
+    build: () => ({
+      title: "Service — WordPress-migratie",
+      body: `Veel KMO-sites in Vlaanderen draaien op WordPress + 23 plugins + €840/jaar "onderhoud" — en de eigenaar durft het dashboard niet meer openen.
+
+Klinkt herkenbaar? Tijd om te migreren.
+
+Wat een migratie bij studio-vm betekent:
+→ Volledige content overzetten (teksten, foto's, structuur, SEO-links blijven werken)
+→ Nieuwe site in moderne code — geen plugins meer
+→ Eigen admin-paneel — alleen wat jij gebruikt, niet 50 menu's die niets doen
+→ Hosting verhuist naar moderne provider — €5-10/maand ipv €70+
+→ Geen "service-abonnement" — eenmalige vaste prijs voor de migratie zelf
+
+Resultaat: site die 5× sneller laadt, lager maandelijks kost, en die je zelf durft aanpassen.
+
+Zit jij vast in WordPress? Studio-vm.be → contact voor een gratis migratie-quote.`,
+      hashtags: "",
+    }),
+  },
+  {
+    id: "service-admin-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3],
+    category: "service",
+    build: () => ({
+      title: "Service — eigen admin-paneel uitgelegd",
+      body: `Standaard bij élke site die ik bouw: een eigen admin-paneel.
+
+Waarom standard, niet "extra-optie"?
+
+Omdat een site zonder admin = een klant die gegijzeld is door zijn bouwer. Elke spelfout, elke nieuwe prijs, elke gewijzigde openingsuur = ticket, wachttijd, factuur.
+
+Een admin-paneel bij mij is anders dan een WordPress-dashboard:
+→ Alleen wat jouw site nodig heeft (niet 50 menu's die niets doen)
+→ Eén pagina per type content (menu's, producten, foto's, prijzen)
+→ Mobiel bruikbaar — je past dingen aan vanop je telefoon
+→ Geen plugin-updates die het kunnen breken
+
+Bij oplevering: halfuurtje training, daarna doe je 't zelf. Vragen blijven gratis — maar de meeste klanten hebben er na 2 weken geen meer.
+
+Studio-vm.be — websites met admin die je écht gebruikt.`,
+      hashtags: "#cms #kmo #websitebeheer #digitalisering #vlaanderen",
+    }),
+  },
+
+  // ============================================================================
+  // POSITIONERING — waar je voor staat (3 stuks)
+  // ============================================================================
+  {
+    id: "positie-wp-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/health-check",
+    days: [1],
+    category: "positie",
+    build: () => ({
+      title: "Positie — WP-economie kritisch bekeken",
+      body: `Eerlijke observatie na 2 jaar overnames van WordPress-sites voor KMO-klanten:
+
+De gemiddelde WordPress-site die ik overneem heeft:
+→ 23 plugins, waarvan de klant er 4 actief gebruikt
+→ €840/jaar aan "hosting + onderhoud" — terwijl de échte hosting €60/jaar is
+→ Laadtijd 4-7 seconden op mobiel
+→ Een dashboard waar de klant niet aan durft komen uit angst iets stuk te maken
+
+Dat is geen kritiek op WordPress als technologie. Het is kritiek op het ecosysteem dat eromheen ontstaan is — bureaus die klanten in maandkost-abonnementen lokken voor onderhoud dat ze nooit zien.
+
+Mijn alternatief: statisch gegenereerde sites op moderne infrastructuur.
+✓ Laadtijd <1 seconde
+✓ Hosting <€10/maand (klant betaalt direct, ik krijg geen commissie)
+✓ Geen plugins die om aandacht vragen
+✓ Eigen mini-admin alleen voor wat jouw site nodig heeft
+
+Vraag jezelf: wat betaal jij maandelijks, en wat krijg je er concreet voor?`,
+      hashtags: "#wordpress #kmo #hosting #digitalisering #vlaanderen",
+    }),
+  },
+  {
+    id: "positie-prijs-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [3],
+    category: "positie",
+    build: () => ({
+      title: "Positie — vaste prijs vooraf",
+      body: `Eén ding dat ik anders doe dan veel collega-bureaus: vaste prijs vooraf.
+
+Geen "vanaf €X" met asterisks. Geen "scope-creep"-facturen achteraf. Geen "ja maar als je dit nog wil..."-discussies.
+
+Hoe werkt het?
+1. Eerste gesprek (gratis, 30 min) — wat doet je bedrijf, wat moet je site doen
+2. Ik stuur een concrete prijs voor wat we afspraken — vanaf de Starter-formule
+3. Je tekent of niet
+4. Bij ja: ik bouw, je betaalt op oplevering. Geen voorschotten van 50%.
+
+Wat ik niet doe:
+✗ Uurfacturen (je weet niet wat je krijgt)
+✗ "Onderhoudscontract" verplicht (€100/maand voor niets)
+✗ Extra "SEO-pakket" verkopen (goede sites doen SEO standaard goed)
+
+Studio-vm.be — vaste prijs, vaste oplevering, geen verrassingen.`,
+      hashtags: "",
+    }),
+  },
+  {
+    id: "positie-snelheid-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/health-check",
+    days: [4],
+    category: "positie",
+    build: () => ({
+      title: "Positie — waarom snelheid niet onderhandelbaar is",
+      body: `Drie cijfers uit onderzoek van Google + Akamai die élke ondernemer zou moeten kennen:
+
+📊 Bezoekers haken af bij trage sites:
+• 3 seconden laadtijd → 32% bouncerate
+• 5 seconden → 90% bouncerate
+
+📊 1 seconde extra laadtijd = 7% minder conversie (Akamai)
+
+📊 Sites die in <2s laden krijgen 70% meer pageviews per sessie
+
+Wat doet de gemiddelde KMO-site in België? 4-7 seconden op mobiel. Dat is geen kleine inefficiëntie — dat is geld dat je elke dag verliest.
+
+Voor mijn klanten zit ik gemiddeld op 0.8 seconden. Geen toeval, wel bewust gebouwd:
+→ Geen WordPress + 30 plugins
+→ Afbeeldingen vooraf geoptimaliseerd
+→ Hosting op CDN, niet bij goedkope shared-host
+→ Geen tracking-soep van vorige agencies
+
+Test je eigen site: pagespeed.web.dev — typ je URL — mobiele score onder 70 betekent: tijd voor actie.
+
+Studio-vm.be — websites die laden vóór je bezoeker afhaakt.`,
+      hashtags: "#websnelheid #seo #kmo #digitalisering #conversie",
+    }),
+  },
+
+  // ============================================================================
+  // PERSOONLIJK — tone-of-voice (3 stuks)
+  // ============================================================================
+  {
+    id: "persoonlijk-vraag-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [5],
+    category: "question",
+    build: () => ({
+      title: "Persoonlijk — vraag aan netwerk vrijdag",
+      body: `Vrijdag-vraagje aan m'n netwerk:
+
+Ken jij een zelfstandige of KMO in Vlaanderen die:
+→ een nieuwe site nodig heeft?
+→ of vastzit met een trage/lelijke/onbeheerbare site?
+→ of te veel betaalt voor hosting + "onderhoud" dat niets oplevert?
+
+Tag ze in de comments of stuur een DM. Eén verwijzing van jou kan iemand maandelijks honderden euro's besparen — én een veel betere site geven.
+
+Studio-vm.be — solo, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoop-funnel, gewoon werk.
+
+Bedankt op voorhand. De meeste van mijn opdrachten komen via een doorverwijzing.`,
+      hashtags: "",
+    }),
+  },
+  {
+    id: "persoonlijk-thanks-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [4],
+    category: "question",
+    build: () => ({
+      title: "Persoonlijk — dankjewel-post",
+      body: `Soms goed om het hardop te zeggen:
+
+Studio-vm bestaat dankzij familie en vrienden die als eersten "ja" zeiden. Mijn zus Céline. Mijn vader. Een paar oud-collega's. Vrienden die mij doorverwezen.
+
+Elke site die ik tegenwoordig bouw is — direct of indirect — het gevolg van iemand die zei "Vincent doet dat, contacteer 'm eens."
+
+Dus: dank u. Voor iedereen die ooit een doorverwijzing deed, een DM beantwoordde, een testimonial schreef, of gewoon op een post een like gaf.
+
+Als je iemand kent die een website nodig heeft of vastzit met de huidige — laat 't weten. Eén tag, één DM, één doorgestuurde URL. Zo blijft dit groeien.
+
+Studio-vm.be — solo, in Waregem, voor heel Vlaanderen.`,
+      hashtags: "",
+    }),
+  },
+  {
+    id: "persoonlijk-eigen-site-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [1, 3],
+    category: "showcase",
+    build: () => ({
+      title: "Eigen site studio-vm.be",
+      body: `Een eerlijk principe dat ik mezelf opleg: mijn eigen site moet doen wat ik aan klanten predik.
+
+Resultaat: studio-vm.be
+
+→ Laadt in 0.6 seconden op mobiel
+→ PageSpeed 100/100 (alle categorieën)
+→ Eigen admin-paneel waarmee ik alles aanpas zonder code aan te raken
+→ Hosting? €8/maand
+→ Onderhoud? Geen abonnement, geen factuur, geen ticket
+
+Als ik dit voor mezelf doe, doe ik het ook voor jou.
+
+Wil je weten hoe jouw site scoort tegen deze? pagespeed.web.dev → typ je URL — kijk eerlijk naar de score.`,
+      hashtags: "",
+      site: "studio-vm.be",
+    }),
+  },
+
+  // ============================================================================
+  // BONUS — favesan migratie-tease (1 stuk)
+  // ============================================================================
+  {
+    id: "service-favesan-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/",
+    days: [4],
+    category: "service",
+    build: () => ({
+      title: "favesan migratie-tease",
+      body: `Klein "behind the scenes":
+
+favesan.be — een van de sites die nog op WordPress + one.com draait, en op de roadmap staat om gemigreerd te worden naar mijn moderne stack.
+
+Wat zegt dat over WordPress-economie?
+• Huidige hosting + onderhoud bij one.com: gemiddeld €15-25/maand
+• Site laadt traag, achterkant is een dashboard-jungle
+• Updates worden uitgesteld uit angst dat plugins breken
+
+Na migratie:
+✓ Eigen mini-admin (alleen wat de site nodig heeft)
+✓ Hosting elders voor <€10/maand
+✓ Laadtijd onder 1 seconde
+✓ Eenmalige vaste migratieprijs, daarna geen abonnementsval meer
+
+Zit jij ook in een one.com / WordPress / Wix-fuik? Studio-vm.be → migratiequote.`,
+      hashtags: "",
+      site: "favesan.be",
     }),
   },
 
