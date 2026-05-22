@@ -1,7 +1,17 @@
 // Digest-mail naar Vincent met de posts die de AI Content Engine genereerde.
 // Gebruikt resend via /lib/monitor — zelfde from-adres als de rest.
 
-import type { GeneratedPost } from "./social-generator";
+// Digest-mail krijgt een GeneratedPost-met-id (generator vult id in na insert)
+type DigestPost = {
+  id?: string;
+  templateId: string;
+  platform: "facebook" | "linkedin";
+  post_kind: string;
+  title: string;
+  body: string;
+  hashtags: string;
+  target_url: string;
+};
 
 // Lokale type-kopie van monitor's Mail-shape (niet ge-exporteerd daar).
 type Mail = { subject: string; html: string };
@@ -16,7 +26,7 @@ const PLATFORM_LABEL: Record<string, string> = {
   x: "X",
 };
 
-export function buildSocialDigestMail(posts: GeneratedPost[]): Mail {
+export function buildSocialDigestMail(posts: DigestPost[]): Mail {
   const dateLabel = new Date().toLocaleDateString("nl-BE", {
     weekday: "long",
     day: "numeric",
@@ -29,12 +39,16 @@ export function buildSocialDigestMail(posts: GeneratedPost[]): Mail {
       const platform = PLATFORM_LABEL[p.platform] ?? p.platform;
       const preview = p.body.slice(0, 280).replace(/\n/g, "<br>");
       const more = p.body.length > 280 ? "…" : "";
+      const imageHtml = p.id
+        ? `<img src="${SITE_URL}/api/social-image/${p.id}" alt="${escapeHtml(p.title)}" style="display:block;width:100%;border-radius:8px;margin:0 0 14px;" width="560" height="294">`
+        : "";
       return `
         <tr>
           <td style="padding:18px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;margin-bottom:12px;">
-            <p style="margin:0 0 6px;font-family:'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#71717a;">
+            <p style="margin:0 0 12px;font-family:'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#71717a;">
               #${i + 1} · ${platform}
             </p>
+            ${imageHtml}
             <h3 style="margin:0 0 12px;font-family:'Inter',-apple-system,sans-serif;font-size:16px;font-weight:600;color:#18181b;">
               ${escapeHtml(p.title)}
             </h3>

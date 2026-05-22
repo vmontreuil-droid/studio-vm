@@ -898,6 +898,7 @@ function PostCard({ post }: { post: SocialPost }) {
   const sm = statusMeta[post.status];
   const utmLink = buildUtmLink(post);
   const PIcon = meta.icon;
+  const imageUrl = `/api/social-image/${post.id}`;
 
   return (
     <li className="rounded-xl bg-background/40 p-3">
@@ -928,6 +929,23 @@ function PostCard({ post }: { post: SocialPost }) {
         </div>
       </div>
 
+      {/* Brand-card preview — gegenereerde image */}
+      <a
+        href={imageUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="group mt-3 block overflow-hidden rounded-lg border border-border/50"
+        title="Klik om in volle grootte te openen en op te slaan (rechtsklikken → afbeelding opslaan)"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt={post.title}
+          className="block aspect-[1200/630] w-full bg-gradient-to-br from-blue-900 to-purple-900 object-cover transition-transform group-hover:scale-[1.02]"
+          loading="lazy"
+        />
+      </a>
+
       {/* Body-preview */}
       {post.body && (
         <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-[13px] text-foreground/80">
@@ -940,7 +958,7 @@ function PostCard({ post }: { post: SocialPost }) {
         </p>
       )}
 
-      {/* UTM-link */}
+      {/* UTM-link + image-download */}
       <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-foreground/5 p-2">
         <Link2 className="h-3.5 w-3.5 shrink-0 text-muted" strokeWidth={2} />
         <code className="min-w-0 flex-1 truncate font-mono text-[10px] text-foreground/80">
@@ -953,6 +971,15 @@ function PostCard({ post }: { post: SocialPost }) {
             label="Volledige post"
           />
         )}
+        <a
+          href={imageUrl}
+          download={`studio-vm-${post.platform}-${post.id.slice(0, 8)}.png`}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
+          title="Brand-card downloaden als PNG"
+        >
+          <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+          Image
+        </a>
       </div>
 
       {/* Actions */}

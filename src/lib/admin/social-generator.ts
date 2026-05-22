@@ -22,6 +22,7 @@ import {
 } from "./social-templates";
 
 export type GeneratedPost = {
+  id?: string; // ingevuld na DB-insert
   templateId: string;
   platform: "facebook" | "linkedin";
   post_kind: string;
@@ -207,7 +208,10 @@ export async function generateDailyPosts(opts: {
     notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}`,
   }));
 
-  const { error } = await db.from("social_posts").insert(inserts);
+  const { data: inserted, error } = await db
+    .from("social_posts")
+    .insert(inserts)
+    .select("id, title");
   if (error) {
     return {
       generated: 0,
@@ -216,7 +220,16 @@ export async function generateDailyPosts(opts: {
     };
   }
 
-  return { generated: posts.length, posts, skipped };
+  // Match inserted rows met posts via title → vul id in zodat de digest-mail
+  // image-URLs kan opbouwen
+  const byTitle = new Map(
+    ((inserted as Array<{ id: string; title: string }> | null) ?? []).map(
+      (r) => [r.title, r.id],
+    ),
+  );
+  const postsWithId = posts.map((p) => ({ ...p, id: byTitle.get(p.title) }));
+
+  return { generated: posts.length, posts: postsWithId, skipped };
 }
 
 // =====================================================================
