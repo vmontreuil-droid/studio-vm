@@ -55,10 +55,10 @@ async function getMontserratExtraBold(): Promise<ArrayBuffer | null> {
 // betrouwbare images zonder externe API-afhankelijkheid (mShots geeft 403
 // sinds mei 2026). Domain → slug via mapping.
 const SCREENSHOT_SLUG: Record<string, string> = {
-  "celine-interieur.vercel.app": "celine-interieur",
-  "jp-montreuil.vercel.app": "jp-montreuil",
+  "celineinterieur.com": "celineinterieur",
+  "montreuil.be": "montreuil",
   "allardphilippe.vercel.app": "allardphilippe",
-  "mari-lines.vercel.app": "mari-lines",
+  "mari-lines.be": "mari-lines",
   "barbotte.vercel.app": "barbotte",
   "cottage-waregem.vercel.app": "cottage-waregem",
   "favesan.be": "favesan",

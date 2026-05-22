@@ -11,14 +11,16 @@ import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const PORTFOLIO = [
-  { slug: "celine-interieur", url: "https://celine-interieur.vercel.app" },
-  { slug: "jp-montreuil", url: "https://jp-montreuil.vercel.app" },
-  { slug: "allardphilippe", url: "https://allardphilippe.vercel.app" },
-  { slug: "mari-lines", url: "https://mari-lines.vercel.app" },
-  { slug: "barbotte", url: "https://barbotte.vercel.app" },
-  { slug: "cottage-waregem", url: "https://cottage-waregem.vercel.app" },
+  // Live op echt domein:
+  { slug: "celineinterieur", url: "https://celineinterieur.com" },
+  { slug: "montreuil", url: "https://montreuil.be" },
+  { slug: "mari-lines", url: "https://mari-lines.be" },
   { slug: "favesan", url: "https://favesan.be" },
   { slug: "studio-vm", url: "https://studio-vm.be" },
+  // Nog op .vercel.app:
+  { slug: "allardphilippe", url: "https://allardphilippe.vercel.app" },
+  { slug: "barbotte", url: "https://barbotte.vercel.app" },
+  { slug: "cottage-waregem", url: "https://cottage-waregem.vercel.app" },
 ];
 
 const OUT_DIR = resolve(process.cwd(), "public/social/portfolio");

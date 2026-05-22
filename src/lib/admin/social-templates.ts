@@ -46,20 +46,18 @@ export type Template = {
 //   build     — site die ik bouwde voor de klant
 //   own       — eigen bureau-site
 //   migration — site die nog niet gemigreerd is (toekomstige case)
-// LET OP: site = production-URL voor mShots-screenshot. De meeste klanten
-// draaien nog op .vercel.app preview-URL (geen eigen domein gekoppeld).
-// Studio-vm en favesan hebben wel eigen domein.
+// site = echte production-domain. Alle klantsites hebben hun eigen domein.
 export const PORTFOLIO = [
   {
     name: "Céline (zus)",
-    site: "celine-interieur.vercel.app",
+    site: "celineinterieur.com",
     sector: "interieur",
     kind: "build",
     angle: "webshop + offerte-aanvragen + admin",
   },
   {
     name: "Jean-Paul Montreuil (vader)",
-    site: "jp-montreuil.vercel.app",
+    site: "montreuil.be",
     sector: "fotografie",
     kind: "build",
     angle: "galerie + boekverkoop + tentoonstellingen",
@@ -73,7 +71,7 @@ export const PORTFOLIO = [
   },
   {
     name: "Mari-Lines (Rik)",
-    site: "mari-lines.vercel.app",
+    site: "mari-lines.be",
     sector: "wegmarkeringen",
     kind: "build",
     angle: "B2B-presentatie + werkenoverzicht + offerte-flow",
@@ -129,8 +127,8 @@ export const TEMPLATES: Template[] = [
     days: [1, 3],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: celine-interieur.vercel.app",
-      body: `Voor mijn zus Céline bouwde ik celine-interieur.vercel.app — interieurzaak in Waregem.
+      title: "Site die ik maakte: celineinterieur.com",
+      body: `Voor mijn zus Céline bouwde ik celineinterieur.com — interieurzaak in Waregem.
 
 Wat zit erin?
 • Webshop voor de productlijn
@@ -142,7 +140,7 @@ Vaste prijs, opgeleverd in 3 weken. Geen WordPress, geen plugin-jungle, geen maa
 
 Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → start met een gratis scan.`,
       hashtags: "",
-      site: "celine-interieur.vercel.app",
+      site: "celineinterieur.com",
     }),
   },
   {
@@ -153,8 +151,8 @@ Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → star
     days: [2, 4],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: jp-montreuil.vercel.app",
-      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik jp-montreuil.vercel.app.
+      title: "Site die ik maakte: montreuil.be",
+      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik montreuil.be.
 
 Drie functies:
 1. Galerie van zijn werk (volledig responsive, foto's vooraf geoptimaliseerd, laadt razendsnel)
@@ -167,7 +165,7 @@ Vaste prijs, eigen admin. Solo gebouwd in Waregem.
 
 Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage portfolio-site? Stuur ze door.`,
       hashtags: "",
-      site: "jp-montreuil.vercel.app",
+      site: "montreuil.be",
     }),
   },
   {
@@ -203,8 +201,8 @@ Studio-vm.be — websites voor creatieven, KMO's en zelfstandigen in Vlaanderen.
     days: [1, 4],
     category: "showcase",
     build: () => ({
-      title: "Site die ik maakte: mari-lines.vercel.app",
-      body: `B2B-site die ik dit jaar bouwde: mari-lines.vercel.app — wegmarkeringen-bedrijf van een vriend.
+      title: "Site die ik maakte: mari-lines.be",
+      body: `B2B-site die ik dit jaar bouwde: mari-lines.be — wegmarkeringen-bedrijf van een vriend.
 
 Wat doet hij anders dan een typische "showcase-site"?
 • Werkenoverzicht met écht uitgevoerde projecten + foto's
@@ -216,7 +214,7 @@ Vaste prijs, in 3 weken klaar. Geen Webflow, geen WordPress, gewoon goed gebouwd
 
 Ken je een B2B-bedrijf dat zijn site al jaren niet meer durft te updaten? Stuur ze door.`,
       hashtags: "",
-      site: "mari-lines.vercel.app",
+      site: "mari-lines.be",
     }),
   },
   {
@@ -283,7 +281,7 @@ Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       title: "Case — B2B-site voor Mari-Lines",
       body: `Case: B2B-website voor een wegmarkeringen-bedrijf in Vlaanderen.
 
-🔹 Klant: Mari-Lines (mari-lines.vercel.app)
+🔹 Klant: Mari-Lines (mari-lines.be)
 🔹 Sector: wegmarkeringen — B2B (aannemers, bouwheren, gemeentes)
 🔹 Doel: prospects laten zien wat ze realiseerden + offertes structureren
 
@@ -304,7 +302,7 @@ B2B-sites krijgen vaak een "info-folder"-behandeling. Dat is een gemiste kans �
 Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
       hashtags:
         "#b2b #website #kmo #vlaanderen #wegmarkering #digitalisering",
-      site: "mari-lines.vercel.app",
+      site: "mari-lines.be",
     }),
   },
   {
@@ -318,7 +316,7 @@ Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
       title: "Case — webshop + offerte-flow voor interieurzaak",
       body: `Case: e-commerce + offerte-flow voor een interieurzaak.
 
-🔹 Klant: Céline Interieur (celine-interieur.vercel.app)
+🔹 Klant: Céline Interieur (celineinterieur.com)
 🔹 Sector: interieur (B2C, regionaal)
 🔹 Doel: webshop voor producten + structurele offerte-aanvragen voor maatwerk
 
@@ -337,7 +335,7 @@ Vaste prijs vooraf, opgeleverd in 3 weken. Onderhoud klant zelf — hosting <€
 
 Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       hashtags: "#ecommerce #interieur #kmo #website #vlaanderen",
-      site: "celine-interieur.vercel.app",
+      site: "celineinterieur.com",
     }),
   },
   {
@@ -351,7 +349,7 @@ Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
       title: "Case — galerie + boekverkoop voor wildlife-fotograaf",
       body: `Case: portfolio + e-commerce voor wildlife-fotografie.
 
-🔹 Klant: Jean-Paul Montreuil (jp-montreuil.vercel.app)
+🔹 Klant: Jean-Paul Montreuil (montreuil.be)
 🔹 Sector: wildlife-fotografie (B2C, internationaal)
 🔹 Doel: galerie laten ademen + boekverkoop + tentoonstellingen-agenda
 
@@ -371,7 +369,7 @@ Voor creatieven die hun werk online willen tonen — vraag NIET aan een WordPres
 
 Studio-vm.be — geen WordPress, geen plugin-stress, eigen admin.`,
       hashtags: "#fotografie #portfolio #kunstenaar #website #ecommerce",
-      site: "jp-montreuil.vercel.app",
+      site: "montreuil.be",
     }),
   },
   {
