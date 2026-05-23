@@ -73,9 +73,11 @@ async function main() {
   const page = await ctx.newPage();
 
   // 1) Vierkant op donker (FB-profielfoto)
+  //    Kleinere font-size + padding zodat het logo binnen de circle-crop
+  //    blijft die FB/LinkedIn toepassen. Safe area ≈ 70% van canvas.
   await render(
     page,
-    HTML({ bg: "#0a0a0a", fontSize: 560 }),
+    HTML({ bg: "#0a0a0a", fontSize: 340 }),
     resolve(OUT_DIR, "logo-square-dark.png"),
     { width: 1024, height: 1024 },
   );
@@ -85,7 +87,7 @@ async function main() {
     page,
     HTML({
       bg: "#ffffff",
-      fontSize: 560,
+      fontSize: 340,
     }).replace("color: #ffffff", "color: #111111"),
     resolve(OUT_DIR, "logo-square-light.png"),
     { width: 1024, height: 1024 },
@@ -94,7 +96,7 @@ async function main() {
   // 3) Transparant (witte versie — voor donkere overlays)
   await render(
     page,
-    HTML({ bg: "transparent", fontSize: 560 }),
+    HTML({ bg: "transparent", fontSize: 340 }),
     resolve(OUT_DIR, "logo-transparent.png"),
     { width: 1024, height: 1024 },
     true,
