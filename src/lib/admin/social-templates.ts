@@ -290,7 +290,7 @@ Drie functies:
 
 Voor een fotograaf is laadtijd cruciaal — niemand wacht 5 seconden op een foto. Zijn site laadt in 0.7s op mobiel.
 
-Vaste prijs, eigen admin. Solo gebouwd in Waregem.
+Vaste prijs, eigen admin. Zelf gebouwd vanuit Anzegem.
 
 Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage portfolio-site? Stuur ze door.`,
       hashtags: "",
@@ -428,7 +428,7 @@ Resultaten:
 
 B2B-sites krijgen vaak een "info-folder"-behandeling. Dat is een gemiste kans — zelfs in technische sectoren beslist een prospect binnen 5 seconden of jouw site vertrouwen wekt.
 
-Studio-vm.be — solo-bureau Waregem, voor KMO's in Vlaanderen.`,
+Studio-vm.be — webstudio Anzegem, voor KMO's in Vlaanderen.`,
       hashtags:
         "#b2b #website #kmo #vlaanderen #wegmarkering #digitalisering",
       site: "mari-lines.be",
@@ -769,7 +769,7 @@ Ken jij een zelfstandige of KMO in Vlaanderen die:
 
 Tag ze in de comments of stuur een DM. Eén verwijzing van jou kan iemand maandelijks honderden euro's besparen — én een veel betere site geven.
 
-Studio-vm.be — solo, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoop-funnel, gewoon werk.
+Studio-vm.be — persoonlijk, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoop-funnel, gewoon werk.
 
 Bedankt op voorhand. De meeste van mijn opdrachten komen via een doorverwijzing.`,
       hashtags: "",
@@ -794,7 +794,7 @@ Dus: dank u. Voor iedereen die ooit een doorverwijzing deed, een DM beantwoordde
 
 Als je iemand kent die een website nodig heeft of vastzit met de huidige — laat 't weten. Eén tag, één DM, één doorgestuurde URL. Zo blijft dit groeien.
 
-Studio-vm.be — solo, in Waregem, voor heel Vlaanderen.`,
+Studio-vm.be — persoonlijk, in Anzegem, voor heel Vlaanderen.`,
       hashtags: "",
     }),
   },
@@ -930,7 +930,7 @@ Ken jij een zelfstandige of KMO in Vlaanderen die:
 
 Tag ze in de comments of stuur een DM. Eén verwijzing van jou kan iemand maandelijks honderden euro's besparen.
 
-Studio-vm.be — solo, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoopspraat, gewoon werk.
+Studio-vm.be — persoonlijk, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoopspraat, gewoon werk.
 
 Bedankt op voorhand — de meeste van mijn opdrachten komen zo via een doorverwijzing.`,
       hashtags: "",
@@ -991,7 +991,7 @@ Horeca-zaak in West-/Oost-Vlaanderen die met haar website worstelt? Stuur een DM
 
 → Vaste prijs is moedig, maar correct. Ik werk niet op uurbasis. Je krijgt een prijs voor wat je krijgt — geen verrassingen achteraf.
 
-Studio-vm.be is mijn solo-bureau in Waregem. Geen tussenpersonen, geen WordPress-bouwpakket, geen sales-funnel.
+Studio-vm.be is mijn webstudio in Anzegem. Geen tussenpersonen, geen WordPress-bouwpakket, geen sales-funnel.
 
 Wie heeft een KMO of zelfstandige in z'n netwerk die met website-frustratie zit?`,
       hashtags:
@@ -1039,7 +1039,7 @@ Wil je weten waar jij staat? Studio-vm Health Check voor €99 — concreet rapp
     category: "case-study",
     build: ({ client, altClient }) => ({
       title: `LinkedIn — case ${client.name}`,
-      body: `Twee recente projecten die ik solo opleverde:
+      body: `Twee recente projecten die ik zelf opleverde:
 
 🔹 ${client.name} → ${client.site}
    Sector: ${client.sector}
@@ -1056,9 +1056,9 @@ Wat verschilt mijn aanpak van een typisch web-bureau?
 1. Geen WordPress-bouwpakket. Ik bouw vanaf nul in code die ik volledig begrijp.
 2. Klanten krijgen geen "WordPress-dashboard met 50 plugins" — wel een minimalistisch admin-paneel speciaal voor hen.
 3. Vaste prijs vooraf. Geen "scope-creep"-facturen.
-4. Solo betekent: jij praat met wie de site bouwt. Geen account-manager als tussenstap.
+4. Persoonlijk contact: jij praat met wie de site bouwt. Geen account-manager als tussenstap.
 
-Ik werk vanuit Waregem en bedien KMO's in Vlaanderen. Wie zit met een website-vraag in z'n netwerk?`,
+Ik werk vanuit Anzegem en bedien KMO's in Vlaanderen. Wie zit met een website-vraag in z'n netwerk?`,
       hashtags: "#kmo #vlaanderen #website #waregem #ondernemen",
     }),
   },
@@ -1151,7 +1151,7 @@ Dus: dank u. Voor iedereen die ooit een doorverwijzing deed, een DM beantwoordde
 
 Als je iemand kent die een website nodig heeft of vastzit met de huidige — laat 't weten. Eén tag, één DM, één doorgestuurde URL. Dat is hoe dit blijft groeien.
 
-Studio-vm.be — solo, in Waregem, voor heel Vlaanderen.`,
+Studio-vm.be — persoonlijk, in Anzegem, voor heel Vlaanderen.`,
       hashtags: "",
     }),
   },
@@ -1214,7 +1214,7 @@ Geen verkooppraatje hier — doe gewoon die pagespeed-test en kijk wat je betaal
 
 Wie zit met vragen? Comments staan open.
 
-— Vincent (studio-vm.be — solo-bureau Waregem)`,
+— Vincent (studio-vm.be — webstudio Anzegem)`,
       hashtags: "",
     }),
   },

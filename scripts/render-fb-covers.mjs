@@ -96,7 +96,7 @@ async function buildCovers() {
           <div style="font-size:60px;font-weight:800;letter-spacing:-3px;">${LOGO}</div>
           <div>
             <div style="font-size:24px;font-weight:700;letter-spacing:-0.5px;">8 sites en groeiend</div>
-            <div style="font-size:14px;opacity:0.6;font-family:ui-monospace,Menlo,monospace;letter-spacing:3px;text-transform:uppercase;">solo bureau · waregem · vlaanderen</div>
+            <div style="font-size:14px;opacity:0.6;font-family:ui-monospace,Menlo,monospace;letter-spacing:3px;text-transform:uppercase;">webstudio · waregem · vlaanderen</div>
           </div>
         </div>
         <div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;letter-spacing:3px;text-transform:uppercase;opacity:0.7;">
@@ -240,14 +240,14 @@ async function buildCovers() {
       `
       <div style="padding:80px 100px;height:100%;display:flex;flex-direction:column;justify-content:space-between;">
         <div style="display:inline-flex;align-items:center;gap:10px;padding:8px 18px;background:rgba(245,158,11,0.15);border:1px solid #f59e0b80;border-radius:9999px;width:fit-content;font-size:13px;letter-spacing:4px;text-transform:uppercase;font-weight:600;color:#fbbf24;">
-          🟠 solo bureau
+          🟠 webstudio
         </div>
         <div>
           <div style="font-size:24px;opacity:0.5;font-family:ui-monospace,Menlo,monospace;letter-spacing:3px;text-transform:uppercase;">Gerund door</div>
           <div style="font-size:88px;font-weight:800;letter-spacing:-3px;line-height:1;margin-top:8px;">Vincent Montreuil</div>
           <div style="margin-top:20px;font-size:24px;opacity:0.7;max-width:1100px;line-height:1.4;">
             Bouwer, ontwerper, ondernemer. Eén persoon achter studio-vm.<br>
-            Bouwt websites voor zelfstandigen en KMO's vanuit Waregem sinds 2024.
+            Bouwt websites voor zelfstandigen en KMO's vanuit Anzegem sinds 2024.
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end;">

@@ -15,13 +15,13 @@ Alle teksten en gegevens om de pagina volledig in te vullen. Velden gemarkeerd m
 
 ## Korte intro (max 255 tekens)
 
-Solo-bureau in Waregem dat snelle, eigen-beheerbare websites bouwt voor zelfstandigen en KMO's in Vlaanderen. Vaste prijs vooraf. Geen WordPress, geen onderhoud-abonnementen. Laadtijd < 1 seconde, eigen admin-paneel inbegrepen.
+Webstudio in Anzegem dat snelle, eigen-beheerbare websites bouwt voor zelfstandigen en KMO's in Vlaanderen. Vaste prijs vooraf. Geen WordPress, geen onderhoud-abonnementen. Laadtijd < 1 seconde, eigen admin-paneel inbegrepen.
 
 ---
 
 ## Bedrijfsomschrijving (lange "Over")
 
-Studio-vm is een solo-bureau in Waregem dat moderne websites bouwt voor zelfstandigen, kmo's en lokale ondernemers in heel Vlaanderen.
+Studio-vm is een webstudio in Anzegem dat moderne websites bouwt voor zelfstandigen, kmo's en lokale ondernemers in heel Vlaanderen.
 
 Geen WordPress-bouwpakketten, geen plugin-jungle, geen maandelijkse onderhoudsfacturen voor niets. Elke site wordt zelf gebouwd in moderne code en geleverd met een eigen admin-paneel — zodat de klant zélf zijn teksten, foto's, prijzen en menu's kan aanpassen, zonder ooit nog te moeten bellen voor een spelfout.
 
@@ -63,7 +63,7 @@ Daarom werkt studio-vm anders:
 - Vaste prijs vooraf — je weet wat je betaalt en wat je krijgt
 - Hosting < €10/maand (klant betaalt direct, ik krijg geen commissie)
 - Eigen admin-paneel — minimaal, alleen wat je site nodig heeft
-- Solo bureau — jij praat met wie je site bouwt
+- Persoonlijk contact — jij praat met wie je site bouwt
 
 Voor wie nieuwsgierig is: studio-vm.be heeft zelf een PageSpeed van 100/100 op alle categorieën, laadt in 0.6 seconden, en draait voor €8/maand. Wat ik aan klanten predik, doe ik ook voor mezelf.
 
@@ -96,11 +96,11 @@ Geen hocus pocus. Gewoon: jij hebt een site nodig, ik bouw 'm.
 ## Adres
 
 - **Straat + nummer:** ⚠️ in te vullen
-- **Postcode:** 8790
-- **Stad:** Waregem
+- **Postcode:** 8570
+- **Stad:** Anzegem
 - **Land:** België
 - **Service area** (als geen adres):
-  Waregem en omgeving, West-Vlaanderen, Oost-Vlaanderen, heel Vlaanderen
+  Anzegem en omgeving, West-Vlaanderen, Oost-Vlaanderen, heel Vlaanderen
 
 ---
 
@@ -129,7 +129,7 @@ Geen hocus pocus. Gewoon: jij hebt een site nodig, ik bouw 'm.
 
 ## Tags / specialiteiten (keywords)
 
-Websiteontwerp · Webshop · WordPress-migratie · KMO-website · Mobiele website · Snelle website · Custom CMS · Admin-paneel · Vaste prijs website · Solo-bureau · West-Vlaanderen · Waregem · Vlaanderen · Health Check website · PageSpeed optimalisatie · Mollie checkout · Next.js website · Moderne website
+Websiteontwerp · Webshop · WordPress-migratie · KMO-website · Mobiele website · Snelle website · Custom CMS · Admin-paneel · Vaste prijs website · Webstudio · Anzegem · West-Vlaanderen · Waregem · Vlaanderen · Health Check website · PageSpeed optimalisatie · Mollie checkout · Next.js website · Moderne website
 
 ---
 
@@ -142,7 +142,7 @@ Websiteontwerp · Webshop · WordPress-migratie · KMO-website · Mobiele websit
 
 ## Page bio + mission
 
-- **Page bio:** Solo-bureau Waregem · websites voor KMO's in Vlaanderen · vaste prijs · eigen admin · <1s laadtijd
+- **Page bio:** Webstudio Anzegem · websites voor KMO's in Vlaanderen · vaste prijs · eigen admin · <1s laadtijd
 - **Mission statement:** Snelle, zelf-aanpasbare websites voor zelfstandigen en KMO's, zonder bouwpakketten of onderhoud-abonnementen.
 
 ---
@@ -153,7 +153,7 @@ Websiteontwerp · Webshop · WordPress-migratie · KMO-website · Mobiele websit
 
 👋 Welkom bij studio-vm.
 
-Solo-bureau in Waregem. We bouwen snelle, zelf-aanpasbare websites voor zelfstandigen en KMO's in heel Vlaanderen.
+Webstudio in Anzegem. We bouwen snelle, zelf-aanpasbare websites voor zelfstandigen en KMO's in heel Vlaanderen.
 
 Wat ons anders maakt:
 ✓ Geen WordPress-bouwpakket
@@ -196,9 +196,9 @@ studio-vm.be → Health Check.
 
 Korte intro:
 
-Ik ben Vincent Montreuil, websitebouwer uit Waregem.
+Ik ben Vincent Montreuil, websitebouwer uit Anzegem.
 
-2 jaar geleden begon ik met websites maken voor familie en vrienden. Vandaag is het mijn bedrijf — solo, vaste prijs, no-nonsense.
+2 jaar geleden begon ik met websites maken voor familie en vrienden. Vandaag is het mijn bedrijf — persoonlijk, vaste prijs, no-nonsense.
 
 Wat ik niet doe:
 ✗ Geen uurfacturen — je weet niet wat je krijgt
@@ -227,7 +227,7 @@ Wie wil starten? DM of via studio-vm.be.
 ## Checklist vóór publiceren
 
 - [ ] Telefoonnummer toegevoegd
-- [ ] Straatadres + postcode 8790 Waregem
+- [ ] Straatadres + postcode 8570 Anzegem
 - [ ] Oprichtingsdatum (maand + jaar)
 - [ ] BTW-nummer (BE0xxx.xxx.xxx) — als publiek tonen
 - [ ] Openingsuren finaal
