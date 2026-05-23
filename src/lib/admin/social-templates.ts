@@ -19,7 +19,7 @@ export type TemplateCtx = {
 export type Template = {
   id: string;
   platform: "facebook" | "linkedin";
-  post_kind: "persoonlijk" | "page" | "group" | "article";
+  post_kind: "persoonlijk" | "page" | "group" | "article" | "story";
   target_url: string;
   days?: number[]; // 1-5 = ma-vr
   category:
@@ -30,7 +30,8 @@ export type Template = {
     | "story"
     | "case-study"
     | "service"
-    | "positie";
+    | "positie"
+    | "story-case";
   build: (ctx: TemplateCtx) => {
     title: string;
     body: string;
@@ -38,6 +39,134 @@ export type Template = {
     site?: string; // optioneel: feature-site (domain) voor screenshot-layout
   };
 };
+
+// ============================================================================
+// STORY-CASES — 1 per werkdag, korter en punchier dan feed-cases.
+// Gebruikt voor /api/social-image/[id]?format=story (1080×1920).
+// Maandag-vrijdag: rotatie door 5 cases (Cottage en Bar'Botte alterneren).
+// ============================================================================
+export const STORY_CASE_TEMPLATES: Template[] = [
+  {
+    id: "story-celine-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [1], // maandag
+    category: "story-case",
+    build: () => ({
+      title: "Story · Céline — celineinterieur.com",
+      body: `🛋️ Vandaag's case: celineinterieur.com
+
+Voor mijn zus Céline bouwde ik haar webshop + offerte-flow.
+
+Eigen admin. <1s laadtijd. Vaste prijs.
+
+Zelf nodig? → studio-vm.be`,
+      hashtags: "",
+      site: "celineinterieur.com",
+    }),
+  },
+  {
+    id: "story-jp-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [2], // dinsdag
+    category: "story-case",
+    build: () => ({
+      title: "Story · Jean-Paul — montreuil.be",
+      body: `📸 Vandaag's case: montreuil.be
+
+Wildlife-galerie + boekverkoop voor m'n vader.
+
+Foto's geoptimaliseerd, laadt in 0.7s op mobiel.
+
+Bouw ook voor jou? → studio-vm.be`,
+      hashtags: "",
+      site: "montreuil.be",
+    }),
+  },
+  {
+    id: "story-marilines-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [3], // woensdag
+    category: "story-case",
+    build: () => ({
+      title: "Story · Mari-Lines — mari-lines.be",
+      body: `🚧 Vandaag's case: mari-lines.be
+
+B2B-site voor wegmarkeringen — werkenoverzicht + offertes voor bouwheren.
+
+Vaste prijs, in 3 weken.
+
+KMO met website-vraag? → studio-vm.be`,
+      hashtags: "",
+      site: "mari-lines.be",
+    }),
+  },
+  {
+    id: "story-allard-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [4], // donderdag
+    category: "story-case",
+    build: () => ({
+      title: "Story · Allard — wildlife portfolio + prints",
+      body: `🦌 Vandaag's case: wildlife portfolio + e-commerce
+
+Portfolio + print-webshop voor wildlife-fotograaf Allard.
+
+Mollie-checkout, eigen admin.
+
+Creatief? Webshop nodig? → studio-vm.be`,
+      hashtags: "",
+      site: "allardphilippe.vercel.app",
+    }),
+  },
+  {
+    id: "story-barbotte-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [5], // vrijdag week A
+    category: "story-case",
+    build: () => ({
+      title: "Story · Bar'Botte — horeca + reservaties",
+      body: `🍷 Vandaag's case: horeca-site Bar'Botte
+
+Menu's + dagsuggesties + reservaties direct op de site.
+
+Eigen admin — geen Photoshop-pdf-werk meer.
+
+Horeca-zaak? → studio-vm.be`,
+      hashtags: "",
+      site: "barbotte.vercel.app",
+    }),
+  },
+  {
+    id: "story-cottage-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/",
+    days: [5], // vrijdag week B (alterneert met Bar'Botte via rotatie-keuze)
+    category: "story-case",
+    build: () => ({
+      title: "Story · Cottage Waregem — restaurant + events",
+      body: `🍽️ Vandaag's case: Cottage Waregem
+
+Restaurant + eventruimte in 1 site, met aparte flows.
+
+Vaste prijs, opgeleverd in 4 weken.
+
+Brasserie of zaak? → studio-vm.be`,
+      hashtags: "",
+      site: "cottage-waregem.vercel.app",
+    }),
+  },
+];
 
 // Klanten-portfolio — wordt in roterende slots gebruikt voor variatie.
 // Allemaal publieke sites; geen privacy-issue om te vermelden.
@@ -1187,4 +1316,19 @@ export function pickClients(): {
     client: shuffled[0]!,
     altClient: shuffled[1]!,
   };
+}
+
+// Hulp — kies de story-case voor vandaag (één per werkdag).
+// Vrijdag alterneert: even weken → Bar'Botte, oneven → Cottage.
+export function pickStoryCaseForDay(
+  dayOfWeek: number, // 1=ma, 5=vr
+  weekNumber: number = 0,
+): Template | null {
+  const candidates = STORY_CASE_TEMPLATES.filter((t) =>
+    t.days?.includes(dayOfWeek),
+  );
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0]!;
+  // Vrijdag: alterneren tussen Bar'Botte (even) en Cottage (oneven)
+  return weekNumber % 2 === 0 ? candidates[0]! : candidates[1]!;
 }

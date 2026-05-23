@@ -17,6 +17,7 @@ import {
   PORTFOLIO,
   pickTemplatesForDay,
   pickClients,
+  pickStoryCaseForDay,
   type Template,
   type TemplateCtx,
 } from "./social-templates";
@@ -146,8 +147,16 @@ export async function generateDailyPosts(opts: {
     month: "long",
   });
 
-  // 3. Kies templates
+  // 3. Kies templates + story-case voor vandaag
   const templates = pickTemplatesForDay(dayOfWeek, recentIds, count);
+  // Week-nummer voor vrijdag-alternantie tussen Bar'Botte/Cottage
+  const weekNumber = Math.floor(
+    (now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) /
+      (7 * 86_400_000),
+  );
+  const storyTemplate = pickStoryCaseForDay(dayOfWeek, weekNumber);
+  if (storyTemplate) templates.push(storyTemplate);
+
   if (templates.length === 0) {
     return {
       generated: 0,
@@ -196,19 +205,23 @@ export async function generateDailyPosts(opts: {
   }
 
   // 5. Insert in DB (status=klaar zodat ze meteen klaar staan voor review)
-  const inserts = posts.map((p, i) => ({
-    platform: p.platform,
-    post_kind: p.post_kind,
-    status: "klaar" as const,
-    title: p.title,
-    body: p.body,
-    hashtags: p.hashtags || null,
-    target_url: p.target_url,
-    utm_source: p.platform,
-    utm_medium: "social",
-    utm_campaign: `${now.toISOString().slice(0, 7).replace("-", "")}-${p.templateId}`,
-    notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}${sites[i] ? ` · site:${sites[i]}` : ""}`,
-  }));
+  // Story-posts krijgen 'format:story' marker zodat image-route auto-detecteert
+  const inserts = posts.map((p, i) => {
+    const isStory = p.post_kind === "story";
+    return {
+      platform: p.platform,
+      post_kind: p.post_kind,
+      status: "klaar" as const,
+      title: p.title,
+      body: p.body,
+      hashtags: p.hashtags || null,
+      target_url: p.target_url,
+      utm_source: p.platform,
+      utm_medium: "social",
+      utm_campaign: `${now.toISOString().slice(0, 7).replace("-", "")}-${p.templateId}`,
+      notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}${sites[i] ? ` · site:${sites[i]}` : ""}${isStory ? " · format:story" : ""}`,
+    };
+  });
 
   const { data: inserted, error } = await db
     .from("social_posts")

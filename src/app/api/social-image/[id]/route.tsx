@@ -175,12 +175,14 @@ export async function GET(
 ) {
   const { id } = await params;
   // ?format=story → vertikaal 1080×1920 voor Facebook/Instagram Stories
-  const isStory = new URL(req.url).searchParams.get("format") === "story";
+  // Of: post heeft 'format:story' marker in notes (auto-detect uit DB hieronder)
+  const queryStory = new URL(req.url).searchParams.get("format") === "story";
 
   let hero = "Studio-vm — websites voor KMO's in Vlaanderen";
   let platform = "algemeen";
   let category = "story";
   let featuredSite: string | null = null;
+  let postMarkedAsStory = false;
 
   if (adminConfigured && id) {
     try {
@@ -209,12 +211,16 @@ export async function GET(
         // Featured-site uit notes — bv. "site:celine-interieur.be"
         const siteMatch = post.notes?.match(/site:([a-z0-9.\-]+)/i)?.[1];
         if (siteMatch) featuredSite = siteMatch;
+        // format:story marker → default story-layout
+        if (post.notes?.includes("format:story")) postMarkedAsStory = true;
       }
     } catch {
       // stil
     }
   }
 
+  // Effectief story-modus = query OF post-marker
+  const isStory = queryStory || postMarkedAsStory;
   const theme = THEMES[platform] ?? THEMES.algemeen!;
   const useScreenshot = !!featuredSite && !isStory; // stories = tekst-eerst
   const montserratData = await getMontserratExtraBold();

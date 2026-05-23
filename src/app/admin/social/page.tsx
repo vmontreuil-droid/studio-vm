@@ -903,7 +903,12 @@ function PostCard({ post }: { post: SocialPost }) {
   const imageVersion = post.updated_at
     ? Date.parse(post.updated_at).toString(36)
     : "";
+  // Detecteer story-post via post_kind of notes-marker
+  const isStoryPost =
+    post.post_kind === "story" ||
+    (typeof post.notes === "string" && post.notes.includes("format:story"));
   const imageUrl = `/api/social-image/${post.id}${imageVersion ? `?v=${imageVersion}` : ""}`;
+  const storyUrl = `/api/social-image/${post.id}?format=story${imageVersion ? `&v=${imageVersion}` : ""}`;
 
   return (
     <li className="rounded-xl bg-background/40 p-3">
@@ -934,22 +939,53 @@ function PostCard({ post }: { post: SocialPost }) {
         </div>
       </div>
 
-      {/* Brand-card preview — gegenereerde image */}
-      <a
-        href={imageUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="group mt-3 block overflow-hidden rounded-lg border border-border/50"
-        title="Klik om in volle grootte te openen en op te slaan (rechtsklikken → afbeelding opslaan)"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl}
-          alt={post.title}
-          className="block aspect-[1200/630] w-full bg-gradient-to-br from-blue-900 to-purple-900 object-cover transition-transform group-hover:scale-[1.02]"
-          loading="lazy"
-        />
-      </a>
+      {/* Brand-card preview — story-posts krijgen vertikaal-mockup */}
+      {isStoryPost ? (
+        <div className="mt-3 flex items-center justify-center rounded-lg border border-pink-500/30 bg-gradient-to-br from-pink-900/40 to-orange-900/40 p-3">
+          <a
+            href={storyUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="group block overflow-hidden rounded-lg border border-white/10"
+            title="Story-preview — klik voor volle grootte (1080×1920)"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={storyUrl}
+              alt={post.title}
+              className="block w-[180px] bg-gradient-to-br from-pink-900 to-orange-900 transition-transform group-hover:scale-[1.02]"
+              style={{ aspectRatio: "1080/1920" }}
+              loading="lazy"
+            />
+          </a>
+          <div className="ml-4 flex flex-col gap-1">
+            <span className="inline-flex w-fit items-center gap-1 rounded-full bg-pink-500/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-pink-300">
+              <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+              Story-card
+            </span>
+            <p className="text-[11px] text-muted">
+              Vertikaal 9:16 — voor FB & Instagram Stories
+            </p>
+            <p className="font-mono text-[10px] text-muted">1080 × 1920 PNG</p>
+          </div>
+        </div>
+      ) : (
+        <a
+          href={imageUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="group mt-3 block overflow-hidden rounded-lg border border-border/50"
+          title="Klik om in volle grootte te openen en op te slaan (rechtsklikken → afbeelding opslaan)"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt={post.title}
+            className="block aspect-[1200/630] w-full bg-gradient-to-br from-blue-900 to-purple-900 object-cover transition-transform group-hover:scale-[1.02]"
+            loading="lazy"
+          />
+        </a>
+      )}
 
       {/* Body-preview */}
       {post.body && (
@@ -976,17 +1012,19 @@ function PostCard({ post }: { post: SocialPost }) {
             label="Volledige post"
           />
         )}
+        {!isStoryPost && (
+          <a
+            href={imageUrl}
+            download={`studio-vm-${post.platform}-${post.id.slice(0, 8)}.png`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
+            title="Feed-card downloaden (1200×630 PNG)"
+          >
+            <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+            Feed
+          </a>
+        )}
         <a
-          href={imageUrl}
-          download={`studio-vm-${post.platform}-${post.id.slice(0, 8)}.png`}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
-          title="Feed-card downloaden (1200×630 PNG)"
-        >
-          <Sparkles className="h-3 w-3" strokeWidth={2.5} />
-          Feed
-        </a>
-        <a
-          href={`/api/social-image/${post.id}?format=story${imageVersion ? `&v=${imageVersion}` : ""}`}
+          href={storyUrl}
           download={`studio-vm-story-${post.platform}-${post.id.slice(0, 8)}.png`}
           className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-orange-500 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
           title="Story-card downloaden (1080×1920 vertikaal voor FB/IG Stories)"
