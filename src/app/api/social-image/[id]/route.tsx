@@ -170,10 +170,12 @@ const THEMES: Record<string, Theme> = {
 // GET — render image
 // ============================================================================
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  // ?format=story → vertikaal 1080×1920 voor Facebook/Instagram Stories
+  const isStory = new URL(req.url).searchParams.get("format") === "story";
 
   let hero = "Studio-vm — websites voor KMO's in Vlaanderen";
   let platform = "algemeen";
@@ -214,12 +216,25 @@ export async function GET(
   }
 
   const theme = THEMES[platform] ?? THEMES.algemeen!;
-  const useScreenshot = !!featuredSite;
+  const useScreenshot = !!featuredSite && !isStory; // stories = tekst-eerst
   const montserratData = await getMontserratExtraBold();
   const screenshotData = featuredSite
     ? await getScreenshotDataUrl(featuredSite)
     : null;
   void screenshotPathFor; // alias-only — niet rechtstreeks gebruikt
+
+  // Story-layout: vertikaal 1080×1920, ander render-pad onderaan
+  if (isStory) {
+    return renderStoryImage({
+      hero,
+      platform,
+      category,
+      theme,
+      featuredSite,
+      screenshotData,
+      montserratData,
+    });
+  }
 
   // Schaal hero-tekst op basis van lengte. In screenshot-layout iets kleiner.
   const fontSize = useScreenshot
@@ -573,6 +588,316 @@ export async function GET(
       headers: {
         // Korte cache + must-revalidate zodat een design-fix snel zichtbaar
         // wordt. Edge cachet 60s, browser revalidates.
+        "cache-control":
+          "public, max-age=60, s-maxage=300, must-revalidate",
+      },
+    },
+  );
+}
+
+// =============================================================================
+// STORY-LAYOUT — vertikaal 1080×1920 voor FB/IG Stories
+// =============================================================================
+function renderStoryImage(opts: {
+  hero: string;
+  platform: string;
+  category: string;
+  theme: Theme;
+  featuredSite: string | null;
+  screenshotData: string | null;
+  montserratData: ArrayBuffer | null;
+}): ImageResponse {
+  const { hero, theme, featuredSite, screenshotData, montserratData, category } =
+    opts;
+
+  // Stories worden mobiel-vol-scherm bekeken — tekst mag GROOT en kort.
+  const fontSize =
+    hero.length < 40 ? 110 : hero.length < 70 ? 88 : hero.length < 100 ? 72 : 60;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          background: theme.gradient,
+          padding: "80px 70px",
+          color: "white",
+          fontFamily: "Montserrat, Inter, system-ui, sans-serif",
+          position: "relative",
+        }}
+      >
+        {/* Decoratieve glow boven */}
+        <div
+          style={{
+            position: "absolute",
+            top: -300,
+            left: -200,
+            width: 700,
+            height: 700,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${theme.accent}55 0%, transparent 70%)`,
+            display: "flex",
+          }}
+        />
+        {/* Decoratieve glow onder */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: -300,
+            right: -200,
+            width: 700,
+            height: 700,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${theme.accent}40 0%, transparent 70%)`,
+            display: "flex",
+          }}
+        />
+        {/* Grid-stippen */}
+        <div
+          style={{
+            position: "absolute",
+            top: 40,
+            right: 40,
+            width: 200,
+            height: 200,
+            opacity: 0.12,
+            backgroundImage:
+              "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+            display: "flex",
+          }}
+        />
+
+        {/* TOP — platform-badge */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            marginTop: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 22px",
+              background: theme.badgeBg,
+              borderRadius: 9999,
+              fontSize: 26,
+              letterSpacing: 4,
+              fontWeight: 600,
+              border: `1px solid ${theme.accent}60`,
+            }}
+          >
+            <span
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 9999,
+                background: theme.accent,
+                display: "flex",
+              }}
+            />
+            studio-vm · STORY
+          </div>
+        </div>
+
+        {/* MIDDLE — hero quote, gecentreerd */}
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "flex-start",
+            fontSize,
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: -3,
+            marginTop: 50,
+          }}
+        >
+          {hero}
+        </div>
+
+        {/* Optionele site-vermelding + screenshot-thumbnail in story */}
+        {featuredSite && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 24,
+              marginBottom: 40,
+            }}
+          >
+            {screenshotData && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  background: "rgba(0,0,0,0.4)",
+                  borderRadius: 18,
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "14px 18px",
+                    background: "rgba(0,0,0,0.55)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      width: 14,
+                      height: 14,
+                      borderRadius: 9999,
+                      background: "#ef4444",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      width: 14,
+                      height: 14,
+                      borderRadius: 9999,
+                      background: "#f59e0b",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      width: 14,
+                      height: 14,
+                      borderRadius: 9999,
+                      background: "#10b981",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      marginLeft: 16,
+                      padding: "6px 18px",
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 8,
+                      fontSize: 22,
+                      fontFamily: "ui-monospace, Menlo, monospace",
+                      color: "rgba(255,255,255,0.75)",
+                    }}
+                  >
+                    {featuredSite}
+                  </div>
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={screenshotData}
+                  alt={featuredSite}
+                  width={940}
+                  height={500}
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    height: 500,
+                    objectFit: "cover",
+                    objectPosition: "top center",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* BOTTOM — vm. + URL */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              fontSize: 150,
+              fontWeight: 800,
+              letterSpacing: -6,
+              lineHeight: 1,
+              fontFamily: "Montserrat, system-ui, sans-serif",
+            }}
+          >
+            <span style={{ display: "flex", color: "#ffffff" }}>vm</span>
+            <span style={{ display: "flex", color: "#f59e0b" }}>.</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 28,
+              letterSpacing: 5,
+              fontFamily: "ui-monospace, Menlo, monospace",
+              textTransform: "uppercase",
+              opacity: 0.8,
+            }}
+          >
+            studio-vm.be
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 22,
+              opacity: 0.6,
+            }}
+          >
+            websites voor KMO's in Vlaanderen
+          </div>
+        </div>
+
+        {/* tone-of-voice marker */}
+        {category !== "story" && (
+          <div
+            style={{
+              position: "absolute",
+              top: 100,
+              right: 70,
+              display: "flex",
+              padding: "10px 18px",
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: 9999,
+              fontSize: 20,
+              letterSpacing: 4,
+              opacity: 0.75,
+            }}
+          >
+            {category.toUpperCase()}
+          </div>
+        )}
+      </div>
+    ),
+    {
+      width: 1080,
+      height: 1920,
+      fonts: montserratData
+        ? [
+            {
+              name: "Montserrat",
+              data: montserratData,
+              weight: 800,
+              style: "normal",
+            },
+          ]
+        : undefined,
+      headers: {
         "cache-control":
           "public, max-age=60, s-maxage=300, must-revalidate",
       },

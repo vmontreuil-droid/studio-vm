@@ -980,10 +980,19 @@ function PostCard({ post }: { post: SocialPost }) {
           href={imageUrl}
           download={`studio-vm-${post.platform}-${post.id.slice(0, 8)}.png`}
           className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
-          title="Brand-card downloaden als PNG"
+          title="Feed-card downloaden (1200×630 PNG)"
         >
           <Sparkles className="h-3 w-3" strokeWidth={2.5} />
-          Image
+          Feed
+        </a>
+        <a
+          href={`/api/social-image/${post.id}?format=story${imageVersion ? `&v=${imageVersion}` : ""}`}
+          download={`studio-vm-story-${post.platform}-${post.id.slice(0, 8)}.png`}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-orange-500 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
+          title="Story-card downloaden (1080×1920 vertikaal voor FB/IG Stories)"
+        >
+          <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+          Story
         </a>
       </div>
 
