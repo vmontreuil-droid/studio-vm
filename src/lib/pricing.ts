@@ -31,7 +31,7 @@ const data: Record<Locale, Bundle> = {
     ],
     subscription: [
       { slug: "care", name: "Care", tagline: "Wij houden 't draaiend", price: "€ 49", priceNote: "per maand, excl. btw", features: ["Hosting (Vercel + Supabase)", "SSL + automatische backups", "Security updates", "1u support per maand", "Maandelijkse uptime-rapport"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
-      { slug: "plus", name: "Plus", tagline: "Meest gekozen", price: "€ 149", priceNote: "per maand, excl. btw", features: ["Alles van Care", "Tot 4u support per maand", "Content-updates door mij", "Performance + SEO rapport", "Reactie binnen 1 werkdag"], highlighted: true, ctaLabel: "Start abonnement", ctaHref: "/#contact" },
+      { slug: "plus", name: "Plus", tagline: "Meest gekozen", price: "€ 149", priceNote: "per maand, excl. btw", features: ["Alles van het €49-pakket", "Tot 4u support per maand", "Content-updates door mij", "Performance + SEO rapport", "Reactie binnen 1 werkdag"], highlighted: true, ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Voor wie blijft groeien", price: "€ 399", priceNote: "per maand, excl. btw", features: ["Alles van Plus", "Onbeperkt support", "5u nieuwe features per maand", "Prioriteit reactie binnen 4u", "Strategie-call elke maand"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
       { slug: "partner", name: "Partner", tagline: "Vaste digitale partner", price: "€ 799", priceNote: "per maand, excl. btw", features: ["Alles van Scale", "Onbeperkte support én ontwikkeling", "Wekelijkse vooruitgang", "Eigen roadmap & prioriteiten", "Ik als vast aanspreekpunt"], ctaLabel: "Start abonnement", ctaHref: "/#contact" },
     ],
@@ -65,7 +65,7 @@ const data: Record<Locale, Bundle> = {
     ],
     subscription: [
       { slug: "care", name: "Care", tagline: "On garde tout en marche", price: "€ 49", priceNote: "par mois, HTVA", features: ["Hébergement (Vercel + Supabase)", "SSL + sauvegardes automatiques", "Mises à jour de sécurité", "1h de support par mois", "Rapport uptime mensuel"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
-      { slug: "plus", name: "Plus", tagline: "Le plus choisi", price: "€ 149", priceNote: "par mois, HTVA", features: ["Tout de Care", "Jusqu'à 4h de support par mois", "Mises à jour de contenu par moi", "Rapport performance + SEO", "Réponse sous 1 jour ouvré"], highlighted: true, ctaLabel: "S'abonner", ctaHref: "/#contact" },
+      { slug: "plus", name: "Plus", tagline: "Le plus choisi", price: "€ 149", priceNote: "par mois, HTVA", features: ["Tout du forfait €49", "Jusqu'à 4h de support par mois", "Mises à jour de contenu par moi", "Rapport performance + SEO", "Réponse sous 1 jour ouvré"], highlighted: true, ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "Pour ceux qui grandissent", price: "€ 399", priceNote: "par mois, HTVA", features: ["Tout de Plus", "Support illimité", "5h de nouvelles fonctions par mois", "Réponse prioritaire sous 4h", "Appel stratégie chaque mois"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
       { slug: "partner", name: "Partner", tagline: "Partenaire digital fixe", price: "€ 799", priceNote: "par mois, HTVA", features: ["Tout de Scale", "Support et développement illimités", "Avancement hebdomadaire", "Roadmap & priorités propres", "Moi comme interlocuteur fixe"], ctaLabel: "S'abonner", ctaHref: "/#contact" },
     ],
@@ -99,7 +99,7 @@ const data: Record<Locale, Bundle> = {
     ],
     subscription: [
       { slug: "care", name: "Care", tagline: "We keep it running", price: "€ 49", priceNote: "per month, excl. VAT", features: ["Hosting (Vercel + Supabase)", "SSL + automatic backups", "Security updates", "1h support per month", "Monthly uptime report"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
-      { slug: "plus", name: "Plus", tagline: "Most chosen", price: "€ 149", priceNote: "per month, excl. VAT", features: ["Everything in Care", "Up to 4h support per month", "Content updates by me", "Performance + SEO report", "Reply within 1 working day"], highlighted: true, ctaLabel: "Subscribe", ctaHref: "/#contact" },
+      { slug: "plus", name: "Plus", tagline: "Most chosen", price: "€ 149", priceNote: "per month, excl. VAT", features: ["Everything in the €49 package", "Up to 4h support per month", "Content updates by me", "Performance + SEO report", "Reply within 1 working day"], highlighted: true, ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "scale", name: "Scale", tagline: "For those who keep growing", price: "€ 399", priceNote: "per month, excl. VAT", features: ["Everything in Plus", "Unlimited support", "5h new features per month", "Priority reply within 4h", "Strategy call every month"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
       { slug: "partner", name: "Partner", tagline: "Dedicated digital partner", price: "€ 799", priceNote: "per month, excl. VAT", features: ["Everything in Scale", "Unlimited support and development", "Weekly progress", "Own roadmap & priorities", "Me as fixed point of contact"], ctaLabel: "Subscribe", ctaHref: "/#contact" },
     ],
@@ -345,3 +345,141 @@ export function publishMonthlyCents(active: ModuleKey[]): number {
     PUBLISH_BASE_MONTHLY_CENTS,
   );
 }
+
+// --- Vlak maandmodel: één all-in prijs voor gewone websites ---
+// Strategie 2026: de bouw is geen losse eenmalige kost meer. Eén
+// maandprijs dekt bouw + hosting + onderhoud. Zware projecten
+// (webshop/maatwerk) blijven op aanvraag. De one-shot-pakketten
+// hierboven blijven bestaan voor de offerte-configurator (Fase 2),
+// maar zijn niet langer het publieke kop-aanbod.
+export const FLAT_PRICE_EUR = 49;
+
+export type FlatOffer = {
+  badge: string;
+  name: string;
+  tagline: string;
+  price: string;
+  priceNote: string;
+  terms: string;
+  features: string[];
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+export type CustomOffer = {
+  name: string;
+  tagline: string;
+  price: string;
+  desc: string;
+  features: string[];
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+export const FLAT_OFFER: Record<Locale, FlatOffer> = {
+  nl: {
+    badge: "Alles inbegrepen",
+    name: "Je website, volledig verzorgd",
+    tagline: "Meest gekozen",
+    price: "€ 49",
+    priceNote: "per maand, excl. btw",
+    terms: "12 maanden, daarna maandelijks opzegbaar · géén opstartkost",
+    features: [
+      "Volledige website op maat — door mij gebouwd",
+      "Hosting, SSL & dagelijkse backups",
+      "Onderhoud, updates & beveiliging",
+      "Kleine wijzigingen + support inbegrepen",
+      "Mobiel + dark mode, meertalig mogelijk",
+      "SEO-basis — vindbaar in Google",
+      "Contactformulier & GDPR-cookiebanner",
+      "Je blijft eigenaar van je domein",
+    ],
+    ctaLabel: "Start gesprek",
+    ctaHref: "/#contact",
+  },
+  fr: {
+    badge: "Tout inclus",
+    name: "Votre site, entièrement pris en charge",
+    tagline: "Le plus choisi",
+    price: "€ 49",
+    priceNote: "par mois, HTVA",
+    terms: "12 mois, puis résiliable chaque mois · sans frais de démarrage",
+    features: [
+      "Site complet sur mesure — construit par moi",
+      "Hébergement, SSL & sauvegardes quotidiennes",
+      "Maintenance, mises à jour & sécurité",
+      "Petites modifications + support inclus",
+      "Mobile + dark mode, multilingue possible",
+      "Base SEO — visible sur Google",
+      "Formulaire de contact & bannière RGPD",
+      "Vous restez propriétaire de votre domaine",
+    ],
+    ctaLabel: "Démarrer la conversation",
+    ctaHref: "/#contact",
+  },
+  en: {
+    badge: "All included",
+    name: "Your website, fully taken care of",
+    tagline: "Most chosen",
+    price: "€ 49",
+    priceNote: "per month, excl. VAT",
+    terms: "12 months, then cancel any month · no setup fee",
+    features: [
+      "Full bespoke website — built by me",
+      "Hosting, SSL & daily backups",
+      "Maintenance, updates & security",
+      "Small changes + support included",
+      "Mobile + dark mode, multilingual possible",
+      "SEO basics — findable on Google",
+      "Contact form & GDPR cookie banner",
+      "You stay owner of your domain",
+    ],
+    ctaLabel: "Start a chat",
+    ctaHref: "/#contact",
+  },
+};
+
+export const CUSTOM_OFFER: Record<Locale, CustomOffer> = {
+  nl: {
+    name: "Webshop & maatwerk",
+    tagline: "Grotere projecten",
+    price: "op aanvraag",
+    desc: "Online verkopen, integraties (boekhouding, CRM), migraties of een systeem op maat? Dat valt buiten het vaste maandtarief — scope en prijs bespreken we samen.",
+    features: [
+      "Webshop met Mollie of Stripe",
+      "Voorraad, kortingscodes, klantportaal",
+      "Integraties & multi-app systemen",
+      "Migratie van WordPress/Squarespace",
+    ],
+    ctaLabel: "Bespreek je project",
+    ctaHref: "/#contact",
+  },
+  fr: {
+    name: "Boutique & sur mesure",
+    tagline: "Projets plus grands",
+    price: "sur demande",
+    desc: "Vendre en ligne, intégrations (compta, CRM), migrations ou un système sur mesure ? Cela sort du tarif mensuel fixe — on discute le scope et le prix ensemble.",
+    features: [
+      "Boutique avec Mollie ou Stripe",
+      "Stock, codes promo, espace client",
+      "Intégrations & systèmes multi-apps",
+      "Migration WordPress/Squarespace",
+    ],
+    ctaLabel: "Discutons de votre projet",
+    ctaHref: "/#contact",
+  },
+  en: {
+    name: "Webshop & custom",
+    tagline: "Larger projects",
+    price: "on request",
+    desc: "Selling online, integrations (accounting, CRM), migrations or a custom system? That sits outside the fixed monthly rate — we discuss scope and price together.",
+    features: [
+      "Webshop with Mollie or Stripe",
+      "Stock, discount codes, customer portal",
+      "Integrations & multi-app systems",
+      "WordPress/Squarespace migration",
+    ],
+    ctaLabel: "Discuss your project",
+    ctaHref: "/#contact",
+  },
+};

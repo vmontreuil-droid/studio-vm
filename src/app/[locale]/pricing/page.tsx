@@ -4,14 +4,12 @@ import { notFound } from "next/navigation";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
 import {
   getPricing,
+  FLAT_OFFER,
+  CUSTOM_OFFER,
   type PricingTier,
-  PUBLISH_SETUP_CENTS,
-  PUBLISH_BASE_MONTHLY_CENTS,
 } from "@/lib/pricing";
 import { openproviderConfigured } from "@/lib/openprovider";
 import { DomainCheck } from "@/components/domain-check";
-import { PricingCompare } from "@/components/pricing-compare";
-import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 export async function generateMetadata({
@@ -31,18 +29,17 @@ const copy: Record<
     heroEyebrow: string;
     heroTitle: string;
     heroIntro: string;
-    oneShotEyebrow: string;
-    oneShotTitle: string;
-    oneShotIntro: string;
+    heroCta: string;
+    offerEyebrow: string;
+    offerTitle: string;
+    offerIntro: string;
+    customLabel: string;
     subEyebrow: string;
     subTitle: string;
     subIntro: string;
-    modEyebrow: string;
-    modTitle: string;
-    modIntro: string;
-    payEyebrow: string;
-    payTitle: string;
-    payItems: { t: string; d: string }[];
+    howEyebrow: string;
+    howTitle: string;
+    howItems: { t: string; d: string }[];
     domEyebrow: string;
     domTitle: string;
     domIntro: string;
@@ -59,26 +56,34 @@ const copy: Record<
   nl: {
     metaTitle: "Pricing — Studio VM",
     heroEyebrow: "Pricing",
-    heroTitle: "Geen verrassingen achteraf.",
+    heroTitle: "Eén prijs. Alles inbegrepen.",
     heroIntro:
-      "Heldere pakketten en abonnementen, gepubliceerd op deze pagina. Wat je hier leest is wat je krijgt — en wat je betaalt.",
-    oneShotEyebrow: "Eenmalig",
-    oneShotTitle: "Wat een nieuwe site kost",
-    oneShotIntro: "Vijf pakketten. Eerlijk geprijsd. Geen offertes met sterretjes.",
-    subEyebrow: "Maandelijks",
-    subTitle: "Onderhoud en doorgroei",
+      "Geen offertes met sterretjes, geen eenmalige bouwfactuur. Ik bouw je website, host 'm, hou 'm veilig en up-to-date — voor één vast bedrag per maand.",
+    heroCta: "Start een gesprek",
+    offerEyebrow: "Het aanbod",
+    offerTitle: "Wat een website kost",
+    offerIntro:
+      "Voor een gewone website betaal je één maandprijs — bouw inbegrepen, geen opstartkost. Webshops en maatwerk bespreken we apart.",
+    customLabel: "Of grotere plannen?",
+    subEyebrow: "Meer nodig?",
+    subTitle: "Upgrades voor wie meer wil",
     subIntro:
-      "Eén onderhoudsabonnement is verplicht vanaf maand 1 — je kiest vrij welk niveau, en je kan later in je klantenportaal zelf opgraden.",
-    modEyebrow: "À la carte",
-    modTitle: "Losse modules bij te bestellen",
-    modIntro:
-      "Bij elk pakket. Enkel wat je nodig hebt — je betaalt nooit voor functies die je niet gebruikt.",
-    payEyebrow: "Betaalwijze",
-    payTitle: "Vast bedrag, betalen op jouw tempo",
-    payItems: [
-      { t: "30% bij vastleggen", d: "Je stelt alles samen in de configurator en betaalt 30% aanbetaling om je scope vast te leggen." },
-      { t: "Spreiding 0% toeslag", d: "Het saldo ineens of gespreid in 3×, 6×, 12× of 24× — zonder enige toeslag." },
-      { t: "Directe-vastlegkorting", d: "Leg je meteen vast, dan 7% korting op het eenmalige bedrag. Geen sterretjes." },
+      "Het €49-pakket dekt alles voor een gewone site. Heb je meer support-uren, content-werk of nieuwe features nodig, dan klim je naar een hoger niveau — wanneer jij wil.",
+    howEyebrow: "Zo werkt het",
+    howTitle: "Eerlijk en zonder verrassingen",
+    howItems: [
+      {
+        t: "Geen opstartkost",
+        d: "Je betaalt niets vooraf voor de bouw. We starten, ik bouw je site, en je betaalt gewoon je eerste maand.",
+      },
+      {
+        t: "12 maanden, dan vrij",
+        d: "Eén jaar minimum — zo is de bouw eerlijk verdeeld. Daarna maandelijks opzegbaar, geen kleine lettertjes.",
+      },
+      {
+        t: "Alles in één bedrag",
+        d: "Bouw, hosting, onderhoud, updates en support zitten samen in je maandprijs. Nooit een onverwachte factuur.",
+      },
     ],
     domEyebrow: "Domein & e-mail",
     domTitle: "Nog geen domein of e-mailadres?",
@@ -91,44 +96,53 @@ const copy: Record<
       { t: "Domeinverhuis", price: "€ 75 vast", d: "We halen je domein volledig beheerd weg bij je huidige host (API-gedreven). Jij keurt 1× goed, wij doen de rest — meestal binnen enkele uren (.be), zonder downtime." },
     ],
     domNote:
-      "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Vaste prijzen, transparant — je kiest domein en e-mail mee in de configurator en het zit meteen in je totaal.",
+      "Heb je al een domein of e-mail? Dan koppelen we dat kosteloos. Vaste prijzen, transparant.",
     faqEyebrow: "Vragen die vaak terugkomen",
     faqTitle: "Goed om te weten",
     faqs: [
-      { q: "Kan ik later upgraden van Starter naar Pro?", a: "Ja. Je betaalt enkel het verschil + tijd voor de extra functies. Je onderhoudsabonnement kan je zelf opgraden in je klantenportaal." },
-      { q: "Is een onderhoudsabonnement verplicht?", a: "Ja, één abonnement is verplicht vanaf maand 1 — zo blijft je site veilig, up-to-date en gehost. Je kiest vrij welk niveau (Care/Plus/Scale/Partner), niet gekoppeld aan je pakket, en je kan later zelf opgraden." },
-      { q: "Zit een logo of fotografie in de prijs?", a: "Werk je met je eigen foto's? Perfect, dan zit dat inbegrepen. Heb je niets bruikbaars? Dan vink je in de configurator de optie Fotoshoot (€450) aan — een halve dag pro shoot, webklaar. Een logo/huisstijl maak ik niet zelf, daarvoor werk ik met vaste partners." },
-      { q: "Hoe lang duurt een project?", a: "Uitvoering is 1 à 2 weken — alles wordt strak herschreven in Next.js + Supabase, ongeacht de scope. Wat de timing bepaalt is de vrijgave van je domein en of er fotomateriaal klaar is." },
-      { q: "Hoe leg ik alles vast?", a: "Via de configurator: je kiest pakket, onderhoud, domein en e-mail, ziet meteen je exacte vaste prijs, en betaalt 30% aanbetaling om je scope vast te leggen. Geen vrijblijvende offertes met sterretjes — wat je samenstelt, dat is de prijs." },
+      { q: "Zit de bouw van de site echt in die €49?", a: "Ja. Er is geen aparte bouwfactuur. Ik bouw je site volledig op maat en de kost daarvan is verrekend over je abonnement — daarom een minimum van 12 maanden." },
+      { q: "Waarom 12 maanden minimum?", a: "Omdat de bouw reële uren kost die niet apart gefactureerd worden. Het jaar verdeelt die eerlijk. Na die 12 maanden ben je volledig vrij en maandelijks opzegbaar." },
+      { q: "Wat als ik een webshop of iets op maat nodig heb?", a: "Dat valt buiten het vaste maandtarief. Webshops, integraties (boekhouding, CRM), migraties of een systeem op maat bespreken we apart — scope en prijs op aanvraag." },
+      { q: "Zit een logo of fotografie in de prijs?", a: "Werk je met je eigen foto's? Perfect, dat zit inbegrepen. Heb je niets bruikbaars? Dan regelen we een fotoshoot apart. Een logo/huisstijl maak ik niet zelf — daarvoor werk ik met vaste partners." },
+      { q: "Van wie is mijn website en domein?", a: "Van jou. Je blijft altijd eigenaar van je domein, geen lock-in. Stop je ooit, dan kan je site mee." },
+      { q: "Hoe lang duurt het voor mijn site online staat?", a: "De bouw is 1 à 2 weken. Wat de timing bepaalt is vooral de vrijgave van je domein en of er fotomateriaal klaar is." },
     ],
-    ctaTitle: "Klaar om je prijs vast te zetten?",
+    ctaTitle: "Klaar om te starten?",
     ctaIntro:
-      "Stel in de configurator je pakket, onderhoud en domein samen. Je ziet meteen je exacte vaste prijs — geen offerte met sterretjes.",
-    ctaButton: "Naar de configurator",
+      "Eén korte babbel en ik weet genoeg om je site te bouwen. Geen opstartkost, geen verrassingen.",
+    ctaButton: "Neem contact op",
   },
   fr: {
     metaTitle: "Tarifs — Studio VM",
     heroEyebrow: "Tarifs",
-    heroTitle: "Aucune surprise après coup.",
+    heroTitle: "Un prix. Tout inclus.",
     heroIntro:
-      "Forfaits et abonnements clairs, publiés sur cette page. Ce que vous lisez ici est ce que vous obtenez — et ce que vous payez.",
-    oneShotEyebrow: "Unique",
-    oneShotTitle: "Le coût d'un nouveau site",
-    oneShotIntro: "Cinq forfaits. Prix honnête. Pas de devis avec astérisques.",
-    subEyebrow: "Mensuel",
-    subTitle: "Maintenance et croissance",
+      "Pas de devis avec astérisques, pas de facture de construction unique. Je construis votre site, je l'héberge, je le garde sûr et à jour — pour un montant fixe par mois.",
+    heroCta: "Démarrer la conversation",
+    offerEyebrow: "L'offre",
+    offerTitle: "Le coût d'un site",
+    offerIntro:
+      "Pour un site classique, vous payez un prix mensuel — construction incluse, sans frais de démarrage. Boutiques et sur-mesure se discutent à part.",
+    customLabel: "Ou de plus grands projets ?",
+    subEyebrow: "Besoin de plus ?",
+    subTitle: "Évolutions pour aller plus loin",
     subIntro:
-      "Un abonnement de maintenance est obligatoire dès le 1er mois — vous choisissez librement le niveau et pouvez évoluer plus tard depuis votre espace client.",
-    modEyebrow: "À la carte",
-    modTitle: "Modules à ajouter",
-    modIntro:
-      "Avec chaque forfait. Uniquement ce dont vous avez besoin — jamais de fonctions inutilisées.",
-    payEyebrow: "Paiement",
-    payTitle: "Prix fixe, payé à votre rythme",
-    payItems: [
-      { t: "30 % au verrouillage", d: "Vous composez tout dans le configurateur et payez 30 % d'acompte pour verrouiller votre scope." },
-      { t: "Échelonnement 0 %", d: "Le solde en une fois ou en 3×, 6×, 12× ou 24× — sans aucun supplément." },
-      { t: "Remise verrouillage", d: "Vous verrouillez tout de suite ? 7 % de remise sur le montant unique. Sans astérisques." },
+      "Le forfait à €49 couvre tout pour un site classique. Besoin de plus d'heures de support, de contenu ou de nouvelles fonctions ? Vous montez de niveau quand vous voulez.",
+    howEyebrow: "Comment ça marche",
+    howTitle: "Honnête et sans surprises",
+    howItems: [
+      {
+        t: "Sans frais de démarrage",
+        d: "Vous ne payez rien d'avance pour la construction. On démarre, je construis votre site, et vous payez simplement votre premier mois.",
+      },
+      {
+        t: "12 mois, puis libre",
+        d: "Un an minimum — la construction est ainsi répartie équitablement. Ensuite résiliable chaque mois, sans petits caractères.",
+      },
+      {
+        t: "Tout en un montant",
+        d: "Construction, hébergement, maintenance, mises à jour et support sont compris dans votre prix mensuel. Jamais de facture inattendue.",
+      },
     ],
     domEyebrow: "Domaine & e-mail",
     domTitle: "Pas encore de domaine ou d'e-mail ?",
@@ -141,44 +155,53 @@ const copy: Record<
       { t: "Transfert de domaine", price: "€ 75 forfait", d: "Nous rapatrions votre domaine, entièrement géré (piloté par API). Vous approuvez 1×, on fait le reste — souvent en quelques heures (.be), sans interruption." },
     ],
     domNote:
-      "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix fixes, transparents — vous choisissez domaine et e-mail dans le configurateur et c'est directement dans votre total.",
+      "Vous avez déjà un domaine ou un e-mail ? On le relie gratuitement. Prix fixes, transparents.",
     faqEyebrow: "Questions fréquentes",
     faqTitle: "Bon à savoir",
     faqs: [
-      { q: "Puis-je passer plus tard de Starter à Pro ?", a: "Oui. Vous payez seulement la différence + le temps des fonctions supplémentaires. Votre abonnement de maintenance, vous le faites évoluer vous-même depuis votre espace client." },
-      { q: "Un abonnement de maintenance est-il obligatoire ?", a: "Oui, un abonnement est obligatoire dès le 1er mois — votre site reste ainsi sûr, à jour et hébergé. Vous choisissez librement le niveau (Care/Plus/Scale/Partner), non lié au forfait, et pouvez évoluer plus tard." },
-      { q: "Un logo ou de la photographie sont-ils inclus ?", a: "Vous avez vos propres photos ? Parfait, c'est inclus. Rien d'exploitable ? Cochez l'option Shooting photo (€450) dans le configurateur — une demi-journée pro, prête pour le web. Je ne crée pas le logo/identité moi-même : je travaille avec des partenaires fixes." },
-      { q: "Combien de temps dure un projet ?", a: "Réalisation en 1 à 2 semaines — tout est réécrit proprement en Next.js + Supabase, quelle que soit la portée. Ce qui détermine le timing : la libération de votre domaine et la disponibilité du matériel photo." },
-      { q: "Comment est-ce que je verrouille tout ?", a: "Via le configurateur : vous choisissez forfait, maintenance, domaine et e-mail, voyez votre prix fixe exact et payez 30 % d'acompte pour verrouiller votre scope. Pas de devis avec astérisques — ce que vous composez, c'est le prix." },
+      { q: "La construction du site est-elle vraiment dans ces €49 ?", a: "Oui. Il n'y a pas de facture de construction séparée. Je construis votre site entièrement sur mesure et ce coût est réparti sur votre abonnement — d'où le minimum de 12 mois." },
+      { q: "Pourquoi un minimum de 12 mois ?", a: "Parce que la construction représente des heures réelles qui ne sont pas facturées à part. L'année les répartit équitablement. Après ces 12 mois, vous êtes libre et résiliable chaque mois." },
+      { q: "Et si j'ai besoin d'une boutique ou de sur-mesure ?", a: "Cela sort du tarif mensuel fixe. Boutiques, intégrations (compta, CRM), migrations ou système sur mesure se discutent à part — scope et prix sur demande." },
+      { q: "Un logo ou de la photographie sont-ils inclus ?", a: "Vous avez vos propres photos ? Parfait, c'est inclus. Rien d'exploitable ? On organise un shooting à part. Je ne crée pas le logo/identité moi-même : je travaille avec des partenaires fixes." },
+      { q: "À qui appartiennent mon site et mon domaine ?", a: "À vous. Vous restez toujours propriétaire de votre domaine, sans lock-in. Si vous arrêtez un jour, votre site peut partir avec vous." },
+      { q: "Combien de temps avant que mon site soit en ligne ?", a: "La construction prend 1 à 2 semaines. Le timing dépend surtout de la libération de votre domaine et de la disponibilité du matériel photo." },
     ],
-    ctaTitle: "Prêt à fixer votre prix ?",
+    ctaTitle: "Prêt à démarrer ?",
     ctaIntro:
-      "Composez dans le configurateur votre forfait, maintenance et domaine. Vous voyez immédiatement votre prix fixe exact — sans astérisques.",
-    ctaButton: "Vers le configurateur",
+      "Une courte discussion et j'en sais assez pour construire votre site. Sans frais de démarrage, sans surprises.",
+    ctaButton: "Prendre contact",
   },
   en: {
     metaTitle: "Pricing — Studio VM",
     heroEyebrow: "Pricing",
-    heroTitle: "No surprises afterwards.",
+    heroTitle: "One price. All included.",
     heroIntro:
-      "Clear packages and subscriptions, published on this page. What you read here is what you get — and what you pay.",
-    oneShotEyebrow: "One-off",
-    oneShotTitle: "What a new site costs",
-    oneShotIntro: "Five packages. Honestly priced. No quotes with asterisks.",
-    subEyebrow: "Monthly",
-    subTitle: "Maintenance and growth",
+      "No quotes with asterisks, no one-off build invoice. I build your website, host it, keep it secure and up to date — for one fixed monthly amount.",
+    heroCta: "Start a chat",
+    offerEyebrow: "The offer",
+    offerTitle: "What a website costs",
+    offerIntro:
+      "For a regular website you pay one monthly price — build included, no setup fee. Webshops and custom work we discuss separately.",
+    customLabel: "Or bigger plans?",
+    subEyebrow: "Need more?",
+    subTitle: "Upgrades for those who want more",
     subIntro:
-      "One maintenance subscription is required from month 1 — you freely pick the level and can upgrade yourself later from your client portal.",
-    modEyebrow: "À la carte",
-    modTitle: "Add-on modules",
-    modIntro:
-      "With every package. Only what you need — you never pay for features you don't use.",
-    payEyebrow: "Payment",
-    payTitle: "Fixed price, paid at your pace",
-    payItems: [
-      { t: "30% to lock in", d: "You compose everything in the configurator and pay a 30% deposit to lock your scope." },
-      { t: "0% surcharge split", d: "The balance at once or in 3×, 6×, 12× or 24× — without any surcharge." },
-      { t: "Lock-in discount", d: "Lock in straight away? 7% off the one-off amount. No asterisks." },
+      "The €49 package covers everything for a regular site. Need more support hours, content work or new features? You move up a level whenever you want.",
+    howEyebrow: "How it works",
+    howTitle: "Honest and without surprises",
+    howItems: [
+      {
+        t: "No setup fee",
+        d: "You pay nothing up front for the build. We start, I build your site, and you simply pay your first month.",
+      },
+      {
+        t: "12 months, then free",
+        d: "One year minimum — that spreads the build fairly. After that, cancel any month, no small print.",
+      },
+      {
+        t: "Everything in one amount",
+        d: "Build, hosting, maintenance, updates and support are all in your monthly price. Never an unexpected invoice.",
+      },
     ],
     domEyebrow: "Domain & email",
     domTitle: "No domain or email address yet?",
@@ -191,20 +214,21 @@ const copy: Record<
       { t: "Domain transfer", price: "€ 75 flat", d: "We move your domain over, fully managed (API-driven). You approve once, we do the rest — usually within hours (.be), zero downtime." },
     ],
     domNote:
-      "Already have a domain or email? We connect it free of charge. Fixed prices, transparent — you pick domain and email in the configurator and it's in your total right away.",
+      "Already have a domain or email? We connect it free of charge. Fixed prices, transparent.",
     faqEyebrow: "Questions that keep coming up",
     faqTitle: "Good to know",
     faqs: [
-      { q: "Can I upgrade from Starter to Pro later?", a: "Yes. You only pay the difference + time for the extra features. Your maintenance subscription you upgrade yourself from your client portal." },
-      { q: "Is a maintenance subscription required?", a: "Yes, one subscription is required from month 1 — that keeps your site secure, up to date and hosted. You freely pick the level (Care/Plus/Scale/Partner), not tied to your package, and can upgrade later." },
-      { q: "Is a logo or photography included?", a: "Working with your own photos? Perfect, that's included. Nothing usable? Tick the Photo shoot option (€450) in the configurator — a half-day pro shoot, web-ready. I don't create the logo/brand identity myself; I work with fixed partners for that." },
-      { q: "How long does a project take?", a: "Build is 1 to 2 weeks — everything is cleanly rewritten in Next.js + Supabase, regardless of scope. Timing only depends on your domain release and whether photo material is ready." },
-      { q: "How do I lock everything in?", a: "Via the configurator: you pick package, maintenance, domain and email, see your exact fixed price and pay a 30% deposit to lock your scope. No quotes with asterisks — what you compose is the price." },
+      { q: "Is building the site really in that €49?", a: "Yes. There's no separate build invoice. I build your site fully bespoke and that cost is spread across your subscription — which is why there's a 12-month minimum." },
+      { q: "Why a 12-month minimum?", a: "Because the build is real hours that aren't billed separately. The year spreads them fairly. After those 12 months you're completely free and can cancel any month." },
+      { q: "What if I need a webshop or something custom?", a: "That sits outside the fixed monthly rate. Webshops, integrations (accounting, CRM), migrations or a custom system we discuss separately — scope and price on request." },
+      { q: "Is a logo or photography included?", a: "Working with your own photos? Perfect, that's included. Nothing usable? We arrange a shoot separately. I don't create the logo/brand identity myself; I work with fixed partners for that." },
+      { q: "Who owns my website and domain?", a: "You do. You always stay owner of your domain, no lock-in. If you ever stop, your site can come with you." },
+      { q: "How long until my site is online?", a: "The build is 1 to 2 weeks. Timing mostly depends on your domain release and whether photo material is ready." },
     ],
-    ctaTitle: "Ready to lock in your price?",
+    ctaTitle: "Ready to start?",
     ctaIntro:
-      "Compose your package, maintenance and domain in the configurator. You see your exact fixed price right away — no quote with asterisks.",
-    ctaButton: "To the configurator",
+      "One short chat and I know enough to build your site. No setup fee, no surprises.",
+    ctaButton: "Get in touch",
   },
 };
 
@@ -216,7 +240,11 @@ export default async function PricingPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
-  const { oneShot, subscription } = getPricing(locale);
+  const { subscription } = getPricing(locale);
+  const flat = FLAT_OFFER[locale];
+  const custom = CUSTOM_OFFER[locale];
+  // Upgrades = abonnementen boven het €49-instappakket (Care).
+  const upgrades = subscription.filter((t) => t.slug !== "care");
 
   return (
     <main>
@@ -232,14 +260,10 @@ export default async function PricingPage({
             {c.heroIntro}
           </p>
           <Link
-            href={localePath(locale, "/offerte")}
+            href={localePath(locale, "/#contact")}
             className="group/btn mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
           >
-            {locale === "fr"
-              ? "Composez votre prix exact"
-              : locale === "en"
-                ? "Build your exact price"
-                : "Stel je exacte prijs samen"}
+            {c.heroCta}
             <ArrowRight
               className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
               strokeWidth={2.5}
@@ -248,159 +272,112 @@ export default async function PricingPage({
         </div>
       </section>
 
-      {(() => {
-        const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
-        const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
-        const z =
-          locale === "fr"
-            ? {
-                eb: "Le moins cher · Construisez vous-même",
-                h: "Forfait Construire soi-même",
-                p: "Vous composez votre site dans notre éditeur visuel. Nous l'hébergeons, l'entretenons et le mettons en ligne sur votre sous-domaine.",
-                incl: [
-                  "Éditeur visuel complet, indépendant mobile",
-                  "Mise en ligne en 1 clic + SSL",
-                  "Formulaires dans votre portail",
-                  "Hébergement, entretien & mises à jour",
-                  "Résiliable chaque mois",
-                ],
-                a: "Voir comment ça marche",
-                b: "Essayer gratuitement",
-                setupL: "démarrage unique",
-                perM: "/ mois",
-              }
-            : locale === "en"
-              ? {
-                  eb: "Lowest cost · Build it yourself",
-                  h: "Self-build package",
-                  p: "You compose your site in our visual editor. We host, maintain and publish it on your subdomain.",
-                  incl: [
-                    "Full visual editor, mobile-independent",
-                    "One-click publish + SSL",
-                    "Form submissions in your portal",
-                    "Hosting, maintenance & updates",
-                    "Cancel any month",
-                  ],
-                  a: "See how it works",
-                  b: "Try it free",
-                  setupL: "one-off setup",
-                  perM: "/ month",
-                }
-              : {
-                  eb: "Goedkoopste · Zelf bouwen",
-                  h: "Zelfbouwpakket",
-                  p: "Jij stelt je site samen in onze visuele editor. Wij hosten, onderhouden en zetten 'm online op je eigen subdomein.",
-                  incl: [
-                    "Volledige visuele editor, mobiel-onafhankelijk",
-                    "In 1 klik online + SSL",
-                    "Formulierberichten in je portaal",
-                    "Hosting, onderhoud & updates",
-                    "Maandelijks opzegbaar",
-                  ],
-                  a: "Bekijk hoe het werkt",
-                  b: "Gratis uitproberen",
-                  setupL: "eenmalige opstart",
-                  perM: "/ maand",
-                };
-        return (
-          <section className="border-b">
-            <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-              <div className="overflow-hidden rounded-3xl border border-accent bg-accent/5 shadow-[0_0_0_1px_var(--accent)]">
-                <div className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
-                  <div>
-                    <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
-                      <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
-                      {z.eb}
-                    </p>
-                    <h2 className="text-3xl font-semibold tracking-tight">
-                      {z.h}
-                    </h2>
-                    <p className="mt-3 max-w-xl text-muted">{z.p}</p>
-                    <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-                      {z.incl.map((i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-sm"
-                        >
-                          <Check
-                            className="mt-0.5 h-4 w-4 shrink-0 text-accent"
-                            strokeWidth={2.5}
-                          />
-                          {i}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="shrink-0 rounded-2xl border bg-background p-7 text-center lg:w-64">
-                    <p className="text-3xl font-semibold tracking-tight">
-                      €{setup}
-                    </p>
-                    <p className="text-xs text-muted">{z.setupL}</p>
-                    <p className="mt-3 text-3xl font-semibold tracking-tight text-accent">
-                      €{month}
-                      <span className="text-sm font-normal text-muted">
-                        {" "}
-                        {z.perM}
-                      </span>
-                    </p>
-                    <div className="mt-5 flex flex-col items-center gap-2.5">
-                      <Link
-                        href={localePath(locale, "/zelf-bouwen")}
-                        className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
-                      >
-                        {z.a}
-                        <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
-                      </Link>
-                      <Link
-                        href={localePath(locale, "/builder")}
-                        className="whitespace-nowrap text-xs font-medium text-accent underline underline-offset-2 transition-opacity hover:opacity-80"
-                      >
-                        {z.b}
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+      {/* Hoofd-aanbod: één vlakke maandprijs + webshop/maatwerk op aanvraag */}
+      <section className="border-b">
+        <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+              {c.offerEyebrow}
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              {c.offerTitle}
+            </h2>
+            <p className="mt-4 text-muted">{c.offerIntro}</p>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+            {/* €49 all-in */}
+            <div className="relative flex flex-col rounded-3xl border border-accent bg-accent/5 p-8 shadow-[0_0_0_1px_var(--accent)] sm:p-10">
+              <span className="absolute -top-3 left-8 inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-white">
+                <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                {flat.badge}
+              </span>
+              <h3 className="mt-2 text-2xl font-semibold tracking-tight">
+                {flat.name}
+              </h3>
+              <div className="mt-5 flex items-baseline gap-2">
+                <p className="text-5xl font-semibold tracking-tight">
+                  {flat.price}
+                </p>
+                <span className="text-sm text-muted">{flat.priceNote}</span>
               </div>
+              <p className="mt-2 font-mono text-xs text-accent">{flat.terms}</p>
+              <ul className="mt-7 grid flex-1 gap-2.5 sm:grid-cols-2">
+                {flat.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <Check
+                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent"
+                      strokeWidth={2.5}
+                    />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={localePath(locale, flat.ctaHref)}
+                className="group/btn mt-8 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-accent/90 hover:shadow-md active:scale-[0.98]"
+              >
+                {flat.ctaLabel}
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
+                  strokeWidth={2.5}
+                />
+              </Link>
             </div>
-          </section>
-        );
-      })()}
 
-      <PricingSection
-        eyebrow={c.oneShotEyebrow}
-        title={c.oneShotTitle}
-        intro={c.oneShotIntro}
-        tiers={oneShot}
-        locale={locale}
-      />
-      <PricingSection
-        eyebrow={c.subEyebrow}
-        title={c.subTitle}
-        intro={c.subIntro}
-        tiers={subscription}
-        locale={locale}
-        muted
-      />
+            {/* Webshop & maatwerk — op aanvraag */}
+            <div className="flex flex-col rounded-3xl border bg-card p-8 sm:p-10">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {c.customLabel}
+              </p>
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight">
+                {custom.name}
+              </h3>
+              <p className="mt-4 text-3xl font-semibold tracking-tight">
+                {custom.price}
+              </p>
+              <p className="mt-3 text-sm text-muted">{custom.desc}</p>
+              <ul className="mt-6 flex-1 space-y-2.5">
+                {custom.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <Check
+                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent"
+                      strokeWidth={2.5}
+                    />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={localePath(locale, custom.ctaHref)}
+                className="group/btn mt-8 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-3.5 text-sm font-semibold text-background shadow-sm transition-all hover:opacity-90 active:scale-[0.98]"
+              >
+                {custom.ctaLabel}
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
+                  strokeWidth={2.5}
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* Hoe het werkt */}
       <section className="border-b bg-card">
         <div className="mx-auto max-w-4xl px-6 py-20 sm:py-24">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-              {c.payEyebrow}
+              {c.howEyebrow}
             </p>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              {c.payTitle}
+              {c.howTitle}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            {c.payItems.map((p, i) => (
-              <div
-                key={p.t}
-                className="rounded-2xl border bg-background p-6"
-              >
-                <span className="font-mono text-xs text-accent">
-                  0{i + 1}
-                </span>
+            {c.howItems.map((p, i) => (
+              <div key={p.t} className="rounded-2xl border bg-background p-6">
+                <span className="font-mono text-xs text-accent">0{i + 1}</span>
                 <h3 className="mt-2 font-semibold">{p.t}</h3>
                 <p className="mt-2 text-sm text-muted">{p.d}</p>
               </div>
@@ -408,6 +385,16 @@ export default async function PricingPage({
           </div>
         </div>
       </section>
+
+      {/* Upgrades (Plus / Scale / Partner) */}
+      <PricingSection
+        eyebrow={c.subEyebrow}
+        title={c.subTitle}
+        intro={c.subIntro}
+        tiers={upgrades}
+        locale={locale}
+        muted
+      />
 
       <section className="border-b">
         <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
@@ -446,8 +433,6 @@ export default async function PricingPage({
         </div>
       </section>
 
-      <PricingCompare locale={locale} />
-
       <section className="border-b">
         <div className="mx-auto max-w-3xl px-6 py-20 sm:py-24">
           <div className="mb-12 text-center">
@@ -476,7 +461,7 @@ export default async function PricingPage({
           </h2>
           <p className="mt-4 text-muted">{c.ctaIntro}</p>
           <Link
-            href={localePath(locale, "/offerte")}
+            href={localePath(locale, "/#contact")}
             className="group/btn mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
           >
             {c.ctaButton}
@@ -569,7 +554,7 @@ function TierCard({
         return (
           <div className="mt-6">
             <span className="block h-4 font-mono text-xs uppercase tracking-widest text-muted">
-              {lead ?? " "}
+              {lead ?? " "}
             </span>
             <p className="whitespace-nowrap text-2xl font-semibold tracking-tight xl:text-3xl">
               {main}
@@ -592,7 +577,7 @@ function TierCard({
         ))}
       </ul>
       <Link
-        href={localePath(locale, "/offerte")}
+        href={localePath(locale, "/#contact")}
         className={`group/btn mt-6 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 py-3 text-sm font-semibold shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
           tier.highlighted
             ? "bg-accent text-white hover:bg-accent/90"
@@ -600,10 +585,10 @@ function TierCard({
         }`}
       >
         {locale === "fr"
-          ? "Composer"
+          ? "Prendre contact"
           : locale === "en"
-            ? "Compose"
-            : "Samenstellen"}
+            ? "Get in touch"
+            : "Neem contact op"}
         <ArrowRight
           className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5"
           strokeWidth={2.5}

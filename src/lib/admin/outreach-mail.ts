@@ -25,8 +25,10 @@ const T = {
     intro: (host: string) =>
       `Ik liep vanochtend even over <strong>${host}</strong> en zag een paar dingen die binnen een halve dag aangepakt kunnen worden:`,
     portalCta: "Volledig rapport hier",
+    offer:
+      "Wil je het niet zelf oplossen? Ik bouw, host én onderhoud je volledige site voor <strong>€49/maand</strong> — alles inbegrepen, geen opstartkost, en je blijft eigenaar van je domein.",
     softNote:
-      "Geen verkooppraat — als je iemand intern hebt die dit oppakt, perfect. Anders kunnen we het samen oplossen.",
+      "Geen verplichting — heb je iemand intern die dit oppakt, ook prima.",
     signOff: "Hartelijke groet",
     unsub:
       "Geen interesse? Klik hier — dan haal ik je uit mijn lijst (eenmalig, geen vervolg):",
@@ -38,8 +40,10 @@ const T = {
     intro: (host: string) =>
       `J'ai parcouru votre site <strong>${host}</strong> ce matin et j'ai relevé quelques points qui peuvent être traités rapidement :`,
     portalCta: "Rapport complet ici",
+    offer:
+      "Vous ne voulez pas vous en occuper vous-même ? Je construis, héberge et entretiens votre site complet pour <strong>49 €/mois</strong> — tout inclus, sans frais de démarrage, et vous restez propriétaire de votre domaine.",
     softNote:
-      "Pas de discours commercial — si vous avez quelqu'un en interne pour ça, parfait. Sinon, on peut le faire ensemble.",
+      "Sans engagement — si vous avez quelqu'un en interne pour ça, parfait aussi.",
     signOff: "Cordialement",
     unsub:
       "Pas intéressé(e) ? Cliquez ici et je vous retire de ma liste (une seule fois, pas de suivi) :",
@@ -51,8 +55,10 @@ const T = {
     intro: (host: string) =>
       `I ran a quick check on <strong>${host}</strong> this morning and noticed a few things that can be addressed within half a day:`,
     portalCta: "Full report here",
+    offer:
+      "Rather not fix it yourself? I build, host and maintain your full site for <strong>€49/month</strong> — all included, no setup fee, and you stay owner of your domain.",
     softNote:
-      "No sales pitch — if you have someone in-house who can handle this, great. Otherwise, happy to help.",
+      "No obligation — if you have someone in-house who handles this, that's fine too.",
     signOff: "Best regards",
     unsub:
       "Not interested? Click here and I'll remove you from my list (one-off, no follow-ups):",
@@ -116,6 +122,7 @@ export function buildOutreachMail(
   <p style="margin:0 0 18px;font:400 15px/1.55 ${FONT}">
     <a href="${portal}" style="color:#e08214;font-weight:600;text-decoration:underline">${t.portalCta} →</a>
   </p>
+  <p style="margin:0 0 18px;font:400 15px/1.55 ${FONT};color:#1c1917">${t.offer}</p>
   <p style="margin:0 0 18px;font:400 14px/1.55 ${FONT};color:#57534e">${t.softNote}</p>
   <p style="margin:18px 0 4px;font:400 15px/1.55 ${FONT};color:#1c1917">${t.signOff},</p>
   <p style="margin:0;font:400 15px/1.55 ${FONT};color:#1c1917">${escapeHtml(cfg.senderName)} — <a href="https://studio-vm.be" style="color:#1c1917;text-decoration:none">studio-vm.be</a></p>
@@ -128,7 +135,7 @@ export function buildOutreachMail(
     (variant === "first"
       ? `${t.greeting},\n\n${stripTags(t.intro(host))}\n\n${issuesTxt}\n\n`
       : `${stripTags(followupIntro(lang, host))}\n\n`) +
-    `${t.portalCta}: ${portal}\n\n${t.softNote}\n\n${t.signOff},\n${cfg.senderName} — studio-vm.be\n\n${t.unsub} ${unsub}\n`;
+    `${t.portalCta}: ${portal}\n\n${stripTags(t.offer)}\n\n${t.softNote}\n\n${t.signOff},\n${cfg.senderName} — studio-vm.be\n\n${t.unsub} ${unsub}\n`;
 
   return {
     subject,
