@@ -12,10 +12,7 @@ import { getMessages } from "@/lib/i18n";
 import { getCapacity } from "@/lib/now-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { Sparkles, Search, MousePointerClick, ShieldCheck, Rocket } from "lucide-react";
-import {
-  PUBLISH_SETUP_CENTS,
-  PUBLISH_BASE_MONTHLY_CENTS,
-} from "@/lib/pricing";
+import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 
 const X: Record<
   Locale,
@@ -321,7 +318,6 @@ function RiskReversal({ locale, x }: { locale: Locale; x: Xt }) {
 }
 
 function ZelfBouwenPromo({ locale }: { locale: Locale }) {
-  const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
   const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
   const c =
     locale === "fr"
@@ -336,7 +332,7 @@ function ZelfBouwenPromo({ locale }: { locale: Locale }) {
             "Formulaires → directement dans votre portail",
             "Hébergement, entretien & mises à jour inclus",
           ],
-          price: `€${setup} de démarrage, puis €${month}/mois`,
+          price: `€${month}/mois, sans frais de démarrage`,
           note: "Résiliable chaque mois. Sans engagement.",
           a: "Voir comment ça marche",
           b: "Commencer gratuitement",
@@ -353,7 +349,7 @@ function ZelfBouwenPromo({ locale }: { locale: Locale }) {
               "Form submissions → straight into your portal",
               "Hosting, maintenance & updates included",
             ],
-            price: `€${setup} setup, then €${month}/month`,
+            price: `€${month}/month, no setup fee`,
             note: "Cancel any month. No lock-in.",
             a: "See how it works",
             b: "Start building free",
@@ -369,7 +365,7 @@ function ZelfBouwenPromo({ locale }: { locale: Locale }) {
               "Formulierberichten → rechtstreeks in je portaal",
               "Hosting, onderhoud & updates inbegrepen",
             ],
-            price: `€${setup} opstart, daarna €${month}/maand`,
+            price: `€${month}/maand, geen opstartkost`,
             note: "Maandelijks opzegbaar. Geen verplichtingen.",
             a: "Bekijk hoe het werkt",
             b: "Gratis beginnen",
@@ -411,18 +407,7 @@ function ZelfBouwenPromo({ locale }: { locale: Locale }) {
                     ? "Website subscription"
                     : "Website-abonnement"}
               </p>
-              <p className="mt-3 text-2xl font-semibold tracking-tight">
-                €{setup}
-                <span className="text-base font-normal text-muted">
-                  {" "}
-                  {locale === "fr"
-                    ? "démarrage"
-                    : locale === "en"
-                      ? "setup"
-                      : "opstart"}
-                </span>
-              </p>
-              <p className="mt-1 text-2xl font-semibold tracking-tight text-accent">
+              <p className="mt-3 text-4xl font-semibold tracking-tight text-accent">
                 €{month}
                 <span className="text-base font-normal text-muted">
                   {" "}
@@ -432,6 +417,13 @@ function ZelfBouwenPromo({ locale }: { locale: Locale }) {
                       ? "/ month"
                       : "/ maand"}
                 </span>
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                {locale === "fr"
+                  ? "sans frais de démarrage"
+                  : locale === "en"
+                    ? "no setup fee"
+                    : "geen opstartkost"}
               </p>
               <p className="mt-2 text-xs text-muted">{c.note}</p>
               <div className="mt-5 flex flex-col items-center gap-2.5">

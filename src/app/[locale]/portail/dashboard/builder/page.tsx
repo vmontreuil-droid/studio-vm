@@ -25,10 +25,7 @@ import {
   cancelPublishSubscription,
   addExtraSite,
 } from "@/app/actions/subscription";
-import {
-  publishSetupCents,
-  PUBLISH_BASE_MONTHLY_CENTS,
-} from "@/lib/pricing";
+import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 import { SubmitButton } from "@/components/submit-button";
 
 const euroFmt = (c: number) =>
@@ -231,17 +228,15 @@ export default async function PortalBuilderOverview({
           <span className="text-muted">
             {locale === "fr"
               ? `Mettez votre site en ligne — €${euroFmt(
-                  publishSetupCents(),
-                )} + €${euroFmt(PUBLISH_BASE_MONTHLY_CENTS)}/m.`
+                  PUBLISH_BASE_MONTHLY_CENTS,
+                )}/m, sans frais de démarrage.`
               : locale === "en"
                 ? `Put your site online — €${euroFmt(
-                    publishSetupCents(),
-                  )} + €${euroFmt(PUBLISH_BASE_MONTHLY_CENTS)}/m.`
-                : `Zet je site online — €${euroFmt(
-                    publishSetupCents(),
-                  )} opstart, daarna €${euroFmt(
                     PUBLISH_BASE_MONTHLY_CENTS,
-                  )}/m.`}
+                  )}/m, no setup fee.`
+                : `Zet je site online — €${euroFmt(
+                    PUBLISH_BASE_MONTHLY_CENTS,
+                  )}/maand, geen opstartkost.`}
           </span>
           <form action={startPublishSubscription} className="contents">
             <input type="hidden" name="locale" value={locale} />

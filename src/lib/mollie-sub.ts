@@ -79,6 +79,10 @@ export async function mollieCreateSubscription(input: {
   amountCents: number;
   description: string;
   metadata: Record<string, string>;
+  // Optioneel: datum (YYYY-MM-DD) van de eerste incasso. Gebruikt om de
+  // recurring-betaling een maand uit te stellen als de eerste maand al
+  // via de mandaat-betaling ("first") is voldaan — zo geen dubbele maand.
+  startDate?: string;
 }): Promise<string | null> {
   if (!mollieApiKey || !paymentsEnabled) return null;
   try {
@@ -93,6 +97,7 @@ export async function mollieCreateSubscription(input: {
         body: JSON.stringify({
           amount: { currency: "EUR", value: eur(input.amountCents) },
           interval: "1 month",
+          ...(input.startDate ? { startDate: input.startDate } : {}),
           description: input.description,
           webhookUrl: WEBHOOK,
           metadata: input.metadata,

@@ -524,7 +524,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ---- Publiceer-abonnement (€199 opstart + €39/m) ----
+  // ---- Publiceer-abonnement (geen opstart — 1e betaling = 1e maand, daarna €29/m) ----
   const subEmail = payment.metadata?.sub_email;
   if (payment.status === "paid" && subEmail) {
     try {
@@ -549,11 +549,16 @@ export async function POST(req: NextRequest) {
         if (!sub.setup_paid) {
           let subId = sub.mollie_subscription_id;
           if (!subId && sub.mollie_customer_id) {
+            // Eerste maand is al via de mandaat-betaling voldaan → recurring
+            // pas vanaf volgende maand, zodat we maand 1 niet dubbel innen.
+            const start = new Date();
+            start.setMonth(start.getMonth() + 1);
             subId = await mollieCreateSubscription({
               customerId: sub.mollie_customer_id,
               amountCents: PUBLISH_BASE_MONTHLY_CENTS,
               description: "Website — maandabonnement",
               metadata: { sub_email: subEmail },
+              startDate: start.toISOString().slice(0, 10),
             });
           }
           await db

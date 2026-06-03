@@ -278,14 +278,15 @@ export const OFFER_INCLUDED: Record<
 // --- Builder-publiceermodel: zelf-bouw site als abonnement ---
 // Aparte, eenvoudige prijslijst voor de gepubliceerde builder-sites.
 // Bedragen in eurocent.
-export const PUBLISH_SETUP_CENTS = 19900; // €199 eenmalige opstart
-export const PUBLISH_BASE_MONTHLY_CENTS = 3900; // €39 / maand
+export const PUBLISH_BASE_MONTHLY_CENTS = 2900; // €29 / maand
 
-// Veilige €1-testschakelaar: enkel zolang env PUBLISH_TEST=1 gezet is,
-// kost de opstart €1 (voor de end-to-end Mollie-test). Env weghalen →
-// automatisch terug €199. Niets in de code terug te draaien.
-export function publishSetupCents(): number {
-  return process.env.PUBLISH_TEST === "1" ? 100 : PUBLISH_SETUP_CENTS;
+// Géén opstartkost: de eerste betaling = de eerste maand. Die legt
+// meteen het Mollie-mandaat vast (sequenceType "first"); het maandelijkse
+// abonnement start daarna één maand later. Veilige €1-testschakelaar:
+// zolang env PUBLISH_TEST=1 gezet is kost die eerste betaling €1 (voor de
+// end-to-end live-test). Env weghalen → automatisch terug de maandprijs.
+export function publishFirstPaymentCents(): number {
+  return process.env.PUBLISH_TEST === "1" ? 100 : PUBLISH_BASE_MONTHLY_CENTS;
 }
 export const PUBLISH_BASE_YEARLY_CENTS = PUBLISH_BASE_MONTHLY_CENTS * 10;
 

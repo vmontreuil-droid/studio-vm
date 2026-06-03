@@ -54,7 +54,7 @@ const T: Record<
     customNote:
       "Webshop of maatwerk nodig (online verkopen, integraties, migratie)? Dat valt buiten het vaste maandtarief — vermeld het kort in je bericht, dan bespreken we de scope samen.",
     selfPre: "Kleiner budget of liever zelf doen? ",
-    selfLink: "Bekijk het zelfbouwpakket (€39/maand) →",
+    selfLink: "Bekijk het zelfbouwpakket (€29/maand) →",
     sendTitle: "Laat je gegevens na",
     sendText:
       "Ik reageer meestal binnen één werkdag. Niets ligt vast — dit is gewoon een eerste contact.",
@@ -87,7 +87,7 @@ const T: Record<
     customNote:
       "Besoin d'une boutique ou de sur-mesure (vente en ligne, intégrations, migration) ? Cela sort du tarif mensuel fixe — mentionnez-le brièvement dans votre message et on discute le scope ensemble.",
     selfPre: "Budget plus serré ou envie de le faire vous-même ? ",
-    selfLink: "Découvrez le forfait Construire soi-même (€39/mois) →",
+    selfLink: "Découvrez le forfait Construire soi-même (€29/mois) →",
     sendTitle: "Laissez vos coordonnées",
     sendText:
       "Je réponds généralement sous un jour ouvré. Rien n'est figé — c'est juste un premier contact.",
@@ -120,7 +120,7 @@ const T: Record<
     customNote:
       "Need a webshop or custom work (selling online, integrations, migration)? That sits outside the fixed monthly rate — mention it briefly in your message and we'll discuss the scope together.",
     selfPre: "Tighter budget or rather do it yourself? ",
-    selfLink: "See the self-build package (€39/month) →",
+    selfLink: "See the self-build package (€29/month) →",
     sendTitle: "Leave your details",
     sendText:
       "I usually reply within one working day. Nothing is fixed — this is just a first contact.",

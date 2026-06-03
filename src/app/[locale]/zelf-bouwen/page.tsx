@@ -3,10 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowRight, PenTool, Check } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import {
-  PUBLISH_SETUP_CENTS,
-  PUBLISH_BASE_MONTHLY_CENTS,
-} from "@/lib/pricing";
+import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 import { BuilderTour } from "@/components/builder-tour";
 import { TOUR_STEPS } from "@/lib/tour-steps";
 
@@ -60,7 +57,7 @@ const copy: Record<Locale, Copy> = {
       { n: "7", t: "Mobiel-onafhankelijk", d: "Schakel naar 'mobiel' en pas tekst, lay-out of foto's enkel voor gsm aan — desktop blijft ongemoeid." },
       { n: "8", t: "Header & stijlsets", d: "Eén klik op een stijlset zet kleuren, lettertype en knoppen goed. Header met sticky, logo, menu-iconen en CTA." },
       { n: "9", t: "Bewaart vanzelf", d: "Alles wordt automatisch op je account bewaard — stop op je laptop, ga verder op je gsm." },
-      { n: "10", t: "Versturen of zelf live", d: "Tevreden? Verstuur het naar Studio VM, óf zet je site zelf online op je subdomein vanaf €39/maand." },
+      { n: "10", t: "Versturen of zelf live", d: "Tevreden? Verstuur het naar Studio VM, óf zet je site zelf online op je subdomein vanaf €29/maand." },
     ],
     featTitle: "Alle toeters en bellen",
     feats: [
@@ -137,7 +134,7 @@ const copy: Record<Locale, Copy> = {
       { n: "7", t: "Indépendant mobile", d: "Passez en 'mobile' et adaptez texte, mise en page ou photos pour le GSM uniquement — le desktop reste intact." },
       { n: "8", t: "En-tête & styles", d: "Un clic sur un style règle couleurs, police et boutons. En-tête sticky, logo, icônes de menu et CTA." },
       { n: "9", t: "Sauvegarde auto", d: "Tout est enregistré sur votre compte — arrêtez sur le portable, continuez sur le mobile." },
-      { n: "10", t: "Envoi ou en ligne", d: "Satisfait ? Envoyez à Studio VM, ou mettez votre site en ligne vous-même sur votre sous-domaine dès 39 €/mois." },
+      { n: "10", t: "Envoi ou en ligne", d: "Satisfait ? Envoyez à Studio VM, ou mettez votre site en ligne vous-même sur votre sous-domaine dès 29 €/mois." },
     ],
     featTitle: "Toutes les options",
     feats: [
@@ -214,7 +211,7 @@ const copy: Record<Locale, Copy> = {
       { n: "7", t: "Mobile-independent", d: "Switch to 'mobile' and tweak text, layout or photos for phone only — desktop stays untouched." },
       { n: "8", t: "Header & style sets", d: "One click on a style set fixes colours, font and buttons. Header with sticky, logo, menu icons and CTA." },
       { n: "9", t: "Auto-saves", d: "Everything is saved to your account — stop on your laptop, continue on your phone." },
-      { n: "10", t: "Send or go live", d: "Happy? Send it to Studio VM, or put your site live yourself on your subdomain from €39/month." },
+      { n: "10", t: "Send or go live", d: "Happy? Send it to Studio VM, or put your site live yourself on your subdomain from €29/month." },
     ],
     featTitle: "All the bells & whistles",
     feats: [
@@ -286,7 +283,6 @@ export default async function ZelfBouwenPage({
   if (!isValidLocale(locale)) notFound();
   const c = copy[locale];
   const builder = localePath(locale, "/builder");
-  const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
   const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
 
   return (
@@ -320,17 +316,7 @@ export default async function ZelfBouwenPage({
                   ? "Website subscription"
                   : "Website-abonnement"}
             </p>
-            <p className="mt-4 text-4xl font-semibold tracking-tight">
-              €{setup}
-            </p>
-            <p className="text-xs text-muted">
-              {locale === "fr"
-                ? "démarrage unique"
-                : locale === "en"
-                  ? "one-off setup"
-                  : "eenmalige opstart"}
-            </p>
-            <p className="mt-3 text-4xl font-semibold tracking-tight text-accent">
+            <p className="mt-4 text-5xl font-semibold tracking-tight text-accent">
               €{month}
               <span className="text-base font-normal text-muted">
                 {" "}
@@ -340,6 +326,13 @@ export default async function ZelfBouwenPage({
                     ? "/ month"
                     : "/ maand"}
               </span>
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {locale === "fr"
+                ? "sans frais de démarrage"
+                : locale === "en"
+                  ? "no setup fee"
+                  : "geen opstartkost"}
             </p>
             <p className="mt-2 text-xs text-muted">
               {locale === "fr"
@@ -447,7 +440,6 @@ export default async function ZelfBouwenPage({
       </section>
 
       {(() => {
-        const setup = Math.round(PUBLISH_SETUP_CENTS / 100);
         const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
         const z =
           locale === "fr"
@@ -467,7 +459,7 @@ export default async function ZelfBouwenPage({
                 ],
                 extra:
                   "Besoin de plus ? Modules en option : langues, SEO, domaine propre, mini-boutique — votre prix mensuel grandit avec vous.",
-                setupL: "démarrage unique",
+                setupL: "sans frais de démarrage",
                 perM: "/ mois",
               }
             : locale === "en"
@@ -487,7 +479,7 @@ export default async function ZelfBouwenPage({
                   ],
                   extra:
                     "Need more? Optional modules: languages, SEO, custom domain, mini-webshop — your monthly price grows with you.",
-                  setupL: "one-off setup",
+                  setupL: "no setup fee",
                   perM: "/ month",
                 }
               : {
@@ -506,7 +498,7 @@ export default async function ZelfBouwenPage({
                   ],
                   extra:
                     "Meer nodig? Optionele modules: talen, SEO, eigen domein, mini-webshop — je maandprijs groeit met je mee.",
-                  setupL: "eenmalige opstart",
+                  setupL: "geen opstartkost",
                   perM: "/ maand",
                 };
         return (
@@ -535,17 +527,14 @@ export default async function ZelfBouwenPage({
                   ))}
                 </ul>
                 <div className="shrink-0 rounded-2xl border bg-background p-7 text-center lg:w-64">
-                  <p className="text-3xl font-semibold tracking-tight">
-                    €{setup}
-                  </p>
-                  <p className="text-xs text-muted">{z.setupL}</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-accent">
+                  <p className="text-4xl font-semibold tracking-tight text-accent">
                     €{month}
                     <span className="text-sm font-normal text-muted">
                       {" "}
                       {z.perM}
                     </span>
                   </p>
+                  <p className="mt-1 text-xs text-muted">{z.setupL}</p>
                   <Link
                     href={builder}
                     className="mt-5 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"

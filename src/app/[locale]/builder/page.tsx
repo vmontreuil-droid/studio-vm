@@ -495,7 +495,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Bouw je eigen site, tot in detail.",
     intro:
-      "Kies een thema, voeg secties toe en vul je eigen teksten in. Tevreden? Verstuur het naar Studio VM, óf zet je site zelf live vanaf €39/maand.",
+      "Kies een thema, voeg secties toe en vul je eigen teksten in. Tevreden? Verstuur het naar Studio VM, óf zet je site zelf live vanaf €29/maand.",
     panelTheme: "Naam + thema",
     bizName: "Zaak-naam",
     themeLabels: { warm: "Warm", cool: "Koel", bos: "Bos", noir: "Noir", zee: "Zee", roze: "Roze", mono: "Mono", paars: "Paars" },
@@ -657,7 +657,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Construisez votre site, dans le détail.",
     intro:
-      "Choisissez un thème, ajoutez des sections et vos propres textes. Satisfait ? Envoyez-le à Studio VM, ou mettez votre site en ligne vous-même dès 39 €/mois.",
+      "Choisissez un thème, ajoutez des sections et vos propres textes. Satisfait ? Envoyez-le à Studio VM, ou mettez votre site en ligne vous-même dès 29 €/mois.",
     panelTheme: "Nom + thème",
     bizName: "Nom de l'activité",
     themeLabels: { warm: "Chaud", cool: "Frais", bos: "Forêt", noir: "Noir", zee: "Mer", roze: "Rose", mono: "Mono", paars: "Violet" },
@@ -819,7 +819,7 @@ const T: Record<
     eyebrow: "Builder",
     title: "Build your own site, down to the detail.",
     intro:
-      "Pick a theme, add sections and your own copy. Happy? Send it to Studio VM, or put your site live yourself from €39/month.",
+      "Pick a theme, add sections and your own copy. Happy? Send it to Studio VM, or put your site live yourself from €29/month.",
     panelTheme: "Name + theme",
     bizName: "Business name",
     themeLabels: { warm: "Warm", cool: "Cool", bos: "Forest", noir: "Noir", zee: "Sea", roze: "Rose", mono: "Mono", paars: "Purple" },

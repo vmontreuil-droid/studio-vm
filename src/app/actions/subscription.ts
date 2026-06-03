@@ -5,7 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseConfigured, siteUrl } from "@/lib/supabase/config";
 import {
-  publishSetupCents,
+  publishFirstPaymentCents,
   PUBLISH_BASE_MONTHLY_CENTS,
 } from "@/lib/pricing";
 import {
@@ -25,8 +25,9 @@ async function authed(): Promise<string | null> {
 }
 
 // Start het publiceer-abonnement: Mollie-klant + eerste betaling
-// (€199 opstart, legt meteen het maandmandaat vast). Na betaling maakt
-// de webhook het maandelijkse €39-abonnement aan en zet status actief.
+// (= de eerste maand, géén opstartkost; legt meteen het maandmandaat
+// vast). Na betaling maakt de webhook het maandelijkse abonnement aan
+// (startend ná de betaalde eerste maand) en zet de status actief.
 export async function startPublishSubscription(
   formData: FormData,
 ): Promise<void> {
@@ -84,8 +85,8 @@ export async function startPublishSubscription(
 
   const pay = await mollieFirstPayment({
     customerId: customerId!,
-    amountCents: publishSetupCents(),
-    description: "Website — opstart (incl. eerste maand-mandaat)",
+    amountCents: publishFirstPaymentCents(),
+    description: "Website — eerste maand (legt maandmandaat vast)",
     redirectUrl: `${siteUrl}/${locale}/portail/dashboard/builder?ok=betaald`,
     metadata: { sub_email: email },
   });
@@ -135,7 +136,7 @@ export async function cancelPublishSubscription(
   redirect(`${back}?ok=gestopt`);
 }
 
-// Extra site bijkopen: extra €39/m-abonnement op dezelfde Mollie-klant
+// Extra site bijkopen: extra €29/m-abonnement op dezelfde Mollie-klant
 // (hergebruikt het bestaande mandaat — geen nieuwe opstartkost, geen
 // betaalscherm). Verhoogt het aantal sites dat online mag.
 export async function addExtraSite(formData: FormData): Promise<void> {
