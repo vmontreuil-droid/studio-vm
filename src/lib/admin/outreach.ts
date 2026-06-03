@@ -33,12 +33,15 @@ const DEFAULT_CONFIG: OutreachConfig = {
 
 // Warm-up-curve: nieuwe afzender-domeinen moeten gradueel opbouwen
 // om bij mailproviders niet als "plotseling agressief" gezien te
-// worden. We capen de configurabele dagquota op een curve:
+// worden. We capen de configurabele dagquota op een curve die op
+// dag 14 de volle quota bereikt — met meerdere tussenstappen zodat
+// er geen bruuske sprong (bv. 15 → 100) in zit:
 //
-//   dag  0-6  → max 5
-//   dag  7-13 → max 10
-//   dag 14-20 → max 15
-//   dag 21+  → volle configuratie-quota
+//   dag  0-3  → max 5
+//   dag  4-7  → max 10
+//   dag  8-10 → max 25
+//   dag 11-13 → max 50
+//   dag 14+   → volle configuratie-quota
 //
 // Stelt vanzelf in zodra de eerste mail uitgaat (outreach_started_at).
 export function warmUpQuota(
@@ -49,7 +52,8 @@ export function warmUpQuota(
   const days = Math.floor(
     (Date.now() - new Date(startedAt).getTime()) / 86_400_000,
   );
-  const cap = days < 7 ? 5 : days < 14 ? 10 : days < 21 ? 15 : configured;
+  const cap =
+    days < 4 ? 5 : days < 8 ? 10 : days < 11 ? 25 : days < 14 ? 50 : configured;
   return Math.min(configured, cap);
 }
 
