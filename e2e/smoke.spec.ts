@@ -43,11 +43,10 @@ test.describe("Tools", () => {
     });
   });
 
-  test("offerte-calculator toont een totaalprijs", async ({ page }) => {
+  test("offerte toont het vaste maandtarief", async ({ page }) => {
     await page.goto("/nl/offerte");
-    const aside = page.locator("aside");
-    await expect(aside.getByText(/Jouw totaal/i).first()).toBeVisible();
-    await expect(aside.getByText(/€\s?\d/).first()).toBeVisible();
+    await expect(page.getByText(/Wat je krijgt voor/i).first()).toBeVisible();
+    await expect(page.getByText(/€\s?49/).first()).toBeVisible();
   });
 
   test("ROI-calculator rekent en toont verlies", async ({ page }) => {
