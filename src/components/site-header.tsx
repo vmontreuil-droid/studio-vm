@@ -28,7 +28,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+      <div className="flex w-full items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-10">
         <Link
           href={home}
           aria-label="Studio VM"
@@ -36,7 +36,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         >
           <Logo className="text-5xl sm:text-6xl" />
         </Link>
-        <nav className="hidden items-center gap-6 text-sm md:flex">
+        <nav className="hidden items-center gap-6 text-sm lg:flex">
           {items.map((item) => (
             <NavLink
               key={item.href}

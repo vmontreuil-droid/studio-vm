@@ -1,40 +1,57 @@
+import type { Locale } from "@/lib/i18n/config";
+
 export type NavItem = { href: string; label: string; group?: string };
 
-export const primaryNav: NavItem[] = [
-  { href: "/#werk", label: "Realisaties" },
-  { href: "/mogelijkheden", label: "Mogelijkheden" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/#contact", label: "Contact" },
-];
+// Menu voor de gsm (en referentie voor zoekfunctie). Labels per taal.
+const NAV: Record<Locale, NavItem[]> = {
+  nl: [
+    { href: "/", label: "Home", group: "Studio VM" },
+    { href: "/3d-modellen", label: "3D-modellen", group: "Studio VM" },
+    { href: "/#werkwijze", label: "Werkwijze", group: "Studio VM" },
+    { href: "/realisaties", label: "Realisaties", group: "Studio VM" },
+    { href: "/tarieven", label: "Tarieven", group: "Studio VM" },
+    { href: "/offerte", label: "Offerte aanvragen", group: "Studio VM" },
+    { href: "/kennis", label: "Kennisbank", group: "Kennis" },
+    { href: "/kennis/coordinatenstelsels", label: "Coördinatenstelsels", group: "Kennis" },
+    { href: "/kennis/veelgestelde-vragen", label: "Veelgestelde vragen", group: "Kennis" },
+    { href: "/over", label: "Over Vincent", group: "Over" },
+    { href: "/#contact", label: "Contact", group: "Over" },
+    { href: "/portail", label: "Klantenportaal", group: "Over" },
+  ],
+  fr: [
+    { href: "/", label: "Accueil", group: "Studio VM" },
+    { href: "/3d-modellen", label: "Modèles 3D", group: "Studio VM" },
+    { href: "/#werkwijze", label: "Méthode", group: "Studio VM" },
+    { href: "/realisaties", label: "Réalisations", group: "Studio VM" },
+    { href: "/tarieven", label: "Tarifs", group: "Studio VM" },
+    { href: "/offerte", label: "Demander un devis", group: "Studio VM" },
+    { href: "/kennis", label: "Base de connaissances", group: "Savoir" },
+    { href: "/kennis/coordinatenstelsels", label: "Systèmes de coordonnées", group: "Savoir" },
+    { href: "/kennis/veelgestelde-vragen", label: "Questions fréquentes", group: "Savoir" },
+    { href: "/over", label: "À propos de Vincent", group: "À propos" },
+    { href: "/#contact", label: "Contact", group: "À propos" },
+    { href: "/portail", label: "Espace client", group: "À propos" },
+  ],
+  en: [
+    { href: "/", label: "Home", group: "Studio VM" },
+    { href: "/3d-modellen", label: "3D models", group: "Studio VM" },
+    { href: "/#werkwijze", label: "How it works", group: "Studio VM" },
+    { href: "/realisaties", label: "Projects", group: "Studio VM" },
+    { href: "/tarieven", label: "Rates", group: "Studio VM" },
+    { href: "/offerte", label: "Request a quote", group: "Studio VM" },
+    { href: "/kennis", label: "Knowledge base", group: "Knowledge" },
+    { href: "/kennis/coordinatenstelsels", label: "Coordinate systems", group: "Knowledge" },
+    { href: "/kennis/veelgestelde-vragen", label: "FAQ", group: "Knowledge" },
+    { href: "/over", label: "About Vincent", group: "About" },
+    { href: "/#contact", label: "Contact", group: "About" },
+    { href: "/portail", label: "Client portal", group: "About" },
+  ],
+};
 
-export const allNav: NavItem[] = [
-  { href: "/", label: "Home", group: "Studio" },
-  { href: "/#werk", label: "Realisaties", group: "Studio" },
-  { href: "/mogelijkheden", label: "Mogelijkheden", group: "Studio" },
-  { href: "/zelf-bouwen", label: "Zelf bouwen", group: "Studio" },
-  { href: "/pricing", label: "Pricing", group: "Studio" },
-  { href: "/journal", label: "Journal", group: "Studio" },
-  { href: "/diensten", label: "Diensten", group: "Diensten" },
-  { href: "/scan", label: "Gratis site-scan", group: "Diensten" },
-  { href: "/roi", label: "ROI-calculator", group: "Diensten" },
-  { href: "/kosten", label: "Kostenvergelijking", group: "Diensten" },
-  { href: "/aanpak", label: "Aanpak", group: "Diensten" },
-  { href: "/vergelijking", label: "Vergelijking", group: "Diensten" },
-  { href: "/shop", label: "Templates shop", group: "Diensten" },
-  { href: "/builder", label: "Site builder demo", group: "Diensten" },
-  { href: "/faq", label: "FAQ", group: "Diensten" },
-  { href: "/woordenboek", label: "Woordenboek", group: "Diensten" },
-  { href: "/portail", label: "Klantportaal", group: "Voor klanten" },
-  { href: "/support", label: "Support tickets", group: "Voor klanten" },
-  { href: "/status", label: "Status", group: "Voor klanten" },
-  { href: "/#contact", label: "Contact", group: "Voor klanten" },
-  { href: "/over", label: "Over Vincent", group: "Over Vincent" },
-  { href: "/now", label: "Wat ik nu doe", group: "Over Vincent" },
-  { href: "/uses", label: "Tools die ik gebruik", group: "Over Vincent" },
-  { href: "/pers", label: "Pers & brand kit", group: "Over Vincent" },
-  { href: "/changelog", label: "Changelog", group: "Over Vincent" },
-  { href: "/offerte", label: "Offerte-calculator", group: "Diensten" },
-  { href: "/privacy", label: "Privacy", group: "Legal" },
-  { href: "/cookies", label: "Cookies", group: "Legal" },
-  { href: "/voorwaarden", label: "Algemene voorwaarden", group: "Legal" },
-];
+export function navVoor(locale: Locale): NavItem[] {
+  return NAV[locale];
+}
+
+// Oude namen, nog gebruikt door enkele componenten (zoekfunctie, portaal).
+export const allNav: NavItem[] = NAV.nl;
+export const primaryNav: NavItem[] = NAV.nl.filter((n) => n.group === "Studio VM");

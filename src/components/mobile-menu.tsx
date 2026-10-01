@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { allNav } from "@/lib/nav";
+import { Menu, X, FileUp } from "lucide-react";
+import { navVoor } from "@/lib/nav";
 import { LangSwitcher } from "@/components/lang-switcher";
 import { Logo } from "@/components/logo";
 import { localePath, type Locale } from "@/lib/i18n/config";
@@ -24,7 +24,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
     };
   }, [open]);
 
-  const groups = allNav.reduce<Record<string, typeof allNav>>((acc, item) => {
+  const items = navVoor(locale);
+  const groups = items.reduce<Record<string, typeof items>>((acc, item) => {
     const g = item.group ?? "Andere";
     (acc[g] ??= []).push(item);
     return acc;
@@ -36,7 +37,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:hidden"
+        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground lg:hidden"
       >
         <Menu className="h-4 w-4" strokeWidth={2} />
       </button>
@@ -86,9 +87,19 @@ export function MobileMenu({ locale }: { locale: Locale }) {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center justify-between border-t px-5 py-4">
+          <div className="shrink-0 border-t px-5 pt-4">
+            <Link
+              href={localePath(locale, "/offerte")}
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background"
+            >
+              <FileUp className="h-4 w-4" strokeWidth={2} />
+              {locale === "fr" ? "Demander un devis" : locale === "en" ? "Request a quote" : "Offerte aanvragen"}
+            </Link>
+          </div>
+          <div className="flex shrink-0 items-center justify-between px-5 py-4">
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-              Taal
+              {locale === "fr" ? "Langue" : locale === "en" ? "Language" : "Taal"}
             </span>
             <LangSwitcher current={locale} />
           </div>
