@@ -669,9 +669,17 @@ export async function verwijderProject(fd: FormData): Promise<void> {
   await verzamel(id, 0);
   const lijst = [...paden];
   for (let i = 0; i < lijst.length; i += 100) await db.storage.from("modellen").remove(lijst.slice(i, i + 100));
-  // Door de admin opgeladen plannen (die van de klant horen bij zijn aanvraag).
-  const eigen = (p.plannen ?? []).map((x) => x.pad).filter((x) => x.startsWith(`projecten/${id}/`));
-  if (eigen.length) await db.storage.from("plannen").remove(eigen);
+  // Door de admin opgeladen plannen gaan altijd mee. Die van de klant horen bij
+  // zijn aanvraag — tenzij die aanvraag al verwijderd is, dan mogen ze ook weg.
+  let aanvraagBestaat = false;
+  if (p.quote_id) {
+    const { count } = await db.from("quotes").select("id", { count: "exact", head: true }).eq("id", p.quote_id);
+    aanvraagBestaat = (count ?? 0) > 0;
+  }
+  const plannen = (p.plannen ?? [])
+    .map((x) => x.pad)
+    .filter((x) => x.startsWith(`projecten/${id}/`) || !aanvraagBestaat);
+  if (plannen.length) await db.storage.from("plannen").remove(plannen);
 
   await db.from("projecten").delete().eq("id", id);
   herlaad();
