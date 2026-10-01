@@ -108,7 +108,7 @@ const nl = {
   },
   notTranslated: {
     title: "Deze pagina is enkel beschikbaar in het Nederlands.",
-    body: "De rest van de site is volledig NL/FR/EN. Voor deze specifieke pagina is er nog geen vertaling — laat 't weten als je een vertaling nodig hebt.",
+    body: "De rest van de site is volledig NL/FR/EN/DE/ES. Voor deze specifieke pagina is er nog geen vertaling — laat 't weten als je een vertaling nodig hebt.",
     cta: "Naar home",
   },
 };

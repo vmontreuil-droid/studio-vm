@@ -111,7 +111,7 @@ const en: Messages = {
   notTranslated: {
     title: "This page is only available in Dutch.",
     body:
-      "The rest of the site is fully NL/FR/EN. This specific page isn't translated yet — let me know if you need it.",
+      "The rest of the site is fully NL/FR/EN/DE/ES. This specific page isn't translated yet — let me know if you need it.",
     cta: "Back to home",
   },
 };

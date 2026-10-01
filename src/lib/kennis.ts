@@ -1486,7 +1486,7 @@ export const KENNIS: KennisArtikel[] = [
           {
             kop: "Werkt u ook buiten België?",
             tekst: [
-              "Ja. Modellen worden gemaakt voor werven in heel Europa, in het coördinatenstelsel en de hoogtereferentie van het betrokken land of in een lokaal stelsel naar keuze. Communicatie kan in het Nederlands, Frans of Engels.",
+              "Ja. Modellen worden gemaakt voor werven in heel Europa, in het coördinatenstelsel en de hoogtereferentie van het betrokken land of in een lokaal stelsel naar keuze. Communicatie kan in het Nederlands, Frans, Engels, Duits of Spaans.",
             ],
           },
         ],
@@ -1537,7 +1537,7 @@ export const KENNIS: KennisArtikel[] = [
           {
             kop: "Travaillez-vous aussi en dehors de la Belgique ?",
             tekst: [
-              "Oui. Les modèles sont réalisés pour des chantiers dans toute l’Europe, dans le système de coordonnées et la référence altimétrique du pays concerné ou dans un système local de votre choix. Les échanges peuvent se faire en néerlandais, en français ou en anglais.",
+              "Oui. Les modèles sont réalisés pour des chantiers dans toute l’Europe, dans le système de coordonnées et la référence altimétrique du pays concerné ou dans un système local de votre choix. Les échanges peuvent se faire en néerlandais, français, anglais, allemand ou espagnol.",
             ],
           },
         ],
@@ -1588,7 +1588,7 @@ export const KENNIS: KennisArtikel[] = [
           {
             kop: "Do you work outside Belgium?",
             tekst: [
-              "Yes. Models are produced for sites across Europe, in the coordinate system and height datum of the country concerned or in a local system of your choice. Communication is possible in Dutch, French or English.",
+              "Yes. Models are produced for sites across Europe, in the coordinate system and height datum of the country concerned or in a local system of your choice. Communication is possible in Dutch, French, English, German or Spanish.",
             ],
           },
         ],
@@ -1639,7 +1639,7 @@ export const KENNIS: KennisArtikel[] = [
           {
             kop: "Arbeiten Sie auch außerhalb Belgiens?",
             tekst: [
-              "Ja. Modelle werden für Baustellen in ganz Europa erstellt, im Koordinatensystem und Höhenbezug des jeweiligen Landes oder in einem lokalen System Ihrer Wahl. Die Kommunikation ist auf Niederländisch, Französisch oder Englisch möglich.",
+              "Ja. Modelle werden für Baustellen in ganz Europa erstellt, im Koordinatensystem und Höhenbezug des jeweiligen Landes oder in einem lokalen System Ihrer Wahl. Die Kommunikation ist auf Deutsch, Niederländisch, Französisch, Englisch oder Spanisch möglich.",
             ],
           },
         ],
@@ -1690,7 +1690,7 @@ export const KENNIS: KennisArtikel[] = [
           {
             kop: "¿Trabajan también fuera de Bélgica?",
             tekst: [
-              "Sí. Los modelos se elaboran para obras en toda Europa, en el sistema de coordenadas y la referencia altimétrica del país correspondiente o en un sistema local de su elección. La comunicación es posible en neerlandés, francés o inglés.",
+              "Sí. Los modelos se elaboran para obras en toda Europa, en el sistema de coordenadas y la referencia altimétrica del país correspondiente o en un sistema local de su elección. La comunicación es posible en español, neerlandés, francés, inglés o alemán.",
             ],
           },
         ],
