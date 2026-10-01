@@ -50,6 +50,42 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Oude pagina's uit de websitetijd → de passende 3D-pagina (blijvend).
+  async redirects() {
+    const naar: [string, string][] = [
+      ["pricing", "tarieven"],
+      ["zelf-bouwen", "tarieven"],
+      ["kosten", "tarieven"],
+      ["roi", "tarieven"],
+      ["vergelijking", "tarieven"],
+      ["diensten", "3d-modellen"],
+      ["mogelijkheden", "3d-modellen"],
+      ["mogelijkheden/:slug", "3d-modellen"],
+      ["aanpak", "3d-modellen"],
+      ["werk/:slug", "realisaties"],
+      ["shop", "realisaties"],
+      ["builder", "offerte"],
+      ["scan", "offerte"],
+      ["scan/:pad*", "offerte"],
+      ["site-health-check", "offerte"],
+      ["site-health-check/:pad*", "offerte"],
+      ["faq", "kennis/veelgestelde-vragen"],
+      ["woordenboek", "kennis"],
+      ["journal", "kennis"],
+      ["journal/:slug", "kennis"],
+      ["now", "over"],
+      ["uses", "over"],
+      ["pers", "over"],
+      ["changelog", "over"],
+      ["status", "over"],
+      ["preview/:pad*", ""],
+    ];
+    return naar.map(([oud, nieuw]) => ({
+      source: `/:locale(nl|fr|en)/${oud}`,
+      destination: `/:locale${nieuw ? `/${nieuw}` : ""}`,
+      permanent: true,
+    }));
+  },
   async rewrites() {
     return [
       { source: "/.well-known/security.txt", destination: "/security-txt" },

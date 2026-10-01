@@ -1,6 +1,4 @@
-import { getProjects } from "@/lib/projects";
-import { getPosts } from "@/lib/posts";
-import { getCapabilityDetails } from "@/lib/capabilities";
+import { KENNIS } from "@/lib/kennis";
 import { localePath, type Locale } from "@/lib/i18n/config";
 
 export type SearchEntry = {
@@ -10,93 +8,45 @@ export type SearchEntry = {
   hint?: string;
 };
 
-const pageDefs: Record<
-  Locale,
-  { title: string; path: string; hint?: string }[]
-> = {
+const pageDefs: Record<Locale, { title: string; path: string; hint?: string }[]> = {
   nl: [
-    { title: "Home", path: "/", hint: "Hero, werk, mogelijkheden, contact" },
-    { title: "Over Vincent", path: "/over", hint: "Wie zit er achter Studio VM" },
-    { title: "Pers & brand kit", path: "/pers", hint: "Logo's, kleuren, bio" },
-    { title: "Changelog", path: "/changelog", hint: "Wat ik aan de site bouw" },
-    { title: "Offerte-calculator", path: "/offerte", hint: "Reken je project uit" },
-    { title: "Gratis site-scan", path: "/scan", hint: "Live check van je huidige site" },
-    { title: "ROI-calculator", path: "/roi", hint: "Wat kost een trage site je" },
-    { title: "Kostenvergelijking", path: "/kosten", hint: "5-jaars TCO vs WordPress/Shopify" },
-    { title: "Mogelijkheden", path: "/mogelijkheden", hint: "Alle modules in detail" },
-    { title: "Pricing", path: "/pricing", hint: "Pakketten + abonnementen" },
-    { title: "Diensten", path: "/diensten", hint: "Wat ik bouw + werkproces" },
-    { title: "Aanpak", path: "/aanpak", hint: "Hoe ik werk, stap voor stap" },
-    { title: "Vergelijking", path: "/vergelijking", hint: "Studio VM vs WordPress/Shopify/agency" },
-    { title: "Woordenboek", path: "/woordenboek", hint: "Jargon in mensentaal" },
-    { title: "FAQ", path: "/faq", hint: "Veelgestelde vragen" },
-    { title: "Journal", path: "/journal", hint: "Blog over webdevelopment" },
-    { title: "Templates shop", path: "/shop", hint: "Templates en e-books" },
-    { title: "Site builder demo", path: "/builder", hint: "Bouw je eigen pagina" },
-    { title: "Klantportaal", path: "/portail", hint: "Inloggen voor klanten" },
-    { title: "Support tickets", path: "/support", hint: "Open een ticket" },
-    { title: "Status", path: "/status", hint: "Uptime + system status" },
-    { title: "Wat ik nu doe", path: "/now", hint: "Now-page" },
-    { title: "Tools die ik gebruik", path: "/uses", hint: "Mijn stack" },
+    { title: "Home", path: "/", hint: "3D-modellen voor machinesturing" },
+    { title: "3D-modellen", path: "/3d-modellen", hint: "Wat zit er in een model" },
+    { title: "Realisaties", path: "/realisaties", hint: "Wegenis, grondwerk, bouwputten, terreinen" },
+    { title: "Tarieven", path: "/tarieven", hint: "Uurtarieven vroegtijdig, normaal, last-minute" },
+    { title: "Offerte aanvragen", path: "/offerte", hint: "Plannen opladen, werfadres, machinesturing" },
+    { title: "Kennisbank", path: "/kennis", hint: "Uitleg over modellen, stelsels, bestanden" },
+    { title: "Over Vincent", path: "/over", hint: "Wie maakt de modellen" },
+    { title: "Klantenportaal", path: "/portail", hint: "Projecten, offertes, downloads" },
     { title: "Privacy", path: "/privacy" },
     { title: "Cookies", path: "/cookies" },
     { title: "Algemene voorwaarden", path: "/voorwaarden" },
   ],
   fr: [
-    { title: "Accueil", path: "/", hint: "Hero, travaux, capacités, contact" },
-    { title: "À propos de Vincent", path: "/over", hint: "Qui est derrière Studio VM" },
-    { title: "Presse & brand kit", path: "/pers", hint: "Logos, couleurs, bio" },
-    { title: "Changelog", path: "/changelog", hint: "Ce que je construis sur le site" },
-    { title: "Calculateur de devis", path: "/offerte", hint: "Estimez votre projet" },
-    { title: "Scan de site gratuit", path: "/scan", hint: "Check en direct de votre site actuel" },
-    { title: "Calculateur ROI", path: "/roi", hint: "Ce que coûte un site lent" },
-    { title: "Comparaison de coûts", path: "/kosten", hint: "TCO 5 ans vs WordPress/Shopify" },
-    { title: "Capacités", path: "/mogelijkheden", hint: "Tous les modules en détail" },
-    { title: "Tarifs", path: "/pricing", hint: "Forfaits + abonnements" },
-    { title: "Services", path: "/diensten", hint: "Ce que je construis + processus" },
-    { title: "Approche", path: "/aanpak", hint: "Comment je travaille, étape par étape" },
-    { title: "Comparaison", path: "/vergelijking", hint: "Studio VM vs WordPress/Shopify/agence" },
-    { title: "Glossaire", path: "/woordenboek", hint: "Le jargon en langage humain" },
-    { title: "FAQ", path: "/faq", hint: "Questions fréquentes" },
-    { title: "Journal", path: "/journal", hint: "Blog sur le développement web" },
-    { title: "Boutique templates", path: "/shop", hint: "Templates et e-books" },
-    { title: "Démo site builder", path: "/builder", hint: "Construisez votre page" },
-    { title: "Espace client", path: "/portail", hint: "Connexion clients" },
-    { title: "Tickets support", path: "/support", hint: "Ouvrir un ticket" },
-    { title: "Statut", path: "/status", hint: "Uptime + statut système" },
-    { title: "Ce que je fais", path: "/now", hint: "Now-page" },
-    { title: "Mes outils", path: "/uses", hint: "Ma stack" },
+    { title: "Accueil", path: "/", hint: "Modèles 3D pour le guidage d'engins" },
+    { title: "Modèles 3D", path: "/3d-modellen", hint: "Que contient un modèle" },
+    { title: "Réalisations", path: "/realisaties", hint: "Voiries, terrassements, fouilles, terrains" },
+    { title: "Tarifs", path: "/tarieven", hint: "Tarifs horaires anticipé, normal, urgent" },
+    { title: "Demander un devis", path: "/offerte", hint: "Plans, adresse du chantier, guidage" },
+    { title: "Base de connaissances", path: "/kennis", hint: "Modèles, systèmes, fichiers" },
+    { title: "À propos de Vincent", path: "/over", hint: "Qui réalise les modèles" },
+    { title: "Espace client", path: "/portail", hint: "Projets, devis, téléchargements" },
     { title: "Confidentialité", path: "/privacy" },
     { title: "Cookies", path: "/cookies" },
     { title: "Conditions générales", path: "/voorwaarden" },
   ],
   en: [
-    { title: "Home", path: "/", hint: "Hero, work, capabilities, contact" },
-    { title: "About Vincent", path: "/over", hint: "Who is behind Studio VM" },
-    { title: "Press & brand kit", path: "/pers", hint: "Logos, colours, bio" },
-    { title: "Changelog", path: "/changelog", hint: "What I build on the site" },
-    { title: "Quote calculator", path: "/offerte", hint: "Estimate your project" },
-    { title: "Free site scan", path: "/scan", hint: "Live check of your current site" },
-    { title: "ROI calculator", path: "/roi", hint: "What a slow site costs you" },
-    { title: "Cost comparison", path: "/kosten", hint: "5-year TCO vs WordPress/Shopify" },
-    { title: "Capabilities", path: "/mogelijkheden", hint: "All modules in detail" },
-    { title: "Pricing", path: "/pricing", hint: "Packages + subscriptions" },
-    { title: "Services", path: "/diensten", hint: "What I build + process" },
-    { title: "Approach", path: "/aanpak", hint: "How I work, step by step" },
-    { title: "Comparison", path: "/vergelijking", hint: "Studio VM vs WordPress/Shopify/agency" },
-    { title: "Glossary", path: "/woordenboek", hint: "Jargon in plain language" },
-    { title: "FAQ", path: "/faq", hint: "Frequently asked questions" },
-    { title: "Journal", path: "/journal", hint: "Blog about web development" },
-    { title: "Templates shop", path: "/shop", hint: "Templates and e-books" },
-    { title: "Site builder demo", path: "/builder", hint: "Build your own page" },
-    { title: "Client portal", path: "/portail", hint: "Client login" },
-    { title: "Support tickets", path: "/support", hint: "Open a ticket" },
-    { title: "Status", path: "/status", hint: "Uptime + system status" },
-    { title: "What I'm doing now", path: "/now", hint: "Now-page" },
-    { title: "Tools I use", path: "/uses", hint: "My stack" },
+    { title: "Home", path: "/", hint: "3D models for machine control" },
+    { title: "3D models", path: "/3d-modellen", hint: "What is in a model" },
+    { title: "Projects", path: "/realisaties", hint: "Roads, earthworks, excavations, terrain" },
+    { title: "Rates", path: "/tarieven", hint: "Hourly rates early, standard, last-minute" },
+    { title: "Request a quote", path: "/offerte", hint: "Plans, site address, machine control" },
+    { title: "Knowledge base", path: "/kennis", hint: "Models, systems, files" },
+    { title: "About Vincent", path: "/over", hint: "Who builds the models" },
+    { title: "Client portal", path: "/portail", hint: "Projects, quotes, downloads" },
     { title: "Privacy", path: "/privacy" },
     { title: "Cookies", path: "/cookies" },
-    { title: "Terms", path: "/voorwaarden" },
+    { title: "Terms & conditions", path: "/voorwaarden" },
   ],
 };
 
@@ -107,25 +57,13 @@ export function getSearchIndex(locale: Locale): SearchEntry[] {
     kind: "Page",
     hint: p.hint,
   }));
-  const work: SearchEntry[] = getProjects(locale).map((p) => ({
-    title: p.name,
-    href: localePath(locale, `/werk/${p.slug}`),
-    kind: "Werk",
-    hint: p.tagline,
-  }));
-  const journal: SearchEntry[] = getPosts(locale).map((p) => ({
-    title: p.title,
-    href: localePath(locale, `/journal/${p.slug}`),
+  const kennis: SearchEntry[] = KENNIS.map((a) => ({
+    title: a.i18n[locale].titel,
+    href: localePath(locale, `/kennis/${a.slug}`),
     kind: "Journal",
-    hint: p.tag,
+    hint: a.i18n[locale].samenvatting.slice(0, 70),
   }));
-  const modules: SearchEntry[] = getCapabilityDetails(locale).map((c) => ({
-    title: c.title,
-    href: localePath(locale, `/mogelijkheden/${c.slug}`),
-    kind: "Module",
-    hint: c.short.slice(0, 60),
-  }));
-  return [...pages, ...work, ...journal, ...modules];
+  return [...pages, ...kennis];
 }
 
 export function search(

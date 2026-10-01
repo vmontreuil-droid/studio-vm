@@ -5,20 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Globe,
-  Gauge,
   FileText,
   Receipt,
   CreditCard,
-  RefreshCcw,
   LifeBuoy,
   UserRound,
   TrendingUp,
   ListChecks,
   FolderOpen,
   CalendarClock,
-  Network,
-  PenTool,
   Inbox,
   PanelLeft,
   LogOut,
@@ -78,18 +73,6 @@ export function PortalShell({
       entries: [
         { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
         { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
-        { href: `${base}/mijn-website`, label: t.mywebsite, icon: Globe },
-        {
-          href: `${base}/builder`,
-          label:
-            locale === "fr"
-              ? "Mes maquettes"
-              : locale === "en"
-                ? "My drafts"
-                : "Mijn ontwerpen",
-          icon: PenTool,
-        },
-        { href: `${base}/domein`, label: t.domain, icon: Network },
         {
           href: `${base}/berichten`,
           label:
@@ -100,7 +83,6 @@ export function PortalShell({
                 : "Berichten",
           icon: Inbox,
         },
-        { href: `${base}/scans`, label: t.scans, icon: Gauge },
       ],
     },
     {
@@ -119,13 +101,6 @@ export function PortalShell({
           badge: counts.invoices,
         },
         { href: `${base}/betalingen`, label: t.payments, icon: CreditCard },
-        {
-          href: `${base}/abonnement`,
-          label: t.subscription,
-          icon: RefreshCcw,
-          badge: counts.sites,
-          green: true,
-        },
         { href: `${base}/documenten`, label: t.documents, icon: FolderOpen },
       ],
     },

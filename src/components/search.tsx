@@ -65,10 +65,10 @@ function SearchDialog({
 
   const cmdLabels =
     locale === "fr"
-      ? { theme: "Basculer le thème", scan: "Scanner mon site", offerte: "Calculateur de devis", lang: (l: string) => `Passer en ${l.toUpperCase()}` }
+      ? { theme: "Basculer le thème", scan: "Réalisations", offerte: "Demander un devis", lang: (l: string) => `Passer en ${l.toUpperCase()}` }
       : locale === "en"
-        ? { theme: "Toggle theme", scan: "Scan my site", offerte: "Quote calculator", lang: (l: string) => `Switch to ${l.toUpperCase()}` }
-        : { theme: "Wissel thema", scan: "Scan mijn site", offerte: "Offerte-calculator", lang: (l: string) => `Schakel naar ${l.toUpperCase()}` };
+        ? { theme: "Toggle theme", scan: "Projects", offerte: "Request a quote", lang: (l: string) => `Switch to ${l.toUpperCase()}` }
+        : { theme: "Wissel thema", scan: "Realisaties", offerte: "Offerte aanvragen", lang: (l: string) => `Schakel naar ${l.toUpperCase()}` };
 
   type Cmd = { id: string; label: string; run: () => void };
 
@@ -102,7 +102,7 @@ function SearchDialog({
 
   const commands: Cmd[] = [
     { id: "theme", label: cmdLabels.theme, run: cycleTheme },
-    { id: "scan", label: cmdLabels.scan, run: () => { onClose(); router.push(localePath(locale, "/scan")); } },
+    { id: "scan", label: cmdLabels.scan, run: () => { onClose(); router.push(localePath(locale, "/realisaties")); } },
     { id: "offerte", label: cmdLabels.offerte, run: () => { onClose(); router.push(localePath(locale, "/offerte")); } },
     ...(["nl", "fr", "en"] as Locale[])
       .filter((l) => l !== locale)

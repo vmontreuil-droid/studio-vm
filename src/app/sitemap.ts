@@ -1,7 +1,5 @@
 import type { MetadataRoute } from "next";
-import { projectSlugs } from "@/lib/projects";
-import { postSlugs } from "@/lib/posts";
-import { capabilitySlugs } from "@/lib/capabilities";
+import { KENNIS } from "@/lib/kennis";
 import { LOCALES } from "@/lib/i18n/config";
 
 const BASE = "https://studio-vm.be";
@@ -11,77 +9,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const paths = [
     "",
-    "/over",
-    "/pers",
-    "/changelog",
-    "/scan",
-    "/roi",
-    "/kosten",
-    "/diensten",
-    "/aanpak",
-    "/vergelijking",
-    "/woordenboek",
-    "/mogelijkheden",
+    "/3d-modellen",
+    "/realisaties",
+    "/tarieven",
     "/offerte",
-    "/pricing",
-    "/faq",
-    "/journal",
-    "/shop",
-    "/portail",
-    "/support",
-    "/builder",
-    "/zelf-bouwen",
-    "/status",
-    "/now",
-    "/uses",
+    "/kennis",
+    "/over",
     "/privacy",
     "/cookies",
     "/voorwaarden",
   ];
+  const belangrijk = new Set(["", "/offerte", "/3d-modellen", "/realisaties", "/tarieven"]);
 
-  const keyConversion = new Set(["/offerte", "/pricing", "/scan"]);
-  const localePages = paths.flatMap((path) =>
+  const paginas = paths.flatMap((path) =>
     LOCALES.map((locale) => ({
       url: `${BASE}/${locale}${path}`,
       lastModified: now,
-      changeFrequency: (keyConversion.has(path)
-        ? "weekly"
-        : "monthly") as "weekly" | "monthly",
-      priority: path === "" ? 1 : keyConversion.has(path) ? 0.9 : 0.7,
+      changeFrequency: (belangrijk.has(path) ? "weekly" : "monthly") as "weekly" | "monthly",
+      priority: path === "" ? 1 : belangrijk.has(path) ? 0.9 : 0.5,
     })),
   );
 
-  const projectRoutes = projectSlugs.flatMap((slug) =>
+  const kennis = KENNIS.flatMap((a) =>
     LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/werk/${slug}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    })),
-  );
-
-  const postRoutes = postSlugs.flatMap((slug) =>
-    LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/journal/${slug}`,
-      lastModified: now,
-      changeFrequency: "yearly" as const,
-      priority: 0.5,
-    })),
-  );
-
-  const capabilityRoutes = capabilitySlugs.flatMap((slug) =>
-    LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/mogelijkheden/${slug}`,
+      url: `${BASE}/${locale}/kennis/${a.slug}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
   );
 
-  return [
-    ...localePages,
-    ...projectRoutes,
-    ...postRoutes,
-    ...capabilityRoutes,
-  ];
+  return [...paginas, ...kennis];
 }

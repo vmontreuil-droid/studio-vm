@@ -6,10 +6,6 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/monitor",
-      "schedule": "0 */6 * * *"
-    },
-    {
       "path": "/api/cron/offers",
       "schedule": "0 7 * * *"
     },
@@ -40,10 +36,6 @@
     {
       "path": "/api/cron/website-discovery",
       "schedule": "30 3 * * *"
-    },
-    {
-      "path": "/api/cron/health-check-followup",
-      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/social-generate",

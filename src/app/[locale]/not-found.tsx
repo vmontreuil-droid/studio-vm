@@ -28,8 +28,8 @@ const copy: Record<
       "Misschien heb je een oude link, of typte iemand iets verkeerd. Probeer een van deze:",
     suggestions: [
       { href: "/", label: "Home", desc: "Begin opnieuw" },
-      { href: "/#werk", label: "Werk", desc: "Bekijk recente projecten" },
-      { href: "/pricing", label: "Pricing", desc: "Pakketten en abonnementen" },
+      { href: "/realisaties", label: "Realisaties", desc: "Bekijk gerealiseerde modellen" },
+      { href: "/offerte", label: "Offerte aanvragen", desc: "Stuur uw plannen" },
       { href: "/#contact", label: "Contact", desc: "Stuur me een bericht" },
     ],
     home: "Naar home",
@@ -43,8 +43,8 @@ const copy: Record<
       "Peut-être un ancien lien, ou une faute de frappe. Essayez l'un de ceux-ci :",
     suggestions: [
       { href: "/", label: "Accueil", desc: "Recommencer" },
-      { href: "/#werk", label: "Travaux", desc: "Voir les projets récents" },
-      { href: "/pricing", label: "Tarifs", desc: "Forfaits et abonnements" },
+      { href: "/realisaties", label: "Réalisations", desc: "Voir les modèles réalisés" },
+      { href: "/offerte", label: "Demander un devis", desc: "Envoyez vos plans" },
       { href: "/#contact", label: "Contact", desc: "Envoyez-moi un message" },
     ],
     home: "Vers l'accueil",
@@ -58,8 +58,8 @@ const copy: Record<
       "Maybe an old link, or someone mistyped something. Try one of these:",
     suggestions: [
       { href: "/", label: "Home", desc: "Start over" },
-      { href: "/#werk", label: "Work", desc: "See recent projects" },
-      { href: "/pricing", label: "Pricing", desc: "Packages and subscriptions" },
+      { href: "/realisaties", label: "Projects", desc: "See completed models" },
+      { href: "/offerte", label: "Request a quote", desc: "Send your plans" },
       { href: "/#contact", label: "Contact", desc: "Send me a message" },
     ],
     home: "To home",
