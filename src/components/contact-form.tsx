@@ -7,7 +7,21 @@ import { sendContact, type ContactState } from "@/app/actions/contact";
 
 const initial: ContactState = { ok: false, message: "" };
 
-export function ContactForm() {
+export type ContactFormLabels = {
+  name: string;
+  email: string;
+  subject: string;
+  body: string;
+  namePlaceholder: string;
+  emailPlaceholder: string;
+  subjectPlaceholder: string;
+  bodyPlaceholder: string;
+  submit: string;
+  submitting: string;
+  openMail: string;
+};
+
+export function ContactForm({ t }: { t: ContactFormLabels }) {
   const [state, setState] = useState<ContactState>(initial);
   const [pending, startTransition] = useTransition();
 
@@ -33,41 +47,28 @@ export function ContactForm() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field name="name" label="Naam" required placeholder="Vincent Voorbeeld" />
+        <Field name="name" label={t.name} required placeholder={t.namePlaceholder} />
         <Field
           name="email"
-          label="E-mail"
+          label={t.email}
           type="email"
           required
-          placeholder="jij@bedrijf.be"
+          placeholder={t.emailPlaceholder}
         />
       </div>
 
       <Field
         name="subject"
-        label="Onderwerp"
-        placeholder="Restaurantsite voor Bistro X"
+        label={t.subject}
+        placeholder={t.subjectPlaceholder}
       />
-
-      <div>
-        <Field
-          name="currentSite"
-          label="Je huidige website (optioneel)"
-          type="text"
-          placeholder="jouwsite.be"
-        />
-        <p className="mt-1.5 text-xs text-muted">
-          Vul je dit in, dan voeren we automatisch een snelle scan van je
-          huidige site uit zodat we je beter van dienst kunnen zijn.
-        </p>
-      </div>
 
       <Field
         name="body"
-        label="Bericht"
+        label={t.body}
         textarea
         required
-        placeholder="Wat heb je in gedachten? Wat is je tijdslijn? Hoeveel pagina's ongeveer?"
+        placeholder={t.bodyPlaceholder}
       />
 
       {state.message && (
@@ -92,7 +93,7 @@ export function ContactForm() {
                 className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline"
               >
                 <Mail className="h-3 w-3" strokeWidth={2} />
-                Open in mail-client
+                {t.openMail}
               </a>
             )}
           </div>
@@ -104,7 +105,7 @@ export function ContactForm() {
         disabled={pending}
         className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        {pending ? "Verzenden..." : "Verstuur bericht"}
+        {pending ? t.submitting : t.submit}
         <Send className="h-4 w-4" strokeWidth={2} />
       </button>
     </form>

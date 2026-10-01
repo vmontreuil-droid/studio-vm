@@ -1,96 +1,291 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Mail, Phone, MapPin, ArrowRight, Quote } from "lucide-react";
-import { getProjects } from "@/lib/projects";
-import { getCapabilities } from "@/lib/capabilities";
-import { getTestimonials } from "@/lib/testimonials";
-import { ProjectCard } from "@/components/project-card";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  ArrowRight,
+  ShieldCheck,
+  FileUp,
+  Calculator,
+  Layers,
+  Send,
+  Globe2,
+  Crosshair,
+} from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
-import { RotatingHeadline } from "@/components/rotating-headline";
 import { CtaBanner } from "@/components/cta-banner";
 import { getMessages } from "@/lib/i18n";
-import { getCapacity } from "@/lib/now-db";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { Sparkles, Search, MousePointerClick, ShieldCheck, Rocket } from "lucide-react";
-import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Studio VM — 3D-modellen voor machinesturing.
+ * Alle teksten van deze pagina staan in X (nl/fr/en). Beelden in /public/3d.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+type Kaart = { titel: string; tekst: string; beeld: string };
+type Stap = { titel: string; tekst: string };
 
 const X: Record<
   Locale,
   {
-    outcome: string[];
-    riskEyebrow: string;
-    riskTitle: string;
-    riskIntro: string;
-    risk: { t: string; d: string; href: string; cta: string }[];
-    werkEyebrow: string;
-    werkTitle: string;
-    werkIntro: string;
+    eyebrow: string;
+    titel: string;
+    sub: string;
+    beloftes: string[];
+    ctaOfferte: string;
+    ctaWerkwijze: string;
+    merkenTitel: string;
+    merkenNoot: string;
+    leverEyebrow: string;
+    leverTitel: string;
+    leverIntro: string;
+    lever: Kaart[];
+    stappenEyebrow: string;
+    stappenTitel: string;
+    stappenIntro: string;
+    stappen: Stap[];
+    toepEyebrow: string;
+    toepTitel: string;
+    toepIntro: string;
+    toep: Kaart[];
+    stelselEyebrow: string;
+    stelselTitel: string;
+    stelselTekst: string;
+    stelselVoorbeelden: { land: string; stelsel: string }[];
+    stelselLink: string;
+    ctaEyebrow: string;
+    ctaTitel: string;
+    ctaSub: string;
+    ctaKnop: string;
   }
 > = {
   nl: {
-    outcome: [
-      "Volledig herbouwd in 1–2 weken",
-      "Code + eigen admin van jou",
-      "Geen code-lock-in — je bezit code + data",
+    eyebrow: "3D-modellen voor machinesturing",
+    titel: "Van plan tot machine.",
+    sub: "Ik zet uw 2D-plannen om in nauwkeurige 3D-ontwerpmodellen die uw GPS-gestuurde kraan, grader of dozer meteen inleest — in het formaat van uw machine en in het juiste coördinatenstelsel, overal in Europa.",
+    beloftes: [
+      "Geleverd in het formaat van uw machine",
+      "Juist coördinatenstelsel per land",
+      "Gecontroleerd vóór levering",
     ],
-    riskEyebrow: "Zonder risico",
-    riskTitle: "Eerst zien, dan beslissen",
-    riskIntro:
-      "Je hoeft niets blind te tekenen. Test eerst, in je eigen tempo — pas als het klopt, gaan we verder.",
-    risk: [
-      { t: "Gratis site-scan", d: "Eerlijk rapport van je huidige site — snelheid, SEO, valkuilen. Geen account, geen verkooptrechter.", href: "/scan", cta: "Scan mijn site" },
-      { t: "Bouw zelf je voorontwerp", d: "Klik je site in elkaar in de builder — pagina's, secties, je eigen teksten. Ik werk 'm daarna af.", href: "/builder", cta: "Open de builder" },
-      { t: "Alles blijft van jou", d: "Code én eigen admin in jouw handen. Geen lock-in op je code — je bezit alles wat ik oplever.", href: "/offerte", cta: "Stel je pakket samen" },
-      { t: "Live in 1–2 weken", d: "Strak herbouwd in Next.js + Supabase. Timing hangt enkel af van domeinvrijgave en fotomateriaal.", href: "/aanpak", cta: "Zo werk ik" },
+    ctaOfferte: "Offerte aanvragen",
+    ctaWerkwijze: "Zo werkt het",
+    merkenTitel: "Voor alle gangbare machinesturingen",
+    merkenNoot: "en andere systemen die LandXML of DXF lezen",
+    leverEyebrow: "Wat u krijgt",
+    leverTitel: "Een model dat uw machine begrijpt",
+    leverIntro:
+      "Geen losse lijnen, maar een volledig uitgewerkt ontwerp: het oppervlak waarop de bak stuurt, het lijnwerk voor de machinist en een controle op elke helling.",
+    lever: [
+      {
+        titel: "Ontwerpoppervlak",
+        tekst: "Het 3D-terreinmodel (TIN) van het eindniveau: daarop stuurt uw machine de bak of het blad.",
+        beeld: "/3d/terrein-hoogtekleuren.jpg",
+      },
+      {
+        titel: "Lijnwerk en breeklijnen",
+        tekst: "Kanten, assen, boordstenen en taludlijnen als referentie op het scherm in de cabine.",
+        beeld: "/3d/terrein-lijnwerk.jpg",
+      },
+      {
+        titel: "Hoogtelijnen",
+        tekst: "Om het model in één oogopslag te controleren, en om mee uit te zetten op de werf.",
+        beeld: "/3d/terrein-hoogtelijnen.jpg",
+      },
+      {
+        titel: "Hellingscontrole",
+        tekst: "Elk talud en elke afwatering nagekeken op de juiste helling, vóór er één kuub grond verzet wordt.",
+        beeld: "/3d/model-talud-helling.jpg",
+      },
     ],
-    werkEyebrow: "Realisaties",
-    werkTitle: "Échte, live sites — geen mockups",
-    werkIntro:
-      "Geen verzonnen showcase. Dit zijn projecten die vandaag draaien voor echte ondernemers. Klik door en zie het zelf.",
+    stappenEyebrow: "Werkwijze",
+    stappenTitel: "In vier stappen van plan naar machine",
+    stappenIntro: "U stuurt plannen, ik lever een model dat klaar is om in te laden. Geen software te leren, geen licenties te kopen.",
+    stappen: [
+      { titel: "Plannen opsturen", tekst: "PDF, DWG, DXF of LandXML — samen met het adres van de werf en het merk van uw machinesturing." },
+      { titel: "Offerte op maat", tekst: "U krijgt een duidelijke prijs en leverdatum, op basis van uw plannen." },
+      { titel: "Modelleren en controleren", tekst: "Ik bouw het 3D-model en controleer niveaus, hellingen en aansluitingen." },
+      { titel: "Klaar voor de machine", tekst: "Levering in het formaat van uw machine, in het coördinatenstelsel van de werf." },
+    ],
+    toepEyebrow: "Toepassingen",
+    toepTitel: "Van bouwput tot wegtracé",
+    toepIntro: "Elk project waar een machine met GPS-sturing op het juiste niveau moet graven, egaliseren of aanleggen.",
+    toep: [
+      { titel: "Grondwerk en platformen", tekst: "Bedrijfsterreinen, verkavelingen en funderingsplatformen.", beeld: "/3d/model-bedrijfsterrein.jpg" },
+      { titel: "Wegenis en tracés", tekst: "Wegen, fietspaden en opritten met hun profielen.", beeld: "/3d/trace-weg.jpg" },
+      { titel: "Bouwputten", tekst: "Uitgravingen met taluds en werkvloeren op niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
+      { titel: "Parkings en verhardingen", tekst: "Afwatering en hellingen tot op de centimeter.", beeld: "/3d/model-parking.jpg" },
+    ],
+    stelselEyebrow: "Overal in Europa",
+    stelselTitel: "Het juiste stelsel, vanaf het werfadres",
+    stelselTekst:
+      "Een model in het verkeerde coördinatenstelsel ligt naast de werf. Daarom vraag ik bij elke aanvraag het adres van de werf: daaruit volgt meteen het stelsel en het hoogtereferentiekader van dat land.",
+    stelselVoorbeelden: [
+      { land: "België", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "Nederland", stelsel: "RD New · NAP" },
+      { land: "Frankrijk", stelsel: "Lambert-93 / CC-zones · NGF" },
+      { land: "Duitsland", stelsel: "ETRS89 / UTM · DHHN2016" },
+      { land: "Luxemburg", stelsel: "LUREF · NG95" },
+    ],
+    stelselLink: "Meer over coördinatenstelsels",
+    ctaEyebrow: "Klaar om te starten?",
+    ctaTitel: "Stuur uw plannen, ontvang een offerte op maat",
+    ctaSub: "Laad uw plannen op, geef het werfadres en het merk van uw machinesturing. U krijgt een duidelijke prijs en leverdatum.",
+    ctaKnop: "Offerte aanvragen",
   },
   fr: {
-    outcome: [
-      "Entièrement reconstruit en 1–2 semaines",
-      "Code + admin propre à vous",
-      "Pas de lock-in sur le code — vous possédez code + data",
+    eyebrow: "Modèles 3D pour le guidage d'engins",
+    titel: "Du plan à la machine.",
+    sub: "Je transforme vos plans 2D en modèles 3D précis que votre pelle, niveleuse ou bouteur à guidage GPS charge directement — dans le format de votre machine et dans le bon système de coordonnées, partout en Europe.",
+    beloftes: [
+      "Livré dans le format de votre machine",
+      "Le bon système de coordonnées par pays",
+      "Contrôlé avant livraison",
     ],
-    riskEyebrow: "Sans risque",
-    riskTitle: "D'abord voir, puis décider",
-    riskIntro:
-      "Rien à signer à l'aveugle. Testez d'abord, à votre rythme — on continue seulement quand ça colle.",
-    risk: [
-      { t: "Scan gratuit du site", d: "Rapport honnête de votre site actuel — vitesse, SEO, pièges. Sans compte, sans entonnoir de vente.", href: "/scan", cta: "Scanner mon site" },
-      { t: "Construisez votre maquette", d: "Composez votre site dans le builder — pages, sections, vos textes. Je le finalise ensuite.", href: "/builder", cta: "Ouvrir le builder" },
-      { t: "Tout reste à vous", d: "Le code et un admin propre entre vos mains. Pas de lock-in sur le code — vous possédez tout ce que je livre.", href: "/offerte", cta: "Composez votre forfait" },
-      { t: "En ligne en 1–2 semaines", d: "Reconstruit proprement en Next.js + Supabase. Le délai dépend juste du domaine et des photos.", href: "/aanpak", cta: "Ma méthode" },
+    ctaOfferte: "Demander un devis",
+    ctaWerkwijze: "Comment ça marche",
+    merkenTitel: "Pour tous les systèmes de guidage courants",
+    merkenNoot: "et tout système lisant LandXML ou DXF",
+    leverEyebrow: "Ce que vous recevez",
+    leverTitel: "Un modèle que votre machine comprend",
+    leverIntro:
+      "Pas de lignes isolées, mais un projet complet : la surface sur laquelle le godet est guidé, le filaire pour le conducteur et un contrôle de chaque pente.",
+    lever: [
+      {
+        titel: "Surface de projet",
+        tekst: "Le modèle 3D du terrain fini (TIN) : c'est sur lui que la machine guide le godet ou la lame.",
+        beeld: "/3d/terrein-hoogtekleuren.jpg",
+      },
+      {
+        titel: "Filaire et lignes de rupture",
+        tekst: "Bords, axes, bordures et lignes de talus comme repères sur l'écran en cabine.",
+        beeld: "/3d/terrein-lijnwerk.jpg",
+      },
+      {
+        titel: "Courbes de niveau",
+        tekst: "Pour contrôler le modèle d'un coup d'œil, et pour l'implantation sur chantier.",
+        beeld: "/3d/terrein-hoogtelijnen.jpg",
+      },
+      {
+        titel: "Contrôle des pentes",
+        tekst: "Chaque talus et chaque écoulement vérifiés avant de déplacer le moindre mètre cube.",
+        beeld: "/3d/model-talud-helling.jpg",
+      },
     ],
-    werkEyebrow: "Réalisations",
-    werkTitle: "De vrais sites en ligne — pas des maquettes",
-    werkIntro:
-      "Pas de vitrine inventée. Des projets qui tournent aujourd'hui pour de vrais entrepreneurs. Cliquez et voyez.",
+    stappenEyebrow: "Méthode",
+    stappenTitel: "Du plan à la machine en quatre étapes",
+    stappenIntro: "Vous envoyez les plans, je livre un modèle prêt à charger. Aucun logiciel à apprendre, aucune licence à acheter.",
+    stappen: [
+      { titel: "Envoyer les plans", tekst: "PDF, DWG, DXF ou LandXML — avec l'adresse du chantier et la marque de votre guidage." },
+      { titel: "Devis sur mesure", tekst: "Vous recevez un prix et un délai clairs, sur base de vos plans." },
+      { titel: "Modélisation et contrôle", tekst: "Je construis le modèle 3D et vérifie niveaux, pentes et raccords." },
+      { titel: "Prêt pour la machine", tekst: "Livraison dans le format de votre machine, dans le système de coordonnées du chantier." },
+    ],
+    toepEyebrow: "Applications",
+    toepTitel: "De la fouille au tracé routier",
+    toepIntro: "Tout projet où une machine guidée par GPS doit creuser, régler ou poser au bon niveau.",
+    toep: [
+      { titel: "Terrassements et plateformes", tekst: "Zones d'activité, lotissements et plateformes de fondation.", beeld: "/3d/model-bedrijfsterrein.jpg" },
+      { titel: "Voiries et tracés", tekst: "Routes, pistes cyclables et accès avec leurs profils.", beeld: "/3d/trace-weg.jpg" },
+      { titel: "Fouilles", tekst: "Excavations avec talus et fonds de fouille à niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
+      { titel: "Parkings et revêtements", tekst: "Écoulements et pentes au centimètre.", beeld: "/3d/model-parking.jpg" },
+    ],
+    stelselEyebrow: "Partout en Europe",
+    stelselTitel: "Le bon système, dès l'adresse du chantier",
+    stelselTekst:
+      "Un modèle dans le mauvais système de coordonnées tombe à côté du chantier. C'est pourquoi je demande l'adresse du chantier : elle détermine aussitôt le système et la référence altimétrique du pays.",
+    stelselVoorbeelden: [
+      { land: "Belgique", stelsel: "Lambert 72 / 2008 · DNG" },
+      { land: "Pays-Bas", stelsel: "RD New · NAP" },
+      { land: "France", stelsel: "Lambert-93 / zones CC · NGF" },
+      { land: "Allemagne", stelsel: "ETRS89 / UTM · DHHN2016" },
+      { land: "Luxembourg", stelsel: "LUREF · NG95" },
+    ],
+    stelselLink: "En savoir plus sur les systèmes de coordonnées",
+    ctaEyebrow: "Prêt à démarrer ?",
+    ctaTitel: "Envoyez vos plans, recevez un devis sur mesure",
+    ctaSub: "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage. Vous recevez un prix et un délai clairs.",
+    ctaKnop: "Demander un devis",
   },
   en: {
-    outcome: [
-      "Fully rebuilt in 1–2 weeks",
-      "Code + own admin, yours",
-      "No code lock-in — you own code + data",
+    eyebrow: "3D models for machine control",
+    titel: "From plan to machine.",
+    sub: "I turn your 2D plans into accurate 3D design models that your GPS-guided excavator, grader or dozer loads straight away — in your machine's format and in the right coordinate system, anywhere in Europe.",
+    beloftes: [
+      "Delivered in your machine's format",
+      "The right coordinate system per country",
+      "Checked before delivery",
     ],
-    riskEyebrow: "Zero risk",
-    riskTitle: "See it first, then decide",
-    riskIntro:
-      "Nothing to sign blind. Try it first, at your own pace — we only continue when it fits.",
-    risk: [
-      { t: "Free site scan", d: "Honest report on your current site — speed, SEO, pitfalls. No account, no sales funnel.", href: "/scan", cta: "Scan my site" },
-      { t: "Build your own draft", d: "Click your site together in the builder — pages, sections, your own copy. I finish it.", href: "/builder", cta: "Open the builder" },
-      { t: "It all stays yours", d: "Code and an own admin in your hands. No code lock-in — you own everything I deliver.", href: "/offerte", cta: "Build your package" },
-      { t: "Live in 1–2 weeks", d: "Cleanly rebuilt in Next.js + Supabase. Timing only depends on domain release and photos.", href: "/aanpak", cta: "How I work" },
+    ctaOfferte: "Request a quote",
+    ctaWerkwijze: "How it works",
+    merkenTitel: "For all common machine control systems",
+    merkenNoot: "and any system that reads LandXML or DXF",
+    leverEyebrow: "What you get",
+    leverTitel: "A model your machine understands",
+    leverIntro:
+      "Not loose lines, but a complete design: the surface the bucket is guided on, linework for the operator and a check on every slope.",
+    lever: [
+      {
+        titel: "Design surface",
+        tekst: "The 3D model of the finished level (TIN): the surface your machine guides the bucket or blade on.",
+        beeld: "/3d/terrein-hoogtekleuren.jpg",
+      },
+      {
+        titel: "Linework and breaklines",
+        tekst: "Edges, centrelines, kerbs and slope lines as a reference on the screen in the cab.",
+        beeld: "/3d/terrein-lijnwerk.jpg",
+      },
+      {
+        titel: "Contour lines",
+        tekst: "To check the model at a glance, and for setting out on site.",
+        beeld: "/3d/terrein-hoogtelijnen.jpg",
+      },
+      {
+        titel: "Slope check",
+        tekst: "Every embankment and drainage fall checked before a single cubic metre is moved.",
+        beeld: "/3d/model-talud-helling.jpg",
+      },
     ],
-    werkEyebrow: "Work",
-    werkTitle: "Real, live sites — no mockups",
-    werkIntro:
-      "No invented showcase. Projects running today for real businesses. Click through and see for yourself.",
+    stappenEyebrow: "How it works",
+    stappenTitel: "From plan to machine in four steps",
+    stappenIntro: "You send the plans, I deliver a model that is ready to load. No software to learn, no licences to buy.",
+    stappen: [
+      { titel: "Send your plans", tekst: "PDF, DWG, DXF or LandXML — with the site address and the brand of your machine control." },
+      { titel: "Tailored quote", tekst: "You get a clear price and delivery date, based on your plans." },
+      { titel: "Modelling and checks", tekst: "I build the 3D model and check levels, slopes and tie-ins." },
+      { titel: "Ready for the machine", tekst: "Delivered in your machine's format, in the site's coordinate system." },
+    ],
+    toepEyebrow: "Applications",
+    toepTitel: "From excavation to road alignment",
+    toepIntro: "Any project where a GPS-guided machine has to dig, grade or lay to the right level.",
+    toep: [
+      { titel: "Earthworks and platforms", tekst: "Industrial sites, housing plots and foundation platforms.", beeld: "/3d/model-bedrijfsterrein.jpg" },
+      { titel: "Roads and alignments", tekst: "Roads, cycle paths and driveways with their profiles.", beeld: "/3d/trace-weg.jpg" },
+      { titel: "Excavations", tekst: "Pits with embankments and formation levels.", beeld: "/3d/model-platform-hoogte.jpg" },
+      { titel: "Car parks and paving", tekst: "Drainage falls and slopes to the centimetre.", beeld: "/3d/model-parking.jpg" },
+    ],
+    stelselEyebrow: "Anywhere in Europe",
+    stelselTitel: "The right system, from the site address",
+    stelselTekst:
+      "A model in the wrong coordinate system ends up next to the site. That is why I ask for the site address with every request: it immediately tells me the country's coordinate system and height datum.",
+    stelselVoorbeelden: [
+      { land: "Belgium", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "Netherlands", stelsel: "RD New · NAP" },
+      { land: "France", stelsel: "Lambert-93 / CC zones · NGF" },
+      { land: "Germany", stelsel: "ETRS89 / UTM · DHHN2016" },
+      { land: "Luxembourg", stelsel: "LUREF · NG95" },
+    ],
+    stelselLink: "More about coordinate systems",
+    ctaEyebrow: "Ready to start?",
+    ctaTitel: "Send your plans, get a tailored quote",
+    ctaSub: "Upload your plans, give the site address and your machine control brand. You get a clear price and delivery date.",
+    ctaKnop: "Request a quote",
   },
 };
+
+const MERKEN = ["Trimble", "Topcon", "Leica", "Unicontrol", "CHCNAV", "Komatsu", "Caterpillar"];
 
 export default async function Home({
   params,
@@ -101,23 +296,21 @@ export default async function Home({
   if (!isValidLocale(locale)) notFound();
   const t = getMessages(locale);
   const x = X[locale];
-  const capacity = await getCapacity(locale);
 
   return (
     <main>
-      <Hero locale={locale} t={t} x={x} capacity={capacity} />
-      <Stats t={t} />
-      <Werk locale={locale} t={t} x={x} />
-      <RiskReversal locale={locale} x={x} />
-      <ZelfBouwenPromo locale={locale} />
-      <Testimonials t={t} locale={locale} />
-      <Mogelijkheden t={t} locale={locale} />
+      <Hero locale={locale} x={x} />
+      <Merken x={x} />
+      <Levering x={x} />
+      <Werkwijze x={x} />
+      <Toepassingen x={x} />
+      <Stelsels locale={locale} x={x} />
       <CtaBanner
         locale={locale}
-        eyebrow={t.ctaBanner.eyebrow}
-        title={t.ctaBanner.title}
-        sub={t.ctaBanner.sub}
-        button={t.ctaBanner.button}
+        eyebrow={x.ctaEyebrow}
+        title={x.ctaTitel}
+        sub={x.ctaSub}
+        button={x.ctaKnop}
       />
       <Contact t={t} />
     </main>
@@ -125,20 +318,9 @@ export default async function Home({
 }
 
 type T = ReturnType<typeof getMessages>;
-
 type Xt = (typeof X)[Locale];
 
-function Hero({
-  locale,
-  t,
-  x,
-  capacity,
-}: {
-  locale: Locale;
-  t: T;
-  x: Xt;
-  capacity: string;
-}) {
+function Hero({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section className="relative isolate overflow-hidden border-b">
       <div aria-hidden className="hero-backdrop">
@@ -146,402 +328,229 @@ function Hero({
         <div className="hero-blob hero-blob-a" />
         <div className="hero-blob hero-blob-b" />
         <div className="hero-blob hero-blob-c" />
-        <div className="hero-blob hero-blob-d" />
-        <div className="hero-blob hero-blob-e" />
         <div className="hero-sweep" />
         <div className="hero-sweep hero-sweep-rev" />
-        <div className="hero-sweep hero-sweep-down" />
-        <div className="hero-sweep hero-sweep-up" />
       </div>
-      <div className="relative z-10 mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
-        <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
-          {t.hero.eyebrow}
-        </p>
-        <RotatingHeadline
-          titles={t.hero.titles}
-          subtitles={t.hero.subtitles}
-          className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
-          subtitleClassName="mt-8 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl"
-        />
-        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-          {x.outcome.map((o) => (
-            <li
-              key={o}
-              className="flex items-center gap-2 text-sm font-medium"
+      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 sm:py-28 lg:grid-cols-[1.05fr_1fr] lg:py-32">
+        <div>
+          <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
+            {x.eyebrow}
+          </p>
+          <h1 className="text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
+            {x.titel}
+          </h1>
+          <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+            {x.sub}
+          </p>
+          <ul className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-6">
+            {x.beloftes.map((b) => (
+              <li key={b} className="flex items-center gap-2 text-sm font-medium">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
+                {b}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link
+              href={localePath(locale, "/offerte")}
+              className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
-              <ShieldCheck
-                className="h-4 w-4 text-accent"
-                strokeWidth={2}
-              />
-              {o}
+              <FileUp className="h-4 w-4" strokeWidth={2} />
+              {x.ctaOfferte}
+            </Link>
+            <a
+              href="#werkwijze"
+              className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
+            >
+              {x.ctaWerkwijze}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </a>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border bg-card shadow-2xl shadow-black/10">
+            <Image
+              src="/3d/relief-grondwerk-licht.png"
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="alleen-licht object-cover"
+            />
+            <Image
+              src="/3d/relief-grondwerk-donker.png"
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="alleen-donker object-cover"
+            />
+          </div>
+          <div className="absolute -bottom-5 -left-4 hidden rounded-2xl border bg-background/90 px-4 py-3 shadow-lg backdrop-blur sm:block">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">TIN · 3D</p>
+            <p className="mt-1 text-sm font-medium">{x.lever[0].titel}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Merken({ x }: { x: Xt }) {
+  return (
+    <section className="border-b bg-card">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted">
+          {x.merkenTitel}
+        </p>
+        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+          {MERKEN.map((m) => (
+            <li key={m} className="text-lg font-semibold tracking-tight text-foreground/70">
+              {m}
             </li>
           ))}
         </ul>
-        <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-medium text-accent">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-          </span>
-          {capacity}
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href={localePath(locale, "/offerte")}
-            className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            {locale === "fr"
-              ? "Composez votre forfait"
-              : locale === "en"
-                ? "Build your package"
-                : "Stel je pakket samen"}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-          <Link
-            href={localePath(locale, "/pricing")}
-            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
-          >
-            {t.hero.ctaPricing}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-          <a
-            href="#werk"
-            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
-          >
-            {t.hero.ctaWerk}
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </a>
-        </div>
+        <p className="mt-4 text-center text-xs text-muted">{x.merkenNoot}</p>
       </div>
     </section>
   );
 }
 
-function Stats({ t }: { t: T }) {
-  const stats = [
-    { value: "14+", label: t.stats.projects },
-    { value: "3", label: t.stats.languages },
-    { value: "100", label: t.stats.pagespeed },
-    { value: "100%", label: t.stats.stack },
-    { value: "99.9%", label: t.stats.uptime },
-    { value: "8", label: t.stats.ervaring },
-    { value: "< 1d", label: t.stats.respons },
-    { value: "0", label: t.stats.plugins },
-  ];
-  return (
-    <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-card px-6 py-8 text-center">
-              <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                {s.label}
-              </dt>
-              <dd className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-                {s.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  );
-}
-
-function Werk({ locale, t, x }: { locale: Locale; t: T; x: Xt }) {
-  void t;
-  return (
-    <section id="werk" className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
-        <div className="mb-16 flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-              {x.werkEyebrow}
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              {x.werkTitle}
-            </h2>
-          </div>
-          <p className="max-w-md text-sm text-muted">{x.werkIntro}</p>
-        </div>
-        <div className="grid gap-px bg-border sm:grid-cols-2">
-          {getProjects(locale).map((p) => (
-            <ProjectCard key={p.slug} project={p} locale={locale} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function RiskReversal({ locale, x }: { locale: Locale; x: Xt }) {
-  const icons = [Search, MousePointerClick, ShieldCheck, Rocket];
-  return (
-    <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
-        <div className="mx-auto mb-14 max-w-2xl text-center">
-          <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
-            <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
-            {x.riskEyebrow}
-          </p>
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {x.riskTitle}
-          </h2>
-          <p className="mt-4 text-muted">{x.riskIntro}</p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {x.risk.map((r, i) => {
-            const Icon = icons[i] ?? Sparkles;
-            return (
-              <div
-                key={r.t}
-                className="flex flex-col rounded-2xl border bg-background p-6"
-              >
-                <Icon className="h-5 w-5 text-accent" strokeWidth={1.75} />
-                <h3 className="mt-4 font-semibold tracking-tight">{r.t}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
-                  {r.d}
-                </p>
-                <Link
-                  href={localePath(locale, r.href)}
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
-                >
-                  {r.cta}
-                  <ArrowRight className="h-4 w-4" strokeWidth={2} />
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ZelfBouwenPromo({ locale }: { locale: Locale }) {
-  const month = Math.round(PUBLISH_BASE_MONTHLY_CENTS / 100);
-  const c =
-    locale === "fr"
-      ? {
-          eb: "Nouveau · Construisez vous-même",
-          h: "Votre site web, vous le faites vous-même",
-          p: "Glissez-déposez, tout est modifiable — texte, photos, couleurs, mobile. Pas de connaissances techniques. Nous hébergeons, entretenons et mettons en ligne.",
-          perks: [
-            "Éditeur visuel complet (par bloc & par élément)",
-            "Indépendant mobile — desktop & GSM séparés",
-            "Mise en ligne sur votre sous-domaine en 1 clic",
-            "Formulaires → directement dans votre portail",
-            "Hébergement, entretien & mises à jour inclus",
-          ],
-          price: `€${month}/mois, sans frais de démarrage`,
-          note: "Résiliable chaque mois. Sans engagement.",
-          a: "Voir comment ça marche",
-          b: "Commencer gratuitement",
-        }
-      : locale === "en"
-        ? {
-            eb: "New · Build it yourself",
-            h: "Your website, built by you",
-            p: "Drag & drop, everything editable — text, photos, colours, mobile. No tech skills. We host, maintain and put it online.",
-            perks: [
-              "Full visual editor (per block & per item)",
-              "Mobile-independent — desktop & phone separately",
-              "Live on your subdomain in one click",
-              "Form submissions → straight into your portal",
-              "Hosting, maintenance & updates included",
-            ],
-            price: `€${month}/month, no setup fee`,
-            note: "Cancel any month. No lock-in.",
-            a: "See how it works",
-            b: "Start building free",
-          }
-        : {
-            eb: "Nieuw · Zelf bouwen",
-            h: "Jouw website, helemaal zelf gebouwd",
-            p: "Slepen en neerzetten, alles aanpasbaar — tekst, foto's, kleuren, mobiel. Geen technische kennis nodig. Wij hosten, onderhouden en zetten 'm online.",
-            perks: [
-              "Volledige visuele editor (per blok én per item)",
-              "Mobiel-onafhankelijk — desktop & gsm apart",
-              "In één klik live op je eigen subdomein",
-              "Formulierberichten → rechtstreeks in je portaal",
-              "Hosting, onderhoud & updates inbegrepen",
-            ],
-            price: `€${month}/maand, geen opstartkost`,
-            note: "Maandelijks opzegbaar. Geen verplichtingen.",
-            a: "Bekijk hoe het werkt",
-            b: "Gratis beginnen",
-          };
+function Levering({ x }: { x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
-        <div className="overflow-hidden rounded-3xl border border-accent bg-accent/5 shadow-[0_0_0_1px_var(--accent)]">
-          <div className="grid gap-10 p-8 sm:p-12 lg:grid-cols-[1.15fr_1fr] lg:items-center">
-            <div>
-              <p className="mb-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
-                <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
-                {c.eb}
-              </p>
-              <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-                {c.h}
-              </h2>
-              <p className="mt-4 max-w-xl text-muted">{c.p}</p>
-              <ul className="mt-6 grid gap-2 sm:grid-cols-2">
-                {c.perks.map((perk) => (
-                  <li
-                    key={perk}
-                    className="flex items-start gap-2 text-sm"
-                  >
-                    <ShieldCheck
-                      className="mt-0.5 h-4 w-4 shrink-0 text-accent"
-                      strokeWidth={2}
-                    />
-                    {perk}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-2xl border bg-background p-7 text-center">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted">
-                {locale === "fr"
-                  ? "Site web en abonnement"
-                  : locale === "en"
-                    ? "Website subscription"
-                    : "Website-abonnement"}
-              </p>
-              <p className="mt-3 text-4xl font-semibold tracking-tight text-accent">
-                €{month}
-                <span className="text-base font-normal text-muted">
-                  {" "}
-                  {locale === "fr"
-                    ? "/ mois"
-                    : locale === "en"
-                      ? "/ month"
-                      : "/ maand"}
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+        <SectieKop eyebrow={x.leverEyebrow} titel={x.leverTitel} intro={x.leverIntro} />
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {x.lever.map((k, i) => (
+            <article key={k.titel} className="group overflow-hidden rounded-2xl border bg-card">
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#0b1220]">
+                <Image
+                  src={k.beeld}
+                  alt={k.titel}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 font-mono text-[10px] text-white backdrop-blur">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                {locale === "fr"
-                  ? "sans frais de démarrage"
-                  : locale === "en"
-                    ? "no setup fee"
-                    : "geen opstartkost"}
-              </p>
-              <p className="mt-2 text-xs text-muted">{c.note}</p>
-              <div className="mt-5 flex flex-col items-center gap-2.5">
-                <Link
-                  href={localePath(locale, "/zelf-bouwen")}
-                  className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
-                >
-                  {c.a}
-                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </Link>
-                <Link
-                  href={localePath(locale, "/builder")}
-                  className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-accent underline underline-offset-2 transition-opacity hover:opacity-80"
-                >
-                  <MousePointerClick className="h-3.5 w-3.5" strokeWidth={2} />
-                  {c.b}
-                </Link>
               </div>
-            </div>
-          </div>
+              <div className="p-6">
+                <h3 className="font-semibold tracking-tight">{k.titel}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{k.tekst}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function Testimonials({ t, locale }: { t: T; locale: Locale }) {
-  const items = getTestimonials(locale);
-  if (items.length === 0) return null;
+const STAP_ICONEN = [FileUp, Calculator, Layers, Send];
+
+function Werkwijze({ x }: { x: Xt }) {
+  return (
+    <section id="werkwijze" className="reveal-on-scroll scroll-mt-24 border-b bg-card">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+        <SectieKop eyebrow={x.stappenEyebrow} titel={x.stappenTitel} intro={x.stappenIntro} />
+        <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {x.stappen.map((s, i) => {
+            const Icoon = STAP_ICONEN[i];
+            return (
+              <li key={s.titel} className="relative bg-background p-8">
+                <div className="flex items-center justify-between">
+                  <Icoon className="h-6 w-6 text-accent" strokeWidth={1.5} />
+                  <span className="font-mono text-3xl font-semibold text-foreground/10">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <h3 className="mt-6 font-semibold tracking-tight">{s.titel}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{s.tekst}</p>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+function Toepassingen({ x }: { x: Xt }) {
+  return (
+    <section className="reveal-on-scroll border-b">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+        <SectieKop eyebrow={x.toepEyebrow} titel={x.toepTitel} intro={x.toepIntro} />
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
+          {x.toep.map((k) => (
+            <article
+              key={k.titel}
+              className="group relative isolate aspect-[16/10] overflow-hidden rounded-3xl border bg-[#0b1220]"
+            >
+              <Image
+                src={k.beeld}
+                alt={k.titel}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 text-white">
+                <h3 className="text-xl font-semibold tracking-tight">{k.titel}</h3>
+                <p className="mt-1 text-sm text-white/80">{k.tekst}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-            {t.testimonials.eyebrow}
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-24 sm:py-28 lg:grid-cols-2 lg:items-center">
+        <div>
+          <p className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
+            <Globe2 className="h-4 w-4" strokeWidth={1.5} />
+            {x.stelselEyebrow}
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {t.testimonials.title}
+          <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+            {x.stelselTitel}
           </h2>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {items.map((tm) => (
-            <figure
-              key={tm.author}
-              className="flex h-full flex-col rounded-2xl border bg-background p-6"
-            >
-              <Quote className="h-5 w-5 text-accent" strokeWidth={1.5} />
-              <blockquote className="mt-4 flex-1 leading-relaxed">
-                "{tm.quote}"
-              </blockquote>
-              <figcaption className="mt-6 flex items-center gap-3 border-t pt-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 font-mono text-xs font-semibold text-accent">
-                  {tm.initials}
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">{tm.author}</p>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                    {tm.role}
-                  </p>
-                </div>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Mogelijkheden({ t, locale }: { t: T; locale: Locale }) {
-  return (
-    <section id="mogelijkheden" className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
-        <div className="mb-16 max-w-2xl">
-          <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-            {t.mogelijkheden.eyebrow}
-          </p>
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {t.mogelijkheden.title}
-          </h2>
-          <p className="mt-6 text-muted">{t.mogelijkheden.intro}</p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {getCapabilities(locale).map((c) => (
-            <Link
-              key={c.slug}
-              href={localePath(locale, `/mogelijkheden/${c.slug}`)}
-              className="group rounded-2xl border bg-background p-6 transition-colors hover:bg-card-hover"
-            >
-              <c.icon className="h-6 w-6 text-accent" strokeWidth={1.5} />
-              <h3 className="mt-4 flex items-center gap-1.5 font-semibold tracking-tight">
-                {c.title}
-                <ArrowRight
-                  className="h-4 w-4 text-muted opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
-                  strokeWidth={2}
-                />
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                {c.description}
-              </p>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-12 text-center">
+          <p className="mt-6 max-w-xl leading-relaxed text-muted">{x.stelselTekst}</p>
           <Link
-            href={localePath(locale, "/mogelijkheden")}
-            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-card-hover"
+            href={localePath(locale, "/kennis")}
+            className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
           >
-            {locale === "fr"
-              ? "Toutes les capacités en détail"
-              : locale === "en"
-                ? "All capabilities in detail"
-                : "Alle mogelijkheden in detail"}
+            {x.stelselLink}
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </Link>
         </div>
+        <ul className="divide-y overflow-hidden rounded-2xl border bg-background">
+          {x.stelselVoorbeelden.map((v) => (
+            <li key={v.land} className="flex items-center justify-between gap-4 px-6 py-4">
+              <span className="flex items-center gap-3 font-medium">
+                <Crosshair className="h-4 w-4 text-accent" strokeWidth={1.5} />
+                {v.land}
+              </span>
+              <span className="text-right font-mono text-xs text-muted">{v.stelsel}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
+  );
+}
+
+function SectieKop({ eyebrow, titel, intro }: { eyebrow: string; titel: string; intro: string }) {
+  return (
+    <div className="max-w-3xl">
+      <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">{eyebrow}</p>
+      <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{titel}</h2>
+      <p className="mt-5 text-lg leading-relaxed text-muted">{intro}</p>
+    </div>
   );
 }
 
@@ -580,7 +589,7 @@ function Contact({ t }: { t: T }) {
             </div>
           </div>
           <div className="rounded-2xl border bg-card p-6 sm:p-8">
-            <ContactForm />
+            <ContactForm t={t.contactForm} />
           </div>
         </div>
       </div>

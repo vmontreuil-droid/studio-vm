@@ -41,80 +41,56 @@ function GitHubIcon({ className }: { className?: string }) {
 const FL: Record<
   Locale,
   {
-    diensten: string;
-    scan: string;
-    roi: string;
-    kosten: string;
-    aanpak: string;
-    vergelijking: string;
+    dienst: string;
+    modellen: string;
+    werkwijze: string;
+    realisaties: string;
     offerte: string;
-    shop: string;
-    builder: string;
-    woordenboek: string;
-    portaal: string;
-    support: string;
-    status: string;
-    now: string;
-    uses: string;
-    pers: string;
+    kennis: string;
+    kennisbank: string;
+    stelsels: string;
+    over: string;
+    overVincent: string;
     voorwaarden: string;
   }
 > = {
   nl: {
-    diensten: "Diensten",
-    scan: "Gratis site-scan",
-    roi: "ROI-calculator",
-    kosten: "Kostenvergelijking",
-    aanpak: "Aanpak",
-    vergelijking: "Vergelijking",
-    offerte: "Offerte-configurator",
-    shop: "Templates shop",
-    builder: "Site builder demo",
-    woordenboek: "Woordenboek",
-    portaal: "Klantportaal",
-    support: "Support tickets",
-    status: "Status",
-    now: "Wat ik nu doe",
-    uses: "Tools die ik gebruik",
-    pers: "Pers & brand kit",
+    dienst: "3D-modellen",
+    modellen: "Wat ik lever",
+    werkwijze: "Werkwijze",
+    realisaties: "Realisaties",
+    offerte: "Offerte aanvragen",
+    kennis: "Kennis",
+    kennisbank: "Kennisbank",
+    stelsels: "Coördinatenstelsels",
+    over: "Over",
+    overVincent: "Over Vincent",
     voorwaarden: "Algemene voorwaarden",
   },
   fr: {
-    diensten: "Services",
-    scan: "Scan gratuit du site",
-    roi: "Calculateur ROI",
-    kosten: "Comparatif des coûts",
-    aanpak: "Approche",
-    vergelijking: "Comparaison",
-    offerte: "Configurateur de devis",
-    shop: "Boutique de templates",
-    builder: "Démo site builder",
-    woordenboek: "Glossaire",
-    portaal: "Espace client",
-    support: "Tickets support",
-    status: "Statut",
-    now: "Ce que je fais",
-    uses: "Outils que j'utilise",
-    pers: "Presse & brand kit",
+    dienst: "Modèles 3D",
+    modellen: "Ce que je livre",
+    werkwijze: "Méthode",
+    realisaties: "Réalisations",
+    offerte: "Demander un devis",
+    kennis: "Savoir",
+    kennisbank: "Base de connaissances",
+    stelsels: "Systèmes de coordonnées",
+    over: "À propos",
+    overVincent: "À propos de Vincent",
     voorwaarden: "Conditions générales",
   },
   en: {
-    diensten: "Services",
-    scan: "Free site scan",
-    roi: "ROI calculator",
-    kosten: "Cost comparison",
-    aanpak: "Approach",
-    vergelijking: "Comparison",
-    offerte: "Quote configurator",
-    shop: "Templates shop",
-    builder: "Site builder demo",
-    woordenboek: "Glossary",
-    portaal: "Client portal",
-    support: "Support tickets",
-    status: "Status",
-    now: "What I'm doing now",
-    uses: "Tools I use",
-    pers: "Press & brand kit",
+    dienst: "3D models",
+    modellen: "What I deliver",
+    werkwijze: "How it works",
+    realisaties: "Projects",
+    offerte: "Request a quote",
+    kennis: "Knowledge",
+    kennisbank: "Knowledge base",
+    stelsels: "Coordinate systems",
+    over: "About",
+    overVincent: "About Vincent",
     voorwaarden: "Terms & conditions",
   },
 };
@@ -125,48 +101,27 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
   const sections = [
     {
-      title: t.footer.sections.studio,
+      title: fl.dienst,
       links: [
-        { href: localePath(locale, "/#werk"), label: t.nav.werk },
-        { href: localePath(locale, "/mogelijkheden"), label: t.nav.mogelijkheden },
-        { href: localePath(locale, "/pricing"), label: t.nav.pricing },
-        { href: localePath(locale, "/journal"), label: "Journal" },
-      ],
-    },
-    {
-      title: t.footer.sections.diensten,
-      links: [
-        { href: localePath(locale, "/diensten"), label: fl.diensten },
-        { href: localePath(locale, "/scan"), label: fl.scan },
-        { href: localePath(locale, "/roi"), label: fl.roi },
-        { href: localePath(locale, "/kosten"), label: fl.kosten },
-        { href: localePath(locale, "/aanpak"), label: fl.aanpak },
-        { href: localePath(locale, "/vergelijking"), label: fl.vergelijking },
+        { href: localePath(locale, "/3d-modellen"), label: fl.modellen },
+        { href: localePath(locale, "/#werkwijze"), label: fl.werkwijze },
+        { href: localePath(locale, "/realisaties"), label: fl.realisaties },
         { href: localePath(locale, "/offerte"), label: fl.offerte },
-        { href: localePath(locale, "/shop"), label: fl.shop },
-        { href: localePath(locale, "/builder"), label: fl.builder },
+      ],
+    },
+    {
+      title: fl.kennis,
+      links: [
+        { href: localePath(locale, "/kennis"), label: fl.kennisbank },
+        { href: localePath(locale, "/kennis#stelsels"), label: fl.stelsels },
         { href: localePath(locale, "/faq"), label: "FAQ" },
-        { href: localePath(locale, "/woordenboek"), label: fl.woordenboek },
       ],
     },
     {
-      title: t.footer.sections.klanten,
+      title: fl.over,
       links: [
-        { href: localePath(locale, "/portail"), label: fl.portaal },
-        { href: localePath(locale, "/support"), label: fl.support },
-        { href: localePath(locale, "/status"), label: fl.status },
+        { href: localePath(locale, "/over"), label: fl.overVincent },
         { href: localePath(locale, "/#contact"), label: t.nav.contact },
-      ],
-    },
-    {
-      title: t.footer.sections.vincent,
-      links: [
-        { href: localePath(locale, "/over"), label: t.footer.sections.vincent },
-        { href: localePath(locale, "/now"), label: fl.now },
-        { href: localePath(locale, "/uses"), label: fl.uses },
-        { href: localePath(locale, "/pers"), label: fl.pers },
-        { href: localePath(locale, "/changelog"), label: "Changelog" },
-        { href: localePath(locale, "/journal"), label: "Journal" },
       ],
     },
     {
@@ -182,7 +137,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
   return (
     <footer className="border-t bg-card">
       <div className="mx-auto max-w-7xl px-6 py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
             <p aria-label="Studio VM" className="leading-none">
               <Logo className="text-6xl sm:text-7xl" />

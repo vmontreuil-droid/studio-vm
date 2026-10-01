@@ -3,9 +3,9 @@ import type { Messages } from "./nl";
 const en: Messages = {
   meta: {
     siteName: "Studio VM",
-    title: "Studio VM — Websites and webshops for local entrepreneurs",
+    title: "Studio VM — 3D models for machine control",
     description:
-      "Vincent Montreuil — freelance web developer. Fast, multilingual websites and webshops for local entrepreneurs in Flanders.",
+      "Your 2D plans turned into 3D design models for GPS-guided excavators, graders and dozers. Delivered in your machine's format and in the right coordinate system, anywhere in Europe.",
     locale: "en_US",
   },
   nav: {
@@ -72,9 +72,9 @@ const en: Messages = {
   },
   contact: {
     eyebrow: "Contact",
-    title: "A new site, a redesign or just a question?",
+    title: "A project in the pipeline or just a question?",
     intro:
-      "Send me a message here — or call/email directly. I usually reply the same day. For a first chat I'm happy to come by your place.",
+      "Send me a message — or call/email directly. I usually reply the same day. Already have plans? Request a quote straight away so I can take a look.",
     location: "West Flanders, Belgium",
   },
   contactForm: {
@@ -82,11 +82,11 @@ const en: Messages = {
     email: "Email",
     subject: "Subject",
     body: "Message",
-    namePlaceholder: "Jane Example",
-    emailPlaceholder: "you@company.com",
-    subjectPlaceholder: "Restaurant site for Bistro X",
+    namePlaceholder: "John Smith",
+    emailPlaceholder: "john@contractor.com",
+    subjectPlaceholder: "Earthworks for an industrial site",
     bodyPlaceholder:
-      "What do you have in mind? What's your timeline? How many pages roughly?",
+      "What kind of project? Which machine control do you use? When do you need the model?",
     submit: "Send message",
     submitting: "Sending...",
     openMail: "Open in mail client",
@@ -98,8 +98,7 @@ const en: Messages = {
     label: "Subscribe",
   },
   footer: {
-    tagline:
-      "Vincent Montreuil — websites and webshops for local entrepreneurs.",
+    tagline: "Vincent Montreuil — 3D models for machine control, anywhere in Europe.",
     sections: {
       studio: "Studio",
       diensten: "Services",

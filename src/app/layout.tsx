@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://studio-vm.be"),
   title: {
-    default: "Studio VM — Websites en webshops voor lokale ondernemers",
+    default: "Studio VM — 3D-modellen voor machinesturing",
     template: "%s",
   },
 };

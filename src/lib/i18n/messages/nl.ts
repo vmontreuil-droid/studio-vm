@@ -1,9 +1,9 @@
 const nl = {
   meta: {
     siteName: "Studio VM",
-    title: "Studio VM — Websites en webshops voor lokale ondernemers",
+    title: "Studio VM — 3D-modellen voor machinesturing",
     description:
-      "Vincent Montreuil — freelance webdeveloper. Snelle, tweetalige websites en webshops voor lokale ondernemers in Vlaanderen.",
+      "Uw 2D-plannen omgezet in 3D-ontwerpmodellen voor GPS-gestuurde kranen, graders en dozers. Geleverd in het formaat van uw machine en in het juiste coördinatenstelsel, overal in Europa.",
     locale: "nl_BE",
   },
   nav: {
@@ -70,9 +70,9 @@ const nl = {
   },
   contact: {
     eyebrow: "Contact",
-    title: "Een nieuwe site, een verbouwing of gewoon een vraag?",
+    title: "Een project in voorbereiding of gewoon een vraag?",
     intro:
-      "Stuur me een berichtje hier — of bel/mail rechtstreeks. Ik antwoord meestal dezelfde dag. Voor een eerste gesprek kom ik graag bij je langs.",
+      "Stuur me een bericht — of bel/mail rechtstreeks. Ik antwoord meestal dezelfde dag. Hebt u al plannen? Vraag dan meteen een offerte aan, dan kan ik ze bekijken.",
     location: "West-Vlaanderen, België",
   },
   contactForm: {
@@ -80,11 +80,11 @@ const nl = {
     email: "E-mail",
     subject: "Onderwerp",
     body: "Bericht",
-    namePlaceholder: "Vincent Voorbeeld",
-    emailPlaceholder: "jij@bedrijf.be",
-    subjectPlaceholder: "Restaurantsite voor Bistro X",
+    namePlaceholder: "Jan Peeters",
+    emailPlaceholder: "jan@bouwbedrijf.be",
+    subjectPlaceholder: "Grondwerk bedrijfsterrein Kortrijk",
     bodyPlaceholder:
-      "Wat heb je in gedachten? Wat is je tijdslijn? Hoeveel pagina's ongeveer?",
+      "Wat voor project? Welke machinesturing gebruikt u? Tegen wanneer hebt u het model nodig?",
     submit: "Verstuur bericht",
     submitting: "Verzenden...",
     openMail: "Open in mail-client",
@@ -96,7 +96,7 @@ const nl = {
     label: "Inschrijven",
   },
   footer: {
-    tagline: "Vincent Montreuil — websites en webshops voor lokale ondernemers.",
+    tagline: "Vincent Montreuil — 3D-modellen voor machinesturing, overal in Europa.",
     sections: {
       studio: "Studio",
       diensten: "Diensten",

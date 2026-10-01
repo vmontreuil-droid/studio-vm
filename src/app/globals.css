@@ -553,3 +553,16 @@ body {
     opacity: 0.4;
   }
 }
+
+/* 3D-beelden die per thema wisselen: .alleen-licht / .alleen-donker */
+@layer base {
+  .alleen-donker { display: none; }
+  :root.theme-dark .alleen-licht,
+  :root[data-theme="dark"] .alleen-licht { display: none; }
+  :root.theme-dark .alleen-donker,
+  :root[data-theme="dark"] .alleen-donker { display: block; }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not([data-theme="light"]) .alleen-licht { display: none; }
+  :root:not(.theme-light):not([data-theme="light"]) .alleen-donker { display: block; }
+}

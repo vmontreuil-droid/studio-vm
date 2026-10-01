@@ -3,9 +3,9 @@ import type { Messages } from "./nl";
 const fr: Messages = {
   meta: {
     siteName: "Studio VM",
-    title: "Studio VM — Sites web et boutiques pour entrepreneurs locaux",
+    title: "Studio VM — Modèles 3D pour le guidage d'engins",
     description:
-      "Vincent Montreuil — développeur web freelance. Sites web rapides et bilingues, boutiques en ligne pour les entrepreneurs locaux des Flandres.",
+      "Vos plans 2D transformés en modèles 3D pour pelles, niveleuses et bouteurs guidés par GPS. Livrés dans le format de votre machine et dans le bon système de coordonnées, partout en Europe.",
     locale: "fr_BE",
   },
   nav: {
@@ -72,9 +72,9 @@ const fr: Messages = {
   },
   contact: {
     eyebrow: "Contact",
-    title: "Un nouveau site, une refonte ou simplement une question ?",
+    title: "Un projet en préparation ou simplement une question ?",
     intro:
-      "Envoyez-moi un message ici — ou appelez/écrivez directement. Je réponds en général le jour même. Pour un premier entretien, je passe volontiers chez vous.",
+      "Envoyez-moi un message — ou appelez/écrivez directement. Je réponds en général le jour même. Vous avez déjà des plans ? Demandez directement un devis pour que je puisse les examiner.",
     location: "Flandre-Occidentale, Belgique",
   },
   contactForm: {
@@ -82,11 +82,11 @@ const fr: Messages = {
     email: "E-mail",
     subject: "Objet",
     body: "Message",
-    namePlaceholder: "Jean Exemple",
-    emailPlaceholder: "vous@entreprise.be",
-    subjectPlaceholder: "Site restaurant pour Bistro X",
+    namePlaceholder: "Jean Dupont",
+    emailPlaceholder: "jean@entreprise.be",
+    subjectPlaceholder: "Terrassement zone d'activité Namur",
     bodyPlaceholder:
-      "Qu'avez-vous en tête ? Quel est votre délai ? Combien de pages environ ?",
+      "Quel type de projet ? Quel système de guidage utilisez-vous ? Pour quand vous faut-il le modèle ?",
     submit: "Envoyer le message",
     submitting: "Envoi...",
     openMail: "Ouvrir dans le client mail",
@@ -98,8 +98,7 @@ const fr: Messages = {
     label: "S'inscrire",
   },
   footer: {
-    tagline:
-      "Vincent Montreuil — sites web et boutiques pour entrepreneurs locaux.",
+    tagline: "Vincent Montreuil — modèles 3D pour le guidage d'engins, partout en Europe.",
     sections: {
       studio: "Studio",
       diensten: "Services",
