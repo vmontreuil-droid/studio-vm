@@ -86,8 +86,32 @@ export async function decideOffer(
     `Offerte-id: ${id}`,
   ]);
 
+  // 3D-project gekoppeld aan deze offerte? Bij akkoord gaat het project
+  // naar 'akkoord'. Geen automatische factuur: een project wordt na het
+  // werk gefactureerd op de gewerkte uren (projectcockpit in de admin).
+  let isProject = false;
+  {
+    const db = getSupabaseAdmin();
+    const { data: proj } = await db
+      .from("projecten")
+      .select("id, status")
+      .eq("offer_id", id)
+      .ilike("client_email", email)
+      .maybeSingle();
+    const pr = proj as { id: string; status: string } | null;
+    if (pr) {
+      isProject = true;
+      if (decision === "akkoord" && ["aanvraag", "offerte"].includes(pr.status)) {
+        await db
+          .from("projecten")
+          .update({ status: "akkoord", updated_at: new Date().toISOString() })
+          .eq("id", pr.id);
+      }
+    }
+  }
+
   // Auto-factuur bij akkoord (eenmalig, idempotent via invoiced_at).
-  if (decision === "akkoord") {
+  if (decision === "akkoord" && !isProject) {
     const db = getSupabaseAdmin();
     const { data } = await db
       .from("offers")

@@ -135,6 +135,12 @@ const L: Record<
     insteadOf: string;
     paid: string;
     paidOn: string;
+    // 3D-projecten (uurtarief, geen voorschot/abonnement/domein)
+    pThisInvoice: string;
+    pChoosePay: string;
+    pMollieDesc: string;
+    pTransferDesc: string;
+    pTerms: string;
   }
 > = {
   nl: {
@@ -181,6 +187,14 @@ const L: Record<
     insteadOf: "i.p.v.",
     paid: "Betaald",
     paidOn: "Betaald op",
+    pThisInvoice: "Deze factuur — nu te betalen",
+    pChoosePay: "Hoe wil je deze factuur betalen?",
+    pMollieDesc:
+      "Direct & veilig (Bancontact, kaart…). Je betaling is meteen verwerkt en je modelbestanden komen zonder vertraging vrij.",
+    pTransferDesc:
+      "Trager: je modelbestanden komen pas vrij zodra de overschrijving binnen is.",
+    pTerms:
+      "Uurtarief excl. btw, op basis van de werkelijk gepresteerde uren (minimum 1 uur). Revisies na planwijzigingen worden aan hetzelfde uurtarief aangerekend. De modelbestanden worden in je klantenportaal vrijgegeven zodra deze factuur betaald is. Alle betalingen verlopen via je beveiligde klantenportaal. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
   },
   fr: {
     none: "Aucune facture.",
@@ -226,6 +240,14 @@ const L: Record<
     insteadOf: "au lieu de",
     paid: "Payée",
     paidOn: "Payée le",
+    pThisInvoice: "Cette facture — à payer maintenant",
+    pChoosePay: "Comment payer cette facture ?",
+    pMollieDesc:
+      "Direct & sécurisé (Bancontact, carte…). Paiement traité immédiatement, vos fichiers du modèle sont débloqués sans délai.",
+    pTransferDesc:
+      "Plus lent : vos fichiers du modèle sont débloqués une fois le virement reçu.",
+    pTerms:
+      "Tarif horaire HTVA, sur base des heures réellement prestées (minimum 1 heure). Les révisions suite à une modification des plans sont facturées au même tarif horaire. Les fichiers du modèle sont débloqués dans votre espace client dès que cette facture est payée. Tous les paiements se font via votre espace client sécurisé. Conditions complètes : studio-vm.be/fr/voorwaarden.",
   },
   en: {
     none: "No invoices.",
@@ -271,6 +293,14 @@ const L: Record<
     insteadOf: "instead of",
     paid: "Paid",
     paidOn: "Paid on",
+    pThisInvoice: "This invoice — to pay now",
+    pChoosePay: "How would you like to pay this invoice?",
+    pMollieDesc:
+      "Instant & secure (Bancontact, card…). Payment is processed immediately and your model files are released without delay.",
+    pTransferDesc:
+      "Slower: your model files are released once the transfer arrives.",
+    pTerms:
+      "Hourly rate excl. VAT, based on the hours actually worked (1 hour minimum). Revisions after plan changes are charged at the same hourly rate. The model files are released in your client portal as soon as this invoice is paid. All payments go through your secure client portal. Full terms: studio-vm.be/en/voorwaarden.",
   },
   de: {
     none: "Keine Rechnungen.",
@@ -316,6 +346,14 @@ const L: Record<
     insteadOf: "statt",
     paid: "Bezahlt",
     paidOn: "Bezahlt am",
+    pThisInvoice: "Diese Rechnung — jetzt zu bezahlen",
+    pChoosePay: "Wie möchten Sie diese Rechnung bezahlen?",
+    pMollieDesc:
+      "Sofort & sicher (Bancontact, Karte…). Ihre Zahlung wird umgehend verarbeitet und Ihre Modelldateien werden ohne Verzögerung freigegeben.",
+    pTransferDesc:
+      "Langsamer: Ihre Modelldateien werden erst freigegeben, wenn die Überweisung eingegangen ist.",
+    pTerms:
+      "Stundensatz exkl. MwSt., auf Basis der tatsächlich geleisteten Stunden (mindestens 1 Stunde). Revisionen nach Planänderungen werden zum gleichen Stundensatz berechnet. Die Modelldateien werden in Ihrem Kundenportal freigegeben, sobald diese Rechnung bezahlt ist. Alle Zahlungen erfolgen über Ihr gesichertes Kundenportal. Vollständige Bedingungen: studio-vm.be/de/voorwaarden.",
   },
   es: {
     none: "No hay facturas.",
@@ -361,6 +399,14 @@ const L: Record<
     insteadOf: "en lugar de",
     paid: "Pagada",
     paidOn: "Pagada el",
+    pThisInvoice: "Esta factura — a pagar ahora",
+    pChoosePay: "¿Cómo desea pagar esta factura?",
+    pMollieDesc:
+      "Inmediato y seguro (Bancontact, tarjeta…). Su pago se procesa al instante y sus archivos del modelo se liberan sin demora.",
+    pTransferDesc:
+      "Más lento: sus archivos del modelo se liberan cuando se recibe la transferencia.",
+    pTerms:
+      "Tarifa por hora, IVA no incluido, según las horas realmente trabajadas (mínimo 1 hora). Las revisiones por cambios en los planos se facturan a la misma tarifa por hora. Los archivos del modelo se liberan en su portal de cliente en cuanto se paga esta factura. Todos los pagos se realizan a través de su portal de cliente seguro. Condiciones completas: studio-vm.be/es/voorwaarden.",
   },
 };
 
@@ -410,6 +456,24 @@ export default async function PortalInvoices({
   }
   const subTiers = subscriptionTiers();
 
+  // Facturen van een 3D-project (rechtstreeks gekoppeld of via de
+  // offerte): uurtarief, zonder voorschot/korting/abonnement/domein.
+  const projectFacturen = new Set<string>();
+  const projectOffertes = new Set<string>();
+  if (invoices.length > 0) {
+    const invIds = invoices.map((i) => i.id);
+    const [{ data: viaFactuur }, { data: viaOfferte }] = await Promise.all([
+      sb.from("projecten").select("invoice_id").in("invoice_id", invIds),
+      offerIds.length > 0
+        ? sb.from("projecten").select("offer_id").in("offer_id", offerIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+    for (const r of (viaFactuur as { invoice_id: string }[] | null) ?? [])
+      projectFacturen.add(r.invoice_id);
+    for (const r of (viaOfferte as { offer_id: string }[] | null) ?? [])
+      projectOffertes.add(r.offer_id);
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
@@ -423,6 +487,9 @@ export default async function PortalInvoices({
         )}
         {invoices.map((i) => {
           const ref = i.offer_id ? offerMap.get(i.offer_id) : undefined;
+          const isProject =
+            projectFacturen.has(i.id) ||
+            (!!i.offer_id && projectOffertes.has(i.offer_id));
           const reverse = !!ref?.vat_reverse;
           const amount = i.amount_cents;
           const vat = reverse ? 0 : Math.round(amount * 0.21);
@@ -434,13 +501,17 @@ export default async function PortalInvoices({
           // Volledige offerte-opbouw (zelfde detail als de offerte).
           const oItems = ref?.items ?? [];
           const oFull = ref?.amount_cents ?? 0;
-          const oDiscount = oItems.reduce(
-            (s, it) =>
-              typeof it.cents === "number" && it.cents < 0
-                ? s - it.cents
-                : s,
-            0,
-          );
+          // Bij een project is een negatieve lijn een gewone korting,
+          // geen vastlegkorting — die logica (7%, voorschot) geldt niet.
+          const oDiscount = isProject
+            ? 0
+            : oItems.reduce(
+                (s, it) =>
+                  typeof it.cents === "number" && it.cents < 0
+                    ? s - it.cents
+                    : s,
+                0,
+              );
           const oGross = oFull + oDiscount;
           const oSubItem = oItems.find((it) => it.kind === "sub");
           const oSubTier = oSubItem
@@ -454,7 +525,9 @@ export default async function PortalInvoices({
             oDiscount > 0 && oSubTier ? oSubTier.cents * 2 : 0;
           const oVat = reverse ? 0 : Math.round(oFull * 0.21);
           const oIncl = oFull + oVat;
-          const showDetail = !!ref && oItems.length > 0;
+          // Projectfactuur = gewerkte uren; de offerte-opbouw (raming)
+          // tonen we daar niet.
+          const showDetail = !!ref && oItems.length > 0 && !isProject;
 
           // Betaalbedragen: Mollie = met korting (= deze factuur);
           // overschrijving = zonder de 7% → evenredig hoger.
@@ -668,7 +741,7 @@ export default async function PortalInvoices({
               {/* Deze voorschotfactuur — nu te betalen */}
               <div className="mt-6 rounded-xl border-2 border-accent bg-background p-5 text-sm shadow-sm">
                 <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-accent">
-                  {l.thisInvoice}
+                  {isProject ? l.pThisInvoice : l.thisInvoice}
                 </p>
                 <div className="flex items-center justify-between text-muted">
                   <span>{l.subtotal}</span>
@@ -713,7 +786,7 @@ export default async function PortalInvoices({
                   {l.termsTitle}
                 </p>
                 <p className="text-xs leading-relaxed text-muted">
-                  {l.terms}
+                  {isProject ? l.pTerms : l.terms}
                 </p>
               </div>
 
@@ -726,7 +799,7 @@ export default async function PortalInvoices({
                     </div>
                   )}
                   <p className="mb-4 text-base font-semibold">
-                    {l.choosePay}
+                    {isProject ? l.pChoosePay : l.choosePay}
                   </p>
                   <div className="grid items-stretch gap-3 sm:grid-cols-2">
                     {/* Online via Mollie — voordeligst */}
@@ -738,7 +811,7 @@ export default async function PortalInvoices({
                         </span>
                       </div>
                       <p className="mt-2 text-xs leading-relaxed text-muted">
-                        {l.mollieDesc}
+                        {isProject ? l.pMollieDesc : l.mollieDesc}
                       </p>
                       <div className="mt-4 flex-1 border-t pt-4">
                         <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -777,7 +850,7 @@ export default async function PortalInvoices({
                         <p className="font-semibold">{l.transferName}</p>
                       </div>
                       <p className="mt-2 text-xs leading-relaxed text-muted">
-                        {l.noDiscount}
+                        {isProject ? l.pTransferDesc : l.noDiscount}
                       </p>
                       <dl className="mt-4 flex-1 space-y-3 border-t pt-4 text-sm">
                         <div>

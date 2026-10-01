@@ -79,6 +79,14 @@ export default async function AdminOfferDoc({
     .maybeSingle();
   const o = data as Offer | null;
   if (!o) notFound();
+  // Offerte van een 3D-project: geen voorschot/slot/support uit de websitetijd,
+  // facturatie gebeurt in de project-cockpit.
+  const { data: prData } = await getSupabaseAdmin()
+    .from("projecten")
+    .select("id, titel")
+    .eq("offer_id", o.id)
+    .maybeSingle();
+  const project = prData as { id: string; titel: string } | null;
 
   const items = o.items ?? [];
   const reverse = !!o.vat_reverse;
@@ -92,7 +100,7 @@ export default async function AdminOfferDoc({
   const sub = items.find((it) => it.kind === "sub");
   const vat = reverse ? 0 : Math.round(net * 0.21);
   const incl = net + vat;
-  const lockin = discount > 0;
+  const lockin = discount > 0 && !project;
   const deposit = lockin ? Math.round(incl * 0.3) : 0;
   const paragraphs = (o.body ?? "")
     .split(/\n{2,}/)
@@ -142,7 +150,15 @@ export default async function AdminOfferDoc({
               </button>
             </form>
           )}
-          {o.status === "akkoord" && (
+          {project && (
+            <Link
+              href={`/admin/projecten/${project.id}`}
+              className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              Project-cockpit →
+            </Link>
+          )}
+          {o.status === "akkoord" && !project && (
             <>
               <form action={createOfferInvoice}>
                 <input type="hidden" name="id" value={o.id} />
@@ -367,22 +383,36 @@ export default async function AdminOfferDoc({
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
               Voorwaarden
             </p>
-            <p className="text-xs leading-relaxed text-muted">
-              {lockin
-                ? "Beslis je vóór de vervaldatum van deze offerte, dan liggen prijs en scope vast en geniet je van 7% korting + de eerste 2 maanden support gratis; daarna vervalt dit automatisch. "
-                : ""}
-              Betaling: 30% voorschot om te starten, de resterende 70%
-              vóór de site live gaat. Alle betalingen verlopen
-              uitsluitend via het beveiligde klantenportaal — geen
-              uitzonderingen. Het onderhoudsabonnement heeft een
-              minimumlooptijd van 1 jaar en wordt, zonder schriftelijke
-              opzegging minstens 1 maand vóór het einde van de
-              jaarperiode, telkens stilzwijgend met één jaar verlengd.
-              Domein &amp; e-mail (overname/verlenging) zijn ten laste
-              van de klant en worden, afhankelijk van het geval, op de
-              slotfactuur verrekend. Volledige voorwaarden:
-              studio-vm.be/nl/voorwaarden.
-            </p>
+            {project ? (
+              <p className="text-xs leading-relaxed text-muted">
+                Modelleerwerk aan het vermelde uurtarief (excl. btw), minimum 1 uur;
+                het gefactureerde aantal uren volgt de werkelijk gepresteerde tijd.
+                Extra machinesturingssystemen zijn inbegrepen. Revisies na een
+                planwijziging worden aan hetzelfde uurtarief aangerekend. De
+                modelbestanden worden gedownload via het klantenportaal zodra de
+                factuur betaald is. De klant blijft verantwoordelijk voor de
+                juiste werking, kalibratie en controle van zijn eigen
+                machinesturing op de werf. Volledige voorwaarden:
+                studio-vm.be/nl/voorwaarden.
+              </p>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted">
+                {lockin
+                  ? "Beslis je vóór de vervaldatum van deze offerte, dan liggen prijs en scope vast en geniet je van 7% korting + de eerste 2 maanden support gratis; daarna vervalt dit automatisch. "
+                  : ""}
+                Betaling: 30% voorschot om te starten, de resterende 70%
+                vóór de site live gaat. Alle betalingen verlopen
+                uitsluitend via het beveiligde klantenportaal — geen
+                uitzonderingen. Het onderhoudsabonnement heeft een
+                minimumlooptijd van 1 jaar en wordt, zonder schriftelijke
+                opzegging minstens 1 maand vóór het einde van de
+                jaarperiode, telkens stilzwijgend met één jaar verlengd.
+                Domein &amp; e-mail (overname/verlenging) zijn ten laste
+                van de klant en worden, afhankelijk van het geval, op de
+                slotfactuur verrekend. Volledige voorwaarden:
+                studio-vm.be/nl/voorwaarden.
+              </p>
+            )}
           </div>
         </article>
       </div>

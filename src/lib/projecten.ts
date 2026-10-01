@@ -50,6 +50,34 @@ export type Levering = {
   opmerking: string | null;
 };
 
+// Machinesturingssystemen waarvoor een model geleverd kan worden — gedeeld
+// door het publieke aanvraagformulier en de admin.
+export const MERKEN = [
+  "Trimble GCS900",
+  "Trimble Earthworks",
+  "Trimble Access",
+  "Topcon 3D-MC",
+  "Topcon MC-Max",
+  "Topcon Pocket-3D",
+  "Leica iCON site",
+  "Leica MC1",
+  "Unicontrol",
+  "CHCNAV",
+  "Komatsu",
+  "Caterpillar",
+];
+
+// Leveringen die niet aan één systeem gebonden zijn.
+export const NEUTRALE_SYSTEMEN = ["Alle systemen", "LandXML", "DXF"];
+
+/** Hele dagen van vandaag tot `datum` (YYYY-MM-DD); negatief = verlopen. */
+export function dagenTot(datum: string, nu: number): number {
+  const d = new Date(`${datum}T00:00:00`);
+  const vandaag = new Date(nu);
+  vandaag.setHours(0, 0, 0, 0);
+  return Math.round((d.getTime() - vandaag.getTime()) / 86400000);
+}
+
 // De stappen die de klant als tijdlijn ziet (geannuleerd valt erbuiten).
 export const STAPPEN: ProjectStatus[] = ["aanvraag", "offerte", "akkoord", "productie", "geleverd", "afgesloten"];
 

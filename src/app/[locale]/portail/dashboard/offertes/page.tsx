@@ -112,10 +112,15 @@ const L: Record<
     promo: (validUntil: string) => string;
     lockinClause: (validUntil: string, deposit: string) => string;
     domainClause: string;
+    projectClause: string;
+    toProject: string;
   }
 > = {
   nl: {
     none: "Nog geen offerte. Zodra ik er een klaarzet, zie je 'm hier.",
+    projectClause:
+      "Uurtarief excl. btw; gefactureerd worden de werkelijk gepresteerde uren (minimum 1 uur). Revisies na planwijzigingen worden aan hetzelfde uurtarief aangerekend. De modelbestanden staan in je klantenportaal en worden vrijgegeven zodra de factuur betaald is. Alle betalingen verlopen via je beveiligde klantenportaal. Controleer het model vóór de start op een gekend punt, in ligging én hoogte; werking en kalibratie van de machinesturing blijven de verantwoordelijkheid van de klant.",
+    toProject: "Bekijk je project",
     accept: "Goedkeuren",
     reject: "Afwijzen",
     proof: "Bevestiging / PDF",
@@ -156,6 +161,9 @@ const L: Record<
   },
   fr: {
     none: "Aucun devis pour l'instant.",
+    projectClause:
+      "Tarif horaire HTVA ; ce sont les heures réellement prestées qui sont facturées (minimum 1 heure). Les révisions suite à une modification des plans sont facturées au même tarif horaire. Les fichiers du modèle sont disponibles dans votre espace client et débloqués dès que la facture est payée. Tous les paiements se font via votre espace client sécurisé. Vérifiez le modèle avant de commencer sur un point connu, en position et en altitude ; le fonctionnement et la calibration du guidage restent sous la responsabilité du client.",
+    toProject: "Voir votre projet",
     accept: "Approuver",
     reject: "Refuser",
     proof: "Confirmation / PDF",
@@ -197,6 +205,9 @@ const L: Record<
   },
   en: {
     none: "No quote yet.",
+    projectClause:
+      "Hourly rate excl. VAT; the hours actually worked are invoiced (1 hour minimum). Revisions after plan changes are charged at the same hourly rate. The model files are in your client portal and are released as soon as the invoice is paid. All payments go through your secure client portal. Check the model on a known point before you start, in position and height; operation and calibration of the machine control remain the client’s responsibility.",
+    toProject: "View your project",
     accept: "Approve",
     reject: "Decline",
     proof: "Confirmation / PDF",
@@ -236,6 +247,9 @@ const L: Record<
   },
   de: {
     none: "Noch kein Angebot. Sobald ich eines bereitstelle, sehen Sie es hier.",
+    projectClause:
+      "Stundensatz exkl. MwSt.; abgerechnet werden die tatsächlich geleisteten Stunden (mindestens 1 Stunde). Revisionen nach Planänderungen werden zum gleichen Stundensatz berechnet. Die Modelldateien stehen in Ihrem Kundenportal bereit und werden freigegeben, sobald die Rechnung bezahlt ist. Alle Zahlungen erfolgen über Ihr gesichertes Kundenportal. Prüfen Sie das Modell vor Beginn an einem bekannten Punkt, in Lage und Höhe; Betrieb und Kalibrierung der Maschinensteuerung bleiben in der Verantwortung des Kunden.",
+    toProject: "Ihr Projekt ansehen",
     accept: "Annehmen",
     reject: "Ablehnen",
     proof: "Bestätigung / PDF",
@@ -277,6 +291,9 @@ const L: Record<
   },
   es: {
     none: "Todavía no hay presupuesto. En cuanto prepare uno, lo verá aquí.",
+    projectClause:
+      "Tarifa por hora, IVA no incluido; se facturan las horas realmente trabajadas (mínimo 1 hora). Las revisiones por cambios en los planos se facturan a la misma tarifa por hora. Los archivos del modelo están en su portal de cliente y se liberan en cuanto se paga la factura. Todos los pagos se realizan a través de su portal de cliente seguro. Compruebe el modelo antes de empezar en un punto conocido, en planimetría y en altura; el funcionamiento y la calibración del control de máquina siguen siendo responsabilidad del cliente.",
+    toProject: "Ver su proyecto",
     accept: "Aprobar",
     reject: "Rechazar",
     proof: "Confirmación / PDF",
@@ -352,6 +369,21 @@ export default async function PortalOffers({
   const offers = (data as Doc[]) ?? [];
   const subTiers = subscriptionTiers();
 
+  // Offertes die bij een 3D-project horen: uurtarief, zonder de
+  // website-voorwaarden (vastlegkorting, abonnement, domein, voorschot).
+  const projectVan = new Map<string, string>();
+  if (offers.length > 0) {
+    const { data: proj } = await sb
+      .from("projecten")
+      .select("id, offer_id")
+      .in(
+        "offer_id",
+        offers.map((o) => o.id),
+      );
+    for (const r of (proj as { id: string; offer_id: string }[] | null) ?? [])
+      projectVan.set(r.offer_id, r.id);
+  }
+
   const unseen = offers
     .filter((o) => o.status === "open")
     .map((o) => o.id);
@@ -391,7 +423,8 @@ export default async function PortalOffers({
                 : s,
             0,
           );
-          const hasLockin = discount > 0;
+          const projectId = projectVan.get(o.id);
+          const hasLockin = discount > 0 && !projectId;
           const gross = amount + discount;
           const subItem = items.find((it) => it.kind === "sub");
           const subTier = subItem
@@ -739,19 +772,27 @@ export default async function PortalOffers({
                     <p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                       {l.terms}
                     </p>
-                    {deposit > 0 && (
-                      <p className="mb-2 text-xs leading-relaxed text-muted">
-                        {l.lockinClause(
-                          o.valid_until
-                            ? dt(o.valid_until, locale)
-                            : "—",
-                          eur(deposit),
-                        )}
+                    {projectId ? (
+                      <p className="text-xs leading-relaxed text-muted">
+                        {l.projectClause}
                       </p>
+                    ) : (
+                      <>
+                        {deposit > 0 && (
+                          <p className="mb-2 text-xs leading-relaxed text-muted">
+                            {l.lockinClause(
+                              o.valid_until
+                                ? dt(o.valid_until, locale)
+                                : "—",
+                              eur(deposit),
+                            )}
+                          </p>
+                        )}
+                        <p className="text-xs leading-relaxed text-muted">
+                          {l.domainClause}
+                        </p>
+                      </>
                     )}
-                    <p className="text-xs leading-relaxed text-muted">
-                      {l.domainClause}
-                    </p>
                   </div>
                 </div>
               )}
@@ -796,7 +837,16 @@ export default async function PortalOffers({
                     {l.expiredNote}
                   </span>
                 )}
-                {o.status === "akkoord" && (
+                {o.status === "akkoord" && projectId && (
+                  <Link
+                    href={`/${locale}/portail/dashboard/projecten/${projectId}`}
+                    className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]"
+                  >
+                    {l.toProject}
+                    <span aria-hidden>&rarr;</span>
+                  </Link>
+                )}
+                {o.status === "akkoord" && !projectId && (
                   <Link
                     href={`/${locale}/portail/dashboard/facturen`}
                     className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-card-hover sm:min-w-[190px]"
