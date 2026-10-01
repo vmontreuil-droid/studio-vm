@@ -5,6 +5,7 @@ import { RealisatiesViewer } from "@/components/realisaties-viewer";
 import { RealisatiesGalerij } from "@/components/realisaties-galerij";
 import { REALISATIES } from "@/lib/realisaties";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 const T: Record<
   Locale,
@@ -92,7 +93,7 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: { canonical: `https://studio-vm.be/${locale}/realisaties` } };
+  return { ...T[locale].meta, alternates: talen(locale, "/realisaties") };
 }
 
 export default async function RealisatiesPage({ params }: { params: Promise<{ locale: string }> }) {

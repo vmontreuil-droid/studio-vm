@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Check, FileUp, Layers, MonitorSmartphone, ShieldCheck } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 type Onderdeel = { titel: string; tekst: string; punten: string[]; beeld: string; donker?: string };
 
@@ -251,7 +252,7 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: { canonical: `https://studio-vm.be/${locale}/3d-modellen` } };
+  return { ...T[locale].meta, alternates: talen(locale, "/3d-modellen") };
 }
 
 export default async function ModellenPage({ params }: { params: Promise<{ locale: string }> }) {

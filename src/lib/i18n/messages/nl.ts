@@ -104,7 +104,7 @@ const nl = {
       vincent: "Over Vincent",
       legal: "Legal",
     },
-    built: "Gebouwd met Next.js, Tailwind en koffie.",
+    built: "Gemodelleerd in Anzegem, geleverd in heel Europa.",
   },
   notTranslated: {
     title: "Deze pagina is enkel beschikbaar in het Nederlands.",

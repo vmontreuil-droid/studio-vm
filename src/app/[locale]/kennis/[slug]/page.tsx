@@ -9,6 +9,7 @@ import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/conf
 import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
 import { ILLUSTRATIES, KOPBEELD } from "@/components/kennis-illustraties";
 import { InhoudToc } from "@/components/inhoud-toc";
+import { talen } from "@/lib/seo";
 
 const T: Record<Locale, { terug: string; verder: string; cta: { eyebrow: string; titel: string; sub: string; knop: string } }> = {
   nl: { terug: "Kennisbank", verder: "Volgend artikel", cta: { eyebrow: "Klaar om te starten?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Laad uw plannen op, geef het werfadres en kies uw machinesturingen.", knop: "Offerte aanvragen" } },
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: `${x.titel} | Studio VM`,
     description: x.samenvatting,
-    alternates: { canonical: `https://studio-vm.be/${locale}/kennis/${slug}` },
+    alternates: talen(locale, `/kennis/${slug}`),
   };
 }
 

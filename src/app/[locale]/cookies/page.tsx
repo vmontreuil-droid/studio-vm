@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { InhoudToc } from "@/components/inhoud-toc";
+import { talen } from "@/lib/seo";
 
 type Copy = {
   metaTitle: string;
@@ -155,7 +156,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { title: copy[locale].metaTitle };
+  return { title: copy[locale].metaTitle, alternates: talen(locale, "/cookies") };
 }
 
 export default async function CookiesPage({

@@ -106,7 +106,7 @@ const de: Messages = {
       vincent: "Über uns",
       legal: "Rechtliches",
     },
-    built: "Gebaut mit Next.js, Tailwind und Kaffee.",
+    built: "Modelliert in Anzegem, geliefert in ganz Europa.",
   },
   notTranslated: {
     title: "Diese Seite ist nur auf Niederländisch verfügbar.",

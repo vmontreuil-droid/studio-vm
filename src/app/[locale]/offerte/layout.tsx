@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { isValidLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 const META: Record<Locale, { title: string; description: string }> = {
   nl: {
@@ -37,11 +38,12 @@ export async function generateMetadata({
   const { locale } = await params;
   const l: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
   const m = META[l];
-  const url = `https://studio-vm.be/${l}/offerte`;
+  const alt = talen(l, "/offerte");
+  const url = String(alt.canonical);
   return {
     title: m.title,
     description: m.description,
-    alternates: { canonical: url },
+    alternates: alt,
     openGraph: {
       title: m.title,
       description: m.description,

@@ -33,7 +33,7 @@ export function ArticleJsonLd({
           name: "Studio VM",
           logo: {
             "@type": "ImageObject",
-            url: "https://studio-vm.be/icon",
+            url: "https://www.studio-vm.be/icon",
           },
         },
         mainEntityOfPage: url,
@@ -100,7 +100,7 @@ export function ServiceJsonLd({
         provider: {
           "@type": "Organization",
           name: "Studio VM",
-          url: "https://studio-vm.be",
+          url: "https://www.studio-vm.be",
         },
         areaServed: { "@type": "Place", name: "Europe" },
         availableLanguage: ["nl", "fr", "en", "de", "es"],
@@ -117,7 +117,7 @@ export function WebsiteJsonLd({ locale }: { locale: string }) {
         "@type": "WebSite",
         name: "Studio VM",
         alternateName: "studio-vm.be",
-        url: `https://studio-vm.be/${locale}`,
+        url: `https://www.studio-vm.be/${locale}`,
         inLanguage: locale,
         publisher: { "@type": "Organization", name: "Studio VM" },
       }}
@@ -131,9 +131,9 @@ export function OrganizationJsonLd() {
     "@type": "Organization",
     name: "Studio VM",
     legalName: "Studio VM (Vincent Montreuil)",
-    url: "https://studio-vm.be",
-    logo: "https://studio-vm.be/icon",
-    image: "https://studio-vm.be/opengraph-image",
+    url: "https://www.studio-vm.be",
+    logo: "https://www.studio-vm.be/icon",
+    image: "https://www.studio-vm.be/opengraph-image",
     description:
       "Studio VM modelleert 3D-ontwerpmodellen voor machinebesturing (Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar) voor aannemers in heel Europa.",
     foundingDate: "2024",
@@ -170,7 +170,7 @@ export function OrganizationJsonLd() {
         closes: "23:59",
       },
     },
-    sameAs: ["https://github.com/vmontreuil-droid"],
+    sameAs: ["https://www.linkedin.com/in/vincentmontreuil"],
     knowsAbout: [
       "Machine control",
       "3D design models",

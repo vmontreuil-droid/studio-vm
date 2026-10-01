@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { InhoudToc } from "@/components/inhoud-toc";
+import { talen } from "@/lib/seo";
 
 type Block = {
   title: string;
@@ -113,7 +114,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { title: copy[locale].metaTitle };
+  return { title: copy[locale].metaTitle, alternates: talen(locale, "/privacy") };
 }
 
 export default async function PrivacyPage({

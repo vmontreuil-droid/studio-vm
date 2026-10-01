@@ -106,7 +106,7 @@ const es: Messages = {
       vincent: "Acerca de",
       legal: "Legal",
     },
-    built: "Hecho con Next.js, Tailwind y café.",
+    built: "Modelado en Anzegem, entregado en toda Europa.",
   },
   notTranslated: {
     title: "Esta página solo está disponible en neerlandés.",

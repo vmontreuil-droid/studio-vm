@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MessageSquare, Crosshair, Clock, ShieldCheck, Globe2 } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 const T: Record<
   Locale,
@@ -146,7 +147,7 @@ const ICONEN = [MessageSquare, Crosshair, Clock, ShieldCheck];
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: { canonical: `https://studio-vm.be/${locale}/over` } };
+  return { ...T[locale].meta, alternates: talen(locale, "/over") };
 }
 
 export default async function OverPage({ params }: { params: Promise<{ locale: string }> }) {

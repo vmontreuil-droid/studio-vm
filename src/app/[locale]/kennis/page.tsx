@@ -7,6 +7,7 @@ import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
 import { KOPBEELD } from "@/components/kennis-illustraties";
 import { KENNIS } from "@/lib/kennis";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 const T: Record<Locale, { meta: { title: string; description: string }; eyebrow: string; titel: string; intro: string; lees: string }> = {
   nl: {
@@ -49,7 +50,7 @@ const T: Record<Locale, { meta: { title: string; description: string }; eyebrow:
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: { canonical: `https://studio-vm.be/${locale}/kennis` } };
+  return { ...T[locale].meta, alternates: talen(locale, "/kennis") };
 }
 
 export default async function KennisPage({ params }: { params: Promise<{ locale: string }> }) {

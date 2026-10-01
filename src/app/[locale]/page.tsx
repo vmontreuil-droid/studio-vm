@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -19,6 +20,7 @@ import { CtaBanner } from "@/components/cta-banner";
 import { HeroCarrousel } from "@/components/hero-carrousel";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { talen } from "@/lib/seo";
 
 /* ─────────────────────────────────────────────────────────────────────────
  * Studio VM — 3D-modellen voor machinesturing.
@@ -435,6 +437,12 @@ const X: Record<
 };
 
 const MERKEN = ["Trimble", "Topcon", "Leica", "Unicontrol", "CHCNAV", "Komatsu", "Caterpillar"];
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  return { alternates: talen(locale, "") };
+}
 
 export default async function Home({
   params,

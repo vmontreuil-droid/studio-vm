@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Clock, Zap, CalendarCheck, Check, ShieldAlert, FileUp, ArrowRight } from "lucide-react";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
+import { talen } from "@/lib/seo";
 
 const T: Record<
   Locale,
@@ -217,7 +218,7 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: { canonical: `https://studio-vm.be/${locale}/tarieven` } };
+  return { ...T[locale].meta, alternates: talen(locale, "/tarieven") };
 }
 
 const CATS: { id: Categorie; icoon: typeof Clock }[] = [
