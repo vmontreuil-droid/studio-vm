@@ -521,7 +521,7 @@ function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
           </h2>
           <p className="mt-6 max-w-xl leading-relaxed text-muted">{x.stelselTekst}</p>
           <Link
-            href={localePath(locale, "/kennis")}
+            href={localePath(locale, "/kennis/coordinatenstelsels")}
             className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
           >
             {x.stelselLink}

@@ -19,7 +19,18 @@ import { LANDEN, stelselVoor, isLand } from "@/lib/stelsel";
 import type { Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 
-const MERKEN = ["Trimble", "Topcon", "Leica", "Unicontrol", "CHCNAV", "Komatsu", "Caterpillar"];
+// Per systeem waar het formaat verschilt (Trimble: machine vs. veldsoftware).
+const MERKEN = [
+  "Trimble GCS900",
+  "Trimble Earthworks",
+  "Trimble Access",
+  "Topcon",
+  "Leica",
+  "Unicontrol",
+  "CHCNAV",
+  "Komatsu",
+  "Caterpillar",
+];
 
 const L = {
   nl: {
@@ -56,7 +67,7 @@ const L = {
     anders: "Ander merk",
     andersPh: "Welk systeem?",
     machines: "Machines",
-    machineTypes: ["Graafmachine", "Grader", "Dozer", "Wals", "Asfaltmachine"],
+    machineTypes: ["Graafmachine", "Grader", "Dozer"],
     projectKop: "Het project",
     werk: "Soort werk",
     werkTypes: ["Grondwerk / platform", "Wegenis", "Riolering", "Bouwput", "Parking / verharding", "Sportterrein", "Anders"],
@@ -112,7 +123,7 @@ const L = {
     anders: "Autre marque",
     andersPh: "Quel système ?",
     machines: "Machines",
-    machineTypes: ["Pelle", "Niveleuse", "Bouteur", "Compacteur", "Finisseur"],
+    machineTypes: ["Pelle", "Niveleuse", "Bouteur"],
     projectKop: "Le projet",
     werk: "Type de travaux",
     werkTypes: ["Terrassement / plateforme", "Voirie", "Égouttage", "Fouille", "Parking / revêtement", "Terrain de sport", "Autre"],
@@ -168,7 +179,7 @@ const L = {
     anders: "Other brand",
     andersPh: "Which system?",
     machines: "Machines",
-    machineTypes: ["Excavator", "Grader", "Dozer", "Roller", "Paver"],
+    machineTypes: ["Excavator", "Grader", "Dozer"],
     projectKop: "The project",
     werk: "Type of work",
     werkTypes: ["Earthworks / platform", "Roads", "Sewerage", "Excavation", "Car park / paving", "Sports field", "Other"],

@@ -118,8 +118,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       title: fl.kennis,
       links: [
         { href: localePath(locale, "/kennis"), label: fl.kennisbank },
-        { href: localePath(locale, "/kennis#stelsels"), label: fl.stelsels },
-        { href: localePath(locale, "/faq"), label: "FAQ" },
+        { href: localePath(locale, "/kennis/coordinatenstelsels"), label: fl.stelsels },
+        { href: localePath(locale, "/kennis/veelgestelde-vragen"), label: "FAQ" },
       ],
     },
     {
