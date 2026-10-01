@@ -3,19 +3,19 @@ import { isValidLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 
 const META: Record<Locale, { title: string; description: string }> = {
   nl: {
-    title: "Stel je website samen — vaste prijs | Studio VM",
+    title: "Offerte aanvragen — 3D-model voor machinesturing | Studio VM",
     description:
-      "Kies je pakket, onderhoud en domein en zie meteen je exacte vaste prijs. 30% om je scope vast te leggen — geen offertes met sterretjes, geen lock-in op je code.",
+      "Laad uw plannen op, geef het werfadres en het merk van uw machinesturing. U krijgt een offerte op maat voor een 3D-model in het juiste formaat en coördinatenstelsel.",
   },
   fr: {
-    title: "Composez votre site — prix fixe | Studio VM",
+    title: "Demander un devis — modèle 3D pour le guidage d'engins | Studio VM",
     description:
-      "Choisissez forfait, maintenance et domaine et voyez votre prix fixe exact. 30% pour verrouiller votre scope — sans astérisques, sans lock-in sur votre code.",
+      "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage. Vous recevez un devis sur mesure pour un modèle 3D dans le bon format et système de coordonnées.",
   },
   en: {
-    title: "Build your website — fixed price | Studio VM",
+    title: "Request a quote — 3D model for machine control | Studio VM",
     description:
-      "Pick your package, maintenance and domain and see your exact fixed price. 30% to lock your scope — no quotes with asterisks, no lock-in on your code.",
+      "Upload your plans, give the site address and your machine control brand. You get a tailored quote for a 3D model in the right format and coordinate system.",
   },
 };
 

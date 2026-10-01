@@ -105,7 +105,7 @@ const ALERTS: Record<
   },
 };
 
-type Mail = { subject: string; html: string };
+type Mail = { subject: string; html: string; replyTo?: string };
 
 const T: Record<
   Locale,
@@ -250,6 +250,7 @@ export async function sendMail(to: string, mail: Mail): Promise<boolean> {
         to: [to],
         subject: mail.subject,
         html: mail.html,
+        ...(mail.replyTo ? { reply_to: mail.replyTo } : {}),
       }),
     });
     if (!r.ok) {
