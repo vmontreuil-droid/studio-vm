@@ -104,8 +104,10 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     werfGemeente: s(fd, "werf_gemeente"),
     werfLand: s(fd, "werf_land").toUpperCase(),
     eigenStelsel: s(fd, "eigen_stelsel"),
-    merk: s(fd, "merk"),
+    merken: fd.getAll("merken").map(String).filter(Boolean).slice(0, 10),
     merkAnders: s(fd, "merk_anders"),
+    categorie: ["vroegtijdig", "normaal", "last-minute"].includes(s(fd, "categorie")) ? s(fd, "categorie") : "normaal",
+    verantwoordelijk: s(fd, "verantwoordelijk") === "ja",
     machines: fd.getAll("machines").map(String).slice(0, 8),
     werk: s(fd, "werk"),
     leverdatum: s(fd, "leverdatum"),
@@ -123,7 +125,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
 
   if (
     !v.bedrijf || !v.naam || !isEmail(v.email) || !v.telefoon ||
-    !v.werfPostcode || !v.werfGemeente || !isLand(v.werfLand) || !v.merk
+    !v.werfPostcode || !v.werfGemeente || !isLand(v.werfLand) || v.merken.length === 0 || !v.verantwoordelijk
   ) {
     return { ok: false, fout: "ongeldig" };
   }
@@ -131,7 +133,9 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
   const geo = await zoekWerf(v.werfStraat, v.werfPostcode, v.werfGemeente, v.werfLand);
   const stelsel: StelselVoorstel = stelselVoor(v.werfLand, geo?.lat ?? null, geo?.lon ?? null);
   const werfAdres = [v.werfStraat, `${v.werfPostcode} ${v.werfGemeente}`, v.werfLand].filter(Boolean).join(", ");
-  const merk = v.merk === "anders" && v.merkAnders ? v.merkAnders : v.merk;
+  const merken = v.merken.map((m) => (m === "anders" ? (v.merkAnders ? `Ander: ${v.merkAnders}` : "Ander merk") : m));
+  const merk = merken.join(", ");
+  const CAT = { vroegtijdig: "Vroegtijdig (> 3 weken)", normaal: "Normaal (1–3 weken)", "last-minute": "LAST-MINUTE (≤ 5 werkdagen)" } as const;
 
   const db = getSupabaseAdmin();
   const ins = await db
@@ -163,6 +167,9 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
         stelsel,
         eigenStelsel: v.eigenStelsel || null,
         merk,
+        merken,
+        categorie: v.categorie,
+        verantwoordelijkAkkoord: new Date().toISOString(),
         machines: v.machines,
         werk: v.werk,
         leverdatum: v.leverdatum || null,
@@ -188,7 +195,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     `<tr><td style="padding:4px 16px 4px 0;color:#78716c;vertical-align:top">${k}</td><td>${w}</td></tr>`;
   await sendMail("info@studio-vm.be", {
     replyTo: v.email,
-    subject: `3D-model aanvraag — ${v.bedrijf} (${v.werfGemeente}, ${v.werfLand})`,
+    subject: `${v.categorie === "last-minute" ? "⚡ LAST-MINUTE · " : ""}3D-model aanvraag — ${v.bedrijf} (${v.werfGemeente}, ${v.werfLand})`,
     html: `<div style="font-family:system-ui,sans-serif;max-width:600px;color:#1c1917;line-height:1.6">
 <h2 style="margin:0 0 4px">Nieuwe aanvraag: 3D-model</h2>
 <p style="margin:0 0 16px;color:#78716c">${esc(v.bedrijf)} · ${esc(v.naam)} · <a href="mailto:${esc(v.email)}">${esc(v.email)}</a> · ${esc(v.telefoon)}</p>
@@ -196,6 +203,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
 ${rij("Werf", esc(werfAdres) + (kaart ? ` · <a href="${kaart}" style="color:#b45309">kaart</a>` : " · <em>adres niet gevonden op de kaart</em>"))}
 ${rij("Stelsel (voorstel)", `<strong>${esc(stelsel.stelsel)}</strong> (${stelsel.epsg}) · hoogte ${esc(stelsel.hoogte)}${stelsel.opmerking ? `<br><span style="color:#78716c">${esc(stelsel.opmerking)}</span>` : ""}`)}
 ${v.eigenStelsel ? rij("Eigen/lokaal stelsel", esc(v.eigenStelsel)) : ""}
+${rij("Categorie", esc(CAT[v.categorie as keyof typeof CAT]))}
 ${rij("Machinesturing", esc(merk))}
 ${v.machines.length ? rij("Machines", esc(v.machines.join(", "))) : ""}
 ${v.werk ? rij("Soort werk", esc(v.werk)) : ""}

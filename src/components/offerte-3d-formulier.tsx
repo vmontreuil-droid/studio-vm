@@ -41,6 +41,16 @@ const L = {
     eigenStelselPh: "Bv. lokaal stelsel van de landmeter, kalibratiebestand…",
     machineKop: "Uw machinesturing",
     merk: "Merk",
+    merkUitleg: "Kies één of meerdere systemen — u krijgt het model in elk gekozen formaat.",
+    merkNodig: "Kies minstens één machinesturing.",
+    categorie: "Wanneer hebt u het model nodig?",
+    categorieen: [
+      { id: "vroegtijdig", titel: "Vroegtijdig", tekst: "Meer dan 3 weken op voorhand" },
+      { id: "normaal", titel: "Normaal", tekst: "Binnen 1 à 3 weken" },
+      { id: "last-minute", titel: "Last-minute", tekst: "Binnen 5 werkdagen" },
+    ],
+    verantwoordelijk: "Ik begrijp dat Studio VM enkel het 3D-model levert. De werking, instelling en kalibratie van mijn machinesturing en de controle op de werf blijven mijn verantwoordelijkheid.",
+    verantwoordelijkNodig: "Bevestig dat u verantwoordelijk blijft voor uw eigen systeem.",
     kiesMerk: "Kies een merk",
     anders: "Ander merk",
     andersPh: "Welk systeem?",
@@ -87,6 +97,16 @@ const L = {
     eigenStelselPh: "P. ex. système local du géomètre, fichier de calibration…",
     machineKop: "Votre guidage",
     merk: "Marque",
+    merkUitleg: "Choisissez un ou plusieurs systèmes — vous recevez le modèle dans chaque format choisi.",
+    merkNodig: "Choisissez au moins un système de guidage.",
+    categorie: "Pour quand vous faut-il le modèle ?",
+    categorieen: [
+      { id: "vroegtijdig", titel: "Anticipé", tekst: "Plus de 3 semaines à l'avance" },
+      { id: "normaal", titel: "Normal", tekst: "Dans 1 à 3 semaines" },
+      { id: "last-minute", titel: "Urgent", tekst: "Dans les 5 jours ouvrables" },
+    ],
+    verantwoordelijk: "Je comprends que Studio VM livre uniquement le modèle 3D. Le fonctionnement, le réglage et la calibration de mon système de guidage ainsi que le contrôle sur chantier restent sous ma responsabilité.",
+    verantwoordelijkNodig: "Confirmez que vous restez responsable de votre propre système.",
     kiesMerk: "Choisissez une marque",
     anders: "Autre marque",
     andersPh: "Quel système ?",
@@ -133,6 +153,16 @@ const L = {
     eigenStelselPh: "E.g. surveyor's local grid, calibration file…",
     machineKop: "Your machine control",
     merk: "Brand",
+    merkUitleg: "Choose one or more systems — you get the model in every format you pick.",
+    merkNodig: "Choose at least one machine control system.",
+    categorie: "When do you need the model?",
+    categorieen: [
+      { id: "vroegtijdig", titel: "Early", tekst: "More than 3 weeks ahead" },
+      { id: "normaal", titel: "Standard", tekst: "Within 1 to 3 weeks" },
+      { id: "last-minute", titel: "Last-minute", tekst: "Within 5 working days" },
+    ],
+    verantwoordelijk: "I understand that Studio VM only delivers the 3D model. The operation, setup and calibration of my machine control system and the checks on site remain my responsibility.",
+    verantwoordelijkNodig: "Please confirm that you remain responsible for your own system.",
     kiesMerk: "Choose a brand",
     anders: "Other brand",
     andersPh: "Which system?",
@@ -166,7 +196,7 @@ type Status = { soort: "ok" | "fout"; tekst: string } | null;
 export function Offerte3dFormulier({ locale }: { locale: Locale }) {
   const t = L[locale];
   const [land, setLand] = useState("");
-  const [merk, setMerk] = useState("");
+  const [merken, setMerken] = useState<string[]>([]);
   const [bestanden, setBestanden] = useState<File[]>([]);
   const [fase, setFase] = useState<"" | "upload" | "verzend">("");
   const [status, setStatus] = useState<Status>(null);
@@ -196,6 +226,10 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
 
   async function verstuur(fd: FormData) {
     setStatus(null);
+    if (merken.length === 0) {
+      setStatus({ soort: "fout", tekst: t.merkNodig });
+      return;
+    }
     try {
       let geupload: { naam: string; pad: string; grootte: number }[] = [];
       if (bestanden.length) {
@@ -315,28 +349,38 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
       </Blok>
 
       <Blok icoon={Cpu} titel={t.machineKop}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label label={t.merk} verplicht htmlFor="merk" />
-            <select
-              id="merk"
-              name="merk"
-              required
-              value={merk}
-              onChange={(e) => setMerk(e.target.value)}
-              className={INPUT}
-            >
-              <option value="">{t.kiesMerk}</option>
-              {MERKEN.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-              <option value="anders">{t.anders}</option>
-            </select>
+        <fieldset>
+          <legend className="font-mono text-xs uppercase tracking-widest text-muted">
+            {t.merk}
+            <span className="ml-1 text-accent">*</span>
+          </legend>
+          <p className="mt-1 text-sm text-muted">{t.merkUitleg}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[...MERKEN, "anders"].map((m) => (
+              <label
+                key={m}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors has-[:checked]:border-accent has-[:checked]:bg-accent/10"
+              >
+                <input
+                  type="checkbox"
+                  name="merken"
+                  value={m}
+                  checked={merken.includes(m)}
+                  onChange={(ev) =>
+                    setMerken((oud) => (ev.target.checked ? [...oud, m] : oud.filter((x) => x !== m)))
+                  }
+                  className="accent-[var(--accent)]"
+                />
+                {m === "anders" ? t.anders : m}
+              </label>
+            ))}
           </div>
-          {merk === "anders" && <Veld naam="merk_anders" label={t.anders} placeholder={t.andersPh} />}
-        </div>
+          {merken.includes("anders") && (
+            <div className="mt-4 sm:max-w-sm">
+              <Veld naam="merk_anders" label={t.anders} placeholder={t.andersPh} />
+            </div>
+          )}
+        </fieldset>
         <fieldset className="mt-5">
           <legend className="font-mono text-xs uppercase tracking-widest text-muted">{t.machines}</legend>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -354,6 +398,24 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
       </Blok>
 
       <Blok icoon={ClipboardList} titel={t.projectKop}>
+        <fieldset className="mb-6">
+          <legend className="font-mono text-xs uppercase tracking-widest text-muted">
+            {t.categorie}
+            <span className="ml-1 text-accent">*</span>
+          </legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {t.categorieen.map((c, i) => (
+              <label
+                key={c.id}
+                className="cursor-pointer rounded-2xl border p-4 transition-colors has-[:checked]:border-accent has-[:checked]:bg-accent/10"
+              >
+                <input type="radio" name="categorie" value={c.id} defaultChecked={i === 1} required className="sr-only" />
+                <span className="block font-semibold tracking-tight">{c.titel}</span>
+                <span className="mt-1 block text-sm text-muted">{c.tekst}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label label={t.werk} htmlFor="werk" />
@@ -419,6 +481,14 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
           </ul>
         )}
       </Blok>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border bg-card p-5 text-sm leading-relaxed">
+        <input type="checkbox" name="verantwoordelijk" value="ja" required className="mt-1 accent-[var(--accent)]" />
+        <span>
+          {t.verantwoordelijk}
+          <span className="ml-1 text-accent">*</span>
+        </span>
+      </label>
 
       {status?.soort === "fout" && (
         <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
