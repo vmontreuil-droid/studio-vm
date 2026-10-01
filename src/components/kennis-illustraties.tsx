@@ -293,6 +293,12 @@ export const ILLUSTRATIES: Record<string, Illustratie[]> = {
   "wat-aanleveren": [
     { naSectie: 0, render: (l) => <Kader onderschrift={tx(l, { nl: "Wat u best meestuurt. Oranje = belangrijkst.", fr: "Ce qu'il vaut mieux joindre. Orange = le plus important.", en: "What to send. Orange = most important." })}><Aanleveren l={l} /></Kader> },
   ],
+  "grondverzet-en-volumes": [
+    { naSectie: 0, render: (l) => <Kader onderschrift={tx(l, { nl: "Waar het ontwerp onder het bestaande terrein ligt, wordt gegraven; waar het erboven ligt, opgehoogd.", fr: "Là où le projet est sous le terrain existant, on déblaie ; au-dessus, on remblaie.", en: "Where the design lies below existing ground you cut; where it lies above, you fill." })}><DoorsnedeOntwerp l={l} /></Kader> },
+  ],
+  "van-pdf-naar-model": [
+    { naSectie: 2, render: (l) => <Kader onderschrift={tx(l, { nl: "Wat u best meestuurt bij een PDF-plan.", fr: "Ce qu'il vaut mieux joindre à un plan PDF.", en: "What to send along with a PDF plan." })}><Aanleveren l={l} /></Kader> },
+  ],
   "controle-en-toleranties": [
     { naSectie: 1, render: (l) => <Render licht="/3d/r/p-libramont-helling-licht.webp" donker="/3d/r/p-libramont-helling-donker.webp" onderschrift={tx(l, { nl: "Een hellingskaart toont meteen of elk vlak correct afwatert.", fr: "Une carte des pentes montre aussitôt si chaque surface s'écoule correctement.", en: "A slope map shows at once whether every surface drains correctly." })} /> },
     { naSectie: 2, render: (l) => <Kader onderschrift={tx(l, { nl: "Controle op een gekend punt vóór de start: binnen de tolerantie, of eerst nakijken.", fr: "Contrôle sur un point connu avant de commencer : dans la tolérance, ou vérifier d'abord.", en: "Check on a known point before starting: within tolerance, or check first." })}><Controlepunt l={l} /></Kader> },
@@ -308,4 +314,6 @@ export const KOPBEELD: Record<string, { licht: string; donker: string }> = {
   "wat-aanleveren": { licht: "/3d/r/t088-licht.webp", donker: "/3d/r/t088-donker.webp" },
   "controle-en-toleranties": { licht: "/3d/r/p-riga-hoogtelijn-licht.webp", donker: "/3d/r/p-riga-hoogtelijn-donker.webp" },
   "veelgestelde-vragen": { licht: "/3d/r/t029-licht.webp", donker: "/3d/r/t029-donker.webp" },
+  "van-pdf-naar-model": { licht: "/3d/r/p-libramont-hoogtelijn-licht.webp", donker: "/3d/r/p-libramont-hoogtelijn-donker.webp" },
+  "grondverzet-en-volumes": { licht: "/3d/relief-bouwput-licht.png", donker: "/3d/relief-bouwput-donker.png" },
 };

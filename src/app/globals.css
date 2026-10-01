@@ -566,3 +566,7 @@ body {
   :root:not(.theme-light):not([data-theme="light"]) .alleen-licht { display: none; }
   :root:not(.theme-light):not([data-theme="light"]) .alleen-donker { display: block; }
 }
+
+/* Hero-carrousel: voortgangsbalk + label dat binnenschuift */
+@keyframes hero-voortgang { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes hero-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

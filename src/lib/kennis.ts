@@ -1049,6 +1049,265 @@ export const KENNIS: KennisArtikel[] = [
       },
     },
   },
+
+  // ── 8. Van PDF naar model ────────────────────────────────────────────────
+  {
+    slug: "van-pdf-naar-model",
+    icoon: "FileStack",
+    i18n: {
+      nl: {
+        titel: "Van PDF of papieren plan naar model",
+        samenvatting:
+          "Niet elk project komt met CAD-bestanden. Ook vanuit een PDF of een papieren plan kan een model worden opgebouwd, maar dat vraagt extra informatie en extra controle. Hoe dat werkt, waar de grenzen liggen en wat u zelf best nakijkt.",
+        secties: [
+          {
+            kop: "Waarom CAD de voorkeur heeft",
+            tekst: [
+              "Een DWG- of DXF-bestand bevat de tekening zoals de ontwerper ze heeft gemaakt: lijnen met echte coördinaten, vaak in het juiste stelsel en soms al met hoogtes. Een PDF is in wezen een afdruk. Ook als de lijnen er scherp uitzien, is de band met de coördinaten verloren gegaan en zijn hoogtes enkel nog als tekst aanwezig.",
+              "Vraag daarom eerst bij de ontwerper of het studiebureau of de digitale bestanden beschikbaar zijn. Dat spaart tijd en levert een nauwkeuriger model op. Lukt dat niet, dan is een PDF nog altijd bruikbaar.",
+            ],
+          },
+          {
+            kop: "Schaal en maatvoering",
+            tekst: [
+              "Een plan op papier of in PDF klopt alleen op de schaal waarop het getekend is. Bij afdrukken, kopiëren of scannen kan die schaal licht verlopen, en niet altijd in beide richtingen evenveel. Een vermelde schaal zoals 1/200 is daarom een vertrekpunt, geen garantie.",
+              "Het plan wordt op schaal gebracht met gekende maten: een maatlijn, een coördinatenrooster, de afstand tussen twee punten met gekende coördinaten. Hoe meer van die referenties over het blad verspreid liggen, hoe beter een verloop in de schaal kan worden opgespoord en gecorrigeerd.",
+            ],
+          },
+          {
+            kop: "Welke informatie helpt",
+            tekst: ["Omdat een PDF minder informatie draagt dan een CAD-bestand, is aanvullende informatie des te belangrijker:"],
+            lijst: [
+              "peilen en hoogtepunten op het grondplan;",
+              "lengte- en dwarsprofielen, met kilometrering of afstanden;",
+              "referentiepunten of polygoonpunten met coördinaten en hoogte;",
+              "een coördinatenrooster op het plan;",
+              "het coördinatenstelsel en de hoogtereferentie waarin het project is getekend.",
+            ],
+          },
+          {
+            kop: "Hoe het model wordt opgebouwd",
+            tekst: [
+              "Eerst wordt het plan gegeorefereerd: op schaal gebracht en op de juiste plaats in het coördinatenstelsel gelegd aan de hand van de referentiepunten of het rooster. Daarna wordt het relevante lijnwerk overgetekend (gedigitaliseerd): assen, kantlijnen, boordstenen, taluds.",
+              "Die lijnen krijgen vervolgens hun hoogte uit de peilen en de profielen. Tot slot wordt het resultaat nagemeten tegen de maten en peilen op het plan. Waar een gemeten afstand of hoogte niet overeenkomt met wat er op het plan staat, wordt dat gemeld in plaats van stilzwijgend aangepast.",
+            ],
+          },
+          {
+            kop: "Grenzen en wat u zelf controleert",
+            tekst: [
+              "De nauwkeurigheid van een model uit PDF hangt af van de kwaliteit van het document, de dikte van de lijnen, de schaal en het aantal betrouwbare referenties. Een scan van een gekreukt of meermaals gekopieerd plan is het minst nauwkeurig. Hoogtes zijn meestal betrouwbaarder dan de ligging, omdat ze als getal op het plan staan.",
+              "Controleer het model daarom extra zorgvuldig vóór de start: op meerdere gekende punten, zowel in ligging als in hoogte, en liefst verspreid over de hele werf. Bij twijfel over een maat geldt het plan van de ontwerper, niet het model.",
+            ],
+          },
+        ],
+      },
+      fr: {
+        titel: "Du PDF ou du plan papier au modèle",
+        samenvatting:
+          "Tous les projets ne sont pas fournis en fichiers CAO. Un modèle peut aussi être construit à partir d’un PDF ou d’un plan papier, mais cela demande davantage d’informations et de contrôles. Comment cela fonctionne, où sont les limites et ce que vous avez intérêt à vérifier.",
+        secties: [
+          {
+            kop: "Pourquoi la CAO est préférable",
+            tekst: [
+              "Un fichier DWG ou DXF contient le dessin tel que le concepteur l’a réalisé : des lignes avec leurs coordonnées réelles, souvent dans le bon système et parfois déjà avec des altitudes. Un PDF est essentiellement une impression. Même si les traits paraissent nets, le lien avec les coordonnées est perdu et les altitudes ne subsistent que sous forme de texte.",
+              "Demandez donc d’abord au concepteur ou au bureau d’études si les fichiers numériques sont disponibles. Cela fait gagner du temps et donne un modèle plus précis. À défaut, un PDF reste utilisable.",
+            ],
+          },
+          {
+            kop: "Échelle et cotation",
+            tekst: [
+              "Un plan papier ou PDF n’est juste qu’à l’échelle à laquelle il a été dessiné. À l’impression, à la copie ou au scan, cette échelle peut légèrement dériver, et pas toujours de la même façon dans les deux directions. Une échelle indiquée comme 1/200 est donc un point de départ, pas une garantie.",
+              "Le plan est mis à l’échelle à l’aide de dimensions connues : une ligne de cote, un quadrillage de coordonnées, la distance entre deux points aux coordonnées connues. Plus ces références sont réparties sur la feuille, mieux une dérive d’échelle peut être détectée et corrigée.",
+            ],
+          },
+          {
+            kop: "Les informations utiles",
+            tekst: ["Comme un PDF porte moins d’informations qu’un fichier CAO, les données complémentaires sont d’autant plus importantes :"],
+            lijst: [
+              "cotes et points cotés sur la vue en plan ;",
+              "profils en long et en travers, avec PK ou distances ;",
+              "points de référence ou de polygonale avec coordonnées et altitude ;",
+              "un quadrillage de coordonnées sur le plan ;",
+              "le système de coordonnées et la référence altimétrique du projet.",
+            ],
+          },
+          {
+            kop: "Comment le modèle est construit",
+            tekst: [
+              "Le plan est d’abord géoréférencé : mis à l’échelle et placé au bon endroit dans le système de coordonnées grâce aux points de référence ou au quadrillage. Les lignes utiles sont ensuite redessinées (numérisées) : axes, bords, bordures, talus.",
+              "Ces lignes reçoivent ensuite leur altitude à partir des cotes et des profils. Enfin, le résultat est contrôlé par rapport aux dimensions et aux cotes du plan. Lorsqu’une distance ou une altitude mesurée ne correspond pas au plan, l’écart est signalé plutôt que corrigé en silence.",
+            ],
+          },
+          {
+            kop: "Limites et contrôles de votre côté",
+            tekst: [
+              "La précision d’un modèle issu d’un PDF dépend de la qualité du document, de l’épaisseur des traits, de l’échelle et du nombre de références fiables. Le scan d’un plan froissé ou copié plusieurs fois est le moins précis. Les altitudes sont en général plus fiables que la planimétrie, car elles figurent en chiffres sur le plan.",
+              "Contrôlez donc le modèle avec un soin particulier avant de commencer : sur plusieurs points connus, en position comme en altitude, de préférence répartis sur tout le chantier. En cas de doute sur une dimension, c’est le plan du concepteur qui fait foi, pas le modèle.",
+            ],
+          },
+        ],
+      },
+      en: {
+        titel: "From PDF or paper drawing to model",
+        samenvatting:
+          "Not every project comes with CAD files. A model can also be built from a PDF or a paper drawing, but that takes extra information and extra checking. How it works, where the limits are and what you should check yourself.",
+        secties: [
+          {
+            kop: "Why CAD is preferred",
+            tekst: [
+              "A DWG or DXF file contains the drawing as the designer made it: lines with real coordinates, often in the correct system and sometimes with levels already. A PDF is essentially a print. Even if the lines look sharp, the link with the coordinates is lost and levels only survive as text.",
+              "So first ask the designer or engineering consultant whether the digital files are available. That saves time and gives a more accurate model. If that is not possible, a PDF can still be used.",
+            ],
+          },
+          {
+            kop: "Scale and dimensions",
+            tekst: [
+              "A paper or PDF drawing is only correct at the scale it was drawn at. Printing, copying or scanning can make that scale drift slightly, and not always equally in both directions. A stated scale such as 1:200 is therefore a starting point, not a guarantee.",
+              "The drawing is scaled using known dimensions: a dimension line, a coordinate grid, the distance between two points with known coordinates. The more of these references are spread across the sheet, the better any scale drift can be detected and corrected.",
+            ],
+          },
+          {
+            kop: "What information helps",
+            tekst: ["Because a PDF carries less information than a CAD file, supporting information matters all the more:"],
+            lijst: [
+              "levels and spot heights on the layout plan;",
+              "long and cross sections, with chainage or distances;",
+              "reference points or control stations with coordinates and height;",
+              "a coordinate grid on the drawing;",
+              "the coordinate system and height datum the project is drawn in.",
+            ],
+          },
+          {
+            kop: "How the model is built",
+            tekst: [
+              "The drawing is first georeferenced: scaled and placed in the right position in the coordinate system using the reference points or the grid. The relevant linework is then traced (digitised): centrelines, edges, kerbs, slopes.",
+              "Those lines are then given their levels from the spot heights and the sections. Finally, the result is checked against the dimensions and levels on the drawing. Where a measured distance or level does not match the drawing, it is reported rather than quietly adjusted.",
+            ],
+          },
+          {
+            kop: "Limits and what you should check",
+            tekst: [
+              "The accuracy of a model built from a PDF depends on the quality of the document, the line thickness, the scale and the number of reliable references. A scan of a creased or repeatedly copied drawing is the least accurate. Levels are usually more reliable than horizontal position, because they appear as numbers on the drawing.",
+              "Check the model with extra care before starting: on several known points, both in position and in height, ideally spread across the whole site. When in doubt about a dimension, the designer’s drawing prevails, not the model.",
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  // ── 9. Grondverzet en volumes ────────────────────────────────────────────
+  {
+    slug: "grondverzet-en-volumes",
+    icoon: "Layers",
+    i18n: {
+      nl: {
+        titel: "Grondverzet en volumes",
+        samenvatting:
+          "Een ontwerpmodel stuurt niet alleen de machine, het helpt ook het grondverzet te begrijpen: waar wordt afgegraven, waar aangevuld en hoeveel. Wat zo’n volumeberekening zegt, en wat ze niet zegt.",
+        secties: [
+          {
+            kop: "Twee oppervlakken vergelijken",
+            tekst: [
+              "Een volume ontstaat door twee oppervlakken met elkaar te vergelijken: het bestaande terrein, zoals het is opgemeten, en het ontwerpoppervlak. Op elke plaats wordt het hoogteverschil tussen beide bepaald, en over het hele werkgebied opgeteld.",
+              "Ligt het bestaande terrein hoger dan het ontwerp, dan moet er grond weg: uitgraving of afgraving. Ligt het lager, dan moet er grond bij: ophoging of aanvulling. Een kaart met beide zones in kleur maakt in één oogopslag duidelijk waar de werken zwaartepunten hebben.",
+            ],
+          },
+          {
+            kop: "Grondbalans",
+            tekst: [
+              "De grondbalans zet het totale uitgravingsvolume tegenover het totale ophogingsvolume. Is er meer uitgraving dan ophoging, dan blijft er grond over die moet worden afgevoerd. Is er meer ophoging, dan moet er materiaal worden aangevoerd.",
+              "Daarbij speelt mee dat grond van volume verandert. Losgegraven grond neemt meer plaats in dan in de ongeroerde bodem, en verdichte grond minder. Bovendien is niet alle uitgegraven grond geschikt om opnieuw te gebruiken. Een geometrische balans is dus een vertrekpunt voor de planning van transport en materiaal, niet het eindantwoord.",
+            ],
+          },
+          {
+            kop: "Lagen en waarom dikte telt",
+            tekst: [
+              "Onder een verharding liggen meestal meerdere lagen, zoals een onderfundering en een fundering. Elke laag heeft een ontwerpdikte. Wordt er gerekend tot het afgewerkte niveau in plaats van tot de bodem van de opbouw, dan wordt de uitgraving onderschat.",
+              "Daarom worden de lagen best als aparte oppervlakken gemodelleerd. Zo kan het uitgravingsvolume tot het uitgravingsniveau worden bepaald, en per laag het benodigde volume materiaal. Een verschil van enkele centimeters in laagdikte lijkt klein, maar over een grote oppervlakte telt het snel op.",
+            ],
+          },
+          {
+            kop: "Indicatief, geen garantie",
+            tekst: [
+              "Een volume is nooit nauwkeuriger dan de oppervlakken waarop het berekend is. Een opmeting met weinig punten, een verouderde opmeting of een terrein dat sindsdien is veranderd, geeft een volume dat afwijkt van de werkelijkheid. Ook vegetatie, losse stockage of water op het ogenblik van de opmeting beïnvloeden het resultaat.",
+              "Volumes uit het model zijn daarom een nevenproduct van het ontwerpwerk en hebben een indicatieve waarde. Ze helpen bij het inschatten en plannen, maar zijn geen gegarandeerde hoeveelheden voor afrekening of meetstaat. Voor contractuele hoeveelheden blijven de opmeting door een landmeter en de afspraken in het bestek bepalend.",
+            ],
+          },
+        ],
+      },
+      fr: {
+        titel: "Terrassements et volumes",
+        samenvatting:
+          "Un modèle de conception ne guide pas seulement la machine, il aide aussi à comprendre les terrassements : où l’on déblaie, où l’on remblaie et en quelle quantité. Ce que dit un calcul de volumes, et ce qu’il ne dit pas.",
+        secties: [
+          {
+            kop: "Comparer deux surfaces",
+            tekst: [
+              "Un volume s’obtient en comparant deux surfaces : le terrain existant, tel qu’il a été levé, et la surface de conception. En chaque point, la différence d’altitude entre les deux est déterminée, puis additionnée sur toute la zone de travail.",
+              "Si le terrain existant est plus haut que le projet, il faut enlever de la terre : c’est le déblai. S’il est plus bas, il faut en apporter : c’est le remblai. Une carte avec les deux zones en couleur montre d’un coup d’œil où se concentrent les travaux.",
+            ],
+          },
+          {
+            kop: "Équilibre des terres",
+            tekst: [
+              "L’équilibre des terres (ou mouvement des terres) met en regard le volume total de déblai et le volume total de remblai. S’il y a plus de déblai que de remblai, il reste de la terre à évacuer. S’il y a plus de remblai, il faut apporter du matériau.",
+              "Il faut aussi tenir compte du fait que la terre change de volume. La terre excavée occupe plus de place qu’en place (foisonnement), et la terre compactée moins. De plus, toute la terre déblayée n’est pas forcément réutilisable. Un équilibre géométrique est donc un point de départ pour planifier transport et matériaux, pas la réponse définitive.",
+            ],
+          },
+          {
+            kop: "Les couches et l’importance de l’épaisseur",
+            tekst: [
+              "Sous un revêtement se trouvent généralement plusieurs couches, comme une sous-fondation et une fondation. Chaque couche a une épaisseur de projet. Si l’on calcule jusqu’au niveau fini plutôt que jusqu’au fond de la structure, le déblai est sous-estimé.",
+              "C’est pourquoi il vaut mieux modéliser les couches comme des surfaces séparées. On peut alors déterminer le volume de déblai jusqu’au fond de forme, et le volume de matériau nécessaire par couche. Quelques centimètres d’écart d’épaisseur paraissent peu, mais sur une grande surface cela s’additionne vite.",
+            ],
+          },
+          {
+            kop: "Indicatif, pas une garantie",
+            tekst: [
+              "Un volume n’est jamais plus précis que les surfaces sur lesquelles il est calculé. Un levé avec peu de points, un levé ancien ou un terrain modifié depuis donne un volume qui s’écarte de la réalité. La végétation, des dépôts temporaires ou de l’eau au moment du levé influencent aussi le résultat.",
+              "Les volumes issus du modèle sont donc un sous-produit du travail de modélisation et ont une valeur indicative. Ils aident à estimer et à planifier, mais ne constituent pas des quantités garanties pour un décompte ou un métré. Pour les quantités contractuelles, le levé d’un géomètre et les clauses du cahier des charges restent déterminants.",
+            ],
+          },
+        ],
+      },
+      en: {
+        titel: "Earthworks and volumes",
+        samenvatting:
+          "A design model does more than guide the machine: it also helps you understand the earthworks — where material is cut, where it is filled and how much. What such a volume calculation tells you, and what it does not.",
+        secties: [
+          {
+            kop: "Comparing two surfaces",
+            tekst: [
+              "A volume is found by comparing two surfaces: the existing ground, as surveyed, and the design surface. At every location the difference in level between the two is determined and then summed over the whole working area.",
+              "Where the existing ground is higher than the design, material has to be removed: that is cut. Where it is lower, material has to be added: that is fill. A map showing both zones in colour makes it clear at a glance where the bulk of the work lies.",
+            ],
+          },
+          {
+            kop: "Earth balance",
+            tekst: [
+              "The earth balance sets the total cut volume against the total fill volume. If there is more cut than fill, surplus material has to be taken off site. If there is more fill, material has to be brought in.",
+              "Keep in mind that soil changes volume. Excavated soil takes up more space than it did in the ground (bulking), and compacted soil less. On top of that, not all excavated material is suitable for reuse. A geometric balance is therefore a starting point for planning haulage and materials, not the final answer.",
+            ],
+          },
+          {
+            kop: "Layers and why thickness matters",
+            tekst: [
+              "Beneath a pavement there are usually several layers, such as a sub-base and a base course. Each layer has a design thickness. If the calculation runs to finished level rather than to the bottom of the build-up, the cut is underestimated.",
+              "That is why layers are best modelled as separate surfaces. The cut volume can then be determined down to formation level, and the volume of material needed for each layer. A few centimetres of difference in layer thickness seems small, but over a large area it adds up quickly.",
+            ],
+          },
+          {
+            kop: "Indicative, not a guarantee",
+            tekst: [
+              "A volume is never more accurate than the surfaces it is calculated from. A survey with few points, an outdated survey or ground that has changed since gives a volume that differs from reality. Vegetation, temporary stockpiles or standing water at the time of the survey also affect the result.",
+              "Volumes from the model are therefore a by-product of the modelling work and are indicative. They help with estimating and planning, but they are not guaranteed quantities for payment or a bill of quantities. For contractual quantities, the surveyor’s measurements and the terms of the specification remain decisive.",
+            ],
+          },
+        ],
+      },
+    },
+  },
 ];
 
 export function kennisArtikel(slug: string) {

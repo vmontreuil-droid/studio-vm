@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, FileUp } from "lucide-react";
+import { Lock, FileUp, House, Layers, Route, Images, Euro, BookOpen, Mail } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search";
 import { MobileMenu } from "@/components/mobile-menu";
@@ -18,13 +18,13 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     en: { home: 'Home', modellen: '3D models', werkwijze: 'How it works', realisaties: 'Projects', tarieven: 'Rates', kennis: 'Knowledge', offerte: 'Request a quote' },
   }[locale];
   const items = [
-    { href: home, label: L.home },
-    { href: localePath(locale, '/3d-modellen'), label: L.modellen },
-    { href: localePath(locale, '/#werkwijze'), label: L.werkwijze },
-    { href: localePath(locale, '/realisaties'), label: L.realisaties },
-    { href: localePath(locale, '/tarieven'), label: L.tarieven },
-    { href: localePath(locale, '/kennis'), label: L.kennis },
-    { href: localePath(locale, '/#contact'), label: t.nav.contact },
+    { href: home, label: L.home, icoon: House },
+    { href: localePath(locale, '/3d-modellen'), label: L.modellen, icoon: Layers },
+    { href: localePath(locale, '/#werkwijze'), label: L.werkwijze, icoon: Route },
+    { href: localePath(locale, '/realisaties'), label: L.realisaties, icoon: Images },
+    { href: localePath(locale, '/tarieven'), label: L.tarieven, icoon: Euro },
+    { href: localePath(locale, '/kennis'), label: L.kennis, icoon: BookOpen },
+    { href: localePath(locale, '/#contact'), label: t.nav.contact, icoon: Mail },
   ];
 
   return (
@@ -44,6 +44,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               href={item.href}
               label={item.label}
               homePath={home.replace(/\/$/, "")}
+              icoon={<item.icoon className="h-3.5 w-3.5 text-accent/80" strokeWidth={1.75} aria-hidden />}
             />
           ))}
         </nav>

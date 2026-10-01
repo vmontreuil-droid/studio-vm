@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { CtaBanner } from "@/components/cta-banner";
+import { HeroCarrousel } from "@/components/hero-carrousel";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -367,30 +368,7 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
             </a>
           </div>
         </div>
-        <div className="relative">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border bg-card shadow-2xl shadow-black/10">
-            <Image
-              src="/3d/relief-grondwerk-licht.png"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="alleen-licht object-cover"
-            />
-            <Image
-              src="/3d/relief-grondwerk-donker.png"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="alleen-donker object-cover"
-            />
-          </div>
-          <div className="absolute -bottom-5 -left-4 hidden rounded-2xl border bg-background/90 px-4 py-3 shadow-lg backdrop-blur sm:block">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">TIN · 3D</p>
-            <p className="mt-1 text-sm font-medium">{x.lever[0].titel}</p>
-          </div>
-        </div>
+        <HeroCarrousel locale={locale} />
       </div>
     </section>
   );
