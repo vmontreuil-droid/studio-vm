@@ -6,19 +6,18 @@
 // 1. Check welke templates de laatste 14 dagen al gebruikt zijn → vermijd herhaling
 // 2. Bepaal dag-van-de-week (1=ma … 5=vr)
 // 3. Kies 3 templates passend bij die dag, gemengd platform-FB/LI
-// 4. Build elke post met variabele-injectie (klanten uit PORTFOLIO)
+// 4. Build elke post met variabele-injectie (realisaties uit
+//    src/lib/realisaties.ts — beelden in public/3d/r/)
 // 5. (optioneel) AI-modus — als ANTHROPIC_API_KEY is gezet, geef de
 //    template-output aan Claude voor lichte herschrijving + variatie
 // 6. Insert in social_posts met status='klaar' + 'Genereer-engine'-marker
-//    in notes-veld
+//    in notes-veld. Enkel drafts — er wordt nooit automatisch gepost.
 
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
-  PORTFOLIO,
+  kiesRealisatie,
   pickTemplatesForDay,
-  pickClients,
   pickStoryCaseForDay,
-  type Template,
   type TemplateCtx,
 } from "./social-templates";
 
@@ -31,6 +30,8 @@ export type GeneratedPost = {
   body: string;
   hashtags: string;
   target_url: string;
+  /** Projectbeeld om bij de post te voegen (pad in /public). */
+  beeld?: string;
 };
 
 const DAY_NAMES_NL = [
@@ -49,7 +50,7 @@ const DAY_SHORT_NL = ["zo", "ma", "di", "wo", "do", "vr", "za"];
 // =====================================================================
 async function aiRewrite(
   body: string,
-  hint: { platform: string; dayName: string; humeur: string },
+  hint: { platform: string; dayName: string; humeur: string; taal: "nl" | "fr" },
 ): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return body;
@@ -68,14 +69,14 @@ async function aiRewrite(
         messages: [
           {
             role: "user",
-            content: `Je bent Vincent Montreuil, solo-website-bouwer voor KMO's in Vlaanderen (studio-vm.be). Schrijf altijd in Belgisch-Nederlands (geen Hollandse termen). Korte, eerlijke, zelfverzekerde toon zonder verkoop-jargon.
+            content: `Je bent Vincent Montreuil, landmeter. Onder de naam Studio VM (studio-vm.be) maak je 3D-ontwerpmodellen voor machinesturing (graafmachines, graders, dozers) voor aannemers in grond-, weg- en waterbouw, in het juiste coördinatenstelsel en per systeem (Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar), aan een transparant uurtarief. ${hint.taal === "fr" ? "Schrijf in het Frans (Belgisch-Frans, vakjargon van terrassement en voirie)." : "Schrijf altijd in Belgisch-Nederlands (geen Hollandse termen), vakjargon van grondwerken en wegenbouw."} Korte, eerlijke, zelfverzekerde toon zonder verkoop-jargon. Noem nooit andere merken, producten of bedrijfsnamen dan die in de originele post staan.
 
 Herschrijf onderstaande post-tekst voor ${hint.platform}. Het is ${hint.dayName}. Stem: ${hint.humeur}.
 
 Behoud de boodschap en structuur, maar varieer:
 - Andere openingszin
 - Andere woordkeuze waar mogelijk
-- Behoud feitelijke claims, cijfers, URLs, klantnamen exact zoals ze zijn
+- Behoud feitelijke claims, cijfers, prijzen, URLs, merknamen en coördinatenstelsels exact zoals ze zijn
 - Behoud bullets en lijsten
 - Lengte ongeveer gelijk
 
@@ -149,7 +150,7 @@ export async function generateDailyPosts(opts: {
 
   // 3. Kies templates + story-case voor vandaag
   const templates = pickTemplatesForDay(dayOfWeek, recentIds, count);
-  // Week-nummer voor vrijdag-alternantie tussen Bar'Botte/Cottage
+  // Week-nummer voor de vrijdag-alternantie tussen twee stories
   const weekNumber = Math.floor(
     (now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) /
       (7 * 86_400_000),
@@ -170,15 +171,13 @@ export async function generateDailyPosts(opts: {
   const posts: GeneratedPost[] = [];
   const skipped: string[] = [];
 
-  const sites: (string | undefined)[] = [];
+  const kaarten: (string | undefined)[] = [];
   for (const t of templates) {
-    const { client, altClient } = pickClients();
     const ctx: TemplateCtx = {
       dayName,
       dayShort,
       date: dateLabel,
-      client,
-      altClient,
+      realisatie: kiesRealisatie,
     };
     const built = t.build(ctx);
     let finalBody = built.body;
@@ -189,6 +188,7 @@ export async function generateDailyPosts(opts: {
         platform: t.platform,
         dayName,
         humeur,
+        taal: t.taal ?? "nl",
       });
     }
 
@@ -200,8 +200,9 @@ export async function generateDailyPosts(opts: {
       body: finalBody,
       hashtags: built.hashtags,
       target_url: t.target_url,
+      beeld: built.beeld,
     });
-    sites.push(built.site);
+    kaarten.push(built.kaart);
   }
 
   // 5. Insert in DB (status=klaar zodat ze meteen klaar staan voor review)
@@ -219,7 +220,8 @@ export async function generateDailyPosts(opts: {
       utm_source: p.platform,
       utm_medium: "social",
       utm_campaign: `${now.toISOString().slice(0, 7).replace("-", "")}-${p.templateId}`,
-      notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}${sites[i] ? ` · site:${sites[i]}` : ""}${isStory ? " · format:story" : ""}`,
+      attachments_json: p.beeld ? [{ type: "image", src: p.beeld }] : [],
+      notes: `🤖 auto-engine · template:${p.templateId} · humeur:${humeur} · dag:${dayName}${kaarten[i] ? ` · kaart:${kaarten[i]}` : ""}${p.beeld ? ` · beeld:${p.beeld}` : ""}${isStory ? " · format:story" : ""}`,
     };
   });
 
@@ -262,4 +264,3 @@ export async function countTodaysGenerated(): Promise<number> {
   return count ?? 0;
 }
 
-void PORTFOLIO;

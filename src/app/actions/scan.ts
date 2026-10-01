@@ -9,6 +9,7 @@ import {
 } from "node:dns/promises";
 import { isIP } from "node:net";
 import { connect as tlsConnect } from "node:tls";
+import { validateHost } from "@/lib/safe-fetch";
 
 export type ScanCat = "speed" | "seo" | "mobile" | "security" | "platform";
 export type Severity = "critical" | "warning" | "good" | "info";
@@ -111,55 +112,8 @@ export type ScanResult =
 const MAX_BYTES = 600_000;
 const TIMEOUT_MS = 9000;
 
-// SSRF-bescherming: blokkeer private / loopback / link-local / metadata ranges.
-function isBlockedIp(ip: string): boolean {
-  if (isIP(ip) === 4) {
-    const p = ip.split(".").map(Number);
-    if (p[0] === 10) return true;
-    if (p[0] === 127) return true;
-    if (p[0] === 0) return true;
-    if (p[0] === 169 && p[1] === 254) return true; // link-local + metadata
-    if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
-    if (p[0] === 192 && p[1] === 168) return true;
-    if (p[0] === 100 && p[1] >= 64 && p[1] <= 127) return true; // CGNAT
-    if (p[0] >= 224) return true; // multicast/reserved
-    return false;
-  }
-  if (isIP(ip) === 6) {
-    const x = ip.toLowerCase();
-    if (x === "::1" || x === "::") return true;
-    if (x.startsWith("fe80") || x.startsWith("fc") || x.startsWith("fd"))
-      return true;
-    if (x.startsWith("::ffff:")) return isBlockedIp(x.replace("::ffff:", ""));
-    return false;
-  }
-  return true;
-}
-
-async function validateHost(hostname: string): Promise<string | null> {
-  const h = hostname.toLowerCase();
-  if (
-    h === "localhost" ||
-    h.endsWith(".local") ||
-    h.endsWith(".internal") ||
-    h === "metadata.google.internal"
-  ) {
-    return "host niet toegelaten";
-  }
-  if (isIP(h)) {
-    return isBlockedIp(h) ? "intern IP-adres niet toegelaten" : null;
-  }
-  try {
-    const records = await lookup(h, { all: true });
-    if (records.length === 0) return "host niet vindbaar";
-    for (const r of records) {
-      if (isBlockedIp(r.address)) return "host wijst naar een intern adres";
-    }
-    return null;
-  } catch {
-    return "host niet vindbaar (DNS)";
-  }
-}
+// SSRF-bescherming (isBlockedIp/validateHost) staat in @/lib/safe-fetch,
+// gedeeld met de outreach-engine.
 
 async function resolveIp(hostname: string): Promise<string | null> {
   if (isIP(hostname)) return hostname;

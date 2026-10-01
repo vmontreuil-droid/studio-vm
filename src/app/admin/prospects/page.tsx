@@ -5,6 +5,14 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { EmailBatchFinder } from "@/components/email-batch-finder";
 import { SOURCES, sourceFromLand } from "@/lib/admin/prospect-source";
+import { getOutreachConfig } from "@/lib/admin/outreach";
+import {
+  effectiveNace,
+  naceLabel,
+  naceMetPunt,
+  naceOrFilter,
+  parseNaceList,
+} from "@/lib/admin/aannemers";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +45,7 @@ export default async function AdminProspects({
     code?: string;
     form?: string;
     active?: string;
+    alle?: string;
     page?: string;
   }>;
 }) {
@@ -48,6 +57,17 @@ export default async function AdminProspects({
   const code = (sp.code ?? "").trim();
   const form = (sp.form ?? "").trim();
   const active = sp.active !== "0";
+  // Standaard enkel de aannemers-doelgroep (NACE-selectie van de outreach);
+  // ?alle=1 toont alle sectoren.
+  const alle = sp.alle === "1";
+  const cfg = await getOutreachConfig();
+  const doelNace = effectiveNace(cfg.nacePrefixes);
+  const codeNace = parseNaceList(code);
+  const naceFilter = codeNace.length
+    ? naceOrFilter(source.codeCol, codeNace, source.land)
+    : alle
+      ? ""
+      : naceOrFilter(source.codeCol, doelNace, source.land);
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
   const db = getSupabaseAdmin();
@@ -60,7 +80,7 @@ export default async function AdminProspects({
     .order("name", { ascending: true });
   if (q) qy = qy.ilike("name", `%${q}%`);
   if (postcode) qy = qy.like("postcode", `${postcode}%`);
-  if (code) qy = qy.like(source.codeCol, `${code}%`);
+  if (naceFilter) qy = qy.or(naceFilter);
   if (form) qy = qy.eq(source.formCol, form);
   if (active) qy = qy.eq(source.statusCol, source.activeValue);
   qy = qy.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
@@ -94,10 +114,10 @@ export default async function AdminProspects({
     q2 = q2.like("postcode", `${postcode}%`);
     q3 = q3.like("postcode", `${postcode}%`);
   }
-  if (code) {
-    q1 = q1.like(source.codeCol, `${code}%`);
-    q2 = q2.like(source.codeCol, `${code}%`);
-    q3 = q3.like(source.codeCol, `${code}%`);
+  if (naceFilter) {
+    q1 = q1.or(naceFilter);
+    q2 = q2.or(naceFilter);
+    q3 = q3.or(naceFilter);
   }
   if (form) {
     q1 = q1.eq(source.formCol, form);
@@ -124,6 +144,7 @@ export default async function AdminProspects({
       code,
       form,
       active: active ? "1" : "0",
+      alle: alle ? "1" : undefined,
       page,
     };
     for (const [k, v] of Object.entries({ ...base, ...p })) {
@@ -137,10 +158,34 @@ export default async function AdminProspects({
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Prospects</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Prospects — aannemers</h1>
           <p className="mt-0.5 text-sm text-muted">
             {source.flag} {source.label} — {total.toLocaleString("nl-BE")}{" "}
             onderneming(en) in deze weergave.
+          </p>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+            {codeNace.length ? (
+              <>Eigen code-filter: {codeNace.map(naceMetPunt).join(", ")}</>
+            ) : alle ? (
+              <>Alle sectoren (geen doelgroep-filter)</>
+            ) : (
+              <>
+                Doelgroep grond-, weg- en waterbouw — {doelNace.length} NACE-codes
+                {cfg.nacePrefixes.length === 0 ? " (standaard)" : " (eigen selectie)"}
+              </>
+            )}
+            <Link
+              href={mkLink({ alle: alle ? undefined : "1", code: "", page: 1 })}
+              className="rounded-full border px-2 py-0.5 hover:bg-card-hover hover:text-foreground"
+            >
+              {alle ? "Enkel doelgroep" : "Toon alle sectoren"}
+            </Link>
+            <Link
+              href="/admin/outreach"
+              className="rounded-full border px-2 py-0.5 hover:bg-card-hover hover:text-foreground"
+            >
+              Doelgroep aanpassen
+            </Link>
           </p>
         </div>
         <div className="flex gap-1.5">
@@ -201,7 +246,7 @@ export default async function AdminProspects({
             )}
             {source.land === "uk" && (
               <>
-                Download "BasicCompanyDataAsOneFile-..." op{" "}
+                Download &quot;BasicCompanyDataAsOneFile-...&quot; op{" "}
                 <a
                   className="underline"
                   href="http://download.companieshouse.gov.uk/en_output.html"
@@ -220,6 +265,7 @@ export default async function AdminProspects({
 
       <form className="mt-6 grid gap-3 rounded-2xl bg-card p-4 shadow-sm sm:grid-cols-5">
         <input type="hidden" name="land" value={source.land} />
+        {alle && <input type="hidden" name="alle" value="1" />}
         <label className="block sm:col-span-2">
           <span className="text-xs font-medium text-muted">Naam bevat</span>
           <input
@@ -284,7 +330,17 @@ export default async function AdminProspects({
 
       <div className="mt-4">
         <EmailBatchFinder
-          filter={{ q, postcode, nace: code, form, active }}
+          filter={{
+            q,
+            postcode,
+            nace: codeNace.length
+              ? codeNace.join(",")
+              : alle
+                ? ""
+                : doelNace.join(","),
+            form,
+            active,
+          }}
           land={source.land}
           initial={{
             remaining: scanRemaining ?? 0,
@@ -337,7 +393,14 @@ export default async function AdminProspects({
                   <td className="px-4 py-3 text-muted">
                     {r.postcode} {r.city}
                   </td>
-                  <td className="px-4 py-3 text-muted">{r.code_col || "—"}</td>
+                  <td className="px-4 py-3 text-muted">
+                    <span className="font-mono text-xs">{r.code_col || "—"}</span>
+                    {r.code_col && naceLabel(r.code_col) && (
+                      <span className="block max-w-[220px] truncate text-[11px]">
+                        {naceLabel(r.code_col)}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
                       {r.email && (

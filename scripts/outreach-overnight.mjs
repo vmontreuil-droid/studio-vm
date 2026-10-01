@@ -2,9 +2,10 @@
 // Achtergrond-runner: trekt de outreach-pijplijn de hele nacht door.
 //
 // Drie stappen, gesloten loop:
-//   1) website-discovery        — vindt website-URL voor prospects zonder
+//   1) website-discovery        — vindt (en bevestigt) website-URL voor aannemers zonder
 //   2) outreach-email-finder    — scrape contact-pages voor email-adres
-//   3) outreach-prescan         — site-scan + maak prospect_outreach-row
+//   3) outreach-prescan         — homepage op machinesturing-signalen + prospect_outreach-row
+//                                 (doet niets zolang de engine gepauzeerd is; verstuurt nooit)
 //
 // Na een volledige loop wacht het script TICK_SEC voor de volgende run.
 // Faalt-stil: één http-fout stopt de runner niet, alleen die stap wordt

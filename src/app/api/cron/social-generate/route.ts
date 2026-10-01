@@ -1,8 +1,9 @@
 // AI Content Engine — cron entry.
 // Wordt dagelijks om 07u door Vercel-cron aangeroepen.
 //
-// Genereert 3 social-posts (FB + LinkedIn), zet ze in social_posts met
-// status='klaar', en stuurt Vincent een digest-mail.
+// Genereert 3 social-posts (FB + LinkedIn) rond 3D-modellen voor
+// machinesturing, zet ze in social_posts met status='klaar' (drafts — er
+// wordt niets automatisch gepost) en stuurt Vincent een digest-mail.
 //
 // Manual trigger: GET met Bearer-CRON_SECRET → returnt JSON.
 
@@ -12,6 +13,7 @@ import { generateDailyPosts } from "@/lib/admin/social-generator";
 import { buildSocialDigestMail } from "@/lib/admin/social-mail";
 import { sendMail } from "@/lib/monitor";
 import { getCompanySettings } from "@/lib/admin/settings";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -58,12 +60,17 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// POST = handmatige trigger vanuit admin-UI ("Genereer nu"-knop).
-// Geen Bearer-secret nodig — vereist alleen monitorConfigured. Auth-check
-// vindt plaats in de admin-pagina die hem oproept (requireAdmin).
-export async function POST() {
+// POST = handmatige trigger (admin-cookie of Bearer-CRON_SECRET). De
+// "Genereer nu"-knop in /admin/social gebruikt de server-action
+// generateNow; deze POST bestaat voor scripts.
+export async function POST(req: NextRequest) {
   if (!monitorConfigured)
     return NextResponse.json({ error: "not configured" }, { status: 503 });
+  const viaCron =
+    !!cronSecret &&
+    req.headers.get("authorization") === `Bearer ${cronSecret}`;
+  if (!viaCron && !(await requireAdmin()))
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const result = await generateDailyPosts({ count: 3 });
 

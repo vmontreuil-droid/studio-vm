@@ -121,25 +121,26 @@ export function SettingsForm({
             className="h-4 w-4 accent-[var(--accent)]"
           />
           <span className="text-sm">
-            <strong>Pauze actief</strong> — geen automatische mails. Vink uit om de engine te starten.
+            <strong>Pauze actief</strong> — geen automatische mails naar aannemers. Vink uit om de engine te starten.
           </span>
         </label>
         <Field label="Afzender-naam" name="outreach_sender_name" defaultValue={o.senderName} hint="Verschijnt als 'Van' in de mail" />
         <Field label="Afzender-mail" name="outreach_sender_email" type="email" defaultValue={o.senderEmail} hint="Moet geverifieerd zijn in Resend" />
         <Field label="Dagquota" name="outreach_daily_quota" type="number" defaultValue={o.dailyQuota} hint="Warm-up curve cap't dit eerste 3 weken" />
-        <Field label="Cal.com-link (optioneel)" name="outreach_cal_link" defaultValue={o.calLink} placeholder="https://cal.com/vincent-montreuil/30min" hint="Verschijnt als CTA in het scan-portaal" />
-        <Field label="Min. score (te-mailen-range)" name="outreach_min_score" type="number" defaultValue={o.minScore} hint="0=alles, 30=enkel sites met echt probleem" />
-        <Field label="Max. score (te-mailen-range)" name="outreach_max_score" type="number" defaultValue={o.maxScore} hint="65=skip al goeie sites — geen nood aan jou" />
+        <Field label="Cal.com-link (optioneel)" name="outreach_cal_link" defaultValue={o.calLink} placeholder="https://cal.com/…" hint="Afsprakenlink in het klantenportaal" />
+        {/* Score-venster hoort bij de oude website-campagne; waarden blijven bewaard. */}
+        <input type="hidden" name="outreach_min_score" value={o.minScore} />
+        <input type="hidden" name="outreach_max_score" value={o.maxScore} />
         <label className="block sm:col-span-2">
-          <span className="text-xs font-medium text-muted">NACE-prefixen (kommagescheiden)</span>
+          <span className="text-xs font-medium text-muted">NACE-prefixen aannemers (kommagescheiden)</span>
           <input
             name="outreach_nace_prefixes"
             defaultValue={o.nacePrefixes.join(", ")}
-            placeholder="bv. 56, 74, 47, 96"
+            placeholder="leeg = 42.11, 42.12, 42.13, 42.21, 42.22, 42.91, 42.99, 43.11, 43.12, 43.13, 43.99"
             className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
           />
           <span className="mt-1 block text-[11px] text-muted">
-            Enkel prospects met hoofdactiviteit binnen deze prefixen worden gemaild. Leeg = alle sectoren.
+            Enkel aannemers met hoofdactiviteit binnen deze prefixen worden gekwalificeerd en gemaild. Leeg = standaardselectie grond-, weg- en waterbouw. Met of zonder punten. Overzicht met omschrijvingen: Outreach-pagina.
           </span>
         </label>
         <div className="block sm:col-span-2">
@@ -163,7 +164,7 @@ export function SettingsForm({
         </div>
         {o.startedAt && (
           <p className="sm:col-span-2 text-xs text-muted">
-            Warm-up actief sinds <strong className="text-foreground">{o.startedAt}</strong> — engine bouwt afzender-reputatie geleidelijk op (week 1: max 5/dag, week 2: 10, week 3: 15, week 4+: jouw quota).
+            Warm-up actief sinds <strong className="text-foreground">{o.startedAt}</strong> — engine bouwt afzender-reputatie geleidelijk op (dag 0–3: max 5/dag, dag 4–7: 10, dag 8–10: 25, dag 11–13: 50, daarna jouw quota).
           </p>
         )}
       </Section>

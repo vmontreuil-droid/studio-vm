@@ -5,7 +5,13 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
 import { resendApiKey } from "@/lib/supabase/config";
 import { getOutreachConfig } from "@/lib/admin/outreach";
-import { buildOutreachMail } from "@/lib/admin/outreach-mail";
+import {
+  bedrijfVoorMail,
+  buildOutreachSamples,
+  type MailBedrijf,
+} from "@/lib/admin/outreach-mail";
+import { getCompanySettings } from "@/lib/admin/settings";
+import { parseNaceList } from "@/lib/admin/aannemers";
 import {
   portalEmailHtml,
   offerPreviewHtml,
@@ -62,13 +68,17 @@ export async function sendTestMail(
     return { ok: false, error: "Geen sender-email ingesteld." };
 
   // Genereer dezelfde sample-mail als op de preview-pagina.
-  const sample = buildSamplePreview(id, cfg);
+  const sample = buildSamplePreview(
+    id,
+    cfg,
+    bedrijfVoorMail(await getCompanySettings()),
+  );
   if (!sample)
     return { ok: false, error: `Onbekende template '${id}'.` };
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
-  const unsub = `${baseUrl}/api/outreach/unsubscribe?t=preview-abc123`;
+  const unsub = `${baseUrl}/api/outreach/unsubscribe?t=voorbeeld-token`;
 
   try {
     const r = await fetch("https://api.resend.com/emails", {
@@ -113,49 +123,17 @@ export async function sendTestMailAction(
 function buildSamplePreview(
   id: string,
   cfg: Awaited<ReturnType<typeof getOutreachConfig>>,
+  bedrijf: MailBedrijf,
 ): {
   subject: string;
   html: string;
   text?: string;
   from?: string;
 } | null {
-  // Outreach-varianten
-  const m = id.match(/^outreach-(first|followup)-(nl|fr|en)$/);
-  if (m) {
-    const variant = m[1] as "first" | "followup";
-    const lang = m[2] as "nl" | "fr" | "en";
-    const issues =
-      lang === "nl"
-        ? [
-            "SSL-certificaat verloopt binnenkort",
-            "Geen mobiele viewport-instelling",
-            "Trage Largest Contentful Paint (4,3s)",
-          ]
-        : lang === "fr"
-          ? [
-              "Le certificat SSL expire bientôt",
-              "Pas de paramètre viewport mobile",
-              "Largest Contentful Paint lent (4,3s)",
-            ]
-          : [
-              "SSL certificate expires soon",
-              "No mobile viewport meta tag",
-              "Slow Largest Contentful Paint (4.3s)",
-            ];
-    return buildOutreachMail(
-      {
-        name: "carpentiernv.be",
-        website: "https://carpentiernv.be",
-        scanScore: 62,
-        scanGrade: "C",
-        scanIssues: issues,
-        scanToken: "preview-abc123",
-        land: "be",
-      },
-      cfg,
-      lang,
-      variant,
-    );
+  // Outreach-varianten (aannemers) — dezelfde voorbeelden als /admin/mail-preview.
+  if (id.startsWith("outreach-")) {
+    const sample = buildOutreachSamples(cfg, bedrijf).find((x) => x.id === id);
+    return sample ? sample.mail : null;
   }
   if (id === "offer-sent-nl") {
     return {
@@ -163,27 +141,23 @@ function buildSamplePreview(
       html: portalEmailHtml({
         locale: "nl",
         eyebrow: "Je offerte",
-        title: "Hi Jan Carpentier,",
+        title: "Hi Jan Peeters,",
         bodyLines: [
-          "Hierbij je persoonlijke offerte — alle prijzen en betaalopties in je portaal.",
+          "Hierbij je persoonlijke offerte — het geschatte aantal uren, het uurtarief en de voorwaarden staan in je portaal.",
         ],
         ctaLabel: "Bekijk je voorstel",
         ctaHref: "https://studio-vm.be/nl/portail",
         extraHtml: offerPreviewHtml({
           offerNo: "OFF2026-0042",
-          greeting: "Jan Carpentier",
-          amountExclCents: 290000,
+          greeting: "Jan Peeters",
+          amountExclCents: 30000,
           vatReverse: false,
-          validUntil: "2026-06-19",
+          validUntil: "2026-10-30",
           includes: [
-            "Studio Pro — onepager",
-            "Domein + hosting setup",
-            "On-page SEO",
+            "3D-model wegenis — 6 u × € 50 (normaal)",
+            "Levering voor Trimble én Topcon (zonder meerprijs)",
+            "Lambert 72 + TAW, controle van niveaus en hellingen",
           ],
-          subLabel: "Care-abonnement",
-          subMonthlyCents: 4900,
-          discountCents: 20300,
-          freeMonthsCents: 9800,
         }),
       }),
     };
@@ -200,8 +174,8 @@ function buildSamplePreview(
         ctaHref: "https://studio-vm.be/nl/portail",
         extraHtml: invoicePaidPreviewHtml({
           number: "F2026-0017",
-          description: "Voorschot 30% — nieuwe website",
-          amountExclCents: 148760,
+          description: "3D-model bouwput — 4 u",
+          amountExclCents: 20000,
           vatReverse: false,
           paidAt: new Date().toISOString(),
           locale: "nl",
@@ -260,4 +234,41 @@ export async function toggleOutreachPaused(): Promise<void> {
       .eq("id", "default");
     revalidatePath("/admin/outreach");
   } catch {}
+}
+
+// Doelgroep van de aannemers-campagne: NACE-prefixen + landen. Schrijft
+// enkel deze twee kolommen; raakt de pauze-schakelaar nooit aan.
+export async function saveOutreachTargeting(fd: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+  const gekozen = fd.getAll("nace").map((v) => String(v));
+  const extra = String(fd.get("nace_extra") ?? "");
+  const prefixes = parseNaceList([...gekozen, ...extra.split(/[\s,;]+/)]);
+  const lands: ("be" | "fr" | "uk")[] = [];
+  for (const l of ["be", "fr", "uk"] as const) {
+    if (fd.get(`land_${l}`) != null) lands.push(l);
+  }
+  try {
+    await getSupabaseAdmin()
+      .from("company_settings")
+      .update({
+        outreach_nace_prefixes: prefixes,
+        outreach_lands: lands.length > 0 ? lands : ["be"],
+      })
+      .eq("id", "default");
+  } catch {}
+  revalidatePath("/admin/outreach");
+  revalidatePath("/admin/instellingen");
+}
+
+// Warm-up opnieuw starten (bv. na een lange pauze of nieuwe campagne):
+// de quota begint dan terug bij 5/dag vanaf de eerstvolgende verzending.
+export async function restartOutreachWarmup(): Promise<void> {
+  if (!(await requireAdmin())) return;
+  try {
+    await getSupabaseAdmin()
+      .from("company_settings")
+      .update({ outreach_started_at: null })
+      .eq("id", "default");
+  } catch {}
+  revalidatePath("/admin/outreach");
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
+import { parseNaceList } from "@/lib/admin/aannemers";
 
 // Boekhoud-suite — gedeelde server actions. Groeit mee met de modules.
 
@@ -84,10 +85,9 @@ export async function saveCompanySettingsAction(
         str(fd, "outreach_sender_email") || "vincent@studio-vm.be",
       outreach_min_score: int(fd, "outreach_min_score", 30),
       outreach_max_score: int(fd, "outreach_max_score", 65),
-      outreach_nace_prefixes: naceRaw
-        .split(/[\s,;]+/)
-        .map((s) => s.trim())
-        .filter(Boolean),
+      // Genormaliseerd zonder punten ("42.11" → "4211"); leeg = standaard-
+      // aannemersselectie (zie src/lib/admin/aannemers.ts).
+      outreach_nace_prefixes: parseNaceList(naceRaw),
       outreach_lands: lands.length > 0 ? lands : ["be"],
     };
     const { error } = await getSupabaseAdmin()

@@ -5,8 +5,15 @@ import {
   cronSecret,
   resendApiKey,
 } from "@/lib/supabase/config";
-import { getOutreachConfig, detectLang } from "@/lib/admin/outreach";
-import { buildOutreachMail } from "@/lib/admin/outreach-mail";
+import {
+  adresOnderdrukt,
+  getOutreachConfig,
+  langVoorProspect,
+  signalenUitRij,
+} from "@/lib/admin/outreach";
+import { bedrijfVoorMail, buildOutreachMail } from "@/lib/admin/outreach-mail";
+import { getCompanySettings } from "@/lib/admin/settings";
+import type { Land } from "@/lib/admin/prospect-source";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -17,9 +24,8 @@ type Row = {
   land: string;
   prospect_id: string;
   website: string | null;
-  scan_score: number | null;
   scan_grade: string | null;
-  scan_issues: string[] | null;
+  scan_stack: string | null;
   scan_token: string | null;
   mail_to: string | null;
   mail_sent_at: string | null;
@@ -92,14 +98,16 @@ export async function GET(req: NextRequest) {
     .is("replied_at", null)
     .lt("mail_sent_at", stopAfter);
 
-  // Stap B: prospects die 5-10 dagen geleden gemaild zijn, geen reactie
-  // en geen follow-up → één opvolg-mail.
+  // Stap B: aannemers die 5-10 dagen geleden gemaild zijn, geen reactie
+  // en geen follow-up → één opvolg-mail. Enkel de aannemers-campagne
+  // ("3D:…"); rijen uit de oude website-campagne krijgen niets.
   const { data } = await db
     .from("prospect_outreach")
     .select(
-      "land, prospect_id, website, scan_score, scan_grade, scan_issues, scan_token, mail_to, mail_sent_at",
+      "land, prospect_id, website, scan_grade, scan_stack, scan_token, mail_to, mail_sent_at",
     )
     .eq("status", "verzonden")
+    .like("scan_grade", "3D:%")
     .is("replied_at", null)
     .is("followup_sent_at", null)
     .is("bounced_at", null)
@@ -108,44 +116,26 @@ export async function GET(req: NextRequest) {
     .limit(cfg.dailyQuota);
   const rows = (data as Row[] | null) ?? [];
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const bedrijf = bedrijfVoorMail(await getCompanySettings());
 
   let sent = 0;
   let failed = 0;
   for (const r of rows) {
-    if (!r.scan_token || !r.mail_to || !r.website || r.scan_score == null)
-      continue;
-    let lang: "nl" | "fr" | "en" = detectLang(
-      r.land as "be" | "fr" | "uk",
-      null,
-    );
-    if (r.land === "be") {
-      const { data: pr } = await db
-        .from("kbo_enterprises")
-        .select("postcode")
-        .eq("enterprise_number", r.prospect_id)
-        .maybeSingle();
-      lang = detectLang(
-        "be",
-        (pr as { postcode: string | null } | null)?.postcode ?? null,
-      );
-    }
+    if (!r.scan_token || !r.mail_to) continue;
+    if (await adresOnderdrukt(r.mail_to, r)) continue;
+    const signalen = signalenUitRij(r);
+    const land = r.land as Land;
+    const lang = await langVoorProspect(land, r.prospect_id, signalen);
     const mail = buildOutreachMail(
-      {
-        name: r.website.replace(/^https?:\/\//, ""),
-        website: r.website,
-        scanScore: r.scan_score,
-        scanGrade: r.scan_grade ?? "",
-        scanIssues: r.scan_issues ?? [],
-        scanToken: r.scan_token,
-        land: r.land as "be" | "fr" | "uk",
-      },
+      { land, website: r.website, signalen, token: r.scan_token },
       cfg,
+      bedrijf,
       lang,
       "followup",
     );
     const baseUrl =
       process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
-    const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${r.scan_token}`;
+    const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${encodeURIComponent(r.scan_token)}&l=${lang}`;
     const ok = await sendPersonal(
       r.mail_to,
       mail.from,

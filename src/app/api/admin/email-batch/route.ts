@@ -4,6 +4,11 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { findEmails } from "@/lib/email-finder";
 import { sourceFromLand } from "@/lib/admin/prospect-source";
+import {
+  naceOrFilter,
+  parseNaceList,
+  prefixVoorLand,
+} from "@/lib/admin/aannemers";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -32,29 +37,46 @@ export async function POST(req: NextRequest) {
 
   const db = getSupabaseAdmin();
 
+  // NACE/APE/SIC: één prefix, of een kommalijst (bv. de aannemers-
+  // doelgroep). Per land in het juiste formaat ("42.11" voor Frankrijk).
+  const prefixes = [
+    ...new Set(
+      parseNaceList(f.nace ?? "").map((p) => prefixVoorLand(p, source.land)),
+    ),
+  ];
+
   // Atomic claim via de juiste RPC voor dit land.
   // De RPC-namen verschillen maar accepteren dezelfde param-set
-  // (p_limit + filter-velden). 'p_nace' is generiek voor NACE/APE/SIC.
-  const { data: claimed, error: claimErr } = await db.rpc(source.claimRpc, {
-    p_limit: limit,
-    p_q: f.q || null,
-    p_postcode: f.postcode || null,
-    [source.land === "fr"
-      ? "p_ape"
-      : source.land === "uk"
-        ? "p_sic"
-        : "p_nace"]: f.nace || null,
-    [source.land === "uk" ? "p_cat" : "p_form"]: f.form || null,
-    p_active: f.active !== false,
-  });
-  if (claimErr) {
-    return NextResponse.json(
-      { error: claimErr.message, hint: "claim", land: source.land },
-      { status: 500 },
+  // (p_limit + filter-velden). De RPC kent één prefix per oproep → per
+  // prefix claimen tot de batch vol is.
+  const claimedAll: { enterprise_number: string; website: string }[] = [];
+  for (const prefix of prefixes.length > 0 ? prefixes : [null]) {
+    const need = limit - claimedAll.length;
+    if (need <= 0) break;
+    const { data: claimed, error: claimErr } = await db.rpc(source.claimRpc, {
+      p_limit: need,
+      p_q: f.q || null,
+      p_postcode: f.postcode || null,
+      [source.land === "fr"
+        ? "p_ape"
+        : source.land === "uk"
+          ? "p_sic"
+          : "p_nace"]: prefix,
+      [source.land === "uk" ? "p_cat" : "p_form"]: f.form || null,
+      p_active: f.active !== false,
+    });
+    if (claimErr) {
+      return NextResponse.json(
+        { error: claimErr.message, hint: "claim", land: source.land },
+        { status: 500 },
+      );
+    }
+    claimedAll.push(
+      ...((claimed as { enterprise_number: string; website: string }[] | null) ??
+        []),
     );
   }
-  const rows =
-    (claimed as { enterprise_number: string; website: string }[] | null) ?? [];
+  const rows = claimedAll;
 
   // Snel "te gaan"-cijfer via de partiële index van het juiste land.
   let cq = db
@@ -64,7 +86,7 @@ export async function POST(req: NextRequest) {
     .is("email_scanned_at", null);
   if (f.q) cq = cq.ilike("name", `%${f.q}%`);
   if (f.postcode) cq = cq.like("postcode", `${f.postcode}%`);
-  if (f.nace) cq = cq.like(source.codeCol, `${f.nace}%`);
+  if (prefixes.length > 0) cq = cq.or(naceOrFilter(source.codeCol, prefixes, source.land));
   if (f.form) cq = cq.eq(source.formCol, f.form);
   if (f.active !== false) cq = cq.eq(source.statusCol, source.activeValue);
   const { count: remainingAfter } = await cq;

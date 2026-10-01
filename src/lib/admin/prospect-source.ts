@@ -41,7 +41,7 @@ export const SOURCES: Record<Land, ProspectSource> = {
     activeValue: "000",
     claimRpc: "claim_kbo_for_scan",
     postcodeExample: "bv. 9 (Oost-Vlaanderen)",
-    codeExample: "bv. 56 (horeca)",
+    codeExample: "bv. 4312 (grondwerken)",
   },
   fr: {
     land: "fr",
@@ -56,7 +56,7 @@ export const SOURCES: Record<Land, ProspectSource> = {
     activeValue: "A",
     claimRpc: "claim_sirene_for_scan",
     postcodeExample: "bv. 75 (Parijs)",
-    codeExample: "bv. 56 (restauration)",
+    codeExample: "bv. 43.12 (terrassement)",
   },
   uk: {
     land: "uk",
@@ -71,7 +71,7 @@ export const SOURCES: Record<Land, ProspectSource> = {
     activeValue: "Active",
     claimRpc: "claim_uk_for_scan",
     postcodeExample: "bv. SW1 (London)",
-    codeExample: "bv. 56 (food/bev service)",
+    codeExample: "bv. 43120 (site preparation)",
   },
 };
 

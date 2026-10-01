@@ -5,9 +5,17 @@ import {
   cronSecret,
   resendApiKey,
 } from "@/lib/supabase/config";
-import { getOutreachConfig, detectLang, warmUpQuota } from "@/lib/admin/outreach";
-import { buildOutreachMail } from "@/lib/admin/outreach-mail";
-import { sourceFromLand } from "@/lib/admin/prospect-source";
+import {
+  adresOnderdrukt,
+  getOutreachConfig,
+  langVoorProspect,
+  signalenUitRij,
+  warmUpQuota,
+} from "@/lib/admin/outreach";
+import { bedrijfVoorMail, buildOutreachMail } from "@/lib/admin/outreach-mail";
+import { sourceFromLand, type Land } from "@/lib/admin/prospect-source";
+import { effectiveNace, naceMatches } from "@/lib/admin/aannemers";
+import { getCompanySettings } from "@/lib/admin/settings";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -18,7 +26,7 @@ type OutreachRow = {
   website: string | null;
   scan_score: number | null;
   scan_grade: string | null;
-  scan_issues: string[] | null;
+  scan_stack: string | null;
   scan_token: string | null;
   mail_to: string | null;
 };
@@ -119,83 +127,78 @@ export async function GET(req: NextRequest) {
   const perTick = Math.max(1, Math.ceil(remainingToday / ticksLeftToday));
   const sendLimit = Math.min(perTick, remainingToday);
 
+  // Enkel aannemers uit de nieuwe campagne (scan_grade "3D:…"); oude
+  // website-scans (A–F) worden nooit meer gemaild. Hoogste prioriteit
+  // (machinesturing-signalen) eerst.
   let q = db
     .from("prospect_outreach")
     .select(
-      "land, prospect_id, website, scan_score, scan_grade, scan_issues, scan_token, mail_to",
+      "land, prospect_id, website, scan_score, scan_grade, scan_stack, scan_token, mail_to",
     )
     .eq("status", "gescand")
+    .like("scan_grade", "3D:%")
     .is("mail_sent_at", null)
     .is("bounced_at", null)
     .is("complaint_at", null)
     .not("mail_to", "is", null)
-    .gte("scan_score", cfg.minScore)
-    .lte("scan_score", cfg.maxScore)
-    .limit(sendLimit);
+    .order("scan_score", { ascending: false })
+    .limit(sendLimit * 4);
   if (cfg.lands.length > 0) q = q.in("land", cfg.lands);
   const { data } = await q;
   const rows = (data as OutreachRow[] | null) ?? [];
 
-  // Optioneel: filter op NACE-prefix per land (kost ook een join met
-  // de land-tabel; we doen het kort en eenvoudig per prospect_id).
-  let filtered = rows;
-  if (cfg.nacePrefixes.length > 0) {
-    const naceOk: OutreachRow[] = [];
-    for (const r of rows) {
-      const src = sourceFromLand(r.land);
-      const { data: pr } = await db
-        .from(src.table)
-        .select(src.codeCol)
-        .eq(src.idCol, r.prospect_id)
-        .maybeSingle();
-      const code = (pr as Record<string, string | null> | null)?.[src.codeCol];
-      if (
-        code &&
-        cfg.nacePrefixes.some((p) => code.startsWith(p))
-      ) {
-        naceOk.push(r);
-      }
-    }
-    filtered = naceOk;
+  // NACE-controle (de doelgroep kan sinds de kwalificatie gewijzigd zijn).
+  const prefixes = effectiveNace(cfg.nacePrefixes);
+  const filtered: OutreachRow[] = [];
+  for (const r of rows) {
+    if (filtered.length >= sendLimit) break;
+    const src = sourceFromLand(r.land);
+    const { data: pr } = await db
+      .from(src.table)
+      .select(src.codeCol)
+      .eq(src.idCol, r.prospect_id)
+      .maybeSingle();
+    const code = (pr as Record<string, string | null> | null)?.[src.codeCol];
+    if (naceMatches(code, prefixes)) filtered.push(r);
   }
+
+  const bedrijf = bedrijfVoorMail(await getCompanySettings());
 
   let sent = 0;
   let failed = 0;
+  let skipped = 0;
   for (const r of filtered) {
-    if (!r.scan_token || !r.mail_to || !r.website || r.scan_score == null)
+    if (!r.scan_token || !r.mail_to) continue;
+
+    // Adres al afgemeld/gebounced of al gemaild via een andere onderneming?
+    if (await adresOnderdrukt(r.mail_to, r)) {
+      skipped++;
+      await db
+        .from("prospect_outreach")
+        .update({
+          status: "geen_interesse",
+          notes: "overgeslagen: adres al gemaild, afgemeld of gebounced",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("land", r.land)
+        .eq("prospect_id", r.prospect_id);
       continue;
-    // Postcode ophalen voor taaldetectie (alleen BE).
-    let lang: "nl" | "fr" | "en" = detectLang(
-      r.land as "be" | "fr" | "uk",
-      null,
-    );
-    if (r.land === "be") {
-      const { data: pr } = await db
-        .from("kbo_enterprises")
-        .select("postcode")
-        .eq("enterprise_number", r.prospect_id)
-        .maybeSingle();
-      lang = detectLang("be", (pr as { postcode: string | null } | null)?.postcode ?? null);
     }
 
+    const signalen = signalenUitRij(r);
+    const land = r.land as Land;
+    const lang = await langVoorProspect(land, r.prospect_id, signalen);
     const mail = buildOutreachMail(
-      {
-        name: r.website.replace(/^https?:\/\//, ""),
-        website: r.website,
-        scanScore: r.scan_score,
-        scanGrade: r.scan_grade ?? "",
-        scanIssues: r.scan_issues ?? [],
-        scanToken: r.scan_token,
-        land: r.land as "be" | "fr" | "uk",
-      },
+      { land, website: r.website, signalen, token: r.scan_token },
       cfg,
+      bedrijf,
       lang,
       "first",
     );
 
     const baseUrl =
       process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
-    const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${r.scan_token}`;
+    const unsub = `${baseUrl}/api/outreach/unsubscribe?t=${encodeURIComponent(r.scan_token)}&l=${lang}`;
     const res = await sendPersonal(
       r.mail_to,
       mail.from,
@@ -238,6 +241,7 @@ export async function GET(req: NextRequest) {
     ok: true,
     sent,
     failed,
+    skipped,
     scope: filtered.length,
     todayQuota,
     sentToday: sentToday + sent,

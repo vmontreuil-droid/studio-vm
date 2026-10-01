@@ -6,6 +6,7 @@
 //   1. SCREENSHOT-layout (showcase/case posts) — 2-koloms: tekst links,
 //      live-screenshot van de portfolio-site rechts in een browser-mockup.
 //      Detectie via "site:domain.be" in notes-veld.
+//      Of een 3D-beeld via "kaart:/3d/….png" in notes (aannemers-posts).
 //   2. QUOTE-layout (tips, positionering, persoonlijk) — gradient + grote
 //      hero-quote + echte studio-vm logo.
 //
@@ -68,6 +69,24 @@ const SCREENSHOT_SLUG: Record<string, string> = {
 function screenshotPathFor(domain: string): string | null {
   const slug = SCREENSHOT_SLUG[domain];
   return slug ? `/social/portfolio/${slug}.png` : null;
+}
+
+// 3D-beelden (aannemers-posts): notes-marker "kaart:/3d/….png|jpg".
+// Satori kan geen WebP inlinen, daarom enkel PNG/JPG uit public/3d.
+const KAART_CACHE = new Map<string, string>();
+async function getKaartDataUrl(rel: string): Promise<string | null> {
+  if (!/^\/3d\/[a-z0-9\-/]+\.(png|jpe?g)$/i.test(rel) || rel.includes("..")) return null;
+  const cached = KAART_CACHE.get(rel);
+  if (cached) return cached;
+  try {
+    const buf = await fs.readFile(path.join(process.cwd(), "public", ...rel.split("/").filter(Boolean)));
+    const mime = /.png$/i.test(rel) ? "image/png" : "image/jpeg";
+    const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
+    KAART_CACHE.set(rel, dataUrl);
+    return dataUrl;
+  } catch {
+    return null;
+  }
 }
 
 // Cache screenshots als data-URLs zodat Satori ze betrouwbaar inlinet
@@ -178,10 +197,11 @@ export async function GET(
   // Of: post heeft 'format:story' marker in notes (auto-detect uit DB hieronder)
   const queryStory = new URL(req.url).searchParams.get("format") === "story";
 
-  let hero = "Studio-vm — websites voor KMO's in Vlaanderen";
+  let hero = "Studio VM — 3D-modellen voor machinesturing";
   let platform = "algemeen";
   let category = "story";
   let featuredSite: string | null = null;
+  let kaartBeeld: string | null = null;
   let postMarkedAsStory = false;
 
   if (adminConfigured && id) {
@@ -211,6 +231,12 @@ export async function GET(
         // Featured-site uit notes — bv. "site:celine-interieur.be"
         const siteMatch = post.notes?.match(/site:([a-z0-9.\-]+)/i)?.[1];
         if (siteMatch) featuredSite = siteMatch;
+        // 3D-beeld uit notes — bv. "kaart:/3d/relief-bouwput-licht.png"
+        const kaartMatch = post.notes?.match(/kaart:(\/3d\/[a-z0-9\-/]+\.(?:png|jpe?g))/i)?.[1];
+        if (kaartMatch) {
+          kaartBeeld = kaartMatch;
+          featuredSite = "studio-vm.be/realisaties";
+        }
         // format:story marker → default story-layout
         if (post.notes?.includes("format:story")) postMarkedAsStory = true;
       }
@@ -224,9 +250,11 @@ export async function GET(
   const theme = THEMES[platform] ?? THEMES.algemeen!;
   const useScreenshot = !!featuredSite && !isStory; // stories = tekst-eerst
   const montserratData = await getMontserratExtraBold();
-  const screenshotData = featuredSite
-    ? await getScreenshotDataUrl(featuredSite)
-    : null;
+  const screenshotData = kaartBeeld
+    ? await getKaartDataUrl(kaartBeeld)
+    : featuredSite
+      ? await getScreenshotDataUrl(featuredSite)
+      : null;
   void screenshotPathFor; // alias-only — niet rechtstreeks gebruikt
 
   // Story-layout: vertikaal 1080×1920, ander render-pad onderaan
@@ -572,7 +600,7 @@ export async function GET(
                 opacity: 0.6,
               }}
             >
-              websites voor KMO's in Vlaanderen
+              3D-modellen voor machinesturing
             </div>
           </div>
         </div>
@@ -865,7 +893,7 @@ function renderStoryImage(opts: {
               opacity: 0.6,
             }}
           >
-            websites voor KMO's in Vlaanderen
+            3D-modellen voor machinesturing
           </div>
         </div>
 

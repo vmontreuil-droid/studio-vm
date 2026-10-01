@@ -284,8 +284,9 @@ export default async function AdminSocial() {
               Social Media
             </h1>
             <p className="mt-0.5 text-sm text-muted">
-              Hub voor alle posts, drafts, UTM-links en pixel-tracking — één
-              plek voor wat je op Facebook, LinkedIn, Instagram en X plant.
+              Posts rond 3D-modellen voor machinesturing: tips, realisaties,
+              tarieven en stelsels per land. Drafts, UTM-links en pixel-tracking
+              op één plek — er wordt nooit automatisch gepost.
             </p>
           </div>
         </div>
@@ -323,7 +324,7 @@ export default async function AdminSocial() {
           <div>
             <p className="text-sm font-semibold">AI Content Engine — actief</p>
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-              dagelijks 07:00 (ma-vr) · 3 posts · FB + LinkedIn · template-modus
+              dagelijks 07:00 (ma-vr) · 3 drafts + 1 story · FB + LinkedIn · 3D &amp; machinesturing
             </p>
           </div>
         </div>
@@ -415,7 +416,7 @@ export default async function AdminSocial() {
         <ChartCard title="Aantal posts per maand">
           {postsTrend.every((p) => p.value === 0) ? (
             <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
-              Nog geen posts. Begin met "Nieuwe post" hieronder.
+              Nog geen posts. Begin met &quot;Nieuwe post&quot; hieronder.
             </p>
           ) : (
             <TrendChart
@@ -430,7 +431,7 @@ export default async function AdminSocial() {
           {engagementTrend.every((p) => p.value === 0) ? (
             <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
               Geen engagement-data. Vul likes/comments/shares in bij geposte
-              posts (via 'bewerken').
+              posts (via &apos;bewerken&apos;).
             </p>
           ) : (
             <TrendChart
@@ -449,7 +450,7 @@ export default async function AdminSocial() {
           <ChartCard title="Klikken via UTM — laatste 30 dagen">
             {clicksByDay.every((p) => p.value === 0) ? (
               <p className="rounded-xl bg-background/30 p-6 text-center text-sm text-muted">
-                Nog geen geklikte UTM-links. Plaats een post en deel z'n
+                Nog geen geklikte UTM-links. Plaats een post en deel z&apos;n
                 gegenereerde link.
               </p>
             ) : (
@@ -657,7 +658,7 @@ export default async function AdminSocial() {
                 name="title"
                 required
                 maxLength={200}
-                placeholder="bv. Lancering studio-vm op persoonlijk profiel"
+                placeholder="bv. Realisatie bouwput met taluds"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
               />
             </Field>
@@ -704,16 +705,16 @@ export default async function AdminSocial() {
                 name="hashtags"
                 rows={5}
                 maxLength={500}
-                placeholder="#kmo #vlaanderen #website"
+                placeholder="#machinesturing #3Dmodel #grondwerken"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
               />
             </Field>
             <Field label="Landingspagina (pad)">
               <input
                 name="target_url"
-                defaultValue="/nl/health-check"
+                defaultValue="/nl/realisaties"
                 maxLength={500}
-                placeholder="/nl/health-check"
+                placeholder="/nl/realisaties"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
               />
             </Field>
@@ -721,7 +722,7 @@ export default async function AdminSocial() {
               <input
                 name="utm_campaign"
                 maxLength={80}
-                placeholder="auto — 202605-lancering-persoonlijk"
+                placeholder="auto — 202610-realisatie-bouwput"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
               />
             </Field>
@@ -907,6 +908,11 @@ function PostCard({ post }: { post: SocialPost }) {
   const isStoryPost =
     post.post_kind === "story" ||
     (typeof post.notes === "string" && post.notes.includes("format:story"));
+  // Projectbeeld (realisatie) dat de content-engine voorstelt om mee te posten.
+  const projectBeeld =
+    typeof post.notes === "string"
+      ? (post.notes.match(/beeld:(\/3d\/[^\s]+)/)?.[1] ?? null)
+      : null;
   const imageUrl = `/api/social-image/${post.id}${imageVersion ? `?v=${imageVersion}` : ""}`;
   const storyUrl = `/api/social-image/${post.id}?format=story${imageVersion ? `&v=${imageVersion}` : ""}`;
 
@@ -1034,6 +1040,20 @@ function PostCard({ post }: { post: SocialPost }) {
         </a>
       </div>
 
+      {projectBeeld && (
+        <a
+          href={projectBeeld}
+          target="_blank"
+          rel="noreferrer"
+          download
+          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+          title="Projectbeeld uit /realisaties om bij de post te voegen"
+        >
+          <Globe className="h-3 w-3" strokeWidth={2.5} />
+          Projectbeeld
+        </a>
+      )}
+
       {/* Actions */}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {post.status !== "klaar" && post.status !== "gepost" && (
@@ -1115,7 +1135,7 @@ function PostCard({ post }: { post: SocialPost }) {
             <input
               name="target_url"
               defaultValue={post.target_url ?? "/"}
-              placeholder="/nl/health-check"
+              placeholder="/nl/realisaties"
               className="rounded border bg-background px-2 py-1 text-xs outline-none focus:border-accent"
             />
             <input

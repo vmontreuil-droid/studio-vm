@@ -1,19 +1,47 @@
 // Social-post template-bibliotheek voor de AI Content Engine.
 //
+// Sinds 1/10/2026: Studio VM maakt 3D-ontwerpmodellen voor machinesturing
+// (graafmachines, graders, dozers) voor aannemers. De posts gaan over:
+//   - tips uit de kennisbank (stelsels, lijnwerk, aanleveren, controle, …)
+//   - realisaties (beelden uit public/3d/r/*.webp, zie src/lib/realisaties.ts)
+//   - de tariefcategorieën (vroegtijdig / normaal / last-minute)
+//   - coördinatenstelsels per land
+//
 // Elke template is een "bouwsteen" met:
-//   - id, platform, post_kind, target_url
+//   - id, platform, post_kind, target_url, taal
 //   - optional days[]: wanneer geschikt (ma=1, di=2, ...; geen lijst = alle dagen)
-//   - build(ctx): geeft { title, body, hashtags }
+//   - build(ctx): geeft { title, body, hashtags, beeld?, kaart? }
+//       beeld = projectbeeld om bij de post te voegen (mag .webp zijn)
+//       kaart = PNG/JPG voor de gegenereerde social-kaart (/api/social-image)
 //
 // De generator (social-generator.ts) kiest elke dag 3 templates die NIET
-// recent zijn gebruikt, varieert per platform en injecteert ctx-variabelen.
+// recent zijn gebruikt, varieert per platform en zet ze als draft klaar.
+// Er wordt nooit automatisch gepost.
+
+import {
+  CATEGORIEEN,
+  REALISATIES,
+  type Categorie,
+} from "@/lib/realisaties";
+import { UURTARIEF_CENT, MINIMUM_UREN, euro } from "@/lib/tarieven";
+
+export type RealisatieKeuze = {
+  id: string;
+  cat: Categorie;
+  nl: { titel: string; tekst: string; cat: string };
+  fr: { titel: string; tekst: string; cat: string };
+  /** Lichte versie van het projectbeeld, om bij de post te voegen. */
+  beeld: string;
+  /** PNG/JPG voor de social-kaart (Satori kan geen WebP). */
+  kaart: string;
+};
 
 export type TemplateCtx = {
   dayName: string; // "maandag", "dinsdag", ...
   dayShort: string; // "ma", "di", ...
   date: string; // "22 mei"
-  client: { name: string; site: string; sector: string };
-  altClient: { name: string; site: string; sector: string };
+  /** Willekeurige realisatie, optioneel binnen een categorie. */
+  realisatie: (cat?: Categorie) => RealisatieKeuze;
 };
 
 export type Template = {
@@ -21,14 +49,12 @@ export type Template = {
   platform: "facebook" | "linkedin";
   post_kind: "persoonlijk" | "page" | "group" | "article" | "story";
   target_url: string;
+  taal?: "nl" | "fr";
   days?: number[]; // 1-5 = ma-vr
   category:
     | "showcase"
     | "tip"
-    | "case"
     | "question"
-    | "story"
-    | "case-study"
     | "service"
     | "positie"
     | "story-case";
@@ -36,1239 +62,828 @@ export type Template = {
     title: string;
     body: string;
     hashtags: string;
-    site?: string; // optioneel: feature-site (domain) voor screenshot-layout
+    beeld?: string;
+    kaart?: string;
   };
 };
 
 // ============================================================================
-// STORY-CASES — 1 per werkdag, korter en punchier dan feed-cases.
+// Hulp
+// ============================================================================
+
+const KAART_PER_CAT: Record<Categorie, string> = {
+  wegenis: "/3d/weg-kruispunt-licht.png",
+  grondwerk: "/3d/relief-grondwerk-licht.png",
+  bouwput: "/3d/relief-bouwput-licht.png",
+  terrein: "/3d/terrein-hoogtelijnen-licht.png",
+};
+
+const EMOJI_PER_CAT: Record<Categorie, string> = {
+  wegenis: "🛣️",
+  grondwerk: "🚜",
+  bouwput: "🏗️",
+  terrein: "🗺️",
+};
+
+export function kiesRealisatie(cat?: Categorie): RealisatieKeuze {
+  const pool = cat ? REALISATIES.filter((r) => r.cat === cat) : REALISATIES;
+  const r = (pool.length ? pool : REALISATIES)[
+    Math.floor(Math.random() * (pool.length || REALISATIES.length))
+  ]!;
+  return {
+    id: r.id,
+    cat: r.cat,
+    nl: { titel: r.nl.titel, tekst: r.nl.tekst, cat: CATEGORIEEN[r.cat].nl },
+    fr: { titel: r.fr.titel, tekst: r.fr.tekst, cat: CATEGORIEEN[r.cat].fr },
+    beeld: r.licht,
+    kaart: /\.(png|jpe?g)$/i.test(r.licht) ? r.licht : KAART_PER_CAT[r.cat],
+  };
+}
+
+const eur = (c: keyof typeof UURTARIEF_CENT, l: "nl" | "fr" = "nl") =>
+  euro(UURTARIEF_CENT[c], l);
+
+const HT_NL = "#machinesturing #3Dmodel #grondwerken #wegenbouw #landmeter";
+const HT_FR = "#guidagedengins #modèle3D #terrassement #voirie #géomètre";
+
+// ============================================================================
+// STORY-CASES — 1 per werkdag, korter en punchier dan feed-posts.
 // Gebruikt voor /api/social-image/[id]?format=story (1080×1920).
-// Maandag-vrijdag: rotatie door 5 cases (Cottage en Bar'Botte alterneren).
+// Vrijdag alterneert tussen twee stories (even/oneven week).
 // ============================================================================
 export const STORY_CASE_TEMPLATES: Template[] = [
   {
-    id: "story-celine-fb",
+    id: "story-wegenis-fb",
     platform: "facebook",
     post_kind: "story",
-    target_url: "/",
-    days: [1], // maandag
+    target_url: "/nl/realisaties",
+    days: [1],
+    category: "story-case",
+    build: (ctx) => {
+      const r = ctx.realisatie("wegenis");
+      return {
+        title: `Story · ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.wegenis} Uit de werkplaats: ${r.nl.titel.toLowerCase()}
+
+${r.nl.tekst}
+
+Klaar om in te laden op je machine.
+
+3D-model nodig? → studio-vm.be`,
+        hashtags: "",
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "story-bouwput-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/nl/realisaties",
+    days: [2],
+    category: "story-case",
+    build: (ctx) => {
+      const r = ctx.realisatie("bouwput");
+      return {
+        title: `Story · ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.bouwput} ${r.nl.titel}
+
+${r.nl.tekst}
+
+Bodem op niveau, taluds op helling — zonder piketten.
+
+→ studio-vm.be`,
+        hashtags: "",
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "story-grondwerk-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/nl/realisaties",
+    days: [3],
+    category: "story-case",
+    build: (ctx) => {
+      const r = ctx.realisatie("grondwerk");
+      return {
+        title: `Story · ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.grondwerk} ${r.nl.titel}
+
+${r.nl.tekst}
+
+Elke laag apart te kiezen in de cabine.
+
+→ studio-vm.be`,
+        hashtags: "",
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "story-terrein-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/nl/realisaties",
+    days: [4],
+    category: "story-case",
+    build: (ctx) => {
+      const r = ctx.realisatie("terrein");
+      return {
+        title: `Story · ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.terrein} ${r.nl.titel}
+
+${r.nl.tekst}
+
+Het juiste stelsel, de juiste hoogte.
+
+→ studio-vm.be`,
+        hashtags: "",
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "story-tarief-fb",
+    platform: "facebook",
+    post_kind: "story",
+    target_url: "/nl/tarieven",
+    days: [5], // vrijdag even week
     category: "story-case",
     build: () => ({
-      title: "Story · Céline — celineinterieur.com",
-      body: `🛋️ Vandaag's case: celineinterieur.com
+      title: "Story · Vroeg aanvragen loont",
+      body: `📅 Werf binnen meer dan 3 weken?
 
-Voor mijn zus Céline bouwde ik haar webshop + offerte-flow.
+3D-model aan ${eur("vroegtijdig")}/u in plaats van ${eur("normaal")}/u (excl. btw).
 
-Eigen admin. <1s laadtijd. Vaste prijs.
-
-Zelf nodig? → studio-vm.be`,
+→ studio-vm.be/nl/tarieven`,
       hashtags: "",
-      site: "celineinterieur.com",
+      kaart: "/3d/model-platform-hoogte.jpg",
     }),
   },
   {
-    id: "story-jp-fb",
+    id: "story-lastminute-fb",
     platform: "facebook",
     post_kind: "story",
-    target_url: "/",
-    days: [2], // dinsdag
+    target_url: "/nl/offerte",
+    days: [5], // vrijdag oneven week
     category: "story-case",
     build: () => ({
-      title: "Story · Jean-Paul — montreuil.be",
-      body: `📸 Vandaag's case: montreuil.be
+      title: "Story · Last-minute model",
+      body: `⚡ Planwijziging? Machine staat al klaar?
 
-Wildlife-galerie + boekverkoop voor m'n vader.
+Last-minute: model binnen 5 werkdagen.
 
-Foto's geoptimaliseerd, laadt in 0.7s op mobiel.
-
-Bouw ook voor jou? → studio-vm.be`,
+→ studio-vm.be/nl/offerte`,
       hashtags: "",
-      site: "montreuil.be",
-    }),
-  },
-  {
-    id: "story-marilines-fb",
-    platform: "facebook",
-    post_kind: "story",
-    target_url: "/",
-    days: [3], // woensdag
-    category: "story-case",
-    build: () => ({
-      title: "Story · Mari-Lines — mari-lines.be",
-      body: `🚧 Vandaag's case: mari-lines.be
-
-B2B-site voor wegmarkeringen — werkenoverzicht + offertes voor bouwheren.
-
-Vaste prijs, in 3 weken.
-
-KMO met website-vraag? → studio-vm.be`,
-      hashtags: "",
-      site: "mari-lines.be",
-    }),
-  },
-  {
-    id: "story-allard-fb",
-    platform: "facebook",
-    post_kind: "story",
-    target_url: "/",
-    days: [4], // donderdag
-    category: "story-case",
-    build: () => ({
-      title: "Story · Allard — wildlife portfolio + prints",
-      body: `🦌 Vandaag's case: wildlife portfolio + e-commerce
-
-Portfolio + print-webshop voor wildlife-fotograaf Allard.
-
-Mollie-checkout, eigen admin.
-
-Creatief? Webshop nodig? → studio-vm.be`,
-      hashtags: "",
-      site: "allardphilippe.vercel.app",
-    }),
-  },
-  {
-    id: "story-barbotte-fb",
-    platform: "facebook",
-    post_kind: "story",
-    target_url: "/",
-    days: [5], // vrijdag week A
-    category: "story-case",
-    build: () => ({
-      title: "Story · Bar'Botte — horeca + reservaties",
-      body: `🍷 Vandaag's case: horeca-site Bar'Botte
-
-Menu's + dagsuggesties + reservaties direct op de site.
-
-Eigen admin — geen Photoshop-pdf-werk meer.
-
-Horeca-zaak? → studio-vm.be`,
-      hashtags: "",
-      site: "barbotte.vercel.app",
-    }),
-  },
-  {
-    id: "story-cottage-fb",
-    platform: "facebook",
-    post_kind: "story",
-    target_url: "/",
-    days: [5], // vrijdag week B (alterneert met Bar'Botte via rotatie-keuze)
-    category: "story-case",
-    build: () => ({
-      title: "Story · Cottage Waregem — restaurant + events",
-      body: `🍽️ Vandaag's case: Cottage Waregem
-
-Restaurant + eventruimte in 1 site, met aparte flows.
-
-Vaste prijs, opgeleverd in 4 weken.
-
-Brasserie of zaak? → studio-vm.be`,
-      hashtags: "",
-      site: "cottage-waregem.vercel.app",
+      kaart: "/3d/weg-trace-licht.png",
     }),
   },
 ];
 
-// Klanten-portfolio — wordt in roterende slots gebruikt voor variatie.
-// Allemaal publieke sites; geen privacy-issue om te vermelden.
-//
-// kind:
-//   build     — site die ik bouwde voor de klant
-//   own       — eigen bureau-site
-//   migration — site die nog niet gemigreerd is (toekomstige case)
-// site = echte production-domain. Alle klantsites hebben hun eigen domein.
-export const PORTFOLIO = [
-  {
-    name: "Céline (zus)",
-    site: "celineinterieur.com",
-    sector: "interieur",
-    kind: "build",
-    angle: "webshop + offerte-aanvragen + admin",
-  },
-  {
-    name: "Jean-Paul Montreuil (vader)",
-    site: "montreuil.be",
-    sector: "fotografie",
-    kind: "build",
-    angle: "galerie + boekverkoop + tentoonstellingen",
-  },
-  {
-    name: "Allard Philippe",
-    site: "allardphilippe.vercel.app",
-    sector: "wildlife-fotografie",
-    kind: "build",
-    angle: "portfolio + e-commerce voor prints",
-  },
-  {
-    name: "Mari-Lines (Rik)",
-    site: "mari-lines.be",
-    sector: "wegmarkeringen",
-    kind: "build",
-    angle: "B2B-presentatie + werkenoverzicht + offerte-flow",
-  },
-  {
-    name: "Bar'Botte",
-    site: "barbotte.vercel.app",
-    sector: "horeca",
-    kind: "build",
-    angle: "menu's + dagsuggesties + reservaties",
-  },
-  {
-    name: "Cottage Waregem",
-    site: "cottage-waregem.vercel.app",
-    sector: "horeca",
-    kind: "build",
-    angle: "restaurant + eventruimte + menu's",
-  },
-  {
-    name: "favesan",
-    site: "favesan.be",
-    sector: "klant in transitie",
-    kind: "migration",
-    angle: "huidige WordPress-site — migratie-kandidaat naar moderne stack",
-  },
-  {
-    name: "Studio-vm (eigen bureau)",
-    site: "studio-vm.be",
-    sector: "eigen bureau",
-    kind: "own",
-    angle: "het bewijs van wat ik predik — 100/100 PageSpeed, eigen admin",
-  },
-] as const;
-
 // ============================================================================
-// TEMPLATES — portfolio-eerst, dan service-uitleg en positionering.
-// Mix per week (3 posts/dag × 5 dagen = 15 posts):
-//   40% showcase (gemaakte site)
-//   20% case-study (LinkedIn deep-dive)
-//   15% service-uitleg (Health Check, migratie, admin)
-//   15% positionering (WP-kritiek, snelheid, prijs)
-//   10% persoonlijk (vraag, dank)
+// FEED-TEMPLATES
 // ============================================================================
 export const TEMPLATES: Template[] = [
-  // ============================================================================
-  // SHOWCASE — één per portfolio-build-site (6 stuks)
-  // ============================================================================
+  // ---------- Tips uit de kennisbank ----------
   {
-    id: "showcase-celine-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1, 3],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: celineinterieur.com",
-      body: `Voor mijn zus Céline bouwde ik celineinterieur.com — interieurzaak in Waregem.
-
-Wat zit erin?
-• Webshop voor de productlijn
-• Offerte-aanvraag-formulier voor maatwerk
-• Eigen admin-paneel — Céline past zelf prijzen, foto's, beschikbaarheid aan zonder mij te bellen
-• Laadt in 0.8s op mobiel, 98/100 PageSpeed
-
-Vaste prijs, opgeleverd in 3 weken. Geen WordPress, geen plugin-jungle, geen maandelijkse "onderhoudsfactuur" voor niets.
-
-Heb jij of ken jij een zaak die met haar website worstelt? Studio-vm.be → start met een gratis scan.`,
-      hashtags: "",
-      site: "celineinterieur.com",
-    }),
-  },
-  {
-    id: "showcase-jp-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [2, 4],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: montreuil.be",
-      body: `Voor mijn vader — Jean-Paul Montreuil, wildlife-fotograaf — bouwde ik montreuil.be.
-
-Drie functies:
-1. Galerie van zijn werk (volledig responsive, foto's vooraf geoptimaliseerd, laadt razendsnel)
-2. Boekverkoop — direct via de site
-3. Tentoonstellingen-agenda die hij zelf bijhoudt
-
-Voor een fotograaf is laadtijd cruciaal — niemand wacht 5 seconden op een foto. Zijn site laadt in 0.7s op mobiel.
-
-Vaste prijs, eigen admin. Zelf gebouwd vanuit Anzegem.
-
-Ken je een fotograaf, kunstenaar of creatieveling die nog vastzit op een trage portfolio-site? Stuur ze door.`,
-      hashtags: "",
-      site: "montreuil.be",
-    }),
-  },
-  {
-    id: "showcase-allard-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3, 5],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: allardphilippe.vercel.app",
-      body: `Allard Philippe — wildlife-fotograaf — wou een site die zijn werk laat ademen, met de mogelijkheid om prints te verkopen.
-
-Resultaat: allardphilippe.vercel.app.
-
-→ Volledige portfolio met collecties
-→ Webshop voor prints in verschillende formaten
-→ Bestelflow via Mollie
-→ Eigen admin om foto's, collecties en prijzen toe te voegen
-
-Laadtijd 0.9s, PageSpeed 96. Vaste prijs, oplevering in 3 weken.
-
-Studio-vm.be — websites voor creatieven, KMO's en zelfstandigen in Vlaanderen.`,
-      hashtags: "",
-      site: "allardphilippe.vercel.app",
-    }),
-  },
-  {
-    id: "showcase-marilines-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1, 4],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: mari-lines.be",
-      body: `B2B-site die ik dit jaar bouwde: mari-lines.be — wegmarkeringen-bedrijf van een vriend.
-
-Wat doet hij anders dan een typische "showcase-site"?
-• Werkenoverzicht met écht uitgevoerde projecten + foto's
-• Offerte-aanvraagflow specifiek voor bouwheren en aannemers
-• Eigen admin waarop hij zelf nieuwe werven kan toevoegen
-• Mobile-first — zijn klanten bekijken offertes vanaf de werf
-
-Vaste prijs, in 3 weken klaar. Geen Webflow, geen WordPress, gewoon goed gebouwd.
-
-Ken je een B2B-bedrijf dat zijn site al jaren niet meer durft te updaten? Stuur ze door.`,
-      hashtags: "",
-      site: "mari-lines.be",
-    }),
-  },
-  {
-    id: "showcase-barbotte-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [2, 5],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: barbotte.vercel.app",
-      body: `Bar'Botte Waregem — een van de horeca-zaken waar ik dit jaar de site voor bouwde.
-
-Wat doet hij?
-• Menu + dagsuggesties die ze zélf bijwerken (geen Photoshop-pdf meer)
-• Reservatie rechtstreeks op de site
-• Foto's automatisch geoptimaliseerd (geen 5MB-blunder)
-• Laadt in <1s op mobiel — belangrijk, want 70%+ horeca-zoekopdrachten gebeuren op telefoon
-
-Vaste prijs, opgeleverd in 3 weken. Eigen admin, geen maandkost-truc.
-
-Ken je een horeca-zaak die nog op een trage Squarespace of WordPress zit? Studio-vm.be → gratis scan.`,
-      hashtags: "",
-      site: "barbotte.vercel.app",
-    }),
-  },
-  {
-    id: "showcase-cottage-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3, 4],
-    category: "showcase",
-    build: () => ({
-      title: "Site die ik maakte: cottage-waregem.vercel.app",
-      body: `Cottage Waregem — brasserie met eventruimte. Site door mij gebouwd: cottage-waregem.vercel.app.
-
-Drie modules in één site:
-1. Restaurant — menu's, dagsuggesties, reserveren
-2. Eventruimte — aanvraag voor recepties, familiefeesten, B2B-events
-3. Galerie van de zaak en eerdere events
-
-Zelf gebouwd in moderne code (geen WordPress-plugin-soep), eigen admin voor wijzigingen, laadtijd <1 seconde.
-
-Vaste prijs vanaf de Starter-formule. Geen maandelijkse "service-factuur" voor niets.
-
-Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
-      hashtags: "",
-      site: "cottage-waregem.vercel.app",
-    }),
-  },
-
-  // ============================================================================
-  // CASE-STUDY — LinkedIn deep-dives (1 per sector, 5 stuks)
-  // ============================================================================
-  {
-    id: "case-marilines-li",
+    id: "tip-stelsel-be-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/kennis/coordinatenstelsels",
+    days: [1, 3],
+    category: "tip",
+    build: () => ({
+      title: "Lambert 72 of Lambert 2008? Eén keuze, groot verschil",
+      body: `Lambert 72 of Lambert 2008 — op het plan lijkt het een detail. Op de werf is het het verschil tussen een model dat meteen klopt en een machine die het model niet terugvindt.
+
+Een verkeerd stelsel geeft zelden een foutmelding. Het model wordt gewoon ingelezen, maar ligt op de verkeerde plaats of op de verkeerde hoogte. En een hoogtefout van enkele centimeters valt op het scherm in de cabine niet op.
+
+Daarom vraag ik bij elke opdracht na:
+• in welk stelsel het plan getekend is;
+• welke hoogtereferentie (TAW/DNG);
+• in welk stelsel de machine werkt, en of er een lokale werfkalibratie is.
+
+En vóór de start: altijd controleren op een gekend punt, in ligging én hoogte.
+
+Meer over stelsels per land: studio-vm.be/nl/kennis`,
+      hashtags: `${HT_NL} #Lambert72`,
+      kaart: "/3d/trace-luchtfoto.jpg",
+    }),
+  },
+  {
+    id: "tip-stelsel-europa-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/kennis/coordinatenstelsels",
+    days: [4],
+    category: "tip",
+    build: () => ({
+      title: "Werf over de grens? Dit stelsel staat waarschijnlijk op het plan",
+      body: `Steeds meer aannemers werken over de grens. Elk land heeft zijn eigen coördinatenstelsel en hoogtereferentie, en de machine moet exact hetzelfde gebruiken als het model.
+
+De stelsels die ik het vaakst tegenkom:
+🇧🇪 België — Lambert 72 of 2008, hoogte TAW/DNG
+🇳🇱 Nederland — RD New, hoogte NAP
+🇫🇷 Frankrijk — Lambert-93 of CC42–CC50, hoogte NGF-IGN69
+🇩🇪 Duitsland — ETRS89 / UTM 32 of 33, hoogte DHHN2016
+🇱🇺 Luxemburg — LUREF, hoogte NG95
+🇬🇧 VK — British National Grid, hoogte ODN
+
+Staat het stelsel niet op het plan? Dan stel ik er één voor op basis van de ligging van de werf, en vraag ik bevestiging vóór ik begin.
+
+Een 3D-model nodig voor een werf in het buitenland? studio-vm.be`,
+      hashtags: `${HT_NL} #GNSS`,
+      kaart: "/3d/trace-luchtfoto.jpg",
+    }),
+  },
+  {
+    id: "tip-lijnwerk-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/nl/kennis/lijnwerk-en-breeklijnen",
+    days: [2, 5],
+    category: "tip",
+    build: () => ({
+      title: "Waarom breeklijnen het verschil maken",
+      body: `Een 3D-model is meer dan een wolk hoogtepunten.
+
+Zonder correcte breeklijnen trekt het driehoeksnet dwars door boordstenen, taludkanten en grachten. Op het scherm ziet het er vlot uit — op de werf graaft de machine een afgeronde kant waar een scherpe hoek hoort.
+
+Daarom bouw ik elk model op met lijnwerk:
+✔ assen en kantlijnen
+✔ boordstenen en goten
+✔ taludvoet en -kruin
+✔ grachten en aansluitingen
+
+Dat lijnwerk stuurt het oppervlak én helpt de machinist zich te oriënteren in de cabine.
+
+Voorbeelden: studio-vm.be/nl/realisaties`,
+      hashtags: HT_NL,
+      kaart: "/3d/terrein-lijnwerk.jpg",
+    }),
+  },
+  {
+    id: "tip-aanleveren-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/kennis/wat-aanleveren",
     days: [2],
-    category: "case-study",
+    category: "tip",
     build: () => ({
-      title: "Case — B2B-site voor Mari-Lines",
-      body: `Case: B2B-website voor een wegmarkeringen-bedrijf in Vlaanderen.
+      title: "Wat heb ik nodig voor een 3D-model?",
+      body: `De vraag die ik het vaakst krijg: wat moet ik doorsturen?
 
-🔹 Klant: Mari-Lines (mari-lines.be)
-🔹 Sector: wegmarkeringen — B2B (aannemers, bouwheren, gemeentes)
-🔹 Doel: prospects laten zien wat ze realiseerden + offertes structureren
+Kort: alles wat je zelf voor de uitvoering gebruikt.
+• inplantingsplan met coördinaten
+• lengte- en dwarsprofielen
+• peilen: vloerpeilen, putdeksels, boordstenen
+• opmeting van het bestaande terrein, als die er is
+• details van aansluitingen, opritten en bouwputten
 
-Wat zit erin?
-→ Werkenoverzicht met échte uitgevoerde projecten (geen stockfoto's)
-→ Offerte-aanvraag specifiek voor bouwheren — vragenset afgestemd op project-type
-→ Eigen admin-paneel: nieuwe werven toevoegen in 5 minuten
-→ Mobile-first design — hun klanten kijken vanaf de werf, niet vanaf desk
+DWG of DXF heeft de voorkeur: daar zitten de echte coördinaten in. Een PDF kan ook, maar dan breng ik het plan eerst op schaal en op coördinaten — dat vraagt meer tijd.
 
-Resultaten:
-• PageSpeed 97/100 mobiel
-• Laadtijd 0.9s
-• Vaste prijs vooraf — geen scope-creep-facturen
-• Opgeleverd in 3 weken
+En niet vergeten: in welk stelsel werkt de machine, en welk systeem staat erop?
 
-B2B-sites krijgen vaak een "info-folder"-behandeling. Dat is een gemiste kans — zelfs in technische sectoren beslist een prospect binnen 5 seconden of jouw site vertrouwen wekt.
-
-Studio-vm.be — webstudio Anzegem, voor KMO's in Vlaanderen.`,
-      hashtags:
-        "#b2b #website #kmo #vlaanderen #wegmarkering #digitalisering",
-      site: "mari-lines.be",
+Plannen doorsturen voor een prijs: studio-vm.be/nl/offerte`,
+      hashtags: HT_NL,
+      kaart: "/3d/model-bedrijfsterrein.jpg",
     }),
   },
   {
-    id: "case-celine-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3],
-    category: "case-study",
-    build: () => ({
-      title: "Case — webshop + offerte-flow voor interieurzaak",
-      body: `Case: e-commerce + offerte-flow voor een interieurzaak.
-
-🔹 Klant: Céline Interieur (celineinterieur.com)
-🔹 Sector: interieur (B2C, regionaal)
-🔹 Doel: webshop voor producten + structurele offerte-aanvragen voor maatwerk
-
-Twee verkoopsporen in één site:
-→ Webshop met productcatalogus, voorraad, Mollie-checkout
-→ Offerte-aanvraag-flow voor maatwerk (afmetingen, stijl, budget)
-→ Eigen admin-paneel: ze beheert producten, prijzen, foto's en lopende offertes zelf
-
-Technische kenmerken:
-• PageSpeed 98/100 op mobiel
-• Laadtijd <1 seconde
-• Foto's automatisch geoptimaliseerd (1 product = 1 upload, niet 1 product = 6 formaten)
-• Geen externe plugin-tickets, geen WordPress-updatestress
-
-Vaste prijs vooraf, opgeleverd in 3 weken. Onderhoud klant zelf — hosting <€10/maand bij de provider naar keuze.
-
-Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
-      hashtags: "#ecommerce #interieur #kmo #website #vlaanderen",
-      site: "celineinterieur.com",
-    }),
-  },
-  {
-    id: "case-jp-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [4],
-    category: "case-study",
-    build: () => ({
-      title: "Case — galerie + boekverkoop voor wildlife-fotograaf",
-      body: `Case: portfolio + e-commerce voor wildlife-fotografie.
-
-🔹 Klant: Jean-Paul Montreuil (montreuil.be)
-🔹 Sector: wildlife-fotografie (B2C, internationaal)
-🔹 Doel: galerie laten ademen + boekverkoop + tentoonstellingen-agenda
-
-Voor een fotograaf draait alles om hoe de foto's getoond worden. Daarom:
-→ Galerie met grote responsive beelden + lichte transitions
-→ Vooraf geoptimaliseerde foto's (geen 8MB-bestanden)
-→ Lazy-loading per scroll-stap
-→ Boekverkoop direct via de site (Mollie + verzendmodule)
-→ Eigen agenda voor tentoonstellingen die hij zelf bijhoudt
-
-Resultaten:
-• PageSpeed 96/100 mobiel ondanks zware foto-content
-• Laadtijd 0.7s op de homepage
-• Foto's blijven scherp op alle schermen (1×/2×/3× density)
-
-Voor creatieven die hun werk online willen tonen — vraag NIET aan een WordPress-bouwer om dit te doen. Vraag aan iemand die snapt hoe images werken in moderne browsers.
-
-Studio-vm.be — geen WordPress, geen plugin-stress, eigen admin.`,
-      hashtags: "#fotografie #portfolio #kunstenaar #website #ecommerce",
-      site: "montreuil.be",
-    }),
-  },
-  {
-    id: "case-barbotte-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3],
-    category: "case-study",
-    build: () => ({
-      title: "Case — horeca-site met reservatie-module",
-      body: `Case: restaurant-website met reservaties en dagsuggesties.
-
-🔹 Klant: Bar'Botte Waregem (barbotte.vercel.app)
-🔹 Sector: horeca (B2C, regionaal)
-🔹 Doel: bezoekers zonder telefoongesprek tot een reservatie krijgen
-
-Horeca-sites zien er vaak uit als folders uit 2014. Dat is een gemiste kans:
-→ 70%+ van horeca-zoekopdrachten gebeurt op mobiel
-→ De gemiddelde bezoeker neemt binnen 5 seconden de beslissing om te reserveren of weg te klikken
-→ Reservatie-friction = direct verloren omzet
-
-Wat we deden:
-• Menu's + dagsuggesties beheren via eigen admin (geen Photoshop-pdf-handwerk meer)
-• Reservatie rechtstreeks op de site — geen externe widget die het design verkracht
-• Foto's automatisch geoptimaliseerd (niet 5MB per bord)
-• Laadtijd <1s op mobiel
-
-Vaste prijs vanaf de Starter-formule. Opgeleverd in 3 weken. Geen externe abonnementen voor het "reservatie-systeem".
-
-Studio-vm.be — websites voor zelfstandigen en KMO's in Vlaanderen.`,
-      hashtags: "#horeca #website #vlaanderen #reservatie #kmo",
-      site: "barbotte.vercel.app",
-    }),
-  },
-  {
-    id: "case-cottage-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1],
-    category: "case-study",
-    build: () => ({
-      title: "Case — restaurant + eventruimte in één site",
-      body: `Case: brasserie met eventruimte — twee diensten, één site.
-
-🔹 Klant: Cottage Waregem (cottage-waregem.vercel.app)
-🔹 Sector: horeca + events (B2C + B2B)
-🔹 Doel: bezoekers naar restaurant OF eventruimte sturen zonder ze te verwarren
-
-Uitdaging: een klant zoekt soms een restaurant, soms een eventruimte. Dezelfde site moet beide doelen scherp bedienen — niet half-half.
-
-Oplossing:
-→ Twee duidelijke landing-paths vanaf de homepage
-→ Restaurant-flow: menu's + dagsuggesties + reserveren
-→ Event-flow: aanvraagformulier met type event, aantal personen, gewenste datum
-→ Galerie laat beide werelden zien
-→ Eigen admin: ze beheren alles zelf
-
-Resultaten:
-• PageSpeed 95/100 mobiel
-• Laadtijd onder de seconde
-• Vaste prijs vooraf, opgeleverd in 4 weken (één extra week vs standaard wegens dubbele flow)
-
-Studio-vm.be — geen WordPress, geen externe widgets, eigen admin.`,
-      hashtags: "#horeca #events #website #waregem #kmo",
-      site: "cottage-waregem.vercel.app",
-    }),
-  },
-
-  // ============================================================================
-  // SERVICE-UITLEG — wat je biedt (3 stuks)
-  // ============================================================================
-  {
-    id: "service-healthcheck-fb",
+    id: "tip-controle-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [2, 5],
-    category: "service",
-    build: () => ({
-      title: "Service — Health Check €99",
-      body: `Studio-vm Health Check — voor wie eerst wil weten of hun site echt een probleem heeft, vóór ze investeren in iets nieuws.
-
-€99, eenmalig, geen abonnement.
-
-Wat je krijgt:
-✓ Volledige scan van je site (snelheid, SEO, security, mobile, accessibility)
-✓ Rapport van 5 paginas met concrete bevindingen
-✓ Top 3 fixes die het meeste verschil maken — uitgelegd zodat je bouwer ze meteen kan toepassen
-✓ Vergelijking met je belangrijkste concurrent
-
-Wie heeft hier baat bij?
-→ Zelfstandige die voelt dat de site "iets niet doet" maar niet weet wat
-→ KMO die jaarlijks €1.000+ aan onderhoud betaalt en wil weten of dat terecht is
-→ Bouwers die een second opinion willen op iemand anders' werk
-
-Studio-vm.be → Health Check.`,
-      hashtags: "",
-    }),
-  },
-  {
-    id: "service-migration-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [4],
-    category: "service",
-    build: () => ({
-      title: "Service — WordPress-migratie",
-      body: `Veel KMO-sites in Vlaanderen draaien op WordPress + 23 plugins + €840/jaar "onderhoud" — en de eigenaar durft het dashboard niet meer openen.
-
-Klinkt herkenbaar? Tijd om te migreren.
-
-Wat een migratie bij studio-vm betekent:
-→ Volledige content overzetten (teksten, foto's, structuur, SEO-links blijven werken)
-→ Nieuwe site in moderne code — geen plugins meer
-→ Eigen admin-paneel — alleen wat jij gebruikt, niet 50 menu's die niets doen
-→ Hosting verhuist naar moderne provider — €5-10/maand ipv €70+
-→ Geen "service-abonnement" — eenmalige vaste prijs voor de migratie zelf
-
-Resultaat: site die 5× sneller laadt, lager maandelijks kost, en die je zelf durft aanpassen.
-
-Zit jij vast in WordPress? Studio-vm.be → contact voor een gratis migratie-quote.`,
-      hashtags: "",
-    }),
-  },
-  {
-    id: "service-admin-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/kennis/controle-en-toleranties",
     days: [3],
-    category: "service",
+    category: "tip",
     build: () => ({
-      title: "Service — eigen admin-paneel uitgelegd",
-      body: `Standaard bij élke site die ik bouw: een eigen admin-paneel.
+      title: "Altijd eerst controleren op een gekend punt",
+      body: `Een tip die geld bespaart: laad een nieuw model nooit in om meteen te beginnen graven.
 
-Waarom standard, niet "extra-optie"?
+Controleer eerst, op de werf:
+1️⃣ wordt het project gevonden en geopend?
+2️⃣ ligt het model op de verwachte plaats ten opzichte van de machine?
+3️⃣ klopt de hoogte op een gekend punt?
+4️⃣ zijn alle verwachte lagen aanwezig?
 
-Omdat een site zonder admin = een klant die gegijzeld is door zijn bouwer. Elke spelfout, elke nieuwe prijs, elke gewijzigde openingsuur = ticket, wachttijd, factuur.
+Ik controleer elk model op niveaus en hellingen voor het vertrekt. Maar de laatste controle gebeurt op de werf — met je eigen machine, je eigen kalibratie, je eigen softwareversie.
 
-Een admin-paneel bij mij is anders dan een WordPress-dashboard:
-→ Alleen wat jouw site nodig heeft (niet 50 menu's die niets doen)
-→ Eén pagina per type content (menu's, producten, foto's, prijzen)
-→ Mobiel bruikbaar — je past dingen aan vanop je telefoon
-→ Geen plugin-updates die het kunnen breken
-
-Bij oplevering: halfuurtje training, daarna doe je 't zelf. Vragen blijven gratis — maar de meeste klanten hebben er na 2 weken geen meer.
-
-Studio-vm.be — websites met admin die je écht gebruikt.`,
-      hashtags: "#cms #kmo #websitebeheer #digitalisering #vlaanderen",
-    }),
-  },
-
-  // ============================================================================
-  // POSITIONERING — waar je voor staat (3 stuks)
-  // ============================================================================
-  {
-    id: "positie-wp-li",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [1],
-    category: "positie",
-    build: () => ({
-      title: "Positie — WP-economie kritisch bekeken",
-      body: `Eerlijke observatie na 2 jaar overnames van WordPress-sites voor KMO-klanten:
-
-De gemiddelde WordPress-site die ik overneem heeft:
-→ 23 plugins, waarvan de klant er 4 actief gebruikt
-→ €840/jaar aan "hosting + onderhoud" — terwijl de échte hosting €60/jaar is
-→ Laadtijd 4-7 seconden op mobiel
-→ Een dashboard waar de klant niet aan durft komen uit angst iets stuk te maken
-
-Dat is geen kritiek op WordPress als technologie. Het is kritiek op het ecosysteem dat eromheen ontstaan is — bureaus die klanten in maandkost-abonnementen lokken voor onderhoud dat ze nooit zien.
-
-Mijn alternatief: statisch gegenereerde sites op moderne infrastructuur.
-✓ Laadtijd <1 seconde
-✓ Hosting <€10/maand (klant betaalt direct, ik krijg geen commissie)
-✓ Geen plugins die om aandacht vragen
-✓ Eigen mini-admin alleen voor wat jouw site nodig heeft
-
-Vraag jezelf: wat betaal jij maandelijks, en wat krijg je er concreet voor?`,
-      hashtags: "#wordpress #kmo #hosting #digitalisering #vlaanderen",
+Twee minuten controle tegenover een halve dag herstelwerk.`,
+      hashtags: HT_NL,
+      kaart: "/3d/model-platform-helling.jpg",
     }),
   },
   {
-    id: "positie-prijs-fb",
+    id: "tip-lagen-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3],
-    category: "positie",
+    target_url: "/nl/kennis/wat-is-een-3d-model",
+    days: [1, 4],
+    category: "tip",
     build: () => ({
-      title: "Positie — vaste prijs vooraf",
-      body: `Eén ding dat ik anders doe dan veel collega-bureaus: vaste prijs vooraf.
+      title: "Eén werf, meerdere lagen",
+      body: `Een wegproject of bouwput heeft zelden één ontwerpniveau.
 
-Geen "vanaf €X" met asterisks. Geen "scope-creep"-facturen achteraf. Geen "ja maar als je dit nog wil..."-discussies.
+Voor de machine maak ik per fase een apart oppervlak:
+• uitgravingsniveau of bodem van de bouwput
+• bovenkant (onder)fundering
+• afgewerkt niveau, bv. onderkant verharding
+• taluds, grachten en aansluitingen op het bestaande terrein
 
-Hoe werkt het?
-1. Eerste gesprek (gratis, 30 min) — wat doet je bedrijf, wat moet je site doen
-2. Ik stuur een concrete prijs voor wat we afspraken — vanaf de Starter-formule
-3. Je tekent of niet
-4. Bij ja: ik bouw, je betaalt op oplevering. Geen voorschotten van 50%.
+Zo kiest de machinist in de cabine gewoon de laag waarop hij op dat moment werkt — zonder rekenen, zonder piketten.
 
-Wat ik niet doe:
-✗ Uurfacturen (je weet niet wat je krijgt)
-✗ "Onderhoudscontract" verplicht (€100/maand voor niets)
-✗ Extra "SEO-pakket" verkopen (goede sites doen SEO standaard goed)
-
-Studio-vm.be — vaste prijs, vaste oplevering, geen verrassingen.`,
-      hashtags: "",
+Wat is een 3D-ontwerpmodel precies? studio-vm.be/nl/kennis`,
+      hashtags: HT_NL,
+      kaart: "/3d/driehoeksnet-licht.png",
     }),
   },
   {
-    id: "positie-snelheid-li",
+    id: "tip-pdf-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [4],
-    category: "positie",
-    build: () => ({
-      title: "Positie — waarom snelheid niet onderhandelbaar is",
-      body: `Drie cijfers uit onderzoek van Google + Akamai die élke ondernemer zou moeten kennen:
-
-📊 Bezoekers haken af bij trage sites:
-• 3 seconden laadtijd → 32% bouncerate
-• 5 seconden → 90% bouncerate
-
-📊 1 seconde extra laadtijd = 7% minder conversie (Akamai)
-
-📊 Sites die in <2s laden krijgen 70% meer pageviews per sessie
-
-Wat doet de gemiddelde KMO-site in België? 4-7 seconden op mobiel. Dat is geen kleine inefficiëntie — dat is geld dat je elke dag verliest.
-
-Voor mijn klanten zit ik gemiddeld op 0.8 seconden. Geen toeval, wel bewust gebouwd:
-→ Geen WordPress + 30 plugins
-→ Afbeeldingen vooraf geoptimaliseerd
-→ Hosting op CDN, niet bij goedkope shared-host
-→ Geen tracking-soep van vorige agencies
-
-Test je eigen site: pagespeed.web.dev — typ je URL — mobiele score onder 70 betekent: tijd voor actie.
-
-Studio-vm.be — websites die laden vóór je bezoeker afhaakt.`,
-      hashtags: "#websnelheid #seo #kmo #digitalisering #conversie",
-    }),
-  },
-
-  // ============================================================================
-  // PERSOONLIJK — tone-of-voice (3 stuks)
-  // ============================================================================
-  {
-    id: "persoonlijk-vraag-fb",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/kennis/van-pdf-naar-model",
     days: [5],
-    category: "question",
+    category: "tip",
     build: () => ({
-      title: "Persoonlijk — vraag aan netwerk vrijdag",
-      body: `Vrijdag-vraagje aan m'n netwerk:
+      title: "Enkel een PDF? Dan kan het ook",
+      body: `Niet elk project komt met CAD-bestanden. Soms is er alleen een PDF, of zelfs een papieren plan.
 
-Ken jij een zelfstandige of KMO in Vlaanderen die:
-→ een nieuwe site nodig heeft?
-→ of vastzit met een trage/lelijke/onbeheerbare site?
-→ of te veel betaalt voor hosting + "onderhoud" dat niets oplevert?
+Ook daaruit bouw ik een 3D-model. Het plan wordt eerst op schaal en op coördinaten gebracht, aan de hand van gekende punten of het rooster op de tekening. Daarna volgen het lijnwerk en de oppervlakken, net als bij een DWG.
 
-Tag ze in de comments of stuur een DM. Eén verwijzing van jou kan iemand maandelijks honderden euro's besparen — én een veel betere site geven.
+Twee dingen om te weten:
+• het vraagt meer tijd — dat zie je terug in het geschatte aantal uren in de offerte;
+• de nauwkeurigheid hangt af van het document. Een scan van een papieren plan is minder nauwkeurig dan een digitale PDF.
 
-Studio-vm.be — persoonlijk, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoop-funnel, gewoon werk.
-
-Bedankt op voorhand. De meeste van mijn opdrachten komen via een doorverwijzing.`,
-      hashtags: "",
+Heb je de originele DWG van de ontwerper? Vraag hem altijd op. Het scheelt tijd én centimeters.`,
+      hashtags: HT_NL,
+      kaart: "/3d/terrein-hoogtelijnen-licht.png",
     }),
   },
   {
-    id: "persoonlijk-thanks-fb",
+    id: "tip-volumes-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/kennis/grondverzet-en-volumes",
+    days: [3],
+    category: "tip",
+    build: () => ({
+      title: "Hoeveel grond gaat er af, hoeveel komt er bij?",
+      body: `Een ontwerpmodel stuurt niet alleen de machine. Samen met een opmeting van het bestaande terrein toont het ook waar er afgegraven en waar er aangevuld wordt — en hoeveel.
+
+Handig voor de planning: hoeveel vrachten, waar de grond naartoe kan, of er een tekort is.
+
+Maar: een volumeberekening is zo goed als de opmeting waarop ze steunt. Een oude of onvolledige opmeting geeft een mooi getal dat op de werf niet klopt. En zettingen, losse grond en verdichting zitten er niet in.
+
+Meer daarover: studio-vm.be/nl/kennis`,
+      hashtags: `${HT_NL} #grondverzet`,
+      kaart: "/3d/relief-grondwerk-licht.png",
+    }),
+  },
+  {
+    id: "tip-merken-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/kennis/bestanden-per-merk",
+    days: [2, 4],
+    category: "tip",
+    build: () => ({
+      title: "Trimble, Topcon, Leica, Unicontrol… één model, elk zijn formaat",
+      body: `Op Belgische werven draaien verschillende merken machinesturing: Trimble, Topcon, Leica, Unicontrol, CHCNAV — en de systemen die Komatsu en Caterpillar af fabriek inbouwen.
+
+Elk systeem leest zijn eigen bestanden, en zelfs binnen één merk verschilt het per softwareversie.
+
+Daarom vraag ik bij elke opdracht: welk systeem en welke versie staat op de machine? Het model wordt geleverd in precies dat formaat.
+
+Huur je een machine in met een ander systeem? Dan lever ik hetzelfde model ook in dat formaat — zonder meerprijs. Zo volgen twee machines op dezelfde werf exact hetzelfde ontwerp.`,
+      hashtags: `${HT_NL} #Trimble #Topcon #Leica #Unicontrol`,
+      kaart: "/3d/driehoeksnet-licht.png",
+    }),
+  },
+
+  // ---------- Realisaties ----------
+  {
+    id: "showcase-realisatie-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/realisaties",
+    days: [1, 3, 5],
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie();
+      return {
+        title: `Realisatie — ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT[r.cat]} ${r.nl.titel} (${r.nl.cat.toLowerCase()})
+
+${r.nl.tekst}
+
+Van plan naar een model dat de machine meteen kan inladen: ontwerpoppervlak, lijnwerk en hoogtelijnen, in het juiste coördinatenstelsel.
+
+Meer voorbeelden: studio-vm.be/nl/realisaties`,
+        hashtags: HT_NL,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "showcase-wegenis-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/realisaties",
+    days: [2],
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie("wegenis");
+      return {
+        title: `Wegenis — ${r.nl.titel}`,
+        body: `Uit de werkplaats: ${r.nl.titel.toLowerCase()}.
+
+${r.nl.tekst}
+
+Bij wegenis zit de nauwkeurigheid in de details: verkanting in de bochten, aansluitingen op bestaande wegen, boordstenen en goten op het juiste peil. Elk van die lijnen komt in het model, zodat de grader of graafmachine exact weet waar het ontwerp van richting verandert.
+
+Benieuwd hoe zo'n model eruitziet voor jouw werf? studio-vm.be/nl/realisaties`,
+        hashtags: `${HT_NL} #wegenis`,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "showcase-bouwput-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/nl/realisaties",
     days: [4],
-    category: "question",
-    build: () => ({
-      title: "Persoonlijk — dankjewel-post",
-      body: `Soms goed om het hardop te zeggen:
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie("bouwput");
+      return {
+        title: `Bouwput — ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.bouwput} ${r.nl.titel}
 
-Studio-vm bestaat dankzij familie en vrienden die als eersten "ja" zeiden. Mijn zus Céline. Mijn vader. Een paar oud-collega's. Vrienden die mij doorverwezen.
+${r.nl.tekst}
 
-Elke site die ik tegenwoordig bouw is — direct of indirect — het gevolg van iemand die zei "Vincent doet dat, contacteer 'm eens."
+Bodem op niveau, taluds op de juiste helling, putten en sleuven elk op hun eigen diepte — de machinist ziet in de cabine meteen hoeveel er nog af moet.
 
-Dus: dank u. Voor iedereen die ooit een doorverwijzing deed, een DM beantwoordde, een testimonial schreef, of gewoon op een post een like gaf.
+Geen piketten, geen uitzetwerk, geen discussie over het peil.
 
-Als je iemand kent die een website nodig heeft of vastzit met de huidige — laat 't weten. Eén tag, één DM, één doorgestuurde URL. Zo blijft dit groeien.
-
-Studio-vm.be — persoonlijk, in Anzegem, voor heel Vlaanderen.`,
-      hashtags: "",
-    }),
+Meer voorbeelden: studio-vm.be/nl/realisaties`,
+        hashtags: HT_NL,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
   },
   {
-    id: "persoonlijk-eigen-site-fb",
+    id: "showcase-grondwerk-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/realisaties",
+    days: [1, 5],
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie("grondwerk");
+      return {
+        title: `Grondwerk — ${r.nl.titel}`,
+        body: `Realisatie: ${r.nl.titel.toLowerCase()}.
+
+${r.nl.tekst}
+
+Platformen op verschillende niveaus, overgangstaluds, funderingsputten op eigen diepte: in een 3D-model zit dat allemaal in één bestand, per laag te kiezen in de cabine.
+
+Het resultaat: minder meetwerk op de werf en een machinist die rechtstreeks op hoogte werkt.
+
+Meer realisaties: studio-vm.be/nl/realisaties`,
+        hashtags: HT_NL,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "showcase-terrein-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1, 3],
+    target_url: "/nl/realisaties",
+    days: [2],
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie("terrein");
+      return {
+        title: `Terreinmodel — ${r.nl.titel}`,
+        body: `${EMOJI_PER_CAT.terrein} ${r.nl.titel}
+
+${r.nl.tekst}
+
+Een goed model van de bestaande toestand is de basis: daarop sluit het ontwerp aan, en daarmee zie je hoeveel grond er af moet of bij komt.
+
+Meer voorbeelden: studio-vm.be/nl/realisaties`,
+        hashtags: HT_NL,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
+  },
+  {
+    id: "showcase-uitgelicht-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/nl/realisaties",
+    days: [3],
     category: "showcase",
     build: () => ({
-      title: "Eigen site studio-vm.be",
-      body: `Een eerlijk principe dat ik mezelf opleg: mijn eigen site moet doen wat ik aan klanten predik.
+      title: "Eén model, vier weergaven",
+      body: `Een groot werkvlak met een raster van funderingsstroken, elk op zijn eigen niveau.
 
-Resultaat: studio-vm.be
+Hetzelfde model, vier manieren om het te bekijken:
+• hoogtekleuren — waar ligt wat hoger of lager
+• helling — watert elke strook correct af?
+• hoogtelijnen — leesbaar zoals op een klassiek plan
+• driehoeksnet — het oppervlak waarop de machine effectief stuurt
 
-→ Laadt in 0.6 seconden op mobiel
-→ PageSpeed 100/100 (alle categorieën)
-→ Eigen admin-paneel waarmee ik alles aanpas zonder code aan te raken
-→ Hosting? €8/maand
-→ Onderhoud? Geen abonnement, geen factuur, geen ticket
+De hellingskaart is een vaste controle vóór levering: een strook die verkeerd afwatert, valt daar meteen op.
 
-Als ik dit voor mezelf doe, doe ik het ook voor jou.
-
-Wil je weten hoe jouw site scoort tegen deze? pagespeed.web.dev → typ je URL — kijk eerlijk naar de score.`,
-      hashtags: "",
-      site: "studio-vm.be",
+Bekijk de vier weergaven: studio-vm.be/nl/realisaties`,
+      hashtags: HT_NL,
+      beeld: "/3d/r/p-libramont-helling-licht.webp",
+      kaart: "/3d/model-platform-helling.jpg",
     }),
   },
 
-  // ============================================================================
-  // BONUS — favesan migratie-tease (1 stuk)
-  // ============================================================================
+  // ---------- Tarieven & werkwijze ----------
   {
-    id: "service-favesan-fb",
-    platform: "facebook",
+    id: "service-tarieven-li",
+    platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [4],
+    target_url: "/nl/tarieven",
+    days: [1],
     category: "service",
     build: () => ({
-      title: "favesan migratie-tease",
-      body: `Klein "behind the scenes":
+      title: "Eerlijke uurtarieven, vooraf geschat",
+      body: `Hoe reken ik een 3D-model aan? Per uur modelleerwerk, met vooraf een schatting in de offerte.
 
-favesan.be — een van de sites die nog op WordPress + one.com draait, en op de roadmap staat om gemigreerd te worden naar mijn moderne stack.
+📅 Vroegtijdig (meer dan 3 weken op voorhand): ${eur("vroegtijdig")}/u
+🗓️ Normaal (levering binnen 1 à 3 weken): ${eur("normaal")}/u
+⚡ Last-minute (levering binnen 5 werkdagen): ${eur("last-minute")}/u
 
-Wat zegt dat over WordPress-economie?
-• Huidige hosting + onderhoud bij one.com: gemiddeld €15-25/maand
-• Site laadt traag, achterkant is een dashboard-jungle
-• Updates worden uitgesteld uit angst dat plugins breken
+Alle prijzen excl. btw, minimum ${MINIMUM_UREN} uur.
 
-Na migratie:
-✓ Eigen mini-admin (alleen wat de site nodig heeft)
-✓ Hosting elders voor <€10/maand
-✓ Laadtijd onder 1 seconde
-✓ Eenmalige vaste migratieprijs, daarna geen abonnementsval meer
+Altijd inbegrepen: ontwerpoppervlak, lijnwerk en hoogtelijnen, het juiste coördinatenstelsel, controle vóór levering, en levering voor al je machinesturingen — meerdere systemen zonder meerprijs.
 
-Zit jij ook in een one.com / WordPress / Wix-fuik? Studio-vm.be → migratiequote.`,
-      hashtags: "",
-      site: "favesan.be",
+Hoe vroeger je aanvraagt, hoe voordeliger. studio-vm.be/nl/tarieven`,
+      hashtags: HT_NL,
+      kaart: "/3d/model-parking.jpg",
     }),
   },
-
-  // ---------- 2. FB persoonlijk — site-speed tip ----------
   {
-    id: "fb-tip-pagespeed",
+    id: "service-lastminute-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [3], // woensdag
-    category: "tip",
-    build: ({ dayName }) => ({
-      title: `Tip — pagespeed test (${dayName})`,
-      body: `Snelle ${dayName}ochtend-tip voor zelfstandigen:
+    target_url: "/nl/offerte",
+    days: [2, 4],
+    category: "service",
+    build: () => ({
+      title: "Plan gewijzigd en de machine staat al klaar?",
+      body: `Het overkomt elke aannemer: een planwijziging, een werf die vroeger start, een model dat ontbreekt.
 
-Ga naar pagespeed.web.dev → typ jouw website-URL in → kijk naar je mobiele score.
+Daarvoor is er last-minute: levering binnen 5 werkdagen, aan ${eur("last-minute")}/u excl. btw.
 
-Onder 70? Je verliest Google-bezoekers — die ranking-factor is reëel sinds Core Web Vitals (2021).
+Stuur de plannen door: je krijgt eerst een offerte met het geschatte aantal uren, pas daarna begin ik eraan.
 
-De drie meest voorkomende oorzaken die ik tegenkom bij overnames:
-1️⃣ Onverkleinde foto's (3 MB ipv 80 KB)
-2️⃣ Tien tracking-scripts die elk een halve seconde kosten
-3️⃣ WordPress-thema's met 47 plugins waar je 6 van gebruikt
-
-Een goede site doet 90+ op mobiel. Mijn klanten zitten allemaal boven 95.
-
-Wil je weten of jouw site OK is? Health Check voor €99 — ik scan, schrijf 't rapport, en geef je 3 concrete fixes. Geen abonnement, eenmalig.`,
-      hashtags: "",
+👉 studio-vm.be/nl/offerte`,
+      hashtags: HT_NL,
+      kaart: "/3d/weg-trace-licht.png",
     }),
   },
-
-  // ---------- 3. FB persoonlijk — admin-paneel-voordeel ----------
   {
-    id: "fb-tip-admin",
+    id: "service-vroegtijdig-fb",
     platform: "facebook",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1, 5], // maandag of vrijdag
-    category: "tip",
-    build: ({ client }) => ({
-      title: "Tip — admin-paneel hoort standaard",
-      body: `"Ik moet bellen om een tekst aan te passen."
-
-Hoor ik te vaak. En het hoort niet zo.
-
-Élke site die ik bouw krijgt een eigen admin-paneel — dezelfde technologie die ik voor mijn eigen studio-vm.be gebruik. Klanten passen teksten, foto's, prijzen, openingsuren zelf aan. Geen ticket, geen wachttijd, geen extra factuur.
-
-Voor ${client.name} (${client.site}) → eigen admin met ${client.sector === "horeca" ? "menu's, dag-suggesties en reservaties" : client.sector === "interieur" ? "producten, prijzen en offerte-aanvragen" : "alles wat ze willen tonen"} die ze in een minuut kunnen wijzigen.
-
-Dat is geen luxe — dat is gewoon zoals 't moet.
-
-Als jouw huidige webbouwer je een uurtje aanrekent voor een spelfout, ben je gegijzeld. Kijk eens of er geen alternatief is.`,
-      hashtags: "",
-    }),
-  },
-
-  // ---------- 4. FB persoonlijk — vraag aan netwerk ----------
-  {
-    id: "fb-question-network",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [5], // vrijdag
-    category: "question",
+    target_url: "/nl/tarieven",
+    days: [1],
+    category: "service",
     build: () => ({
-      title: "Vraag aan netwerk — vrijdag",
-      body: `Vrijdag-vraagje aan m'n netwerk:
+      title: "Vroeg aanvragen loont",
+      body: `Weet je nu al welke werven er de komende maanden starten? Vraag het 3D-model dan vroegtijdig aan.
 
-Ken jij een zelfstandige of KMO in Vlaanderen die:
-→ een nieuwe site nodig heeft?
-→ of vastzit met een trage/lelijke/onbeheerbare site?
-→ of gewoon te veel betaalt voor hosting + "onderhoud"?
+Meer dan 3 weken op voorhand: ${eur("vroegtijdig")}/u in plaats van ${eur("normaal")}/u (excl. btw).
 
-Tag ze in de comments of stuur een DM. Eén verwijzing van jou kan iemand maandelijks honderden euro's besparen.
+Het model staat klaar in je klantenportaal wanneer de machine op de werf komt, met elke revisie erbij.
 
-Studio-vm.be — persoonlijk, vaste prijs, eigen admin-paneel, laadtijd onder 1 seconde. Geen verkoopspraat, gewoon werk.
-
-Bedankt op voorhand — de meeste van mijn opdrachten komen zo via een doorverwijzing.`,
-      hashtags: "",
+Tarieven: studio-vm.be/nl/tarieven`,
+      hashtags: HT_NL,
+      kaart: "/3d/model-platform-hoogte.jpg",
     }),
   },
-
-  // ---------- 5. FB persoonlijk — case-story Bar'Botte/horeca ----------
   {
-    id: "fb-case-horeca",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [2, 3], // di/woe
-    category: "case-study",
-    build: () => ({
-      title: "Case — horeca-sites",
-      body: `Twee horeca-sites die ik dit jaar live zette:
-
-→ Bar'Botte Waregem (barbotte.vercel.app) — bar/bistro met dagsuggesties en reservatiemodule
-→ Cottage Waregem (cottage-waregem.vercel.app) — restaurant met menu's en eventruimte
-
-Beide vorige sites waren op WordPress + traag + niemand in huis kon ze aanpassen.
-
-Nieuwe sites:
-✓ Onder 1s laadtijd op mobiel
-✓ Eigen admin om menu's & dagsuggesties zelf te wisselen
-✓ Reserveren rechtstreeks op de site
-✓ Foto's optimaal en automatisch verkleind
-
-Vaste prijs. Klaar in 3 weken.
-
-Horeca-zaak in West-/Oost-Vlaanderen die met haar website worstelt? Stuur een DM, of doe eerst de gratis scan op studio-vm.be om te zien hoe je huidige site scoort.`,
-      hashtags: "",
-    }),
-  },
-
-  // ============================================================================
-  // LinkedIn templates — meer professional, langere vorm
-  // ============================================================================
-
-  // ---------- 6. LinkedIn — story/observation ----------
-  {
-    id: "li-story-2years",
+    id: "service-meersystemen-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [2], // dinsdag (peak LI day)
-    category: "story",
-    build: () => ({
-      title: "LinkedIn — 2 jaar observation",
-      body: `Wat ik in 2 jaar websites-bouwen voor KMO's in Vlaanderen geleerd heb:
-
-→ Snelheid is geen luxe meer. Google's Core Web Vitals straffen trage sites af in de zoekresultaten. Mijn klanten laden in ~0.8 seconden — versus 4-6 seconden bij de gemiddelde KMO-site. Dat verschil is letterlijk meetbaar in organisch verkeer.
-
-→ Onderhoud hoort niet maandelijks geld te kosten. Een statische site op moderne infrastructuur draait voor minder dan €10/maand. Wie je €100+/maand vraagt zonder dat er iets gebeurt, melkt je.
-
-→ Klanten moeten zelf hun inhoud kunnen wijzigen. Elke site die ik bouw heeft een eigen admin-paneel. Geen ticket meer naar de bouwer voor een spelfout.
-
-→ Vaste prijs is moedig, maar correct. Ik werk niet op uurbasis. Je krijgt een prijs voor wat je krijgt — geen verrassingen achteraf.
-
-Studio-vm.be is mijn webstudio in Anzegem. Geen tussenpersonen, geen WordPress-bouwpakket, geen sales-funnel.
-
-Wie heeft een KMO of zelfstandige in z'n netwerk die met website-frustratie zit?`,
-      hashtags:
-        "#websiteontwikkeling #kmo #vlaanderen #digitalisering #zelfstandige",
-    }),
-  },
-
-  // ---------- 7. LinkedIn — tip/educational ----------
-  {
-    id: "li-tip-corewebvitals",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [3], // woensdag
-    category: "tip",
-    build: () => ({
-      title: "LinkedIn — Core Web Vitals uitgelegd",
-      body: `"Wat zijn Core Web Vitals en moet ik me daar als KMO druk over maken?"
-
-Korte versie: ja.
-
-Google meet sinds 2021 drie performance-cijfers op elke site:
-• LCP (Largest Contentful Paint) — hoe snel de hoofdinhoud zichtbaar is
-• INP (Interaction to Next Paint) — hoe snel je site reageert op een klik
-• CLS (Cumulative Layout Shift) — hoeveel je layout "springt" tijdens laden
-
-Site die hier slecht op scoort = lager in zoekresultaten = minder organisch verkeer = minder leads.
-
-Gratis check: pagespeed.web.dev → typ je URL in → mobiele score onder 70 = je hebt werk.
-
-Voor mijn klanten zit ik systematisch boven 95. Dat is geen toeval — dat is bewust gebouwd zonder WordPress-overhead, met afbeeldingen geoptimaliseerd, en zonder 12 trackers van vroegere agencies.
-
-Wil je weten waar jij staat? Studio-vm Health Check voor €99 — concreet rapport + 3 fixes die het verschil maken.`,
-      hashtags: "#corewebvitals #seo #kmo #webperformance #digitalisering",
-    }),
-  },
-
-  // ---------- 8. LinkedIn — case-study showcase ----------
-  {
-    id: "li-case-showcase",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [4], // donderdag
-    category: "case-study",
-    build: ({ client, altClient }) => ({
-      title: `LinkedIn — case ${client.name}`,
-      body: `Twee recente projecten die ik zelf opleverde:
-
-🔹 ${client.name} → ${client.site}
-   Sector: ${client.sector}
-   Stack: zelf gebouwd in moderne code, eigen admin-paneel
-   Laadtijd: < 1 seconde
-   Onderhoud: < €10/maand
-
-🔹 ${altClient.name} → ${altClient.site}
-   Sector: ${altClient.sector}
-   Vergelijkbaar setup — vaste prijs, oplevering in weken, niet maanden
-
-Wat verschilt mijn aanpak van een typisch web-bureau?
-
-1. Geen WordPress-bouwpakket. Ik bouw vanaf nul in code die ik volledig begrijp.
-2. Klanten krijgen geen "WordPress-dashboard met 50 plugins" — wel een minimalistisch admin-paneel speciaal voor hen.
-3. Vaste prijs vooraf. Geen "scope-creep"-facturen.
-4. Persoonlijk contact: jij praat met wie de site bouwt. Geen account-manager als tussenstap.
-
-Ik werk vanuit Anzegem en bedien KMO's in Vlaanderen. Wie zit met een website-vraag in z'n netwerk?`,
-      hashtags: "#kmo #vlaanderen #website #waregem #ondernemen",
-    }),
-  },
-
-  // ---------- 9. LinkedIn — industry observation ----------
-  {
-    id: "li-observation-wp",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [1], // maandag
-    category: "tip",
-    build: () => ({
-      title: "LinkedIn — WP-economie observation",
-      body: `Eerlijke observatie uit 2 jaar overnames van WordPress-sites voor KMO-klanten:
-
-De gemiddelde WordPress-site die ik overneem heeft:
-→ 23 plugins, waarvan de klant er 4 actief gebruikt
-→ €840/jaar aan "hosting + onderhoud" voor wat in realiteit €60/jaar moet kosten
-→ Laadtijd 4-7 seconden (mobiel)
-→ Een dashboard waar de klant niet aan durft komen uit angst iets stuk te maken
-
-Dat is geen kritiek op WordPress als technologie — het is wel kritiek op het ecosysteem dat eromheen ontstaan is: bureaus die klanten in maandkost-abonnementen lokken voor onderhoud dat ze nooit zien.
-
-Mijn alternatief voor KMO's: statisch gegenereerde sites op moderne infrastructuur. Resultaat:
-✓ Laadtijd < 1 seconde
-✓ Hosting < €10/maand (klant betaalt direct, ik krijg geen commissie)
-✓ Geen plugins die op je dashboard om aandacht vragen
-✓ Eigen mini-admin alleen voor wat jouw site nodig heeft
-
-Vraag jezelf eens af wat je vandaag maandelijks betaalt — en wat je daarvoor in de plaats krijgt.`,
-      hashtags: "#wordpress #kmo #websitehosting #digitalisering #vlaanderen",
-    }),
-  },
-
-  // ---------- 10. LinkedIn — process / behind-scenes ----------
-  {
-    id: "li-process",
-    platform: "linkedin",
-    post_kind: "persoonlijk",
-    target_url: "/",
-    days: [3, 5],
-    category: "story",
-    build: () => ({
-      title: "LinkedIn — hoe een project loopt",
-      body: `Hoe een typisch project bij studio-vm loopt — voor wie nieuwsgierig is:
-
-Week 0 — Eerste gesprek (30 min, gratis)
-We bespreken: wat doet je bedrijf, voor wie, en wat moet je site doen? Geen sales-funnel.
-
-Week 1 — Concept + ontwerp
-Ik stuur je 2-3 ontwerprichtingen. Je kiest, we verfijnen.
-
-Week 2 — Bouw
-Ik bouw de site. Je krijgt elke dag een preview-link.
-
-Week 3 — Admin-training + content
-Ik zet samen met jou alle teksten/foto's/prijzen erin. Daarna krijg jij toegang tot het admin-paneel — een halfuurtje training en je doet 't zelf.
-
-Week 3 of 4 — Live
-Domein omschakelen, e-mail-check, Google Analytics aanzetten, klaar.
-
-Wat ik niet doe:
-× Geen "scope-creep"-facturen achteraf
-× Geen "onderhoudscontract" van €100/maand voor niks
-× Geen verkoop van extra "SEO-pakketten" die niets doen
-
-Vaste prijs. Concreet werk. Wie wil starten? DM of via studio-vm.be.`,
-      hashtags: "#projectmanagement #kmo #websiteproject #waregem #ondernemen",
-    }),
-  },
-
-  // ---------- 11. FB persoonlijk — milestone/personal ----------
-  {
-    id: "fb-personal-thanks",
-    platform: "facebook",
-    post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/3d-modellen",
     days: [5],
-    category: "story",
+    category: "service",
     build: () => ({
-      title: "FB — persoonlijke noot",
-      body: `Soms is 't goed om dit hardop te zeggen:
+      title: "Twee merken op één werf? Geen meerprijs",
+      body: `Een eigen graafmachine met Trimble, een ingehuurde dozer met Topcon, een onderaannemer met Unicontrol. Op veel werven draait meer dan één systeem.
 
-Studio-vm bestaat dankzij familie en vrienden die als eersten "ja" zeiden. Mijn zus Céline. Mijn vader. Een paar oud-collega's. Vrienden die mij doorverwezen.
+Het onderliggende model is identiek — alleen de verpakking verschilt. Daarom lever ik hetzelfde model voor elk systeem dat je opgeeft, zonder meerprijs.
 
-Elke site die ik tegenwoordig bouw is — direct of indirect — het gevolg van iemand die ergens zei "Vincent doet dat, contacteer 'm eens."
+Zo volgen alle machines op de werf exact hetzelfde ontwerp, en is er geen discussie over wie op welk peil gewerkt heeft.
 
-Dus: dank u. Voor iedereen die ooit een doorverwijzing deed, een DM beantwoordde, een testimonial schreef, of gewoon op een post een like gaf.
+studio-vm.be/nl/3d-modellen`,
+      hashtags: `${HT_NL} #Trimble #Topcon #Unicontrol`,
+      kaart: "/3d/driehoeksnet-licht.png",
+    }),
+  },
+  {
+    id: "service-portaal-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/nl/3d-modellen",
+    days: [3],
+    category: "service",
+    build: () => ({
+      title: "Elke revisie op één plek",
+      body: `Planwijziging na planwijziging — en welke versie staat nu eigenlijk op de machine?
 
-Als je iemand kent die een website nodig heeft of vastzit met de huidige — laat 't weten. Eén tag, één DM, één doorgestuurde URL. Dat is hoe dit blijft groeien.
+Bij elk model krijg je een eigen klantenportaal: daar download je de bestanden, met elke revisie apart. Revisies na een planwijziging gebeuren aan hetzelfde uurtarief.
 
-Studio-vm.be — persoonlijk, in Anzegem, voor heel Vlaanderen.`,
-      hashtags: "",
+Geen zoekwerk in mailboxen, geen verouderde versie op de USB-stick.
+
+studio-vm.be/nl/3d-modellen`,
+      hashtags: HT_NL,
+      kaart: "/3d/terrein-hoogtekleuren.jpg",
     }),
   },
 
-  // ---------- 12. LinkedIn — concrete numbers / proof ----------
+  // ---------- Positionering ----------
   {
-    id: "li-numbers-2026",
+    id: "positie-landmeter-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/",
+    target_url: "/nl/3d-modellen",
     days: [4],
-    category: "tip",
+    category: "positie",
     build: () => ({
-      title: "LinkedIn — concrete cijfers",
-      body: `Voor wie nog twijfelt of "snelle site" écht een verschil maakt — drie cijfers uit Google's eigen onderzoek:
+      title: "Waarom een landmeter je 3D-modellen maakt",
+      body: `Een 3D-model voor machinesturing is landmeetkunde: coördinatenstelsels, hoogtereferenties, kalibraties, toleranties.
 
-📊 Bezoekers haken af bij 3+ seconden laadtijd:
-• 3s → 32% bouncerate
-• 5s → 90% bouncerate
+Als landmeter werk ik dagelijks met die vragen. Daarom kijk ik bij elk model niet alleen of het oppervlak klopt, maar ook of het in het juiste stelsel staat, of de hoogtes aansluiten op de peilen van het plan en of de hellingen afwateren zoals bedoeld.
 
-📊 1 seconde extra laadtijd = 7% minder conversie (Akamai)
+Wat ik lever: een model dat je machine meteen kan inladen.
+Wat bij jou blijft: de werfkalibratie, de instellingen van de machine en de controle op de werf.
 
-📊 Sites die in <2s laden krijgen 70% meer pageviews per sessie
+Duidelijke afspraken, geen verrassingen. studio-vm.be`,
+      hashtags: HT_NL,
+      kaart: "/3d/trace-weg.jpg",
+    }),
+  },
+  {
+    id: "positie-geen-piketten-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/nl/3d-modellen",
+    days: [5],
+    category: "positie",
+    build: () => ({
+      title: "Minder piketten, meer graven",
+      body: `Met een goed 3D-model op de machine:
+✔ geen piketten die omver gereden worden
+✔ geen wachten op uitzetwerk
+✔ de machinist ziet in centimeters hoeveel er nog af moet
+✔ taluds en hellingen in één beweging juist
 
-Wat doet de gemiddelde KMO-site in België? 4-7 seconden op mobiel. Dat is geen kleine inefficiëntie — dat is geld dat je elke dag verliest.
+Het model is de basis. Klopt het model, dan klopt het werk.
 
-Voor mijn klanten zit ik op 0.8 seconden gemiddeld. Geen toeval, wel bewust gebouwd:
-→ Geen WordPress + 30 plugins
-→ Afbeeldingen vooraf geoptimaliseerd
-→ Hosting op CDN (geen shared-hosting bij goedkope BE-provider)
-
-Dat is geen "extra service" — dat hoort gewoon standaard te zijn.
-
-Test je site: pagespeed.web.dev. Bel mij niet — kijk eerst zelf naar de score.`,
-      hashtags: "#websnelheid #seo #kmo #digitalisering #conversie",
+Plannen doorsturen: studio-vm.be/nl/offerte`,
+      hashtags: HT_NL,
+      kaart: "/3d/model-talud-helling.jpg",
     }),
   },
 
-  // ---------- 13. FB groep — generic value-first ----------
+  // ---------- Vragen aan de doelgroep ----------
   {
-    id: "fb-group-tips",
+    id: "question-systeem-fb",
     platform: "facebook",
     post_kind: "group",
-    target_url: "/nl/health-check",
-    days: [2, 4],
-    category: "tip",
+    target_url: "/nl/3d-modellen",
+    days: [2],
+    category: "question",
     build: () => ({
-      title: "FB groep — 3 tips voor zelfstandigen",
-      body: `Vraag aan de zelfstandigen hier — hoeveel betaal je per maand voor je website?
+      title: "Met welk systeem werk jij?",
+      body: `Vraag aan de grondwerkers en wegenbouwers hier: met welk machinesturingssysteem werk je?
 
-Drie problemen die ik het vaakst tegenkom bij overnames:
+Trimble? Topcon? Leica? Unicontrol? CHCNAV? Of af fabriek op je Komatsu of Cat?
 
-1️⃣ Site laadt 4-8 seconden op mobiel. Google straft dit af, bezoekers haken af. Goede sites doen <1.5s. Test op pagespeed.web.dev.
+En wat loopt er het vaakst mis als je een nieuw model inlaadt — het stelsel, de hoogte, de bestandsnamen?
 
-2️⃣ "Ik moet bellen om een tekst te wijzigen." Geen eigen admin-paneel = je bent gegijzeld door je webbouwer.
-
-3️⃣ €50-150/maand voor "hosting + onderhoud" terwijl de échte hosting €5/maand kost. Verschil = pure marge voor 't bureau.
-
-Geen verkooppraatje hier — doe gewoon die pagespeed-test en kijk wat je betaalt versus krijgt.
-
-Wie zit met vragen? Comments staan open.
-
-— Vincent (studio-vm.be — webstudio Anzegem)`,
+Benieuwd naar jullie ervaringen. 👇`,
       hashtags: "",
+      kaart: "/3d/driehoeksnet-licht.png",
     }),
   },
-
-  // ---------- 14. LinkedIn — micro-tip (kort) ----------
   {
-    id: "li-microtip",
+    id: "question-planning-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/",
-    days: [1, 3, 5],
-    category: "tip",
+    target_url: "/nl/offerte",
+    days: [1],
+    category: "question",
     build: () => ({
-      title: "LinkedIn — korte micro-tip",
-      body: `KMO-tip in 30 seconden gelezen:
+      title: "Wanneer vraag jij je 3D-model aan?",
+      body: `Een vraag aan aannemers en werfleiders: wanneer vraag je het 3D-model voor een werf aan?
 
-Als je vandaag een offerte krijgt voor een nieuwe website, vraag deze 3 dingen vóór je tekent:
+Bij de opdracht, weken op voorhand? Of pas als de machine al op de werf staat?
 
-1. "Krijg ik een eigen admin-paneel waarmee ik zelf teksten/foto's/prijzen kan aanpassen?"
-2. "Wat is de maandelijkse kost en wat krijg ik daarvoor in ruil?"
-3. "Wie is technisch eigenaar van de site — ik of jullie?"
+In de praktijk zie ik beide. Daarom werk ik met drie tarieven: vroegtijdig (${eur("vroegtijdig")}/u), normaal (${eur("normaal")}/u) en last-minute binnen 5 werkdagen (${eur("last-minute")}/u), telkens excl. btw.
 
-Drie ja's = je kan vooruit.
-Eén "ja maar…" = onderhandel of zoek verder.
-
-Bij studio-vm zijn alle drie antwoorden standaard ja.`,
-      hashtags: "#websiteoffer #kmo #ondernemerstips",
+Hoe pakken jullie dat aan? Ik lees graag mee in de reacties.`,
+      hashtags: HT_NL,
+      kaart: "/3d/weg-kruispunt-licht.png",
     }),
   },
 
-  // ---------- 15. FB persoonlijk — direct CTA ----------
+  // ---------- Frans (Wallonië / Frankrijk) ----------
   {
-    id: "fb-cta-direct",
-    platform: "facebook",
+    id: "tip-stelsel-fr-li",
+    platform: "linkedin",
     post_kind: "persoonlijk",
-    target_url: "/nl/health-check",
-    days: [4],
+    target_url: "/fr/kennis/coordinatenstelsels",
+    taal: "fr",
+    days: [2],
     category: "tip",
     build: () => ({
-      title: "FB — direct CTA Health Check",
-      body: `Snelle vraag — is jouw site:
-□ Sneller dan 2 seconden op mobiel?
-□ Aanpasbaar door jezelf (zonder bouwer te bellen)?
-□ Kost minder dan €30/maand om te draaien?
+      title: "Lambert 72 ou Lambert 2008 ? Un détail qui coûte cher",
+      body: `Lambert 72 ou Lambert 2008 : sur le plan, cela ressemble à un détail. Sur chantier, c'est la différence entre un modèle qui tombe juste et une machine qui ne le retrouve pas.
 
-Drie vinkjes? Top, ga zo door.
+Un mauvais système ne donne presque jamais de message d'erreur. Le modèle se charge, mais il est décalé — en plan ou en altitude. Et quelques centimètres d'écart ne se voient pas sur l'écran en cabine.
 
-Géén drie vinkjes? Tijd voor een Health Check (€99): ik scan je site, schrijf een rapport van 5 paginas met 3 concrete fixes, en je weet exact waar je staat. Geen abonnement, geen vervolgcontract.
+Pour chaque mission, je vérifie :
+• le système dans lequel le plan est dessiné ;
+• la référence altimétrique (DNG/TAW) ;
+• le système de la machine, et s'il y a une calibration locale.
 
-studio-vm.be → Health Check.
+Et avant de commencer : toujours contrôler sur un point connu.
 
-Voor wie eerst gratis wil testen: pagespeed.web.dev geeft je in 30 seconden je score.`,
-      hashtags: "",
+Plus d'infos : studio-vm.be/fr/kennis`,
+      hashtags: HT_FR,
+      kaart: "/3d/trace-luchtfoto.jpg",
     }),
+  },
+  {
+    id: "service-tarifs-fr-li",
+    platform: "linkedin",
+    post_kind: "persoonlijk",
+    target_url: "/fr/tarieven",
+    taal: "fr",
+    days: [4],
+    category: "service",
+    build: () => ({
+      title: "Des tarifs horaires clairs, estimés à l'avance",
+      body: `Comment je facture un modèle 3D ? À l'heure de modélisation, avec une estimation dans le devis.
+
+📅 Anticipé (plus de 3 semaines à l'avance) : ${eur("vroegtijdig", "fr")}/h
+🗓️ Normal (livraison sous 1 à 3 semaines) : ${eur("normaal", "fr")}/h
+⚡ Urgent (livraison sous 5 jours ouvrables) : ${eur("last-minute", "fr")}/h
+
+Hors TVA, minimum ${MINIMUM_UREN} heure. Toujours inclus : surface, lignes et courbes de niveau, le bon système de coordonnées, contrôle avant livraison et livraison pour tous vos systèmes de guidage, sans supplément.
+
+studio-vm.be/fr/tarieven`,
+      hashtags: HT_FR,
+      kaart: "/3d/model-parking.jpg",
+    }),
+  },
+  {
+    id: "showcase-realisation-fr-fb",
+    platform: "facebook",
+    post_kind: "persoonlijk",
+    target_url: "/fr/realisaties",
+    taal: "fr",
+    days: [5],
+    category: "showcase",
+    build: (ctx) => {
+      const r = ctx.realisatie();
+      return {
+        title: `Réalisation — ${r.fr.titel}`,
+        body: `${EMOJI_PER_CAT[r.cat]} ${r.fr.titel} (${r.fr.cat.toLowerCase()})
+
+${r.fr.tekst}
+
+Du plan à un modèle que la machine charge directement : surface de conception, lignes et courbes de niveau, dans le bon système de coordonnées.
+
+Plus d'exemples : studio-vm.be/fr/realisaties`,
+        hashtags: HT_FR,
+        beeld: r.beeld,
+        kaart: r.kaart,
+      };
+    },
   },
 ];
 
@@ -1287,7 +902,9 @@ export function pickTemplatesForDay(
   if (candidates.length < n) {
     candidates = TEMPLATES.filter((t) => !recent.has(t.id));
   }
-  // 3. Mix per platform: probeer 50/50 verdeling tussen FB en LinkedIn
+  // 3. Nog steeds te weinig (alles recent gebruikt)? Dan alles.
+  if (candidates.length < n) candidates = [...TEMPLATES];
+  // 4. Mix per platform: probeer 50/50 verdeling tussen FB en LinkedIn
   const fb = candidates.filter((t) => t.platform === "facebook");
   const li = candidates.filter((t) => t.platform === "linkedin");
   const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
@@ -1297,7 +914,7 @@ export function pickTemplatesForDay(
   let fi = 0;
   let li2 = 0;
   for (let i = 0; i < n; i++) {
-    // Alterneren — bij voorkeur FB-FB-LI of FB-LI-FB
+    // Alterneren — bij voorkeur FB-LI-FB
     const pickFb = i === 0 || i === 2;
     if (pickFb && fi < fbShuf.length) out.push(fbShuf[fi++]);
     else if (li2 < liShuf.length) out.push(liShuf[li2++]);
@@ -1306,20 +923,8 @@ export function pickTemplatesForDay(
   return out;
 }
 
-// Hulp — kies 2 verschillende klanten uit PORTFOLIO voor variatie binnen 1 dag.
-export function pickClients(): {
-  client: TemplateCtx["client"];
-  altClient: TemplateCtx["altClient"];
-} {
-  const shuffled = [...PORTFOLIO].sort(() => Math.random() - 0.5);
-  return {
-    client: shuffled[0]!,
-    altClient: shuffled[1]!,
-  };
-}
-
-// Hulp — kies de story-case voor vandaag (één per werkdag).
-// Vrijdag alterneert: even weken → Bar'Botte, oneven → Cottage.
+// Hulp — kies de story voor vandaag (één per werkdag).
+// Vrijdag alterneert: even weken → tarief, oneven → last-minute.
 export function pickStoryCaseForDay(
   dayOfWeek: number, // 1=ma, 5=vr
   weekNumber: number = 0,
@@ -1329,6 +934,5 @@ export function pickStoryCaseForDay(
   );
   if (candidates.length === 0) return null;
   if (candidates.length === 1) return candidates[0]!;
-  // Vrijdag: alterneren tussen Bar'Botte (even) en Cottage (oneven)
   return weekNumber % 2 === 0 ? candidates[0]! : candidates[1]!;
 }
