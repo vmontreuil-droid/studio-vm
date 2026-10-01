@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n";
@@ -22,22 +23,20 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
   const m = getMessages(locale);
+  // Geen canonical hier: elke pagina zet haar eigen adres + taalvarianten
+  // (zie talen() in lib/seo). Op layoutniveau zou elke pagina zonder eigen
+  // alternates naar de startpagina wijzen.
   return {
+    metadataBase: new URL(SITE),
     title: m.meta.title,
     description: m.meta.description,
     openGraph: {
       title: m.meta.title,
       description: m.meta.description,
-      url: "https://studio-vm.be",
+      url: `${SITE}/${locale}`,
       siteName: m.meta.siteName,
       locale: m.meta.locale,
       type: "website",
-    },
-    alternates: {
-      canonical: `https://studio-vm.be/${locale}`,
-      languages: Object.fromEntries(
-        LOCALES.map((l) => [l, `https://studio-vm.be/${l}`]),
-      ),
     },
   };
 }

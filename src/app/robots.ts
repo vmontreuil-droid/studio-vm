@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
+import { SITE } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/portail/dashboard"],
+      disallow: ["/admin", "/*/portail/dashboard", "/*/factuur/"],
     },
-    sitemap: "https://studio-vm.be/sitemap.xml",
+    sitemap: `${SITE}/sitemap.xml`,
   };
 }

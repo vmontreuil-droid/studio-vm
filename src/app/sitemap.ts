@@ -1,8 +1,18 @@
 import type { MetadataRoute } from "next";
 import { KENNIS } from "@/lib/kennis";
 import { LOCALES } from "@/lib/i18n/config";
+import { SITE } from "@/lib/seo";
 
-const BASE = "https://studio-vm.be";
+// Elke pagina bestaat in alle talen; elke vermelding verwijst ook naar
+// haar anderstalige versies (hreflang), zodat zoekmachines ze koppelen.
+function varianten(pad: string) {
+  return {
+    languages: {
+      ...Object.fromEntries(LOCALES.map((l) => [l, `${SITE}/${l}${pad}`])),
+      "x-default": `${SITE}/nl${pad}`,
+    },
+  };
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -23,19 +33,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const paginas = paths.flatMap((path) =>
     LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}${path}`,
+      url: `${SITE}/${locale}${path}`,
       lastModified: now,
       changeFrequency: (belangrijk.has(path) ? "weekly" : "monthly") as "weekly" | "monthly",
       priority: path === "" ? 1 : belangrijk.has(path) ? 0.9 : 0.5,
+      alternates: varianten(path),
     })),
   );
 
   const kennis = KENNIS.flatMap((a) =>
     LOCALES.map((locale) => ({
-      url: `${BASE}/${locale}/kennis/${a.slug}`,
+      url: `${SITE}/${locale}/kennis/${a.slug}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+      alternates: varianten(`/kennis/${a.slug}`),
     })),
   );
 
