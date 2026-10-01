@@ -45,6 +45,7 @@ const FL: Record<
     modellen: string;
     werkwijze: string;
     realisaties: string;
+    tarieven: string;
     offerte: string;
     kennis: string;
     kennisbank: string;
@@ -59,6 +60,7 @@ const FL: Record<
     modellen: "Wat ik lever",
     werkwijze: "Werkwijze",
     realisaties: "Realisaties",
+    tarieven: "Tarieven",
     offerte: "Offerte aanvragen",
     kennis: "Kennis",
     kennisbank: "Kennisbank",
@@ -72,6 +74,7 @@ const FL: Record<
     modellen: "Ce que je livre",
     werkwijze: "Méthode",
     realisaties: "Réalisations",
+    tarieven: "Tarifs",
     offerte: "Demander un devis",
     kennis: "Savoir",
     kennisbank: "Base de connaissances",
@@ -85,6 +88,7 @@ const FL: Record<
     modellen: "What I deliver",
     werkwijze: "How it works",
     realisaties: "Projects",
+    tarieven: "Rates",
     offerte: "Request a quote",
     kennis: "Knowledge",
     kennisbank: "Knowledge base",
@@ -106,6 +110,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         { href: localePath(locale, "/3d-modellen"), label: fl.modellen },
         { href: localePath(locale, "/#werkwijze"), label: fl.werkwijze },
         { href: localePath(locale, "/realisaties"), label: fl.realisaties },
+        { href: localePath(locale, "/tarieven"), label: fl.tarieven },
         { href: localePath(locale, "/offerte"), label: fl.offerte },
       ],
     },

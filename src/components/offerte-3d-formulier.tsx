@@ -17,6 +17,7 @@ import {
 import { uploadPlekken, dienAanvraagIn } from "@/app/actions/offerte-3d";
 import { LANDEN, stelselVoor, isLand } from "@/lib/stelsel";
 import type { Locale } from "@/lib/i18n/config";
+import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 
 const MERKEN = ["Trimble", "Topcon", "Leica", "Unicontrol", "CHCNAV", "Komatsu", "Caterpillar"];
 
@@ -412,6 +413,9 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
                 <input type="radio" name="categorie" value={c.id} defaultChecked={i === 1} required className="sr-only" />
                 <span className="block font-semibold tracking-tight">{c.titel}</span>
                 <span className="mt-1 block text-sm text-muted">{c.tekst}</span>
+                <span className="mt-3 block font-mono text-xs text-accent">
+                  {euro(UURTARIEF_CENT[c.id as Categorie], locale)} / {locale === "fr" ? "h" : locale === "en" ? "hr" : "uur"} · {locale === "fr" ? "HTVA" : locale === "en" ? "excl. VAT" : "excl. btw"}
+                </span>
               </label>
             ))}
           </div>
