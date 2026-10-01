@@ -17,6 +17,7 @@ import { isEmail, sendMail } from "@/lib/monitor";
 import { siteUrl } from "@/lib/supabase/config";
 import { isLand, stelselVoor, type StelselVoorstel } from "@/lib/stelsel";
 import { ensurePortalUser } from "@/lib/portal-access";
+import { zoekWerf } from "@/lib/geocode";
 
 const BUCKET = "plannen";
 const MAX_BESTANDEN = 15;
@@ -57,32 +58,6 @@ export async function uploadPlekken(
     plekken.push({ naam: b.naam, pad, url: data.signedUrl });
   }
   return { ok: true, plekken, map };
-}
-
-type Geo = { lat: number; lon: number; label: string } | null;
-
-async function zoekWerf(straat: string, postcode: string, gemeente: string, land: string): Promise<Geo> {
-  // OpenStreetMap Nominatim — laag volume, met verplichte User-Agent.
-  const q = new URLSearchParams({
-    format: "json",
-    limit: "1",
-    countrycodes: land.toLowerCase(),
-    ...(straat ? { street: straat } : {}),
-    postalcode: postcode,
-    city: gemeente,
-  });
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?${q}`, {
-      headers: { "User-Agent": "studio-vm.be offerte (info@studio-vm.be)" },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!r.ok) return null;
-    const j = (await r.json()) as { lat: string; lon: string; display_name: string }[];
-    if (!j[0]) return null;
-    return { lat: Number(j[0].lat), lon: Number(j[0].lon), label: j[0].display_name };
-  } catch {
-    return null;
-  }
 }
 
 export type AanvraagResultaat = { ok: true } | { ok: false; fout: "ongeldig" | "opslag" };
@@ -164,6 +139,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
           lat: geo?.lat ?? null,
           lon: geo?.lon ?? null,
           gevonden: geo?.label ?? null,
+          nauwkeurigheid: geo?.nauwkeurigheid ?? null,
         },
         stelsel,
         eigenStelsel: v.eigenStelsel || null,

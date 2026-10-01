@@ -32,6 +32,7 @@ import {
   type Taal,
 } from "@/lib/projecten-teksten";
 import { authGebruiker, klantGegevens, volgendNummer } from "@/lib/projecten-admin";
+import { zoekWerf } from "@/lib/geocode";
 
 const MODEL_MAX = 200 * 1024 * 1024; // 200 MB per modelbestand
 const PLAN_MAX = 50 * 1024 * 1024; // 50 MB per plan (limiet bucket 'plannen')
@@ -78,29 +79,6 @@ async function bijwerken(id: string, velden: Record<string, unknown>) {
     .from("projecten")
     .update({ ...velden, updated_at: new Date().toISOString() })
     .eq("id", id);
-}
-
-async function zoekWerf(straat: string, postcode: string, gemeente: string, land: string) {
-  // OpenStreetMap Nominatim — laag volume, met verplichte User-Agent.
-  const q = new URLSearchParams({
-    format: "json",
-    limit: "1",
-    countrycodes: land.toLowerCase(),
-    ...(straat ? { street: straat } : {}),
-    ...(postcode ? { postalcode: postcode } : {}),
-    city: gemeente,
-  });
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?${q}`, {
-      headers: { "User-Agent": "studio-vm.be admin (info@studio-vm.be)" },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!r.ok) return null;
-    const j = (await r.json()) as { lat: string; lon: string }[];
-    return j[0] ? { lat: Number(j[0].lat), lon: Number(j[0].lon) } : null;
-  } catch {
-    return null;
-  }
 }
 
 /** Mail naar de klant in zijn taal, met een knop naar het project. Faalt stil. */
@@ -162,7 +140,7 @@ export async function maakProject(fd: FormData): Promise<void> {
   if (!titel) redirect("/admin/projecten/nieuw?fout=titel");
   if (!gemeente || !isLand(land)) redirect("/admin/projecten/nieuw?fout=werf");
 
-  const geo = await zoekWerf(straat, postcode, gemeente, land);
+  const geo = await zoekWerf(straat, postcode, gemeente, land, "admin");
   const stelsel = stelselVoor(land as Parameters<typeof stelselVoor>[0], geo?.lat ?? null, geo?.lon ?? null);
 
   // Portaaltoegang + profiel; de taal bewaren we op het account zodat
@@ -249,8 +227,8 @@ export async function bewaarWerf(fd: FormData): Promise<void> {
     werf.postcode !== (oud.postcode ?? "") ||
     werf.gemeente !== (oud.gemeente ?? "") ||
     werf.land !== (oud.land ?? "");
-  if (adresGewijzigd && werf.gemeente && isLand(werf.land)) {
-    const geo = await zoekWerf(werf.straat, werf.postcode, werf.gemeente, werf.land);
+  if ((adresGewijzigd || werf.lat == null) && werf.gemeente && isLand(werf.land)) {
+    const geo = await zoekWerf(werf.straat, werf.postcode, werf.gemeente, werf.land, "admin");
     werf.lat = geo?.lat ?? null;
     werf.lon = geo?.lon ?? null;
   }
