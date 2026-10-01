@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
+import { KOPBEELD } from "@/components/kennis-illustraties";
 import { KENNIS } from "@/lib/kennis";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 
@@ -60,15 +61,10 @@ export default async function KennisPage({ params }: { params: Promise<{ locale:
                 href={localePath(locale, `/kennis/${a.slug}`)}
                 className="group flex flex-col overflow-hidden rounded-3xl border bg-card transition-colors hover:border-accent"
               >
-                {a.beeld ? (
-                  <div className="relative aspect-[16/9] overflow-hidden bg-[#0b1220]">
-                    <Image src={a.beeld} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                  </div>
-                ) : (
-                  <div className="flex aspect-[16/9] items-center justify-center bg-accent/5">
-                    <Icoon className="h-12 w-12 text-accent" strokeWidth={1} />
-                  </div>
-                )}
+                <div className="relative aspect-[16/9] overflow-hidden bg-card">
+                  <Image src={KOPBEELD[a.slug].licht} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <Image src={KOPBEELD[a.slug].donker} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
+                </div>
                 <div className="flex flex-1 flex-col p-6">
                   <h2 className="flex items-start gap-2 font-semibold tracking-tight">
                     <Icoon className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={1.5} />

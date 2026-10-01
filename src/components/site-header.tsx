@@ -13,11 +13,12 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
   const home = localePath(locale, "/");
   const L = {
-    nl: { modellen: '3D-modellen', werkwijze: 'Werkwijze', realisaties: 'Realisaties', tarieven: 'Tarieven', kennis: 'Kennisbank', offerte: 'Offerte aanvragen' },
-    fr: { modellen: 'Modèles 3D', werkwijze: 'Méthode', realisaties: 'Réalisations', tarieven: 'Tarifs', kennis: 'Savoir', offerte: 'Demander un devis' },
-    en: { modellen: '3D models', werkwijze: 'How it works', realisaties: 'Projects', tarieven: 'Rates', kennis: 'Knowledge', offerte: 'Request a quote' },
+    nl: { home: 'Home', modellen: '3D-modellen', werkwijze: 'Werkwijze', realisaties: 'Realisaties', tarieven: 'Tarieven', kennis: 'Kennisbank', offerte: 'Offerte aanvragen' },
+    fr: { home: 'Accueil', modellen: 'Modèles 3D', werkwijze: 'Méthode', realisaties: 'Réalisations', tarieven: 'Tarifs', kennis: 'Savoir', offerte: 'Demander un devis' },
+    en: { home: 'Home', modellen: '3D models', werkwijze: 'How it works', realisaties: 'Projects', tarieven: 'Rates', kennis: 'Knowledge', offerte: 'Request a quote' },
   }[locale];
   const items = [
+    { href: home, label: L.home },
     { href: localePath(locale, '/3d-modellen'), label: L.modellen },
     { href: localePath(locale, '/#werkwijze'), label: L.werkwijze },
     { href: localePath(locale, '/realisaties'), label: L.realisaties },

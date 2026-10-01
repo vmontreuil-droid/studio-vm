@@ -7,6 +7,7 @@ import { KENNIS, kennisArtikel } from "@/lib/kennis";
 import { CtaBanner } from "@/components/cta-banner";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
+import { ILLUSTRATIES, KOPBEELD } from "@/components/kennis-illustraties";
 
 const T: Record<Locale, { terug: string; verder: string; cta: { eyebrow: string; titel: string; sub: string; knop: string } }> = {
   nl: { terug: "Kennisbank", verder: "Volgend artikel", cta: { eyebrow: "Klaar om te starten?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Laad uw plannen op, geef het werfadres en kies uw machinesturingen.", knop: "Offerte aanvragen" } },
@@ -54,13 +55,12 @@ export default async function ArtikelPage({ params }: { params: Promise<{ locale
           </p>
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{x.titel}</h1>
           <p className="mt-6 text-xl leading-relaxed text-muted">{x.samenvatting}</p>
-          {a.beeld && (
-            <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-3xl border bg-[#0b1220]">
-              <Image src={a.beeld} alt="" fill priority sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
-            </div>
-          )}
+          <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-3xl border bg-card">
+            <Image src={KOPBEELD[slug].licht} alt="" fill priority sizes="(max-width: 768px) 100vw, 768px" className="alleen-licht object-cover" />
+            <Image src={KOPBEELD[slug].donker} alt="" fill priority sizes="(max-width: 768px) 100vw, 768px" className="alleen-donker object-cover" />
+          </div>
           <div className="mt-12 space-y-12">
-            {x.secties.map((s) => (
+            {x.secties.map((s, si) => (
               <section key={s.kop}>
                 <h2 className="text-2xl font-semibold tracking-tight">{s.kop}</h2>
                 <div className="mt-4 space-y-4 text-lg leading-relaxed text-muted">
@@ -78,6 +78,9 @@ export default async function ArtikelPage({ params }: { params: Promise<{ locale
                     ))}
                   </ul>
                 )}
+                {(ILLUSTRATIES[slug] ?? []).filter((il) => il.naSectie === si).map((il, k) => (
+                  <div key={k}>{il.render(locale)}</div>
+                ))}
               </section>
             ))}
           </div>
