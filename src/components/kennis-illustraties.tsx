@@ -114,17 +114,17 @@ function Breeklijn({ l }: { l: Locale }) {
           <line x1="90" y1="70" x2="90" y2="125" stroke={ACC} strokeWidth={2.5} />
           <circle cx="90" cy="110" r={4.5} fill={ACC} />
           <circle cx="90" cy="80" r={4.5} fill={ACC} />
-          <text x="98" y="128" style={{ ...klein, fill: ACC }}>{tx(l, { nl: "breeklijn", fr: "ligne de rupture", en: "breakline", de: "Bruchkante", es: "línea de ruptura" })}</text>
+          <text x="98" y="104" style={{ ...klein, fill: ACC }}>{tx(l, { nl: "breeklijn", fr: "ligne de rupture", en: "breakline", de: "Bruchkante", es: "línea de ruptura" })}</text>
         </>
       )}
       {!met && <text x="40" y="70" style={{ ...klein, fill: "#ef4444" }}>{tx(l, { nl: "afgeschuinde rand ✗", fr: "bord biseauté ✗", en: "bevelled edge ✗", de: "abgeschrägte Kante ✗", es: "borde biselado ✗" })}</text>}
     </g>
   );
   return (
-    <svg viewBox="0 0 540 170" className="w-full" role="img" aria-label="breeklijn">
+    <svg viewBox="0 0 540 180" className="w-full" role="img" aria-label="breeklijn">
       {paneel(20, false, tx(l, { nl: "Zonder breeklijn", fr: "Sans ligne de rupture", en: "Without breakline", de: "Ohne Bruchkante", es: "Sin línea de ruptura" }))}
       {paneel(290, true, tx(l, { nl: "Met breeklijn", fr: "Avec ligne de rupture", en: "With breakline", de: "Mit Bruchkante", es: "Con línea de ruptura" }))}
-      <text x="20" y="160" style={klein}>{tx(l, { nl: "Doorsnede rijbaan → boordsteen → voetpad. Stippellijn = juiste vorm.", fr: "Coupe chaussée → bordure → trottoir. Pointillé = forme correcte.", en: "Section road → kerb → footpath. Dotted = correct shape.", de: "Schnitt Fahrbahn → Bordstein → Gehweg. Gestrichelt = richtige Form.", es: "Sección calzada → bordillo → acera. Discontinua = forma correcta." })}</text>
+      <text x="20" y="172" style={klein}>{tx(l, { nl: "Doorsnede rijbaan → boordsteen → voetpad. Stippellijn = juiste vorm.", fr: "Coupe chaussée → bordure → trottoir. Pointillé = forme correcte.", en: "Section road → kerb → footpath. Dotted = correct shape.", de: "Schnitt Fahrbahn → Bordstein → Gehweg. Gestrichelt = richtige Form.", es: "Sección calzada → bordillo → acera. Discontinua = forma correcta." })}</text>
     </svg>
   );
 }
@@ -144,14 +144,14 @@ function StelselVerschuiving({ l }: { l: Locale }) {
       <path d={vorm} transform="translate(120,75)" fill="#22c55e" fillOpacity={0.6} stroke="currentColor" strokeWidth={1.5} />
       <text x="110" y="162" style={klein}>{tx(l, { nl: "juist stelsel ✓", fr: "bon système ✓", en: "right system ✓", de: "richtiges System ✓", es: "sistema correcto ✓" })}</text>
       <path d={vorm} transform="translate(360,40)" fill="#ef4444" fillOpacity={0.55} stroke="currentColor" strokeWidth={1.5} />
-      <text x="350" y="125" style={klein}>{tx(l, { nl: "verkeerd stelsel ✗", fr: "mauvais système ✗", en: "wrong system ✗", de: "falsches System ✗", es: "sistema erróneo ✗" })}</text>
+      <text x="405" y="122" textAnchor="middle" style={klein}>{tx(l, { nl: "verkeerd stelsel ✗", fr: "mauvais système ✗", en: "wrong system ✗", de: "falsches System ✗", es: "sistema erróneo ✗" })}</text>
       <path d="M220 100 C270 80 300 70 350 70" fill="none" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 4" markerEnd="url(#pijl)" />
       <defs>
         <marker id="pijl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
           <path d="M0 0 L10 5 L0 10 z" fill="#ef4444" />
         </marker>
       </defs>
-      <text x="232" y="122" style={{ ...klein, fill: "#ef4444" }}>{tx(l, { nl: "meters tot km naast de werf", fr: "de mètres à km à côté", en: "metres to km off site", de: "Meter bis km daneben", es: "de metros a km fuera" })}</text>
+      <text x="340" y="44" textAnchor="end" style={{ ...klein, fill: "#ef4444" }}>{tx(l, { nl: "meters tot km naast de werf", fr: "de mètres à km à côté", en: "metres to km off site", de: "Meter bis km daneben", es: "de metros a km fuera" })}</text>
     </svg>
   );
 }
@@ -265,29 +265,39 @@ function Aanleveren({ l }: { l: Locale }) {
 
 /* ── 8. Controle op een gekend punt ──────────────────────────────────── */
 function Controlepunt({ l }: { l: Locale }) {
+  // Richtpunt als tekening; de stappen als gewone tekst ernaast, zodat lange
+  // vertalingen netjes afbreken in plaats van buiten het kader te lopen.
+  const stappen = [
+    { nl: "Zet de bak of rover op een gekend punt", fr: "Placez le godet ou la canne sur un point connu", en: "Put the bucket or rover on a known point", de: "Löffel oder Rover auf einen bekannten Punkt setzen", es: "Coloque el cazo o el rover en un punto conocido" },
+    { nl: "Vergelijk ligging én hoogte met het model", fr: "Comparez position et altitude au modèle", en: "Compare position and height with the model", de: "Lage und Höhe mit dem Modell vergleichen", es: "Compare posición y cota con el modelo" },
+    { nl: "Binnen de tolerantie? Dan kan u starten", fr: "Dans la tolérance ? Vous pouvez démarrer", en: "Within tolerance? Then you can start", de: "Innerhalb der Toleranz? Dann kann es losgehen", es: "¿Dentro de la tolerancia? Puede empezar" },
+    { nl: "Erbuiten? Eerst stelsel/kalibratie nakijken", fr: "Hors tolérance ? Vérifiez système/calibration", en: "Outside? Check system/calibration first", de: "Außerhalb? Erst System/Kalibrierung prüfen", es: "¿Fuera? Revise antes sistema/calibración" },
+  ];
   return (
-    <svg viewBox="0 0 540 200" className="w-full" role="img" aria-label="controle">
-      <g transform="translate(150,100)">
-        <circle r="70" fill={ACC} fillOpacity={0.06} stroke={ACC} strokeDasharray="4 4" />
-        <circle r="40" fill={ACC} fillOpacity={0.1} stroke={ACC} />
-        <circle r="5" fill="currentColor" />
-        <line x1="-85" y1="0" x2="85" y2="0" stroke={MUT} strokeOpacity={0.5} />
-        <line x1="0" y1="-85" x2="0" y2="85" stroke={MUT} strokeOpacity={0.5} />
-        <circle cx="18" cy="-14" r="5" fill="#22c55e" />
-        <text x="26" y="-18" style={{ ...klein, fill: "#16a34a" }}>✓</text>
-      </g>
-      <g transform="translate(270,40)">
-        <text x="0" y="0" style={lbl} fontWeight={600}>{tx(l, { nl: "Vóór de start", fr: "Avant de commencer", en: "Before you start", de: "Vor dem Start", es: "Antes de empezar" })}</text>
-        {[
-          { nl: "1. Zet de bak of rover op een gekend punt", fr: "1. Placez le godet ou la canne sur un point connu", en: "1. Put the bucket or rover on a known point", de: "1. Löffel oder Rover auf einen bekannten Punkt setzen", es: "1. Coloque el cazo o el rover en un punto conocido" },
-          { nl: "2. Vergelijk ligging én hoogte met het model", fr: "2. Comparez position et altitude au modèle", en: "2. Compare position and height with the model", de: "2. Lage und Höhe mit dem Modell vergleichen", es: "2. Compare posición y cota con el modelo" },
-          { nl: "3. Binnen de tolerantie? Dan kan u starten", fr: "3. Dans la tolérance ? Vous pouvez démarrer", en: "3. Within tolerance? Then you can start", de: "3. Innerhalb der Toleranz? Dann kann es losgehen", es: "3. ¿Dentro de la tolerancia? Puede empezar" },
-          { nl: "4. Erbuiten? Eerst stelsel/kalibratie nakijken", fr: "4. Hors tolérance ? Vérifiez système/calibration", en: "4. Outside? Check system/calibration first", de: "4. Außerhalb? Erst System/Kalibrierung prüfen", es: "4. ¿Fuera? Revise antes sistema/calibración" },
-        ].map((r, i) => (
-          <text key={i} x="0" y={30 + i * 26} style={{ ...lbl, fontSize: 12.5 }}>{tx(l, r)}</text>
-        ))}
-      </g>
-    </svg>
+    <div className="grid items-center gap-6 sm:grid-cols-[minmax(0,200px)_1fr]">
+      <svg viewBox="0 0 200 200" className="mx-auto w-full max-w-[200px]" role="img" aria-label={tx(l, { nl: "controle op een gekend punt", fr: "contrôle sur un point connu", en: "check on a known point", de: "Kontrolle an einem bekannten Punkt", es: "control en un punto conocido" })}>
+        <g transform="translate(100,100)">
+          <circle r="70" fill={ACC} fillOpacity={0.06} stroke={ACC} strokeDasharray="4 4" />
+          <circle r="40" fill={ACC} fillOpacity={0.1} stroke={ACC} />
+          <circle r="5" fill="currentColor" />
+          <line x1="-85" y1="0" x2="85" y2="0" stroke={MUT} strokeOpacity={0.5} />
+          <line x1="0" y1="-85" x2="0" y2="85" stroke={MUT} strokeOpacity={0.5} />
+          <circle cx="18" cy="-14" r="5" fill="#22c55e" />
+          <text x="26" y="-18" style={{ ...klein, fill: "#16a34a" }}>✓</text>
+        </g>
+      </svg>
+      <div>
+        <p className="text-sm font-semibold">{tx(l, { nl: "Vóór de start", fr: "Avant de commencer", en: "Before you start", de: "Vor dem Start", es: "Antes de empezar" })}</p>
+        <ol className="mt-3 space-y-2.5 text-sm">
+          {stappen.map((r, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/10 font-mono text-[11px] font-semibold text-accent">{i + 1}</span>
+              <span className="pt-0.5">{tx(l, r)}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
   );
 }
 
