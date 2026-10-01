@@ -222,22 +222,43 @@ function Aanleveren({ l }: { l: Locale }) {
     { t: { nl: "Lengteprofiel", fr: "Profil en long", en: "Long section", de: "Längsprofil", es: "Perfil longitudinal" }, s: "PDF / DWG", must: true },
     { t: { nl: "Dwarsprofielen", fr: "Profils en travers", en: "Cross sections", de: "Querprofile", es: "Perfiles transv." }, s: "PDF / DWG", must: true },
     { t: { nl: "Bestaande opmeting", fr: "Levé existant", en: "Existing survey", de: "Bestandsaufmaß", es: "Levantamiento" }, s: "DXF / LandXML", must: false },
-    { t: { nl: "Stelsel + hoogte", fr: "Système + altitude", en: "System + height", de: "System + Höhe", es: "Sistema + cota" }, s: "Lambert / RD / UTM…", must: false },
+    { t: { nl: "Stelsel + hoogte", fr: "Système + altitude", en: "System + height", de: "System + Höhe", es: "Sistema + cota" }, s: "EPSG / TAW / NAP", must: false },
+  ];
+  // Lange namen over twee regels, zodat buren elkaar nooit raken.
+  const regels = (t: string) => {
+    if (t.length <= 14 || !t.includes(" ")) return [t];
+    const midden = t.length / 2;
+    const spaties = [...t].flatMap((c, k) => (c === " " ? [k] : []));
+    const k = spaties.reduce((a, b) => (Math.abs(b - midden) < Math.abs(a - midden) ? b : a));
+    return [t.slice(0, k), t.slice(k + 1)];
+  };
+  const legende = [
+    { kleur: ACC, t: { nl: "Nodig", fr: "Nécessaire", en: "Required", de: "Erforderlich", es: "Necesario" } },
+    { kleur: MUT, t: { nl: "Indien beschikbaar", fr: "Si disponible", en: "If available", de: "Falls vorhanden", es: "Si está disponible" } },
   ];
   return (
-    <svg viewBox="0 0 540 160" className="w-full" role="img" aria-label="aanleveren">
+    <svg viewBox="0 0 540 200" className="w-full" role="img" aria-label={tx(l, { nl: "Wat u aanlevert", fr: "Ce que vous fournissez", en: "What you supply", de: "Was Sie liefern", es: "Lo que usted aporta" })}>
       {docs.map((d, i) => {
         const x = 10 + i * 106;
+        const r = regels(tx(l, d.t));
         return (
           <g key={i} transform={`translate(${x},10)`}>
             <path d="M0 0 h68 l18 18 v92 h-86 z" fill="var(--background)" stroke={d.must ? ACC : MUT} strokeWidth={1.6} />
             <path d="M68 0 v18 h18" fill="none" stroke={d.must ? ACC : MUT} strokeWidth={1.6} />
             {[34, 46, 58, 70].map((y) => <line key={y} x1="12" y1={y} x2={y === 70 ? 50 : 72} y2={y} stroke={MUT} strokeOpacity={0.5} strokeWidth={3} strokeLinecap="round" />)}
-            <text x="43" y="128" textAnchor="middle" style={{ ...lbl, fontSize: 11.5 }} fontWeight={600}>{tx(l, d.t)}</text>
-            <text x="43" y="144" textAnchor="middle" style={klein}>{d.s}</text>
+            <text x="43" y="128" textAnchor="middle" style={{ ...lbl, fontSize: 11.5 }} fontWeight={600}>
+              {r.map((s, k) => <tspan key={k} x="43" dy={k === 0 ? 0 : 14}>{s}</tspan>)}
+            </text>
+            <text x="43" y={r.length > 1 ? 158 : 144} textAnchor="middle" style={klein}>{d.s}</text>
           </g>
         );
       })}
+      {legende.map((g, i) => (
+        <g key={i} transform={`translate(${170 + i * 110},186)`}>
+          <rect x="0" y="-8" width="10" height="10" rx="2" fill="none" stroke={g.kleur} strokeWidth={1.6} />
+          <text x="16" y="1" style={klein}>{tx(l, g.t)}</text>
+        </g>
+      ))}
     </svg>
   );
 }
