@@ -12,6 +12,8 @@ const T: Record<Locale, { titel: string; intro: string; leeg: string; nieuw: str
   nl: { titel: "Projecten", intro: "Al uw aanvragen en modellen, met hun status.", leeg: "Nog geen projecten. Stuur uw plannen om te starten.", nieuw: "Nieuwe aanvraag", open: "Openen" },
   fr: { titel: "Projets", intro: "Toutes vos demandes et modèles, avec leur statut.", leeg: "Pas encore de projet. Envoyez vos plans pour commencer.", nieuw: "Nouvelle demande", open: "Ouvrir" },
   en: { titel: "Projects", intro: "All your requests and models, with their status.", leeg: "No projects yet. Send your plans to get started.", nieuw: "New request", open: "Open" },
+  de: { titel: "Projekte", intro: "Alle Ihre Anfragen und Modelle mit ihrem Status.", leeg: "Noch keine Projekte. Senden Sie Ihre Pläne, um zu starten.", nieuw: "Neue Anfrage", open: "Öffnen" },
+  es: { titel: "Proyectos", intro: "Todas sus solicitudes y modelos, con su estado.", leeg: "Todavía no hay proyectos. Envíe sus planos para empezar.", nieuw: "Nueva solicitud", open: "Abrir" },
 };
 
 export default async function ProjectenPage({ params }: { params: Promise<{ locale: string }> }) {

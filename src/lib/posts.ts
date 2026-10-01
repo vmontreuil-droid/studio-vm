@@ -76,6 +76,40 @@ Three patterns we see again and again:
 
 Not every site needs to leave WordPress. But for those who really use it: there is life after WordPress.`,
       },
+    de: {
+        title: "Why we increasingly move away from WordPress",
+        excerpt:
+          "An honest story about speed, plugin fatigue and the real cost of 'free'.",
+        tag: "Migration",
+        body: `WordPress was the standard for a long time, and for many sites it still is. But for clients who really want to use their site — to update content daily, to load fast on mobile, to not pay €40/month in plugin licenses — WordPress often becomes a brake.
+
+Three patterns we see again and again:
+
+**1. Speed.** An average WordPress site loads in 4–7 seconds on mobile. A Next.js site does it in 0.8. For Google's ranking and for your visitors, that's a world of difference.
+
+**2. Plugin fatigue.** One plugin breaks after an update, and suddenly your form stops working. Or you have 12 plugins, each its own security risk.
+
+**3. The admin is for the developer.** A typical WordPress admin is a maze for anyone not in it daily. A custom admin — only what you need — works far better.
+
+Not every site needs to leave WordPress. But for those who really use it: there is life after WordPress.`,
+      },
+    es: {
+        title: "Why we increasingly move away from WordPress",
+        excerpt:
+          "An honest story about speed, plugin fatigue and the real cost of 'free'.",
+        tag: "Migration",
+        body: `WordPress was the standard for a long time, and for many sites it still is. But for clients who really want to use their site — to update content daily, to load fast on mobile, to not pay €40/month in plugin licenses — WordPress often becomes a brake.
+
+Three patterns we see again and again:
+
+**1. Speed.** An average WordPress site loads in 4–7 seconds on mobile. A Next.js site does it in 0.8. For Google's ranking and for your visitors, that's a world of difference.
+
+**2. Plugin fatigue.** One plugin breaks after an update, and suddenly your form stops working. Or you have 12 plugins, each its own security risk.
+
+**3. The admin is for the developer.** A typical WordPress admin is a maze for anyone not in it daily. A custom admin — only what you need — works far better.
+
+Not every site needs to leave WordPress. But for those who really use it: there is life after WordPress.`,
+      },
     },
   },
   {
@@ -149,6 +183,50 @@ Difference: ~€2,300/year. The build typically pays for itself in 3–4 years.
 
 **When Shopify then?** If you want to start tomorrow with no time or budget for a build. For those who want their own brand and margin: an own build is — in the medium term — almost always more cost-effective.`,
       },
+    de: {
+        title: "Building webshops without the Shopify margin",
+        excerpt:
+          "What an own webshop costs vs. a Shopify subscription, and when each model pays off.",
+        tag: "Webshop",
+        body: `Shopify is easy and fast — no argument there. But once you go past a certain revenue, you pay a lot.
+
+Let's do the math:
+
+- Shopify Basic: €36/m + 2% transaction fee
+- At €10,000/month revenue: €36 + €200 = €236/m. Per year: €2,832.
+
+An own webshop on Next.js + Mollie + Vercel:
+
+- Vercel: €20/m
+- Supabase: €25/m
+- Mollie: 1.4% + €0.25 per transaction (no Shopify margin on top)
+
+Difference: ~€2,300/year. The build typically pays for itself in 3–4 years.
+
+**When Shopify then?** If you want to start tomorrow with no time or budget for a build. For those who want their own brand and margin: an own build is — in the medium term — almost always more cost-effective.`,
+      },
+    es: {
+        title: "Building webshops without the Shopify margin",
+        excerpt:
+          "What an own webshop costs vs. a Shopify subscription, and when each model pays off.",
+        tag: "Webshop",
+        body: `Shopify is easy and fast — no argument there. But once you go past a certain revenue, you pay a lot.
+
+Let's do the math:
+
+- Shopify Basic: €36/m + 2% transaction fee
+- At €10,000/month revenue: €36 + €200 = €236/m. Per year: €2,832.
+
+An own webshop on Next.js + Mollie + Vercel:
+
+- Vercel: €20/m
+- Supabase: €25/m
+- Mollie: 1.4% + €0.25 per transaction (no Shopify margin on top)
+
+Difference: ~€2,300/year. The build typically pays for itself in 3–4 years.
+
+**When Shopify then?** If you want to start tomorrow with no time or budget for a build. For those who want their own brand and margin: an own build is — in the medium term — almost always more cost-effective.`,
+      },
     },
   },
   {
@@ -187,6 +265,36 @@ De tijd die je daarmee wint, gaat naar wat je echt graag doet: koken en je gaste
 Le temps gagné va vers ce que vous aimez vraiment : cuisiner et accueillir vos clients.`,
       },
       en: {
+        title: "Three reasons to manage your restaurant site yourself",
+        excerpt:
+          "Changing a menu shouldn't cost an invoice. Here's how we do it for Cottage and Bar'Botte.",
+        tag: "Hospitality",
+        body: `Restaurants are dynamic. The menu changes by season, sometimes by week. If every change is an email + invoice at your web developer, it's too slow — or worse, it doesn't happen.
+
+**1. The kitchen knows the menu, not the developer.** Our admins for Cottage and Bar'Botte are built to be used by the chef or floor manager. No technical knowledge needed.
+
+**2. Publish job openings at the right moment.** Finding a sous-chef starts online in 2026. Being able to publish a vacancy directly makes the difference.
+
+**3. Reservations straight to your inbox.** No external tool, no booking-platform margin. Reservation → email → confirmation → done.
+
+The time you save goes to what you really enjoy: cooking and welcoming your guests.`,
+      },
+    de: {
+        title: "Three reasons to manage your restaurant site yourself",
+        excerpt:
+          "Changing a menu shouldn't cost an invoice. Here's how we do it for Cottage and Bar'Botte.",
+        tag: "Hospitality",
+        body: `Restaurants are dynamic. The menu changes by season, sometimes by week. If every change is an email + invoice at your web developer, it's too slow — or worse, it doesn't happen.
+
+**1. The kitchen knows the menu, not the developer.** Our admins for Cottage and Bar'Botte are built to be used by the chef or floor manager. No technical knowledge needed.
+
+**2. Publish job openings at the right moment.** Finding a sous-chef starts online in 2026. Being able to publish a vacancy directly makes the difference.
+
+**3. Reservations straight to your inbox.** No external tool, no booking-platform margin. Reservation → email → confirmation → done.
+
+The time you save goes to what you really enjoy: cooking and welcoming your guests.`,
+      },
+    es: {
         title: "Three reasons to manage your restaurant site yourself",
         excerpt:
           "Changing a menu shouldn't cost an invoice. Here's how we do it for Cottage and Bar'Botte.",

@@ -16,6 +16,8 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     nl: { home: 'Home', modellen: '3D-modellen', werkwijze: 'Werkwijze', realisaties: 'Realisaties', tarieven: 'Tarieven', kennis: 'Kennisbank', offerte: 'Offerte aanvragen' },
     fr: { home: 'Accueil', modellen: 'Modèles 3D', werkwijze: 'Méthode', realisaties: 'Réalisations', tarieven: 'Tarifs', kennis: 'Savoir', offerte: 'Demander un devis' },
     en: { home: 'Home', modellen: '3D models', werkwijze: 'How it works', realisaties: 'Projects', tarieven: 'Rates', kennis: 'Knowledge', offerte: 'Request a quote' },
+    de: { home: 'Start', modellen: '3D-Modelle', werkwijze: 'Arbeitsweise', realisaties: 'Referenzen', tarieven: 'Preise', kennis: 'Wissen', offerte: 'Angebot anfordern' },
+    es: { home: 'Inicio', modellen: 'Modelos 3D', werkwijze: 'Cómo trabajamos', realisaties: 'Proyectos', tarieven: 'Tarifas', kennis: 'Conocimientos', offerte: 'Solicitar presupuesto' },
   }[locale];
   const items = [
     { href: home, label: L.home, icoon: House },
@@ -37,26 +39,26 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         >
           <Logo className="text-5xl sm:text-6xl" />
         </Link>
-        <nav className="hidden items-center gap-6 text-sm lg:flex">
+        <nav className="hidden items-center gap-4 text-sm xl:flex 2xl:gap-6">
           {items.map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
               label={item.label}
               homePath={home.replace(/\/$/, "")}
-              icoon={<item.icoon className="h-3.5 w-3.5 text-accent/80" strokeWidth={1.75} aria-hidden />}
+              icoon={<item.icoon className="hidden h-3.5 w-3.5 text-accent/80 2xl:inline-block" strokeWidth={1.75} aria-hidden />}
             />
           ))}
         </nav>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <div className="hidden sm:block">
-            <LangSwitcher current={locale} />
+            <LangSwitcher current={locale} compact />
           </div>
           <SearchTrigger locale={locale} />
           <ThemeToggle />
           <Link
             href={localePath(locale, '/offerte')}
-            className="hidden items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 lg:inline-flex"
+            className="hidden items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 xl:inline-flex"
           >
             <FileUp className="h-3.5 w-3.5" strokeWidth={2} />
             {L.offerte}
@@ -65,10 +67,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             href="/admin"
             aria-label="Admin"
             title="Admin"
-            className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+            className="hidden h-8 w-8 items-center justify-center rounded-full border text-muted transition-colors hover:border-accent hover:text-accent sm:inline-flex"
           >
-            <Lock className="h-3 w-3" strokeWidth={2.5} />
-            Admin
+            <Lock className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
           <MobileMenu locale={locale} />
         </div>

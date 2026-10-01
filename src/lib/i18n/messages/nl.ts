@@ -38,7 +38,7 @@ const nl = {
   },
   stats: {
     projects: "live projecten",
-    languages: "talen (NL · FR · EN)",
+    languages: "talen (NL · FR · EN · DE · ES)",
     stack: "Next.js + Supabase",
     plugins: "WordPress-plugins",
     pagespeed: "gem. PageSpeed",

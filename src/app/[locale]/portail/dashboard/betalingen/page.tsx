@@ -53,6 +53,24 @@ const L: Record<
     intro:
       "Here you see all your payments and invoices in one place: your deposit, later monthly invoices and their status. A paid deposit appears here as soon as it's confirmed by the payment provider.",
   },
+  de: {
+    paid: "Bezahlt",
+    open: "Offen",
+    overdue: "Überfällig",
+    history: "Zahlungsverlauf",
+    none: "Noch keine Zahlungen oder Rechnungen.",
+    intro:
+      "Hier sehen Sie alle Ihre Zahlungen und Rechnungen an einem Ort: Ihre Anzahlung, spätere Monatsrechnungen und deren Status. Eine bezahlte Anzahlung erscheint hier, sobald sie vom Zahlungsanbieter bestätigt wurde.",
+  },
+  es: {
+    paid: "Pagado",
+    open: "Pendiente",
+    overdue: "Vencido",
+    history: "Historial de pagos",
+    none: "Todavía no hay pagos ni facturas.",
+    intro:
+      "Aquí ve todos sus pagos y facturas en un solo lugar: su anticipo, las facturas mensuales posteriores y su estado. Un anticipo pagado aparece aquí en cuanto lo confirma el proveedor de pagos.",
+  },
 };
 
 export default async function PortalPayments({
@@ -149,7 +167,7 @@ export default async function PortalPayments({
               {mollieConfigured && i.status !== "betaald" && (
                 <form action={payInvoice.bind(null, i.id)}>
                   <SubmitButton className="rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90">
-                    {locale === "fr" ? "Payer" : locale === "en" ? "Pay now" : "Betaal nu"}
+                    {{ nl: "Betaal nu", fr: "Payer", en: "Pay now", de: "Jetzt bezahlen", es: "Pagar ahora" }[locale]}
                   </SubmitButton>
                 </form>
               )}

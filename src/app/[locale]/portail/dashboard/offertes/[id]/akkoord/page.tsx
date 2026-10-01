@@ -66,6 +66,28 @@ const L: Record<
     back: "Back to quotes",
     notyet: "This quote hasn't been accepted yet.",
   },
+  de: {
+    title: "Bestätigung der Annahme",
+    sub: "Dieses Dokument bestätigt Ihre Annahme des untenstehenden Angebots.",
+    accepted: "Angenommen",
+    by: "Von",
+    on: "Am",
+    amount: "Betrag",
+    print: "Als PDF speichern",
+    back: "Zurück zu den Angeboten",
+    notyet: "Dieses Angebot wurde noch nicht angenommen.",
+  },
+  es: {
+    title: "Confirmación de aceptación",
+    sub: "Este documento confirma su aceptación del presupuesto que figura a continuación.",
+    accepted: "Aceptado",
+    by: "Por",
+    on: "El",
+    amount: "Importe",
+    print: "Guardar como PDF",
+    back: "Volver a los presupuestos",
+    notyet: "Este presupuesto aún no ha sido aceptado.",
+  },
 };
 
 export default async function OfferAcceptance({
@@ -94,7 +116,7 @@ export default async function OfferAcceptance({
   const email = u.user?.email ?? "";
   const fmtDate = (s: string) =>
     new Date(s).toLocaleString(
-      locale === "fr" ? "fr-BE" : locale === "en" ? "en-GB" : "nl-BE",
+      ({ nl: "nl-BE", fr: "fr-BE", en: "en-GB", de: "de-DE", es: "es-ES" } as const)[locale],
       { timeZone: "Europe/Brussels" },
     );
 

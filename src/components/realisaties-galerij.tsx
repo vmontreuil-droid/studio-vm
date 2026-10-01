@@ -7,7 +7,7 @@ import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { REALISATIES, CATEGORIEEN, type Categorie } from "@/lib/realisaties";
 import type { Locale } from "@/lib/i18n/config";
 
-const ALLE = { nl: "Alle", fr: "Tous", en: "All" };
+const ALLE: Record<Locale, string> = { nl: "Alle", fr: "Tous", en: "All", de: "Alle", es: "Todos" };
 
 export function RealisatiesGalerij({ locale }: { locale: Locale }) {
   const [filter, setFilter] = useState<Categorie | "alle">("alle");

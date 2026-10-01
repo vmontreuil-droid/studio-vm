@@ -14,10 +14,105 @@ import {
   Calculator,
 } from "lucide-react";
 import { search, type SearchEntry } from "@/lib/search-index";
-import { localePath, isValidLocale, type Locale } from "@/lib/i18n/config";
+import { localePath, isValidLocale, LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/config";
+
+type SearchUi = {
+  open: string;
+  short: string;
+  placeholder: string;
+  close: string;
+  none: (q: string) => string;
+  nav: string;
+  esc: string;
+  action: string;
+  theme: string;
+  scan: string;
+  offerte: string;
+  lang: (name: string) => string;
+  kinds: Record<SearchEntry["kind"], string>;
+};
+
+const UI: Record<Locale, SearchUi> = {
+  nl: {
+    open: "Zoeken",
+    short: "Zoek",
+    placeholder: "Zoek pagina's, realisaties of kennis...",
+    close: "Sluiten",
+    none: (q) => `Niets gevonden voor "${q}".`,
+    nav: "↑↓ navigeren · Enter openen",
+    esc: "Esc sluiten",
+    action: "Actie",
+    theme: "Wissel thema",
+    scan: "Realisaties",
+    offerte: "Offerte aanvragen",
+    lang: (n) => `Schakel naar ${n}`,
+    kinds: { Page: "Pagina", Werk: "Realisatie", Journal: "Kennis", Module: "Module" },
+  },
+  fr: {
+    open: "Rechercher",
+    short: "Recherche",
+    placeholder: "Rechercher des pages, réalisations ou articles...",
+    close: "Fermer",
+    none: (q) => `Aucun résultat pour « ${q} ».`,
+    nav: "↑↓ naviguer · Entrée ouvrir",
+    esc: "Échap fermer",
+    action: "Action",
+    theme: "Basculer le thème",
+    scan: "Réalisations",
+    offerte: "Demander un devis",
+    lang: (n) => `Passer en ${n}`,
+    kinds: { Page: "Page", Werk: "Réalisation", Journal: "Savoir", Module: "Module" },
+  },
+  en: {
+    open: "Search",
+    short: "Search",
+    placeholder: "Search pages, projects or articles...",
+    close: "Close",
+    none: (q) => `Nothing found for "${q}".`,
+    nav: "↑↓ navigate · Enter open",
+    esc: "Esc close",
+    action: "Action",
+    theme: "Toggle theme",
+    scan: "Projects",
+    offerte: "Request a quote",
+    lang: (n) => `Switch to ${n}`,
+    kinds: { Page: "Page", Werk: "Project", Journal: "Knowledge", Module: "Module" },
+  },
+  de: {
+    open: "Suchen",
+    short: "Suche",
+    placeholder: "Seiten, Referenzen oder Artikel durchsuchen...",
+    close: "Schließen",
+    none: (q) => `Keine Ergebnisse für „${q}“.`,
+    nav: "↑↓ navigieren · Enter öffnen",
+    esc: "Esc schließen",
+    action: "Aktion",
+    theme: "Design wechseln",
+    scan: "Referenzen",
+    offerte: "Angebot anfordern",
+    lang: (n) => `Wechseln zu ${n}`,
+    kinds: { Page: "Seite", Werk: "Referenz", Journal: "Wissen", Module: "Modul" },
+  },
+  es: {
+    open: "Buscar",
+    short: "Buscar",
+    placeholder: "Buscar páginas, proyectos o artículos...",
+    close: "Cerrar",
+    none: (q) => `No se encontraron resultados para «${q}».`,
+    nav: "↑↓ navegar · Intro abrir",
+    esc: "Esc cerrar",
+    action: "Acción",
+    theme: "Cambiar tema",
+    scan: "Proyectos",
+    offerte: "Solicitar presupuesto",
+    lang: (n) => `Cambiar a ${n}`,
+    kinds: { Page: "Página", Werk: "Proyecto", Journal: "Conocimientos", Module: "Módulo" },
+  },
+};
 
 export function SearchTrigger({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
+  const ui = UI[locale] ?? UI.nl;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -36,12 +131,12 @@ export function SearchTrigger({ locale }: { locale: Locale }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Zoeken"
+        aria-label={ui.open}
         className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-card-hover hover:text-foreground"
       >
         <SearchIcon className="h-3.5 w-3.5" strokeWidth={2} />
-        <span className="hidden sm:inline">Zoek</span>
-        <kbd className="hidden rounded bg-card px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+        <span className="hidden sm:inline xl:hidden 2xl:inline">{ui.short}</span>
+        <kbd className="hidden rounded bg-card px-1.5 py-0.5 font-mono text-[10px] sm:inline xl:hidden 2xl:inline">
           ⌘K
         </kbd>
       </button>
@@ -63,12 +158,13 @@ function SearchDialog({
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
 
-  const cmdLabels =
-    locale === "fr"
-      ? { theme: "Basculer le thème", scan: "Réalisations", offerte: "Demander un devis", lang: (l: string) => `Passer en ${l.toUpperCase()}` }
-      : locale === "en"
-        ? { theme: "Toggle theme", scan: "Projects", offerte: "Request a quote", lang: (l: string) => `Switch to ${l.toUpperCase()}` }
-        : { theme: "Wissel thema", scan: "Realisaties", offerte: "Offerte aanvragen", lang: (l: string) => `Schakel naar ${l.toUpperCase()}` };
+  const ui = UI[locale] ?? UI.nl;
+  const cmdLabels = {
+    theme: ui.theme,
+    scan: ui.scan,
+    offerte: ui.offerte,
+    lang: (l: Locale) => ui.lang(LOCALE_NAMES[l]),
+  };
 
   type Cmd = { id: string; label: string; run: () => void };
 
@@ -104,7 +200,7 @@ function SearchDialog({
     { id: "theme", label: cmdLabels.theme, run: cycleTheme },
     { id: "scan", label: cmdLabels.scan, run: () => { onClose(); router.push(localePath(locale, "/realisaties")); } },
     { id: "offerte", label: cmdLabels.offerte, run: () => { onClose(); router.push(localePath(locale, "/offerte")); } },
-    ...(["nl", "fr", "en"] as Locale[])
+    ...LOCALES
       .filter((l) => l !== locale)
       .map((l) => ({ id: `lang-${l}`, label: cmdLabels.lang(l), run: () => switchLang(l) })),
   ];
@@ -189,7 +285,7 @@ function SearchDialog({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Zoeken"
+      aria-label={ui.open}
       className="fixed inset-0 z-[90] flex items-start justify-center p-4 sm:p-12"
     >
       <div
@@ -208,13 +304,13 @@ function SearchDialog({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Zoek pages, werk of journal..."
+            placeholder={ui.placeholder}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
           />
           <button
             type="button"
             onClick={onClose}
-            aria-label="Sluiten"
+            aria-label={ui.close}
             className="rounded p-1 text-muted hover:text-foreground"
           >
             <X className="h-4 w-4" strokeWidth={2} />
@@ -223,7 +319,7 @@ function SearchDialog({
         <ul className="max-h-[60vh] overflow-y-auto py-2">
           {total === 0 ? (
             <li className="px-4 py-8 text-center text-sm text-muted">
-              Niets gevonden voor "{query}".
+              {ui.none(query)}
             </li>
           ) : (
             <>
@@ -242,7 +338,7 @@ function SearchDialog({
                       <p className="font-medium">{c.label}</p>
                     </div>
                     <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
-                      {locale === "fr" ? "Action" : locale === "en" ? "Action" : "Actie"}
+                      {ui.action}
                     </span>
                   </button>
                 </li>
@@ -267,7 +363,7 @@ function SearchDialog({
                         )}
                       </div>
                       <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                        {entry.kind}
+                        {ui.kinds[entry.kind]}
                       </span>
                     </button>
                   </li>
@@ -277,8 +373,8 @@ function SearchDialog({
           )}
         </ul>
         <div className="flex items-center justify-between gap-3 border-t bg-card px-4 py-2 font-mono text-[10px] text-muted">
-          <span>↑↓ navigeren · Enter openen</span>
-          <span>Esc sluiten</span>
+          <span>{ui.nav}</span>
+          <span>{ui.esc}</span>
         </div>
       </div>
     </div>

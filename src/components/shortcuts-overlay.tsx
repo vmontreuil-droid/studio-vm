@@ -44,11 +44,35 @@ const T: Record<
     hint: "Press ? anywhere on the site",
     close: "Close",
   },
+  de: {
+    title: "Tastenkürzel",
+    rows: [
+      ["⌘K / Strg K", "Suche & Befehle (Design, Sprache, Referenzen…)"],
+      ["?", "Diese Hilfe ein-/ausblenden"],
+      ["↑ ↓", "Durch Ergebnisse navigieren"],
+      ["Enter", "Öffnen / ausführen"],
+      ["Esc", "Schließen"],
+    ],
+    hint: "Drücken Sie ? an beliebiger Stelle der Website",
+    close: "Schließen",
+  },
+  es: {
+    title: "Atajos de teclado",
+    rows: [
+      ["⌘K / Ctrl K", "Búsqueda y comandos (tema, idioma, proyectos…)"],
+      ["?", "Mostrar/ocultar esta ayuda"],
+      ["↑ ↓", "Navegar por los resultados"],
+      ["Intro", "Abrir / ejecutar"],
+      ["Esc", "Cerrar"],
+    ],
+    hint: "Pulse ? en cualquier parte del sitio",
+    close: "Cerrar",
+  },
 };
 
 export function ShortcutsOverlay({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
-  const t = T[locale];
+  const t = T[locale] ?? T.nl;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

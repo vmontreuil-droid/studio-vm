@@ -53,6 +53,8 @@ const CAP_FALLBACK: Record<Locale, string> = {
   nl: "Beperkte plekken — kleine opdrachten dit kwartaal mogelijk",
   fr: "Places limitées — petites missions possibles ce trimestre",
   en: "Limited slots — small projects possible this quarter",
+    de: "Limited slots — small projects possible this quarter",
+    es: "Limited slots — small projects possible this quarter",
 };
 
 export async function getCapacity(locale: Locale): Promise<string> {

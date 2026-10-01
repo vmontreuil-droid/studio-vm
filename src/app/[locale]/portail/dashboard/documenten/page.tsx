@@ -75,6 +75,26 @@ const L: Record<
     total: "documents",
     uploadHint: "Upload",
   },
+  de: {
+    sub: "Verträge, Entwürfe und Rechnungen von mir — und alles, was Sie bereitstellen, an einem Ort.",
+    fromStudio: "Von Studio VM",
+    fromYou: "Von Ihnen bereitgestellt",
+    noneStudio: "Noch nichts geteilt.",
+    noneYou: "Ziehen Sie Ihr Logo, Ihre Texte oder Fotos oben hinein.",
+    open: "Öffnen",
+    total: "Dokumente",
+    uploadHint: "Hochladen",
+  },
+  es: {
+    sub: "Contratos, diseños y facturas de mi parte — y todo lo que usted aporte, en un solo lugar.",
+    fromStudio: "De Studio VM",
+    fromYou: "Aportado por usted",
+    noneStudio: "Todavía no se ha compartido nada.",
+    noneYou: "Arrastre arriba su logotipo, textos o fotos.",
+    open: "Abrir",
+    total: "documentos",
+    uploadHint: "Subir",
+  },
 };
 
 // File-type icoon op basis van extensie. Lichtgewicht, geen MIME-lookup.

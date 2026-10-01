@@ -54,19 +54,19 @@ export type Levering = {
 export const STAPPEN: ProjectStatus[] = ["aanvraag", "offerte", "akkoord", "productie", "geleverd", "afgesloten"];
 
 export const STATUS_LABEL: Record<ProjectStatus, Record<Locale, string>> = {
-  aanvraag: { nl: "Aanvraag ontvangen", fr: "Demande reçue", en: "Request received" },
-  offerte: { nl: "Offerte verstuurd", fr: "Devis envoyé", en: "Quote sent" },
-  akkoord: { nl: "Akkoord", fr: "Accepté", en: "Accepted" },
-  productie: { nl: "In productie", fr: "En production", en: "In production" },
-  geleverd: { nl: "Geleverd", fr: "Livré", en: "Delivered" },
-  afgesloten: { nl: "Afgesloten", fr: "Clôturé", en: "Closed" },
-  geannuleerd: { nl: "Geannuleerd", fr: "Annulé", en: "Cancelled" },
+  aanvraag: { nl: "Aanvraag ontvangen", fr: "Demande reçue", en: "Request received", de: "Anfrage eingegangen", es: "Solicitud recibida" },
+  offerte: { nl: "Offerte verstuurd", fr: "Devis envoyé", en: "Quote sent", de: "Angebot versendet", es: "Presupuesto enviado" },
+  akkoord: { nl: "Akkoord", fr: "Accepté", en: "Accepted", de: "Angenommen", es: "Aceptado" },
+  productie: { nl: "In productie", fr: "En production", en: "In production", de: "In Produktion", es: "En producción" },
+  geleverd: { nl: "Geleverd", fr: "Livré", en: "Delivered", de: "Geliefert", es: "Entregado" },
+  afgesloten: { nl: "Afgesloten", fr: "Clôturé", en: "Closed", de: "Abgeschlossen", es: "Cerrado" },
+  geannuleerd: { nl: "Geannuleerd", fr: "Annulé", en: "Cancelled", de: "Storniert", es: "Cancelado" },
 };
 
 export const CATEGORIE_LABEL: Record<Project["categorie"], Record<Locale, string>> = {
-  vroegtijdig: { nl: "Vroegtijdig", fr: "Anticipé", en: "Early" },
-  normaal: { nl: "Normaal", fr: "Normal", en: "Standard" },
-  "last-minute": { nl: "Last-minute", fr: "Urgent", en: "Last-minute" },
+  vroegtijdig: { nl: "Vroegtijdig", fr: "Anticipé", en: "Early", de: "Frühzeitig", es: "Anticipado" },
+  normaal: { nl: "Normaal", fr: "Normal", en: "Standard", de: "Standard", es: "Estándar" },
+  "last-minute": { nl: "Last-minute", fr: "Urgent", en: "Last-minute", de: "Last-Minute", es: "Urgente" },
 };
 
 export function werfTekst(w: Project["werf"]): string {

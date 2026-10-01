@@ -102,8 +102,8 @@ export function ServiceJsonLd({
           name: "Studio VM",
           url: "https://studio-vm.be",
         },
-        areaServed: { "@type": "Country", name: "Belgium" },
-        availableLanguage: ["nl", "fr", "en"],
+        areaServed: { "@type": "Place", name: "Europe" },
+        availableLanguage: ["nl", "fr", "en", "de", "es"],
       }}
     />
   );
@@ -135,7 +135,7 @@ export function OrganizationJsonLd() {
     logo: "https://studio-vm.be/icon",
     image: "https://studio-vm.be/opengraph-image",
     description:
-      "Studio VM bouwt websites, webshops en admins voor lokale ondernemers in Vlaanderen — gebouwd met Next.js en Supabase.",
+      "Studio VM modelleert 3D-ontwerpmodellen voor machinebesturing (Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar) voor aannemers in heel Europa.",
     foundingDate: "2024",
     founder: {
       "@type": "Person",
@@ -153,8 +153,8 @@ export function OrganizationJsonLd() {
       "@type": "ContactPoint",
       email: "info@studio-vm.be",
       contactType: "Sales",
-      areaServed: "BE",
-      availableLanguage: ["nl", "fr", "en"],
+      areaServed: "Europe",
+      availableLanguage: ["nl", "fr", "en", "de", "es"],
       hoursAvailable: {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: [
@@ -172,12 +172,12 @@ export function OrganizationJsonLd() {
     },
     sameAs: ["https://github.com/vmontreuil-droid"],
     knowsAbout: [
-      "Next.js",
-      "Supabase",
-      "React",
-      "Web development",
-      "E-commerce",
-      "Progressive Web Apps",
+      "Machine control",
+      "3D design models",
+      "Digital terrain model",
+      "Land surveying",
+      "Earthworks",
+      "Coordinate reference systems",
     ],
   };
 

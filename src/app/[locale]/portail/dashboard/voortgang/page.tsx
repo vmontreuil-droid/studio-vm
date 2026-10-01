@@ -29,6 +29,20 @@ const STEP_LABEL: Record<Locale, Record<string, string>> = {
     online: "Live",
     nazorg: "Aftercare",
   },
+  de: {
+    briefing: "Briefing",
+    ontwerp: "Entwurf",
+    bouw: "Umsetzung",
+    online: "Live",
+    nazorg: "Nachbetreuung",
+  },
+  es: {
+    briefing: "Briefing",
+    ontwerp: "Diseño",
+    bouw: "Desarrollo",
+    online: "En línea",
+    nazorg: "Seguimiento",
+  },
 };
 const L: Record<Locale, { none: string; sub: string }> = {
   nl: {
@@ -42,6 +56,14 @@ const L: Record<Locale, { none: string; sub: string }> = {
   en: {
     none: "Your project hasn't started yet. As soon as we begin, every step shows here.",
     sub: "Where your project stands today.",
+  },
+  de: {
+    none: "Ihr Projekt hat noch nicht begonnen. Sobald wir starten, sehen Sie hier jeden Schritt.",
+    sub: "Wo Ihr Projekt heute steht.",
+  },
+  es: {
+    none: "Su proyecto aún no ha comenzado. En cuanto empecemos, verá aquí cada paso.",
+    sub: "En qué punto se encuentra hoy su proyecto.",
   },
 };
 

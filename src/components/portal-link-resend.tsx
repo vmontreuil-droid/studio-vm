@@ -51,6 +51,26 @@ const C: Record<
     done: "If a scan exists for this address, the portal link is on its way. Check spam too.",
     errEmail: "Enter a valid email address.",
   },
+  de: {
+    title: "Schon gescannt? Holen Sie sich Ihr Portal zurück",
+    intro:
+      "Geben Sie die E-Mail-Adresse ein, die Sie beim Scan verwendet haben. Wenn Sie ein Kundenportal haben, sende ich Ihnen den Link sofort erneut zu.",
+    ph: "ihre@email.de",
+    submit: "Portal-Link senden",
+    sending: "Wird gesendet…",
+    done: "Falls für diese Adresse ein Scan existiert, ist der Portal-Link unterwegs. Prüfen Sie bitte auch den Spam-Ordner.",
+    errEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+  },
+  es: {
+    title: "¿Ya hizo un análisis? Recupere su portal",
+    intro:
+      "Introduzca el correo electrónico que utilizó para el análisis. Si tiene un portal de cliente, le reenviaré el enlace de inmediato.",
+    ph: "su@email.es",
+    submit: "Enviar mi enlace al portal",
+    sending: "Enviando…",
+    done: "Si existe un análisis para esta dirección, el enlace al portal está en camino. Revise también la carpeta de spam.",
+    errEmail: "Introduzca una dirección de correo electrónico válida.",
+  },
 };
 
 export function PortalLinkResend({ locale: raw }: { locale: string }) {

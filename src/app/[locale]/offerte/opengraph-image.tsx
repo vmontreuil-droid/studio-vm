@@ -3,17 +3,28 @@ import { isValidLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Studio VM — configurator";
+export const alt = "Studio VM — offerte / quote";
 
 const head: Record<Locale, string> = {
-  nl: "Stel je website samen.",
-  fr: "Composez votre site.",
-  en: "Build your website.",
+  nl: "Vraag een offerte aan.",
+  fr: "Demandez un devis.",
+  en: "Request a quote.",
+  de: "Fordern Sie ein Angebot an.",
+  es: "Solicite un presupuesto.",
 };
 const sub: Record<Locale, string> = {
-  nl: "Vaste prijs · 30% om vast te leggen · geen sterretjes",
-  fr: "Prix fixe · 30% pour verrouiller · sans astérisques",
-  en: "Fixed price · 30% to lock in · no asterisks",
+  nl: "Plannen opladen · 3D-model in het formaat van uw machine",
+  fr: "Envoyez vos plans · modèle 3D au format de votre engin",
+  en: "Upload your plans · 3D model in your machine's format",
+  de: "Pläne hochladen · 3D-Modell im Format Ihrer Maschine",
+  es: "Suba sus planos · modelo 3D en el formato de su máquina",
+};
+const regio: Record<Locale, string> = {
+  nl: "Vincent Montreuil · West-Vlaanderen",
+  fr: "Vincent Montreuil · Flandre-Occidentale",
+  en: "Vincent Montreuil · West Flanders",
+  de: "Vincent Montreuil · Westflandern",
+  es: "Vincent Montreuil · Flandes Occidental",
 };
 
 export default async function OG({
@@ -112,7 +123,7 @@ export default async function OG({
             fontSize: 26,
           }}
         >
-          <span>Vincent Montreuil · West-Vlaanderen</span>
+          <span>{regio[l]}</span>
           <span style={{ color: "#f59e0b", fontFamily: "monospace" }}>
             studio-vm.be/{l}/offerte
           </span>

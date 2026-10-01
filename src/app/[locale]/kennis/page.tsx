@@ -30,6 +30,20 @@ const T: Record<Locale, { meta: { title: string; description: string }; eyebrow:
     intro: "Practical explanations for contractors and site managers: how a model is built, which system you need and what to supply.",
     lees: "Read more",
   },
+  de: {
+    meta: { title: "Wissensdatenbank — 3D-Modelle für Maschinensteuerung | Studio VM", description: "Erklärungen zu Geländemodellen, Bruchkanten, Koordinatensystemen, Dateien je Marke und was Sie am besten liefern." },
+    eyebrow: "Wissensdatenbank",
+    titel: "Alles über 3D-Modelle für Maschinensteuerung",
+    intro: "Praxisnahe Erklärungen für Bauunternehmen und Bauleiter: wie ein Modell aufgebaut ist, welches Koordinatensystem Sie benötigen und was Sie am besten liefern.",
+    lees: "Weiterlesen",
+  },
+  es: {
+    meta: { title: "Base de conocimiento — modelos 3D para control de maquinaria | Studio VM", description: "Explicaciones sobre modelos de terreno, líneas de ruptura, sistemas de coordenadas, archivos por marca y qué conviene aportar." },
+    eyebrow: "Base de conocimiento",
+    titel: "Todo sobre modelos 3D para control de maquinaria",
+    intro: "Explicaciones prácticas para contratistas y jefes de obra: cómo se construye un modelo, qué sistema de coordenadas necesita y qué conviene aportar.",
+    lees: "Leer más",
+  },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

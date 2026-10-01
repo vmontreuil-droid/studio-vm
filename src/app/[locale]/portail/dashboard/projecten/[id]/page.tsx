@@ -50,6 +50,24 @@ const T: Record<Locale, Record<string, string>> = {
     verantw: "Check the model on a known point before you start, in position and height. Operation and calibration of your machine control remain your responsibility.",
     kaart: "Map",
   },
+  de: {
+    terug: "Projekte", werf: "Baustelle", stelsel: "Koordinatensystem", hoogte: "Höhe", systemen: "Maschinensteuerungen", categorie: "Kategorie", ingediend: "Eingereicht am",
+    plannen: "Ihre Pläne", geenPlannen: "Keine Pläne hochgeladen.", offerte: "Angebot & Zahlung", geenOfferte: "Ihr Angebot erscheint hier, sobald ich Ihre Pläne geprüft habe.",
+    bekijkOfferte: "Angebot ansehen", factuur: "Rechnung", betaal: "Über Mollie bezahlen", betaald: "Bezahlt", uren: "Geschätzte Stundenzahl",
+    leveringen: "Modelldateien", geenLeveringen: "Die Modelldateien pro Maschinensteuerung erscheinen hier, sobald sie fertig sind.", versie: "Version", slotUitleg: "Die Dateien werden freigegeben, sobald die Rechnung bezahlt ist.",
+    revisie: "Revision oder Frage", revisieUitleg: "Muss etwas angepasst werden oder haben Sie eine Frage zu diesem Modell? Lassen Sie es mich wissen.",
+    verantw: "Prüfen Sie das Modell vor Beginn an einem bekannten Punkt, in Lage und Höhe. Betrieb und Kalibrierung Ihrer Maschinensteuerung bleiben in Ihrer Verantwortung.",
+    kaart: "Karte",
+  },
+  es: {
+    terug: "Proyectos", werf: "Obra", stelsel: "Sistema de coordenadas", hoogte: "Altura", systemen: "Sistemas de control de máquina", categorie: "Categoría", ingediend: "Enviado el",
+    plannen: "Sus planos", geenPlannen: "No se han subido planos.", offerte: "Presupuesto y pago", geenOfferte: "Su presupuesto aparecerá aquí en cuanto haya revisado sus planos.",
+    bekijkOfferte: "Ver presupuesto", factuur: "Factura", betaal: "Pagar con Mollie", betaald: "Pagada", uren: "Número estimado de horas",
+    leveringen: "Archivos del modelo", geenLeveringen: "Los archivos del modelo por sistema de control de máquina aparecerán aquí en cuanto estén listos.", versie: "Versión", slotUitleg: "Los archivos se liberan en cuanto se paga la factura.",
+    revisie: "Revisión o pregunta", revisieUitleg: "¿Hay algo que modificar o tiene alguna pregunta sobre este modelo? Hágamelo saber.",
+    verantw: "Compruebe el modelo antes de empezar en un punto conocido, en planimetría y en altura. El funcionamiento y la calibración de su sistema de control de máquina siguen siendo responsabilidad suya.",
+    kaart: "Mapa",
+  },
 };
 
 type Factuur = { id: string; number: string; amount_cents: number; status: string; due_at: string | null };

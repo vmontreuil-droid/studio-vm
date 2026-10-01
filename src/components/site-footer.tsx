@@ -97,6 +97,34 @@ const FL: Record<
     overVincent: "About Vincent",
     voorwaarden: "Terms & conditions",
   },
+  de: {
+    dienst: "3D-Modelle",
+    modellen: "Was ich liefere",
+    werkwijze: "Arbeitsweise",
+    realisaties: "Referenzen",
+    tarieven: "Preise",
+    offerte: "Angebot anfordern",
+    kennis: "Wissen",
+    kennisbank: "Wissensdatenbank",
+    stelsels: "Koordinatensysteme",
+    over: "Über uns",
+    overVincent: "Über Vincent",
+    voorwaarden: "Allgemeine Geschäftsbedingungen",
+  },
+  es: {
+    dienst: "Modelos 3D",
+    modellen: "Qué entrego",
+    werkwijze: "Cómo trabajamos",
+    realisaties: "Proyectos",
+    tarieven: "Tarifas",
+    offerte: "Solicitar presupuesto",
+    kennis: "Conocimientos",
+    kennisbank: "Base de conocimientos",
+    stelsels: "Sistemas de coordenadas",
+    over: "Acerca de",
+    overVincent: "Sobre Vincent",
+    voorwaarden: "Condiciones generales",
+  },
 };
 
 export function SiteFooter({ locale }: { locale: Locale }) {
@@ -132,7 +160,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     {
       title: t.footer.sections.legal,
       links: [
-        { href: localePath(locale, "/privacy"), label: "Privacy" },
+        { href: localePath(locale, "/privacy"), label: locale === "de" ? "Datenschutz" : locale === "es" ? "Privacidad" : "Privacy" },
         { href: localePath(locale, "/cookies"), label: "Cookies" },
         { href: localePath(locale, "/voorwaarden"), label: fl.voorwaarden },
       ],
@@ -184,7 +212,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                     ? "Toujours joignable"
                     : locale === "en"
                       ? "Always reachable"
-                      : "Altijd bereikbaar"}
+                      : locale === "de"
+                        ? "Jederzeit erreichbar"
+                        : locale === "es"
+                          ? "Siempre disponible"
+                          : "Altijd bereikbaar"}
                 </span>
               </p>
             </div>

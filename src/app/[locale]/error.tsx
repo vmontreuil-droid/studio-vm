@@ -35,6 +35,20 @@ const copy: Record<
     retry: "Try again",
     home: "To home",
   },
+  de: {
+    eyebrow: "Etwas ist schiefgelaufen",
+    title: "Hoppla — da ist etwas schiefgegangen.",
+    body: "Ein unerwarteter Fehler ist aufgetreten. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück. Der Fehler wurde protokolliert.",
+    retry: "Erneut versuchen",
+    home: "Zur Startseite",
+  },
+  es: {
+    eyebrow: "Algo ha salido mal",
+    title: "Vaya, algo ha fallado.",
+    body: "Se ha producido un error inesperado. Vuelva a intentarlo o regrese a la página de inicio. El error ha quedado registrado.",
+    retry: "Reintentar",
+    home: "Ir al inicio",
+  },
 };
 
 export default function Error({

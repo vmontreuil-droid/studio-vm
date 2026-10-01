@@ -42,6 +42,20 @@ const L: Record<
     reply: "Reply",
     open: "View message",
   },
+  de: {
+    title: "Nachrichten",
+    none: "Noch keine Einsendungen über Ihre Website.",
+    from: "Von",
+    reply: "Antworten",
+    open: "Nachricht ansehen",
+  },
+  es: {
+    title: "Mensajes",
+    none: "Todavía no hay envíos a través de su sitio web.",
+    from: "De",
+    reply: "Responder",
+    open: "Ver mensaje",
+  },
 };
 
 export default async function PortalBerichten({

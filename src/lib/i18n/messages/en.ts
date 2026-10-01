@@ -40,7 +40,7 @@ const en: Messages = {
   },
   stats: {
     projects: "live projects",
-    languages: "languages (NL · FR · EN)",
+    languages: "languages (NL · FR · EN · DE · ES)",
     stack: "Next.js + Supabase",
     plugins: "WordPress plugins",
     pagespeed: "avg. PageSpeed",

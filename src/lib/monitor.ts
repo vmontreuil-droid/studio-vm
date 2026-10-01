@@ -103,6 +103,24 @@ const ALERTS: Record<
     critical: (a, b) => `Critical issues rose from ${a} to ${b}.`,
     grade: (a, b) => `Your grade went from ${a} to ${b}.`,
   },
+  de: {
+    cert: (d) =>
+      d < 0
+        ? "Ihr SSL-Zertifikat ist abgelaufen — Besucher sehen jetzt eine Warnung."
+        : `Ihr SSL-Zertifikat läuft in ${d} Tagen ab.`,
+    score: (a, b) => `Ihr Score ist von ${a} auf ${b}/100 gesunken.`,
+    critical: (a, b) => `Die Anzahl kritischer Punkte ist von ${a} auf ${b} gestiegen.`,
+    grade: (a, b) => `Ihre Bewertung hat sich von ${a} auf ${b} geändert.`,
+  },
+  es: {
+    cert: (d) =>
+      d < 0
+        ? "Su certificado SSL ha caducado — los visitantes ven ahora una advertencia."
+        : `Su certificado SSL caduca dentro de ${d} días.`,
+    score: (a, b) => `Su puntuación bajó de ${a} a ${b}/100.`,
+    critical: (a, b) => `Los puntos críticos aumentaron de ${a} a ${b}.`,
+    grade: (a, b) => `Su calificación pasó de ${a} a ${b}.`,
+  },
 };
 
 type Mail = { subject: string; html: string; replyTo?: string };
@@ -160,6 +178,32 @@ const T: Record<
     welcomeBody: (h, link) =>
       `Great — ${h} is now checked weekly. You'll only hear from us if a real problem shows up. Your history:`,
   },
+  de: {
+    confirmSubject: "Bestätigen Sie Ihr Website-Monitoring — Studio VM",
+    confirmBody: (url, link) =>
+      `Sie haben eine wöchentliche Überwachung von ${url} angefragt. Bestätigen Sie mit einem Klick — Sie erhalten nur dann eine E-Mail, wenn sich etwas ändert (Score sinkt, Zertifikat läuft ab, neue kritische Punkte).`,
+    alertSubject: (h) => `Bei ${h} hat sich etwas geändert`,
+    alertIntro: (h) => `Bei der wöchentlichen Prüfung von ${h} ist Folgendes aufgefallen:`,
+    alertView: "Vollständigen Verlauf ansehen",
+    alertCta: "Lassen Sie mich das beheben",
+    alertUnsub: "Keine E-Mails mehr",
+    welcomeSubject: (h) => `Monitoring aktiv für ${h}`,
+    welcomeBody: (h, link) =>
+      `Prima — ${h} wird jetzt wöchentlich geprüft. Sie hören nur von uns, wenn ein echtes Problem auftritt. Ihr Verlauf:`,
+  },
+  es: {
+    confirmSubject: "Confirme la monitorización de su sitio — Studio VM",
+    confirmBody: (url, link) =>
+      `Ha solicitado un seguimiento semanal de ${url}. Confirme con un clic y solo recibirá un correo cuando algo cambie (baja la puntuación, caduca el certificado, nuevos puntos críticos).`,
+    alertSubject: (h) => `Algo ha cambiado en ${h}`,
+    alertIntro: (h) => `En la revisión semanal de ${h} se detectó lo siguiente:`,
+    alertView: "Ver el historial completo",
+    alertCta: "Deje que lo solucione yo",
+    alertUnsub: "No recibir más correos",
+    welcomeSubject: (h) => `Monitorización activa para ${h}`,
+    welcomeBody: (h, link) =>
+      `Perfecto — ${h} se revisa ahora cada semana. Solo tendrá noticias nuestras si surge un problema real. Su historial:`,
+  },
 };
 
 function shell(body: string): string {
@@ -190,7 +234,7 @@ export function confirmMail(
     html: shell(
       `<p>${t.confirmBody(url, link)}</p>
 <p style="margin:24px 0"><a href="${link}" style="background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">${
-        locale === "fr" ? "Confirmer" : locale === "en" ? "Confirm" : "Bevestigen"
+        { nl: "Bevestigen", fr: "Confirmer", en: "Confirm", de: "Bestätigen", es: "Confirmar" }[locale]
       }</a></p>`,
     ),
   };

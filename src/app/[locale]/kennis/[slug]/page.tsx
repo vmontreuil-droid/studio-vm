@@ -13,6 +13,8 @@ const T: Record<Locale, { terug: string; verder: string; cta: { eyebrow: string;
   nl: { terug: "Kennisbank", verder: "Volgend artikel", cta: { eyebrow: "Klaar om te starten?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Laad uw plannen op, geef het werfadres en kies uw machinesturingen.", knop: "Offerte aanvragen" } },
   fr: { terug: "Base de connaissances", verder: "Article suivant", cta: { eyebrow: "Prêt à démarrer ?", titel: "Envoyez vos plans, recevez un devis sur mesure", sub: "Chargez vos plans, indiquez l'adresse du chantier et choisissez vos systèmes de guidage.", knop: "Demander un devis" } },
   en: { terug: "Knowledge base", verder: "Next article", cta: { eyebrow: "Ready to start?", titel: "Send your plans, get a tailored quote", sub: "Upload your plans, give the site address and pick your machine control systems.", knop: "Request a quote" } },
+  de: { terug: "Wissensdatenbank", verder: "Nächster Artikel", cta: { eyebrow: "Bereit loszulegen?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Laden Sie Ihre Pläne hoch, nennen Sie die Baustellenadresse und wählen Sie Ihre Maschinensteuerungen.", knop: "Angebot anfordern" } },
+  es: { terug: "Base de conocimiento", verder: "Siguiente artículo", cta: { eyebrow: "¿Listo para empezar?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "Suba sus planos, indique la dirección de la obra y elija sus sistemas de control de maquinaria.", knop: "Solicitar presupuesto" } },
 };
 
 export function generateStaticParams() {

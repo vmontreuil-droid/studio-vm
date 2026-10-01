@@ -48,6 +48,32 @@ const pageDefs: Record<Locale, { title: string; path: string; hint?: string }[]>
     { title: "Cookies", path: "/cookies" },
     { title: "Terms & conditions", path: "/voorwaarden" },
   ],
+  de: [
+    { title: "Start", path: "/", hint: "3D-Modelle für Maschinensteuerung" },
+    { title: "3D-Modelle", path: "/3d-modellen", hint: "Was ein Modell enthält" },
+    { title: "Referenzen", path: "/realisaties", hint: "Straßenbau, Erdarbeiten, Baugruben, Gelände" },
+    { title: "Preise", path: "/tarieven", hint: "Stundensätze frühzeitig, normal, kurzfristig" },
+    { title: "Angebot anfordern", path: "/offerte", hint: "Pläne hochladen, Baustellenadresse, Maschinensteuerung" },
+    { title: "Wissensdatenbank", path: "/kennis", hint: "Modelle, Koordinatensysteme, Dateien" },
+    { title: "Über Vincent", path: "/over", hint: "Wer die Modelle erstellt" },
+    { title: "Kundenportal", path: "/portail", hint: "Projekte, Angebote, Downloads" },
+    { title: "Datenschutz", path: "/privacy" },
+    { title: "Cookies", path: "/cookies" },
+    { title: "Allgemeine Geschäftsbedingungen", path: "/voorwaarden" },
+  ],
+  es: [
+    { title: "Inicio", path: "/", hint: "Modelos 3D para control de máquinas" },
+    { title: "Modelos 3D", path: "/3d-modellen", hint: "Qué contiene un modelo" },
+    { title: "Proyectos", path: "/realisaties", hint: "Viales, movimiento de tierras, excavaciones, terrenos" },
+    { title: "Tarifas", path: "/tarieven", hint: "Tarifas por hora: anticipada, normal, urgente" },
+    { title: "Solicitar presupuesto", path: "/offerte", hint: "Subir planos, dirección de la obra, control de máquinas" },
+    { title: "Base de conocimientos", path: "/kennis", hint: "Modelos, sistemas de coordenadas, archivos" },
+    { title: "Sobre Vincent", path: "/over", hint: "Quién elabora los modelos" },
+    { title: "Portal de clientes", path: "/portail", hint: "Proyectos, presupuestos, descargas" },
+    { title: "Privacidad", path: "/privacy" },
+    { title: "Cookies", path: "/cookies" },
+    { title: "Condiciones generales", path: "/voorwaarden" },
+  ],
 };
 
 export function getSearchIndex(locale: Locale): SearchEntry[] {
@@ -57,12 +83,15 @@ export function getSearchIndex(locale: Locale): SearchEntry[] {
     kind: "Page",
     hint: p.hint,
   }));
-  const kennis: SearchEntry[] = KENNIS.map((a) => ({
-    title: a.i18n[locale].titel,
-    href: localePath(locale, `/kennis/${a.slug}`),
-    kind: "Journal",
-    hint: a.i18n[locale].samenvatting.slice(0, 70),
-  }));
+  const kennis: SearchEntry[] = KENNIS.map((a) => {
+    const tekst = a.i18n[locale] ?? a.i18n.en;
+    return {
+      title: tekst.titel,
+      href: localePath(locale, `/kennis/${a.slug}`),
+      kind: "Journal",
+      hint: tekst.samenvatting.slice(0, 70),
+    };
+  });
   return [...pages, ...kennis];
 }
 

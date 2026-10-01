@@ -32,6 +32,22 @@ const copy: Record<
       "No panic — you only lost your internet connection. Try again as soon as you're back online.",
     button: "Try again",
   },
+  de: {
+    metaTitle: "Offline — Studio VM",
+    eyebrow: "Keine Verbindung",
+    title: "Sie scheinen offline zu sein.",
+    intro:
+      "Kein Grund zur Sorge — lediglich Ihre Internetverbindung ist unterbrochen. Versuchen Sie es erneut, sobald Sie wieder online sind.",
+    button: "Erneut versuchen",
+  },
+  es: {
+    metaTitle: "Sin conexión — Studio VM",
+    eyebrow: "Sin conexión",
+    title: "Parece que no tiene conexión.",
+    intro:
+      "No se preocupe: solo ha perdido la conexión a internet. Vuelva a intentarlo en cuanto esté de nuevo en línea.",
+    button: "Reintentar",
+  },
 };
 
 export async function generateMetadata({

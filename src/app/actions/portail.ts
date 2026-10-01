@@ -74,7 +74,7 @@ export async function sendMagicLink(
   formData: FormData,
 ): Promise<AuthState> {
   const rawLocale = String(formData.get("locale") ?? "nl");
-  const locale = ["nl", "fr", "en"].includes(rawLocale) ? rawLocale : "nl";
+  const locale = ["nl", "fr", "en", "de", "es"].includes(rawLocale) ? rawLocale : "nl";
   const t = M[locale];
   if (!supabaseConfigured) {
     return { ok: false, message: t.inactive };
@@ -90,7 +90,7 @@ export async function sendMagicLink(
   // Waar de klant na inloggen belandt. Enkel interne portaalpaden
   // (anti open-redirect); standaard de dashboardstart.
   const rawNext = String(formData.get("next") ?? "");
-  const nextPath = /^\/(nl|fr|en)\/portail(\/|$)/.test(rawNext)
+  const nextPath = /^\/(nl|fr|en|de|es)\/portail(\/|$)/.test(rawNext)
     ? rawNext
     : `/${locale}/portail/dashboard`;
 

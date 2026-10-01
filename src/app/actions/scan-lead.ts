@@ -130,7 +130,7 @@ export async function submitScanLead(input: {
     return { ok: false, error: "not_configured" };
   }
 
-  const locale = ["nl", "fr", "en"].includes(input.locale)
+  const locale = ["nl", "fr", "en", "de", "es"].includes(input.locale)
     ? input.locale
     : "nl";
   const token = randomBytes(24).toString("base64url");
@@ -182,7 +182,7 @@ async function sendPortalMail(
   score: number,
   portalUrl: string,
 ): Promise<void> {
-  const t = T[locale] ?? T.nl;
+  const t = T[locale] ?? (locale === "de" || locale === "es" ? T.en : T.nl);
   const accent = "#e08214";
   const safeHost = host.replace(/[<>&]/g, "");
   const pct = Math.max(0, Math.min(100, Math.round(score)));
@@ -231,7 +231,7 @@ async function sendPortalMail(
       footnote: `${t.reassure}<br><a href="${unsubLink(email)}" style="color:#78716c;text-decoration:underline">${
         locale === "fr"
           ? "Se désinscrire des updates"
-          : locale === "en"
+          : locale !== "nl"
             ? "Unsubscribe from updates"
             : "Uitschrijven voor updates"
       }</a>`,
@@ -266,7 +266,7 @@ export async function resendPortalLink(input: {
 
     // Altijd dezelfde generieke uitkomst: lekt niet of een adres bestaat.
     if (row && row.scan && row.scan.ok) {
-      const loc = ["nl", "fr", "en"].includes(row.locale)
+      const loc = ["nl", "fr", "en", "de", "es"].includes(row.locale)
         ? row.locale
         : "nl";
       const portalUrl = `${siteUrl}/${loc}/portail/${row.token}`;

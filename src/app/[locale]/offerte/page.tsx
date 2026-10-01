@@ -80,6 +80,48 @@ const T: Record<
     stelsel:
       "Every country has its own coordinate system and height datum. The address tells me the right system, so the model lands on the site and not next to it.",
   },
+  de: {
+    eyebrow: "Angebot anfordern",
+    titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot",
+    intro:
+      "Füllen Sie das Formular aus und laden Sie Ihre Pläne hoch. Mit der Baustellenadresse und der Marke Ihrer Maschinensteuerung weiß ich sofort, in welchem System und Format das Modell geliefert werden muss.",
+    naKop: "Wie geht es weiter?",
+    na: [
+      "Sie erhalten sofort eine Bestätigung per E-Mail.",
+      "Ich prüfe Ihre Pläne und sende Ihnen ein Angebot mit Preis und Liefertermin.",
+      "Nach Ihrer Zusage erstelle ich das Modell und liefere es einsatzbereit für die Maschine.",
+    ],
+    plannenKop: "Was sollten Sie mitsenden?",
+    plannen: [
+      "Lageplan sowie Längs- und Querprofile",
+      "Vorzugsweise DWG oder DXF; PDF ist auch möglich",
+      "Eine vorhandene Geländeaufnahme, falls verfügbar",
+    ],
+    stelselKop: "Warum die Baustellenadresse?",
+    stelsel:
+      "Jedes Land arbeitet mit einem eigenen Koordinatensystem und Höhenbezug. Aus der Adresse leite ich das richtige System ab, damit das Modell auf der Baustelle liegt und nicht daneben.",
+  },
+  es: {
+    eyebrow: "Solicitar presupuesto",
+    titel: "Envíe sus planos y reciba un presupuesto a medida",
+    intro:
+      "Rellene el formulario y suba sus planos. Con la dirección de la obra y la marca de su sistema de control de maquinaria, sé de inmediato en qué sistema y formato debo entregar el modelo.",
+    naKop: "¿Qué pasa después?",
+    na: [
+      "Recibe de inmediato una confirmación por correo electrónico.",
+      "Reviso sus planos y le envío un presupuesto con precio y fecha de entrega.",
+      "Tras su aprobación, hago el modelo y lo entrego listo para la máquina.",
+    ],
+    plannenKop: "¿Qué conviene enviar?",
+    plannen: [
+      "Plano de implantación y perfiles longitudinales / transversales",
+      "Preferiblemente DWG o DXF; también sirve PDF",
+      "Un levantamiento topográfico existente del terreno, si lo hay",
+    ],
+    stelselKop: "¿Por qué la dirección de la obra?",
+    stelsel:
+      "Cada país trabaja con su propio sistema de coordenadas y su referencia altimétrica. A partir de la dirección deduzco el sistema correcto, para que el modelo quede sobre la obra y no a su lado.",
+  },
 };
 
 export default async function OffertePage({ params }: { params: Promise<{ locale: string }> }) {

@@ -30,6 +30,20 @@ const T: Record<Locale, Record<string, string>> = {
     niets: "All good — nothing needs your attention.", recent: "Recent projects", alle: "All projects",
     leeg: "No projects yet.", nieuw: "New request",
   },
+  de: {
+    welkom: "Willkommen in Ihrem Portal", intro: "Verfolgen Sie hier Ihre 3D-Modelle: von der Anfrage bis zum Download.",
+    actief: "Laufende Projekte", offertes: "Offene Angebote", openstaand: "Offener Betrag", tickets: "Offene Tickets",
+    aandacht: "Erfordert Ihre Aufmerksamkeit", offerteWacht: "Angebot wartet auf Ihre Zustimmung", factuurOpen: "Rechnung zu bezahlen",
+    niets: "Alles in Ordnung — nichts erfordert Ihre Aufmerksamkeit.", recent: "Aktuelle Projekte", alle: "Alle Projekte",
+    leeg: "Noch keine Projekte.", nieuw: "Neue Anfrage",
+  },
+  es: {
+    welkom: "Bienvenido a su portal", intro: "Siga aquí sus modelos 3D: desde la solicitud hasta la descarga.",
+    actief: "Proyectos en curso", offertes: "Presupuestos abiertos", openstaand: "Importe pendiente", tickets: "Tickets abiertos",
+    aandacht: "Requiere su atención", offerteWacht: "Presupuesto pendiente de su aprobación", factuurOpen: "Factura por pagar",
+    niets: "Todo en orden — nada requiere su atención.", recent: "Proyectos recientes", alle: "Todos los proyectos",
+    leeg: "Todavía no hay proyectos.", nieuw: "Nueva solicitud",
+  },
 };
 
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {

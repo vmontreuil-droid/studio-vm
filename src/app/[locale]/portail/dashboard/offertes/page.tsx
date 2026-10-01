@@ -234,6 +234,87 @@ const L: Record<
     domainClause:
       "Domain & email: whether we can smoothly migrate your existing domain depends on how easily your current provider releases the data. Costs may apply, and the domain subscription (the yearly renewal) always remains your responsibility. We discuss this together and, depending on the case, it is settled on the final invoice — an exact amount can't be fixed here.",
   },
+  de: {
+    none: "Noch kein Angebot. Sobald ich eines bereitstelle, sehen Sie es hier.",
+    accept: "Annehmen",
+    reject: "Ablehnen",
+    proof: "Bestätigung / PDF",
+    print: "Drucken / PDF",
+    daysLeft: (n) =>
+      n === 1 ? "noch 1 Tag gültig" : `noch ${n} Tage gültig`,
+    expired: "abgelaufen",
+    expiredNote:
+      "Dieses Angebot ist abgelaufen — fordern Sie gerne ein neues an.",
+    reverse: "MwSt. (0 % — Reverse-Charge, innergemeinschaftlich)",
+    vat: "MwSt. 21%",
+    subtotal: "Zwischensumme (exkl. MwSt.)",
+    inclVat: "Gesamt inkl. MwSt.",
+    valid: "Gültig bis",
+    forWhom: "Für",
+    from: "Von",
+    whatYouGet: "Was Sie erhalten",
+    included: "inklusive",
+    monthly: "pro Monat",
+    deposit: "30 % Anzahlung zum Start (inkl. MwSt.)",
+    discountLine: "Festschreibungsrabatt (direkte Unterzeichnung) −7%",
+    afterDiscount: "Nach Rabatt (exkl. MwSt.)",
+    freeMonthsLine: "Die ersten 2 Monate Support kostenlos",
+    payMollie: "Online über Mollie",
+    payTransfer: "Per Überweisung",
+    recommended: "empfohlen",
+    mollieKeep: "Sie behalten 7 % Rabatt + 2 Monate kostenlosen Support.",
+    transferLoss: "Kein Rabatt, keine kostenlosen Monate.",
+    chooseHint:
+      "Zwei Zahlungswege — online über Mollie ist günstiger:",
+    promo: (v) =>
+      `Entscheiden Sie sich vor dem ${v} und bezahlen Sie online über Mollie: So behalten Sie 7 % Rabatt und die ersten 2 Monate Support kostenlos. Danach oder bei Überweisung entfällt dieser Vorteil.`,
+    payToStart: "Ihre Anzahlungsrechnung ansehen",
+    terms: "Bedingungen",
+    lockinClause: (v, d) =>
+      `Wenn Sie sich vor dem ${v} entscheiden, ist der Leistungsumfang festgelegt und Sie behalten 7 % Rabatt auf den einmaligen Betrag sowie die ersten 2 Monate des Abonnements kostenlos. Nach diesem Datum erlischt dieses Angebot automatisch. Das Wartungsabonnement hat eine Mindestlaufzeit von 1 Jahr; ohne schriftliche Kündigung mindestens 1 Monat vor Ende des Jahreszeitraums verlängert es sich jeweils stillschweigend um ein Jahr. Zahlung: 30 % Anzahlung (${d}) zum Start, die restlichen 70 % bevor die Website live geht. Alle Zahlungen erfolgen ausschließlich über Ihr gesichertes Kundenportal — ohne Ausnahme. Sobald Sie zustimmen, steht die Anzahlungsrechnung sofort bereit; nach der Zahlung startet das Projekt und Sie finden die bezahlte Rechnung umgehend in Ihrem Portal.`,
+    domainClause:
+      "Domain & E-Mail: Ob wir Ihre bestehende Domain reibungslos übernehmen können, hängt davon ab, wie einfach Ihr aktueller Anbieter die Daten freigibt. Dafür können Kosten anfallen, und das Domain-Abonnement (die jährliche Verlängerung) geht stets zu Ihren Lasten. Wir besprechen dies gemeinsam, und es wird — je nach Fall — mit der Schlussrechnung verrechnet; einen genauen Betrag können wir hier daher noch nicht festlegen.",
+  },
+  es: {
+    none: "Todavía no hay presupuesto. En cuanto prepare uno, lo verá aquí.",
+    accept: "Aprobar",
+    reject: "Rechazar",
+    proof: "Confirmación / PDF",
+    print: "Imprimir / PDF",
+    daysLeft: (n) =>
+      n === 1 ? "válido 1 día más" : `válido ${n} días más`,
+    expired: "vencido",
+    expiredNote: "Este presupuesto ha vencido — no dude en solicitar uno nuevo.",
+    reverse: "IVA (0 % — inversión del sujeto pasivo, intracomunitario)",
+    vat: "IVA 21%",
+    subtotal: "Subtotal (IVA no incluido)",
+    inclVat: "Total IVA incluido",
+    valid: "Válido hasta",
+    forWhom: "Para",
+    from: "De",
+    whatYouGet: "Lo que obtiene",
+    included: "incluido",
+    monthly: "al mes",
+    deposit: "Anticipo del 30 % para empezar (IVA incluido)",
+    discountLine: "Descuento por compromiso (firma inmediata) −7%",
+    afterDiscount: "Tras el descuento (IVA no incluido)",
+    freeMonthsLine: "Los 2 primeros meses de soporte gratis",
+    payMollie: "En línea con Mollie",
+    payTransfer: "Por transferencia bancaria",
+    recommended: "recomendado",
+    mollieKeep: "Conserva el 7 % de descuento + 2 meses de soporte gratis.",
+    transferLoss: "Sin descuento ni meses gratis.",
+    chooseHint:
+      "Dos formas de pago — en línea con Mollie es más ventajoso:",
+    promo: (v) =>
+      `Decida antes del ${v} y pague en línea con Mollie: así conserva el 7 % de descuento y los 2 primeros meses de soporte gratis. Después de esa fecha, o si paga por transferencia, esta ventaja se pierde.`,
+    payToStart: "Ver su factura de anticipo",
+    terms: "Condiciones",
+    lockinClause: (v, d) =>
+      `Si decide antes del ${v}, el alcance queda fijado y conserva el 7 % de descuento sobre el importe único, además de los 2 primeros meses de la suscripción gratis. Pasada esa fecha, esta oferta caduca automáticamente. La suscripción de mantenimiento tiene una duración mínima de 1 año; salvo cancelación por escrito al menos 1 mes antes del final del periodo anual, se renueva tácitamente por un año cada vez. Pago: anticipo del 30 % (${d}) para empezar y el 70 % restante antes de que el sitio se publique. Todos los pagos se realizan exclusivamente a través de su portal de cliente seguro — sin excepciones. En cuanto dé su aprobación, la factura de anticipo estará disponible; tras el pago, el proyecto comienza y encontrará la factura pagada de inmediato en su portal.`,
+    domainClause:
+      "Dominio y correo electrónico: que podamos trasladar sin problemas su dominio actual depende de la facilidad con la que su proveedor actual libere los datos. Esto puede conllevar costes, y la suscripción del dominio (la renovación anual) corre siempre a su cargo. Lo hablaremos juntos y, según el caso, se liquidará en la factura final; por eso aquí todavía no podemos fijar un importe exacto.",
+  },
 };
 
 const PRINT_CSS = `@page { margin: 0; }

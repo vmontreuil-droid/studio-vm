@@ -31,6 +31,20 @@ const T: Record<
     err: "Upload failed — try again or email the file.",
     max: "is too large (max 25 MB)",
   },
+  de: {
+    drop: "Dateien hierher ziehen oder klicken, um sie auszuwählen",
+    hint: "Logo, Texte, Fotos, Verträge… (max. 25 MB pro Datei)",
+    busy: "Wird hochgeladen…",
+    err: "Hochladen fehlgeschlagen — bitte erneut versuchen oder die Datei per E-Mail senden.",
+    max: "ist zu groß (max. 25 MB)",
+  },
+  es: {
+    drop: "Arrastre los archivos aquí o haga clic para elegirlos",
+    hint: "Logotipo, textos, fotos, contratos… (máx. 25 MB por archivo)",
+    busy: "Subiendo…",
+    err: "Error al subir — inténtelo de nuevo o envíe el archivo por correo electrónico.",
+    max: "es demasiado grande (máx. 25 MB)",
+  },
 };
 
 const MAX = 25 * 1024 * 1024;

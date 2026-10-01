@@ -61,6 +61,32 @@ const T: Record<
     galerijIntro: "Filter by type of work and click a model to view it large.",
     cta: { eyebrow: "Your project next?", titel: "Send your plans, get a tailored quote", sub: "From excavation to road alignment: any project with GPS-guided machines.", knop: "Request a quote" },
   },
+  de: {
+    meta: { title: "Referenzen — 3D-Modelle für Maschinensteuerung | Studio VM", description: "Realisierte 3D-Modelle für Straßenbau, Erdbau, Baugruben, Becken und Gelände — in Höhenfarben, Neigung, Höhenlinien und Dreiecksnetz." },
+    eyebrow: "Referenzen",
+    titel: "Modelle, die auf der Baustelle sitzen",
+    intro: "Eine Auswahl realisierter Modelle für Maschinensteuerung. Namen und Orte lasse ich aus Diskretion weg — die Modelle sprechen für sich.",
+    uitgelichtEyebrow: "Im Fokus",
+    uitgelichtTitel: "Ein Modell, vier Ansichten",
+    uitgelichtIntro: "Jedes Modell wird in mehreren Ansichten geprüft. Klicken Sie sich durch und sehen Sie denselben Entwurf in Höhenfarben, als Neigungskarte, mit Höhenlinien und als Dreiecksnetz.",
+    galerijEyebrow: "Galerie",
+    galerijTitel: "Von der Straßentrasse bis zur Baugrube",
+    galerijIntro: "Filtern Sie nach Art der Arbeiten und klicken Sie auf ein Modell, um es groß anzuzeigen.",
+    cta: { eyebrow: "Ihr Projekt als Nächstes?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Von der Baugrube bis zur Straßentrasse: jedes Projekt mit GPS-gesteuerten Maschinen.", knop: "Angebot anfordern" },
+  },
+  es: {
+    meta: { title: "Proyectos realizados — modelos 3D para control de maquinaria | Studio VM", description: "Modelos 3D realizados para viales, movimiento de tierras, excavaciones, balsas y terrenos — en colores hipsométricos, pendientes, curvas de nivel y red de triángulos." },
+    eyebrow: "Proyectos realizados",
+    titel: "Modelos que encajan en la obra",
+    intro: "Una selección de modelos realizados para control de maquinaria. Por discreción omito nombres y ubicaciones — los modelos hablan por sí mismos.",
+    uitgelichtEyebrow: "Destacado",
+    uitgelichtTitel: "Un modelo, cuatro miradas",
+    uitgelichtIntro: "Cada modelo se comprueba en varias vistas. Pase de una a otra y vea el mismo proyecto en colores hipsométricos, como mapa de pendientes, con curvas de nivel y como red de triángulos.",
+    galerijEyebrow: "Galería",
+    galerijTitel: "Del trazado de carreteras a la excavación",
+    galerijIntro: "Filtre por tipo de trabajo y haga clic en un modelo para verlo en grande.",
+    cta: { eyebrow: "¿Su proyecto es el siguiente?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "De la excavación al trazado de carreteras: cualquier proyecto con máquinas guiadas por GPS.", knop: "Solicitar presupuesto" },
+  },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

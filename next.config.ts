@@ -81,7 +81,7 @@ const nextConfig: NextConfig = {
       ["preview/:pad*", ""],
     ];
     return naar.map(([oud, nieuw]) => ({
-      source: `/:locale(nl|fr|en)/${oud}`,
+      source: `/:locale(nl|fr|en|de|es)/${oud}`,
       destination: `/:locale${nieuw ? `/${nieuw}` : ""}`,
       permanent: true,
     }));

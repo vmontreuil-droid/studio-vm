@@ -32,6 +32,22 @@ const C: Record<string, { eyebrow: string; title: string; intro: string; cta: st
     cta: "Log in to my portal",
     expired: "Invalid link. Request a new login link.",
   },
+  de: {
+    eyebrow: "Kundenportal",
+    title: "Anmeldung bestätigen",
+    intro:
+      "Klicken Sie auf die Schaltfläche, um sich sicher in Ihrem Kundenportal anzumelden.",
+    cta: "In meinem Portal anmelden",
+    expired: "Ungültiger Link. Bitte fordern Sie einen neuen Anmeldelink an.",
+  },
+  es: {
+    eyebrow: "Portal de cliente",
+    title: "Confirme su inicio de sesión",
+    intro:
+      "Haga clic en el botón para acceder de forma segura a su portal de cliente.",
+    cta: "Acceder a mi portal",
+    expired: "Enlace no válido. Solicite un nuevo enlace de acceso.",
+  },
 };
 
 export default async function ConfirmPage({
@@ -46,7 +62,7 @@ export default async function ConfirmPage({
   const type = get("type") || "magiclink";
   const next = get("next") || "/nl/portail/dashboard";
   const locale = next.split("/")[1];
-  const c = C[["nl", "fr", "en"].includes(locale) ? locale : "nl"];
+  const c = C[["nl", "fr", "en", "de", "es"].includes(locale) ? locale : "nl"];
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-20">

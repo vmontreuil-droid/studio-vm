@@ -1,11 +1,13 @@
 import nl from "./messages/nl";
 import fr from "./messages/fr";
 import en from "./messages/en";
+import de from "./messages/de";
+import es from "./messages/es";
 import { type Locale, DEFAULT_LOCALE } from "./config";
 
-const messagesByLocale = { nl, fr, en } as const;
-
 export type Messages = typeof nl;
+
+const messagesByLocale: Record<Locale, Messages> = { nl, fr, en, de, es };
 
 export function getMessages(locale: Locale): Messages {
   return messagesByLocale[locale] ?? messagesByLocale[DEFAULT_LOCALE];

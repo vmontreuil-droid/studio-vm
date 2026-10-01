@@ -96,6 +96,44 @@ const L: Record<
     subOff: "Subscribe",
     memberSince: "Member since",
   },
+  de: {
+    sub: "Profil, Sprache, Sitzung und E-Mail-Einstellungen — alles an einem Ort.",
+    profile: "Profil",
+    email: "E-Mail-Adresse",
+    lang: "Sprache",
+    sessionTitle: "Sitzung & Sicherheit",
+    sessionText:
+      "Sie bleiben auf diesem Gerät angemeldet, bis Sie sich abmelden. Die Anmeldung erfolgt immer über einen sicheren Link — ohne Passwort.",
+    securityNote: "Passwortlose Anmeldung per Magic Link",
+    verified: "Verifiziert",
+    mailTitle: "E-Mail-Einstellungen",
+    mailText:
+      "Wichtige E-Mails zu Ihrem Projekt (Angebote, Rechnungen, Tickets) erhalten Sie immer. Updates & Tipps sind optional.",
+    mailOn: "Updates & Tipps: an",
+    mailOff: "Updates & Tipps: aus",
+    subOn: "Abmelden",
+    subOff: "Anmelden",
+    memberSince: "Mitglied seit",
+  },
+  es: {
+    sub: "Perfil, idioma, sesión y preferencias de correo — todo en un solo lugar.",
+    profile: "Perfil",
+    email: "Correo electrónico",
+    lang: "Idioma",
+    sessionTitle: "Sesión y seguridad",
+    sessionText:
+      "Permanecerá conectado en este dispositivo hasta que cierre la sesión. El acceso se realiza siempre mediante un enlace seguro — sin contraseña.",
+    securityNote: "Acceso sin contraseña mediante enlace mágico",
+    verified: "Verificado",
+    mailTitle: "Preferencias de correo",
+    mailText:
+      "Los correos importantes sobre su proyecto (presupuestos, facturas, tickets) se envían siempre. Las novedades y consejos son opcionales.",
+    mailOn: "Novedades y consejos: activado",
+    mailOff: "Novedades y consejos: desactivado",
+    subOn: "Darse de baja",
+    subOff: "Suscribirse",
+    memberSince: "Miembro desde",
+  },
 };
 
 export default async function PortalAccount({
@@ -128,7 +166,7 @@ export default async function PortalAccount({
   const createdAt = user?.created_at ? new Date(user.created_at) : null;
   const memberSinceLabel = createdAt
     ? createdAt.toLocaleDateString(
-        locale === "fr" ? "fr-BE" : locale === "en" ? "en-GB" : "nl-BE",
+        ({ nl: "nl-BE", fr: "fr-BE", en: "en-GB", de: "de-DE", es: "es-ES" } as const)[locale],
         { day: "2-digit", month: "long", year: "numeric" },
       )
     : null;
@@ -203,11 +241,7 @@ export default async function PortalAccount({
                 {memberMonths > 0 && (
                   <span className="ml-2 font-mono text-xs text-muted">
                     ({memberMonths}{" "}
-                    {locale === "fr"
-                      ? "mois"
-                      : locale === "en"
-                        ? "months"
-                        : "maanden"})
+                    {{ nl: "maanden", fr: "mois", en: "months", de: "Monate", es: "meses" }[locale]})
                   </span>
                 )}
               </p>

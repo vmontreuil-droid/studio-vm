@@ -71,6 +71,38 @@ const copy: Record<Locale, Copy> = {
     ],
     cookiesLinkLabel: "Read more in our cookie statement →",
   },
+  de: {
+    metaTitle: "Datenschutz — Studio VM",
+    eyebrow: "Datenschutz",
+    title: "Datenschutzerklärung",
+    updated: "Zuletzt aktualisiert",
+    localeCode: "de-DE",
+    blocks: [
+      { title: "Wer sind wir?", paras: [`Studio VM ist ein Einzelunternehmen von Vincent Montreuil mit Sitz in Westflandern, Belgien. Bei Fragen wenden Sie sich an ${MAIL}.`] },
+      { title: "Welche Daten erheben wir?", paras: ["Wir versuchen, so wenig wie möglich zu erheben. Konkret:"], list: ["Kontaktformular: Name, E-Mail, Nachricht — verwendet, um Ihre Anfrage zu beantworten.", "Tickets in der Demo: verbleiben ausschließlich in Ihrem eigenen Browser (localStorage). Wir sehen sie nicht.", "Analytics: datenschutzfreundliches Tool ohne Cookies und ohne persönliche Kennungen."] },
+      { title: "Wie lange speichern wir sie?", paras: ["Kontaktnachrichten speichern wir höchstens 2 Jahre. Wird ein von uns gesendetes Angebot nicht angenommen, löschen wir Ihre Daten nach 6 Monaten."] },
+      { title: "Mit wem teilen wir Ihre Daten?", paras: ["Mit niemandem, sofern keine gesetzliche Pflicht besteht. Kein Marketing, kein Verkauf.", "Für das Hosting nutzen wir Vercel (EU-Region) und Supabase (EU-Region). Für E-Mails gegebenenfalls Resend. Für Online-Zahlungen (die Anzahlung) nutzen wir Mollie als Zahlungsdienstleister — Mollie verarbeitet Ihre Zahlungsdaten; wir selbst speichern keine Karten- oder Kontonummern. Alle diese Anbieter sind DSGVO-konform."] },
+      { title: "Welche Rechte haben Sie?", list: ["Auskunft über Ihre Daten", "Berichtigung Ihrer Daten", "Löschung Ihrer Daten (Recht auf Vergessenwerden)", "Erhalt einer Kopie (Datenexport)", "Beschwerde bei der Datenschutzbehörde"], afterList: `Senden Sie Ihre Anfrage an ${MAIL}. Wir antworten innerhalb von 30 Tagen.` },
+      { title: "Cookies", paras: ["Wir verwenden ausschließlich funktionale Cookies. Keine Tracking-, Marketing- oder Werbe-Cookies."] },
+    ],
+    cookiesLinkLabel: "Mehr dazu in unserer Cookie-Erklärung →",
+  },
+  es: {
+    metaTitle: "Privacidad — Studio VM",
+    eyebrow: "Privacidad",
+    title: "Declaración de privacidad",
+    updated: "Última actualización",
+    localeCode: "es-ES",
+    blocks: [
+      { title: "¿Quiénes somos?", paras: [`Studio VM es una empresa unipersonal de Vincent Montreuil, establecida en Flandes Occidental, Bélgica. Para cualquier consulta: ${MAIL}.`] },
+      { title: "¿Qué datos recopilamos?", paras: ["Intentamos recopilar lo mínimo posible. En concreto:"], list: ["Formulario de contacto: nombre, correo electrónico, mensaje — utilizados para responder a su consulta.", "Tickets de la demo: permanecen únicamente en su propio navegador (localStorage). Nosotros no los vemos.", "Analítica: herramienta respetuosa con la privacidad, sin cookies ni identificadores personales."] },
+      { title: "¿Durante cuánto tiempo los conservamos?", paras: ["Los mensajes de contacto se conservan durante un máximo de 2 años. Si un presupuesto que enviamos no es aceptado, eliminamos sus datos al cabo de 6 meses."] },
+      { title: "¿Con quién compartimos sus datos?", paras: ["Con nadie, salvo obligación legal. Sin marketing, sin venta.", "Para el alojamiento utilizamos Vercel (región UE) y Supabase (región UE). Para el correo electrónico, eventualmente Resend. Para los pagos en línea (el anticipo) utilizamos Mollie como proveedor de pagos — Mollie trata sus datos de pago; nosotros no conservamos ningún número de tarjeta ni de cuenta. Todos ellos cumplen el RGPD."] },
+      { title: "¿Qué derechos tiene?", list: ["Acceder a sus datos", "Solicitar su rectificación", "Solicitar su supresión (derecho al olvido)", "Obtener una copia (exportación de datos)", "Presentar una reclamación ante la Autoridad de Protección de Datos"], afterList: `Envíe su solicitud a ${MAIL}. Respondemos en un plazo de 30 días.` },
+      { title: "Cookies", paras: ["Solo utilizamos cookies funcionales. Ninguna cookie de seguimiento, marketing o publicidad."] },
+    ],
+    cookiesLinkLabel: "Más información en nuestra declaración de cookies →",
+  },
 };
 
 export async function generateMetadata({

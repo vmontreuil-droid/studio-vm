@@ -47,6 +47,8 @@ export function PortalShell({
     nl: { project: "Project", admin: "Administratie", support: "Support & account" },
     fr: { project: "Projet", admin: "Administration", support: "Aide & compte" },
     en: { project: "Project", admin: "Billing", support: "Support & account" },
+    de: { project: "Projekt", admin: "Verwaltung", support: "Support & Konto" },
+    es: { project: "Proyecto", admin: "Administración", support: "Soporte y cuenta" },
   };
   const g = G[locale];
   const groups: {
@@ -71,7 +73,7 @@ export function PortalShell({
       entries: [
         {
           href: `${base}/projecten`,
-          label: locale === "fr" ? "Projets" : locale === "en" ? "Projects" : "Projecten",
+          label: { nl: "Projecten", fr: "Projets", en: "Projects", de: "Projekte", es: "Proyectos" }[locale],
           icon: Boxes,
           badge: counts.projecten,
         },
@@ -113,20 +115,24 @@ export function PortalShell({
         { href: `${base}/account`, label: t.account, icon: UserRound },
         {
           href: `/${locale}/voorwaarden`,
-          label:
-            locale === "fr"
-              ? "Conditions"
-              : locale === "en"
-                ? "Terms"
-                : "Voorwaarden",
+          label: {
+            nl: "Voorwaarden",
+            fr: "Conditions",
+            en: "Terms",
+            de: "AGB",
+            es: "Condiciones",
+          }[locale],
           icon: ScrollText,
         },
         {
           href: `/${locale}/privacy`,
-          label:
-            locale === "fr"
-              ? "Confidentialité"
-              : "Privacy",
+          label: {
+            nl: "Privacy",
+            fr: "Confidentialité",
+            en: "Privacy",
+            de: "Datenschutz",
+            es: "Privacidad",
+          }[locale],
           icon: ShieldCheck,
         },
       ],

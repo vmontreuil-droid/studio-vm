@@ -58,6 +58,26 @@ const L: Record<
     you: "You",
     studio: "Studio VM",
   },
+  de: {
+    none: "Noch keine Tickets. Eröffnen Sie unten eines.",
+    newTicket: "Neues Ticket",
+    subject: "Betreff",
+    message: "Nachricht",
+    send: "Senden",
+    reply: "Antworten",
+    you: "Sie",
+    studio: "Studio VM",
+  },
+  es: {
+    none: "Todavía no hay tickets. Abra uno a continuación.",
+    newTicket: "Nuevo ticket",
+    subject: "Asunto",
+    message: "Mensaje",
+    send: "Enviar",
+    reply: "Responder",
+    you: "Usted",
+    studio: "Studio VM",
+  },
 };
 
 export default async function PortalTickets({

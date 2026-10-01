@@ -65,6 +65,36 @@ const copy: Record<
     home: "To home",
     searchHint: "or press ⌘K to search",
   },
+  de: {
+    eyebrow: "404 · nicht gefunden",
+    titlePrefix: "Seite",
+    titleSuffix: " existiert nicht.",
+    intro:
+      "Vielleicht ein veralteter Link oder ein Tippfehler. Versuchen Sie es mit einer dieser Seiten:",
+    suggestions: [
+      { href: "/", label: "Start", desc: "Von vorn beginnen" },
+      { href: "/realisaties", label: "Referenzen", desc: "Umgesetzte Modelle ansehen" },
+      { href: "/offerte", label: "Angebot anfordern", desc: "Senden Sie Ihre Pläne" },
+      { href: "/#contact", label: "Kontakt", desc: "Schreiben Sie mir eine Nachricht" },
+    ],
+    home: "Zur Startseite",
+    searchHint: "oder drücken Sie ⌘K, um zu suchen",
+  },
+  es: {
+    eyebrow: "404 · no encontrada",
+    titlePrefix: "página",
+    titleSuffix: " no existe.",
+    intro:
+      "Quizá se trate de un enlace antiguo o de un error al escribir. Pruebe con una de estas:",
+    suggestions: [
+      { href: "/", label: "Inicio", desc: "Volver a empezar" },
+      { href: "/realisaties", label: "Proyectos", desc: "Ver modelos realizados" },
+      { href: "/offerte", label: "Solicitar presupuesto", desc: "Envíe sus planos" },
+      { href: "/#contact", label: "Contacto", desc: "Envíeme un mensaje" },
+    ],
+    home: "Ir al inicio",
+    searchHint: "o pulse ⌘K para buscar",
+  },
 };
 
 export default async function NotFound() {

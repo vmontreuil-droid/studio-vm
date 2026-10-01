@@ -118,6 +118,62 @@ const copy: Record<Locale, Copy> = {
     ],
     ctaSupport: "View support tickets demo",
   },
+  de: {
+    metaTitle: "Kundenportal — Studio VM",
+    eyebrow: "Kundenportal",
+    title: "Anmelden",
+    intro: "Sehen Sie Ihre Projekte und Rechnungen ein und eröffnen Sie ein Support-Ticket.",
+    email: "E-Mail",
+    emailPh: "sie@unternehmen.de",
+    password: "Passwort",
+    login: "Anmelden",
+    forgot: "Passwort vergessen?",
+    reset: "Zurücksetzen",
+    demoNote:
+      "Demo-Portal. Die Anmeldung ist noch nicht aktiv — Kunden eines echten Projekts erhalten Zugang über Supabase Auth.",
+    previewLabel: "Ein Vorgeschmack auf das, was dahintersteckt",
+    welcome: "Willkommen zurück, Sophie",
+    stats: { orders: "Bestellungen", revenue: "Umsatz", customers: "Kunden" },
+    invoicePaid: "Bezahlt",
+    ticketStatus: "In Bearbeitung",
+    ticketLabel: "Ticket #42 — Produktfotos",
+    featuresEyebrow: "Was Sie erhalten",
+    featuresTitle: "Kundenportal — alles an einem Ort",
+    features: [
+      { title: "Rechnungen + Angebote", desc: "Alle Unterlagen an einem Ort, als PDF herunterladbar." },
+      { title: "Live-Status Ihrer Website", desc: "Verfügbarkeit, Performance, letztes Deployment — alles in Echtzeit." },
+      { title: "Support-Tickets", desc: "Eröffnen Sie ein Ticket, verfolgen Sie den Status und erhalten Sie Benachrichtigungen per E-Mail." },
+    ],
+    ctaSupport: "Demo der Support-Tickets ansehen",
+  },
+  es: {
+    metaTitle: "Portal de cliente — Studio VM",
+    eyebrow: "Portal de cliente",
+    title: "Iniciar sesión",
+    intro: "Consulte sus proyectos y facturas, y abra un ticket de soporte.",
+    email: "Correo electrónico",
+    emailPh: "usted@empresa.es",
+    password: "Contraseña",
+    login: "Iniciar sesión",
+    forgot: "¿Ha olvidado su contraseña?",
+    reset: "Restablecer",
+    demoNote:
+      "Portal de demostración. El inicio de sesión aún no está activo — los clientes de un proyecto real acceden mediante Supabase Auth.",
+    previewLabel: "Un anticipo de lo que hay detrás",
+    welcome: "Bienvenida de nuevo, Sophie",
+    stats: { orders: "Pedidos", revenue: "Facturación", customers: "Clientes" },
+    invoicePaid: "Pagada",
+    ticketStatus: "En curso",
+    ticketLabel: "Ticket #42 — Fotos de producto",
+    featuresEyebrow: "Lo que obtiene",
+    featuresTitle: "Portal de cliente — todo en un solo lugar",
+    features: [
+      { title: "Facturas + propuestas", desc: "Toda la documentación en un solo lugar, descargable en PDF." },
+      { title: "Estado en vivo de su sitio", desc: "Disponibilidad, rendimiento, último despliegue — todo en tiempo real." },
+      { title: "Tickets de soporte", desc: "Abra un ticket, siga su estado y reciba notificaciones por correo electrónico." },
+    ],
+    ctaSupport: "Ver la demo de tickets de soporte",
+  },
 };
 
 export async function generateMetadata({
@@ -142,7 +198,7 @@ export default async function PortailPage({
   const { next: rawNext } = await searchParams;
   const next =
     typeof rawNext === "string" &&
-    /^\/(nl|fr|en)\/portail(\/|$)/.test(rawNext)
+    /^\/(nl|fr|en|de|es)\/portail(\/|$)/.test(rawNext)
       ? rawNext
       : undefined;
 

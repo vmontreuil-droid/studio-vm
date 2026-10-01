@@ -24,6 +24,16 @@ const L: Record<Locale, { none: string; sub: string; doneN: (a: number, b: numbe
     sub: "What I need from you to move forward. Tick what's ready.",
     doneN: (a, b) => `${a} of ${b} done`,
   },
+  de: {
+    none: "Noch keine Checkliste. Sobald wir starten, trage ich hier ein, was ich von Ihnen benötige.",
+    sub: "Was ich von Ihnen benötige, um zügig weiterzukommen. Haken Sie ab, was erledigt ist.",
+    doneN: (a, b) => `${a} von ${b} erledigt`,
+  },
+  es: {
+    none: "Todavía no hay lista de verificación. En cuanto empecemos, indicaré aquí lo que necesito de usted.",
+    sub: "Lo que necesito de usted para avanzar sin demoras. Marque lo que ya esté listo.",
+    doneN: (a, b) => `${a} de ${b} listos`,
+  },
 };
 
 export default async function PortalChecklist({

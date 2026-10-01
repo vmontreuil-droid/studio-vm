@@ -55,8 +55,10 @@ export async function decideOffer(
   const email = await authedEmail();
   if (!email) return;
   const rawLoc = String(formData?.get("locale") ?? "nl");
-  const dloc: "nl" | "fr" | "en" =
-    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
+  const dloc: "nl" | "fr" | "en" | "de" | "es" =
+    rawLoc === "fr" || rawLoc === "en" || rawLoc === "de" || rawLoc === "es"
+      ? rawLoc
+      : "nl";
   const sb = await getSupabaseServer();
 
   // Vervallen offerte kan niet meer aanvaard worden — de vastleg-
@@ -174,6 +176,20 @@ export async function decideOffer(
             eyebrow: "Your client portal",
             cta: "View your invoice in the portal",
           },
+          de: {
+            subject: `Ihre Rechnung ${invNo} ist bereit`,
+            l1: `Vielen Dank für Ihre Zustimmung zu <strong>${o.title}</strong>.`,
+            l2: `Die Rechnung <strong>${invNo}</strong> (${amount}) steht in Ihrem Portal bereit, zahlbar bis ${dueAt}. Sie wählen selbst, wie Sie bezahlen: online über Mollie oder per Überweisung.`,
+            eyebrow: "Ihr Kundenportal",
+            cta: "Rechnung im Portal ansehen",
+          },
+          es: {
+            subject: `Su factura ${invNo} está lista`,
+            l1: `Gracias por su aprobación de <strong>${o.title}</strong>.`,
+            l2: `La factura <strong>${invNo}</strong> (${amount}) está disponible en su portal, pagadera antes del ${dueAt}. Usted elige cómo pagar: en línea a través de Mollie o por transferencia bancaria.`,
+            eyebrow: "Su portal de cliente",
+            cta: "Ver su factura en el portal",
+          },
         }[dloc];
         const facturenUrl = `${siteUrl}/${dloc}/portail?next=${encodeURIComponent(
           `/${dloc}/portail/dashboard/facturen`,
@@ -237,8 +253,10 @@ export async function requestAppointment(
   const email = await authedEmail();
   if (!email) return;
   const rawLoc = String(formData.get("locale") ?? "nl");
-  const dloc: "nl" | "fr" | "en" =
-    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
+  const dloc: "nl" | "fr" | "en" | "de" | "es" =
+    rawLoc === "fr" || rawLoc === "en" || rawLoc === "de" || rawLoc === "es"
+      ? rawLoc
+      : "nl";
   const kind = String(formData.get("kind") ?? "").trim() || "videocall";
   const when = String(formData.get("when") ?? "").trim() || "deze week";
   const slot = String(formData.get("slot") ?? "").trim() || "doorlopend";
@@ -505,8 +523,10 @@ export async function upgradeSubscription(
   const tier = tiers.find((s) => s.slug === slug);
   if (!tier) return;
   const rawLoc = String(formData?.get("locale") ?? "nl");
-  const loc: "nl" | "fr" | "en" =
-    rawLoc === "fr" || rawLoc === "en" ? rawLoc : "nl";
+  const loc: "nl" | "fr" | "en" | "de" | "es" =
+    rawLoc === "fr" || rawLoc === "en" || rawLoc === "de" || rawLoc === "es"
+      ? rawLoc
+      : "nl";
 
   const db = getSupabaseAdmin();
   const { data } = await db
@@ -639,7 +659,7 @@ export async function upgradeSubscription(
       sign: "Talk soon,<br>Vincent — Studio VM",
       terms: `Our <a href="${siteUrl}/${loc}/voorwaarden" style="color:${accent}">general terms</a> and <a href="${siteUrl}/${loc}/privacy" style="color:${accent}">privacy policy</a> still apply.`,
     },
-  }[loc];
+  }[loc === "de" || loc === "es" ? "en" : loc];
 
   const list = (items: string[]) =>
     items.length

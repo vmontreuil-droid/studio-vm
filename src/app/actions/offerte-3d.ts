@@ -93,7 +93,7 @@ const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
   if (s(fd, "website")) return { ok: true }; // honeypot: stil negeren
 
-  const locale = ["nl", "fr", "en"].includes(s(fd, "locale")) ? s(fd, "locale") : "nl";
+  const locale = ["nl", "fr", "en", "de", "es"].includes(s(fd, "locale")) ? s(fd, "locale") : "nl";
   const v = {
     bedrijf: s(fd, "bedrijf"),
     naam: s(fd, "naam"),
@@ -290,7 +290,35 @@ ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li
       vraag: "Anything wrong, or more plans to add? Simply reply to this email.",
       groet: "Kind regards,",
     },
-  }[locale as "nl" | "fr" | "en"];
+    de: {
+      onderwerp: "Wir haben Ihre Pläne erhalten — Studio VM",
+      hallo: `Guten Tag ${esc(v.naam)},`,
+      tekst: "Vielen Dank für Ihre Anfrage. Ich prüfe Ihre Pläne und sende Ihnen so schnell wie möglich ein individuelles Angebot mit Preis und Liefertermin.",
+      samenvatting: "Was ich erhalten habe",
+      werf: "Baustelle",
+      stelsel: "Vorgeschlagenes System",
+      merk: "Maschinensteuerung",
+      bestanden: "Dateien",
+      portaal: "Verfolgen Sie Ihr Projekt in Ihrem Kundenportal: Dort finden Sie Ihre Pläne und demnächst das Angebot und die Modelldateien. Sie melden sich mit dieser E-Mail-Adresse an — Sie erhalten einen Anmeldelink, kein Passwort nötig.",
+      portaalKnop: "Zu meinem Portal",
+      vraag: "Stimmt etwas nicht, oder möchten Sie weitere Pläne nachreichen? Antworten Sie einfach auf diese E-Mail.",
+      groet: "Mit freundlichen Grüßen",
+    },
+    es: {
+      onderwerp: "Hemos recibido sus planos — Studio VM",
+      hallo: `Estimado/a ${esc(v.naam)}:`,
+      tekst: "Gracias por su solicitud. Revisaré sus planos y le enviaré lo antes posible un presupuesto a medida, con precio y fecha de entrega.",
+      samenvatting: "Lo que he recibido",
+      werf: "Obra",
+      stelsel: "Sistema propuesto",
+      merk: "Control de maquinaria",
+      bestanden: "Archivos",
+      portaal: "Siga su proyecto en su portal de cliente: allí encontrará sus planos y, más adelante, el presupuesto y los archivos del modelo. Acceda con esta dirección de correo electrónico — recibirá un enlace de acceso, sin necesidad de contraseña.",
+      portaalKnop: "Ir a mi portal",
+      vraag: "¿Hay algo incorrecto o desea enviar más planos? Basta con responder a este correo.",
+      groet: "Atentamente,",
+    },
+  }[locale as "nl" | "fr" | "en" | "de" | "es"];
 
   await sendMail(v.email, {
     replyTo: "info@studio-vm.be",

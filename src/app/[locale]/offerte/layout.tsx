@@ -17,6 +17,16 @@ const META: Record<Locale, { title: string; description: string }> = {
     description:
       "Upload your plans, give the site address and your machine control brand. You get a tailored quote for a 3D model in the right format and coordinate system.",
   },
+  de: {
+    title: "Angebot anfordern — 3D-Modell für Maschinensteuerung | Studio VM",
+    description:
+      "Laden Sie Ihre Pläne hoch, nennen Sie die Baustellenadresse und die Marke Ihrer Maschinensteuerung. Sie erhalten ein individuelles Angebot für ein 3D-Modell im richtigen Format und Koordinatensystem.",
+  },
+  es: {
+    title: "Solicitar presupuesto — modelo 3D para control de maquinaria | Studio VM",
+    description:
+      "Suba sus planos, indique la dirección de la obra y la marca de su sistema de control de maquinaria. Recibirá un presupuesto a medida para un modelo 3D en el formato y sistema de coordenadas correctos.",
+  },
 };
 
 export async function generateMetadata({

@@ -99,7 +99,15 @@ export const eur = (c: number | null | undefined) =>
 
 export const dt = (s: string, loc: Locale) =>
   new Date(s).toLocaleDateString(
-    loc === "fr" ? "fr-BE" : loc === "en" ? "en-GB" : "nl-BE",
+    loc === "fr"
+      ? "fr-BE"
+      : loc === "en"
+        ? "en-GB"
+        : loc === "de"
+          ? "de-DE"
+          : loc === "es"
+            ? "es-ES"
+            : "nl-BE",
   );
 
 export function badge(status: string): string {
@@ -119,21 +127,23 @@ export function badge(status: string): string {
 }
 
 const STATUS_LABEL: Record<string, Record<Locale, string>> = {
-  open: { nl: "open", fr: "ouvert", en: "open" },
-  akkoord: { nl: "akkoord", fr: "accepté", en: "accepted" },
-  afgewezen: { nl: "afgewezen", fr: "refusé", en: "declined" },
-  betaald: { nl: "betaald", fr: "payé", en: "paid" },
-  vervallen: { nl: "vervallen", fr: "échu", en: "overdue" },
-  actief: { nl: "actief", fr: "actif", en: "active" },
-  gepauzeerd: { nl: "gepauzeerd", fr: "en pause", en: "paused" },
-  gestopt: { nl: "gestopt", fr: "arrêté", en: "stopped" },
-  gesloten: { nl: "gesloten", fr: "fermé", en: "closed" },
+  open: { nl: "open", fr: "ouvert", en: "open", de: "offen", es: "abierto" },
+  akkoord: { nl: "akkoord", fr: "accepté", en: "accepted", de: "angenommen", es: "aceptado" },
+  afgewezen: { nl: "afgewezen", fr: "refusé", en: "declined", de: "abgelehnt", es: "rechazado" },
+  betaald: { nl: "betaald", fr: "payé", en: "paid", de: "bezahlt", es: "pagado" },
+  vervallen: { nl: "vervallen", fr: "échu", en: "overdue", de: "überfällig", es: "vencido" },
+  actief: { nl: "actief", fr: "actif", en: "active", de: "aktiv", es: "activo" },
+  gepauzeerd: { nl: "gepauzeerd", fr: "en pause", en: "paused", de: "pausiert", es: "en pausa" },
+  gestopt: { nl: "gestopt", fr: "arrêté", en: "stopped", de: "beendet", es: "detenido" },
+  gesloten: { nl: "gesloten", fr: "fermé", en: "closed", de: "geschlossen", es: "cerrado" },
   in_behandeling: {
     nl: "in behandeling",
     fr: "en traitement",
     en: "in progress",
+    de: "in Bearbeitung",
+    es: "en curso",
   },
-  vastgelegd: { nl: "vastgelegd", fr: "verrouillé", en: "locked in" },
+  vastgelegd: { nl: "vastgelegd", fr: "verrouillé", en: "locked in", de: "verbindlich", es: "confirmado" },
 };
 
 export function statusLabel(status: string, loc: Locale): string {
@@ -226,5 +236,43 @@ export const PORTAL_T: Record<
     account: "Account",
     signout: "Sign out",
     website: "To the website",
+  },
+  de: {
+    portal: "Portal",
+    overview: "Übersicht",
+    scans: "Meine Scans",
+    offers: "Angebote",
+    invoices: "Rechnungen",
+    subscription: "Abonnement",
+    payments: "Zahlungen",
+    mywebsite: "Meine Website",
+    progress: "Fortschritt",
+    checklist: "Checkliste",
+    documents: "Dokumente",
+    appointment: "Termin",
+    domain: "Domain & Hosting",
+    tickets: "Support",
+    account: "Konto",
+    signout: "Abmelden",
+    website: "Zur Website",
+  },
+  es: {
+    portal: "portal",
+    overview: "Resumen",
+    scans: "Mis análisis",
+    offers: "Presupuestos",
+    invoices: "Facturas",
+    subscription: "Suscripción",
+    payments: "Pagos",
+    mywebsite: "Mi sitio web",
+    progress: "Progreso",
+    checklist: "Lista de verificación",
+    documents: "Documentos",
+    appointment: "Cita",
+    domain: "Dominio y alojamiento",
+    tickets: "Soporte",
+    account: "Cuenta",
+    signout: "Cerrar sesión",
+    website: "Ir al sitio web",
   },
 };

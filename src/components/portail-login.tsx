@@ -100,6 +100,50 @@ const T: Record<
       { t: "Support", d: "Open a ticket and follow up." },
     ],
   },
+  de: {
+    eyebrow: "Kundenportal",
+    title: "Anmelden",
+    intro:
+      "Kein Passwort nötig — Sie erhalten einen sicheren Anmeldelink in Ihr Postfach.",
+    email: "E-Mail",
+    placeholder: "sie@unternehmen.de",
+    button: "Anmeldelink senden",
+    sending: "Wird gesendet…",
+    note: "Nur Kunden mit einem aktiven Projekt haben Zugang. Fragen Sie mich, wenn Sie unsicher sind.",
+    back: "Zurück zur Website",
+    panelEyebrow: "Ihr Portal",
+    panelTitle: "Alles zu Ihrem Projekt, an einem Ort.",
+    features: [
+      { t: "Website-Analyse", d: "Score, Schwachstellen und der vollständige Bericht." },
+      { t: "Projektfortschritt", d: "Sehen Sie genau, wo Ihr Projekt steht." },
+      { t: "Angebote & Rechnungen", d: "Ansehen, annehmen und bezahlen an einem Ort." },
+      { t: "Dokumente", d: "Verträge, Entwürfe und Dateien gebündelt." },
+      { t: "Website & Domain", d: "Live-Status, Hosting und DNS, von mir verwaltet." },
+      { t: "Support", d: "Eröffnen Sie ein Ticket und verfolgen Sie die Bearbeitung." },
+    ],
+  },
+  es: {
+    eyebrow: "Portal de cliente",
+    title: "Iniciar sesión",
+    intro:
+      "No necesita contraseña — recibirá un enlace de acceso seguro en su bandeja de entrada.",
+    email: "Correo electrónico",
+    placeholder: "usted@empresa.es",
+    button: "Enviar enlace de acceso",
+    sending: "Enviando…",
+    note: "Solo los clientes con un proyecto activo tienen acceso. Consúlteme si tiene dudas.",
+    back: "Volver al sitio web",
+    panelEyebrow: "Su portal",
+    panelTitle: "Todo sobre su proyecto, en un solo lugar.",
+    features: [
+      { t: "Análisis del sitio", d: "Puntuación, puntos débiles y el informe completo." },
+      { t: "Progreso del proyecto", d: "Vea exactamente en qué punto está su proyecto." },
+      { t: "Presupuestos y facturas", d: "Consulte, acepte y pague en un solo lugar." },
+      { t: "Documentos", d: "Contratos, diseños y archivos reunidos." },
+      { t: "Sitio y dominio", d: "Estado en vivo, alojamiento y DNS, gestionados por mí." },
+      { t: "Soporte", d: "Abra un ticket y haga el seguimiento." },
+    ],
+  },
 };
 
 const ICONS = [Gauge, TrendingUp, FileText, FolderOpen, Globe, LifeBuoy];

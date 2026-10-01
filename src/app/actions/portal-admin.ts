@@ -33,7 +33,7 @@ async function clientLocale(email: string): Promise<string> {
       .limit(1)
       .maybeSingle();
     const loc = (data as { locale?: string } | null)?.locale;
-    return loc && ["nl", "fr", "en"].includes(loc) ? loc : "nl";
+    return loc && ["nl", "fr", "en", "de", "es"].includes(loc) ? loc : "nl";
   } catch {
     return "nl";
   }

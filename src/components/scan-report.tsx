@@ -623,6 +623,328 @@ const UI: Record<
     copyTpl: (h, s, g, st) =>
       `Scan of ${h} (via studio-vm.be/scan)\nGrade: ${g} — ${s}/100\nPlatform: ${st}\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
   },
+    de: {
+    domain: { title: "Domain, mail & certificate", cert: "SSL certificate", issuer: "Issuer", expires: "Expires in", protocol: "TLS protocol", mail: "Mail security", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "yes", no: "no", na: "n/a", days: "days" },
+    placeholder: "yourcurrentsite.com",
+    button: "Deep-scan my site",
+    scanning: "Running a deep scan…",
+    grade: "Grade",
+    again: "Scan another site",
+    print: "Download report (PDF)",
+    copy: "Copy summary",
+    copied: "Copied",
+    factsHost: "Host",
+    factsBuilt: "Built by",
+    factsIp: "IP address",
+    factsStack: "Platform",
+    factsSpeed: "Response time",
+    factsWeight: "HTML",
+    verdictTitle: "Summary",
+    verdictGood: "This site is in strong shape. The fundamentals are sound; this is fine-tuning, not rescue.",
+    verdictOk: "This site works, but leaves points that both visitors and Google notice. Fixable.",
+    verdictBad: "This site is in weak shape. Every red point below is revenue, trust or visibility walking away.",
+    honestTitle: "The honest verdict — are you in good shape, and not overpaying?",
+    honest: (f) => {
+      const lines: string[] = [];
+      if (f.flags.modern)
+        lines.push("This is a modern, well-built site. No reason to panic, and no sign you're paying for thin air.");
+      else if (f.score >= 75)
+        lines.push("Solid work. There's room to optimize, but you're not being robbed here.");
+      if (f.flags.diyPlatform)
+        lines.push(`Your site runs on ${f.stack}, a do-it-yourself platform. That's fine — but you can largely manage it yourself. If an agency bills you monthly to 'maintain' a Wix/Squarespace site, look hard at what you actually get for it.`);
+      if (f.flags.outdated)
+        lines.push("Outdated or stacked tech is running here. Paying for this without it ever being updated is poor value — and a security risk.");
+      if (f.flags.insecure)
+        lines.push("Security is insufficient. Not a detail: it touches visitor trust and your GDPR obligations.");
+      if (f.flags.slow)
+        lines.push("The site is slow. Slow sites measurably lose visitors and Google ranking — this costs you money directly.");
+      if (f.flags.abandoned)
+        lines.push("The site looks neglected: old tech plus a stale year. Visitors wonder if you're still active — and you may be paying for 'maintenance' that clearly isn't happening.");
+      if (f.flags.gdprRisk)
+        lines.push("External scripts/trackers load without a visible cookie consent. That's a concrete GDPR fine risk, not theory.");
+      if (f.flags.mailSpoofable)
+        lines.push("Your domain has no SPF and no DMARC: someone can send emails today that look like they come from your address — to your own customers. That's a serious and often overlooked hole.");
+      if (f.flags.certExpiring)
+        lines.push("Your SSL certificate expires soon. Once it lapses, visitors get a scary warning and your site is effectively unreachable.");
+      if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
+        lines.push("In short: what you have doesn't deliver what a site should in 2026. Whether that's a 'rip-off' depends on what you pay — but it can be markedly better.");
+      if (lines.length === 0)
+        lines.push("Nothing alarming. What's amber or red below is improvement work — not a fire.");
+      return lines.join(" ");
+    },
+    catTitle: "Score per category",
+    cats: { speed: "Speed", seo: "SEO", mobile: "Mobile", security: "Security", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risk estimate",
+    cwvLabels: { low: "Low risk", medium: "Medium risk", high: "High risk" },
+    cwvNote: "Estimate based on response time, weight, render-blocking CSS, scripts and image approach. Google uses Core Web Vitals as a ranking factor; high risk = a slow-feeling site that costs visitors and rankings.",
+    pitfallTitle: "Where the pitfalls are",
+    pitfallNone: "No major pitfalls found — clean.",
+    findingsTitle: "Every finding, explained",
+    sev: { critical: "Critical", warning: "Attention", good: "OK", info: "Info" },
+    whyLabel: "Why this matters",
+    fixLabel: "What to do",
+    measured: "Measured",
+    techTitle: "Detected technology & plugins",
+    techTypes: { cms: "CMS / platform", ecommerce: "E-commerce", builder: "Builder / page-builder", theme: "Theme", plugin: "Plugins", analytics: "Analytics", marketing: "Marketing", library: "Libraries", font: "Fonts", framework: "Framework", cdn: "CDN", host: "Hosting" },
+    techNone: "No recognizable technology found (or well shielded).",
+    headersTitle: "Security headers",
+    headerNames: { hsts: "Strict-Transport-Security", csp: "Content-Security-Policy", xfo: "X-Frame-Options", xcto: "X-Content-Type-Options", referrer: "Referrer-Policy", permissions: "Permissions-Policy" },
+    present: "Present",
+    absent: "Missing",
+    seoTitle: "SEO measurement in detail",
+    seoTitleLen: "Title length (ideal 30–60)",
+    seoDescLen: "Description (ideal 70–165)",
+    seoH1: "H1 count (ideal 1)",
+    seoAlt: "Images with alt text",
+    benchTitle: "Your site vs. a Studio VM build",
+    benchYou: "Your site",
+    benchSvm: "Studio VM standard",
+    benchNote: "A Studio VM build aims for 100/100 on exactly these points by default. Speed, SEO basics and security aren't an extra — they're the starting point.",
+    planTitle: "Your action plan + instant price estimate",
+    planIntro: "Based on what's red and amber above, here's the recommended order — with an indicative price per step (excl. VAT).",
+    planStep: "Step",
+    planNothing: "No urgent interventions needed. A maintenance plan keeps it this way.",
+    planTotal: "Total of individual fixes",
+    planRebuild: "Or: all in one — rebuild in Next.js",
+    planRebuildNote: "Instead of patches: a fast, secure site aiming for 100/100, whose code and data you own. Often better value than the sum above.",
+    planCare: "Then: worry-free maintenance",
+    planCareNote: "Hosting, SSL, backups, updates and support — so it still scores 100/100 a year from now.",
+    excl: "excl. VAT",
+    perMonth: "per month",
+    from: "from",
+    ctaButton: "Discuss this report with me",
+    disclaimer: "Quick, honest heuristic check from our server — not a full pentest. Prices are indicative; an exact quote follows a short chat.",
+    reportFor: "Website analysis for",
+    reportBy: "Prepared by Studio VM · studio-vm.be · +32 477 99 56 51",
+    modules: {
+      security: { name: "Security pack", desc: "Force HTTPS, security headers, close version leaks, harden cookies." },
+      speed: { name: "Speed optimization", desc: "Caching, compression, script cleanup, weight reduction." },
+      seo: { name: "SEO foundation", desc: "Titles, metas, heading structure, Open Graph and structured data." },
+      mobile: { name: "Mobile & accessibility", desc: "Responsive viewport, alt text, readability on phones." },
+      migration: { name: "Content migration", desc: "Move existing content off WordPress/Wix/Squarespace." },
+      rebuild: { name: "Full rebuild (Next.js)", desc: "A new, fast, secure site that you own." },
+      care: { name: "Care plan", desc: "Hosting, SSL, backups, updates and support." },
+    },
+    plan: {
+      title: (st) => `Your plan: no more tinkering in ${st} — a clean rebuild you own`,
+      why: (st, s) =>
+        `Keeping ${st} patched is throwing good money after bad: every fix is temporary, plugin-dependent and doesn't address the cause (score ${s}/100). I rebuild exactly what your site does — clean, fast and secure in Next.js — and migrate your content while preserving your Google rankings. No plugins, no surprises, you own the code and data.`,
+      haveTitle: "What I detected on your site",
+      feat: {
+        pages: "pages",
+        shop: "Webshop / online sales",
+        multilingual: "Multilingual",
+        forms: "Forms",
+        booking: "Booking / appointments",
+        blog: "Blog / news",
+        members: "Member area / e-learning",
+        mediaHeavy: "Image-heavy / galleries",
+        pageBuilder: "Page builder (Elementor/Divi…)",
+        plugins: "plugins detected",
+      },
+      buildTitle: "What I build instead",
+      phasesTitle: "Phased approach",
+      phases: [
+        { t: "1 · Audit & content inventory", d: "I list every page, feature and URL so nothing is lost." },
+        { t: "2 · Design on your brand", d: "A custom, fast design — no template, mobile-first." },
+        { t: "3 · Build in Next.js", d: "The whole site rebuilt natively, without plugins." },
+        { t: "4 · Content migration", d: "Texts, images and pages moved over and cleaned up." },
+        { t: "5 · SEO preservation", d: "A 301 redirect plan so your Google rankings move with you." },
+        { t: "6 · Launch & handover", d: "Taken live; you get the code, data and an admin." },
+      ],
+      mod: {
+        base_starter: { name: "One-pager", desc: "One strong page, custom design, mobile, contact, SEO basics — cleanly built." },
+        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, cleanly built and ready to scale." },
+        base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
+        multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
+        forms: { name: "Forms + follow-up", desc: "Contact/quote forms with spam filter and mail follow-up." },
+        booking: { name: "Booking module", desc: "Appointments/bookings with calendar and confirmations." },
+        blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
+        members: { name: "Member area", desc: "Gated section with logins and roles." },
+        admin: { name: "Own admin / CMS", desc: "Manage texts, images and pages yourself — no invoice for every change." },
+        content: { name: "Texts", desc: "Professional, SEO-aware web copy for your pages." },
+        seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
+        photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
+      },
+      base: "Starting point",
+      addons: "Tailored to what you have",
+      total: "Total estimate",
+      approx: "indicative, exact quote after a short chat",
+      timeline: "Timeline",
+      timelineNote:
+        "Built in 1–2 weeks. Only depends on your domain release and whether photo material is available.",
+      weeks: (a, b) => `${a}–${b} weeks`,
+      careTitle: "Then: worry-free maintenance",
+      careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
+      optTitle: "Optional — if you don't have visuals yet",
+      optNote: "Good photos make or break a site. Nothing usable? I arrange a shoot. Only if you need it — otherwise just leave it out.",
+      own: "On delivery you own all the code and data. No lock-in, no mandatory subscription.",
+      cta: "Discuss this plan with me",
+    },
+    copyTpl: (h, s, g, st) =>
+      `Scan of ${h} (via studio-vm.be/scan)\nGrade: ${g} — ${s}/100\nPlatform: ${st}\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
+  },
+    es: {
+    domain: { title: "Domain, mail & certificate", cert: "SSL certificate", issuer: "Issuer", expires: "Expires in", protocol: "TLS protocol", mail: "Mail security", spf: "SPF", dmarc: "DMARC", ipv6: "IPv6", yes: "yes", no: "no", na: "n/a", days: "days" },
+    placeholder: "yourcurrentsite.com",
+    button: "Deep-scan my site",
+    scanning: "Running a deep scan…",
+    grade: "Grade",
+    again: "Scan another site",
+    print: "Download report (PDF)",
+    copy: "Copy summary",
+    copied: "Copied",
+    factsHost: "Host",
+    factsBuilt: "Built by",
+    factsIp: "IP address",
+    factsStack: "Platform",
+    factsSpeed: "Response time",
+    factsWeight: "HTML",
+    verdictTitle: "Summary",
+    verdictGood: "This site is in strong shape. The fundamentals are sound; this is fine-tuning, not rescue.",
+    verdictOk: "This site works, but leaves points that both visitors and Google notice. Fixable.",
+    verdictBad: "This site is in weak shape. Every red point below is revenue, trust or visibility walking away.",
+    honestTitle: "The honest verdict — are you in good shape, and not overpaying?",
+    honest: (f) => {
+      const lines: string[] = [];
+      if (f.flags.modern)
+        lines.push("This is a modern, well-built site. No reason to panic, and no sign you're paying for thin air.");
+      else if (f.score >= 75)
+        lines.push("Solid work. There's room to optimize, but you're not being robbed here.");
+      if (f.flags.diyPlatform)
+        lines.push(`Your site runs on ${f.stack}, a do-it-yourself platform. That's fine — but you can largely manage it yourself. If an agency bills you monthly to 'maintain' a Wix/Squarespace site, look hard at what you actually get for it.`);
+      if (f.flags.outdated)
+        lines.push("Outdated or stacked tech is running here. Paying for this without it ever being updated is poor value — and a security risk.");
+      if (f.flags.insecure)
+        lines.push("Security is insufficient. Not a detail: it touches visitor trust and your GDPR obligations.");
+      if (f.flags.slow)
+        lines.push("The site is slow. Slow sites measurably lose visitors and Google ranking — this costs you money directly.");
+      if (f.flags.abandoned)
+        lines.push("The site looks neglected: old tech plus a stale year. Visitors wonder if you're still active — and you may be paying for 'maintenance' that clearly isn't happening.");
+      if (f.flags.gdprRisk)
+        lines.push("External scripts/trackers load without a visible cookie consent. That's a concrete GDPR fine risk, not theory.");
+      if (f.flags.mailSpoofable)
+        lines.push("Your domain has no SPF and no DMARC: someone can send emails today that look like they come from your address — to your own customers. That's a serious and often overlooked hole.");
+      if (f.flags.certExpiring)
+        lines.push("Your SSL certificate expires soon. Once it lapses, visitors get a scary warning and your site is effectively unreachable.");
+      if (!f.flags.modern && f.score < 60 && !f.flags.diyPlatform)
+        lines.push("In short: what you have doesn't deliver what a site should in 2026. Whether that's a 'rip-off' depends on what you pay — but it can be markedly better.");
+      if (lines.length === 0)
+        lines.push("Nothing alarming. What's amber or red below is improvement work — not a fire.");
+      return lines.join(" ");
+    },
+    catTitle: "Score per category",
+    cats: { speed: "Speed", seo: "SEO", mobile: "Mobile", security: "Security", platform: "Platform" },
+    cwvTitle: "Core Web Vitals — risk estimate",
+    cwvLabels: { low: "Low risk", medium: "Medium risk", high: "High risk" },
+    cwvNote: "Estimate based on response time, weight, render-blocking CSS, scripts and image approach. Google uses Core Web Vitals as a ranking factor; high risk = a slow-feeling site that costs visitors and rankings.",
+    pitfallTitle: "Where the pitfalls are",
+    pitfallNone: "No major pitfalls found — clean.",
+    findingsTitle: "Every finding, explained",
+    sev: { critical: "Critical", warning: "Attention", good: "OK", info: "Info" },
+    whyLabel: "Why this matters",
+    fixLabel: "What to do",
+    measured: "Measured",
+    techTitle: "Detected technology & plugins",
+    techTypes: { cms: "CMS / platform", ecommerce: "E-commerce", builder: "Builder / page-builder", theme: "Theme", plugin: "Plugins", analytics: "Analytics", marketing: "Marketing", library: "Libraries", font: "Fonts", framework: "Framework", cdn: "CDN", host: "Hosting" },
+    techNone: "No recognizable technology found (or well shielded).",
+    headersTitle: "Security headers",
+    headerNames: { hsts: "Strict-Transport-Security", csp: "Content-Security-Policy", xfo: "X-Frame-Options", xcto: "X-Content-Type-Options", referrer: "Referrer-Policy", permissions: "Permissions-Policy" },
+    present: "Present",
+    absent: "Missing",
+    seoTitle: "SEO measurement in detail",
+    seoTitleLen: "Title length (ideal 30–60)",
+    seoDescLen: "Description (ideal 70–165)",
+    seoH1: "H1 count (ideal 1)",
+    seoAlt: "Images with alt text",
+    benchTitle: "Your site vs. a Studio VM build",
+    benchYou: "Your site",
+    benchSvm: "Studio VM standard",
+    benchNote: "A Studio VM build aims for 100/100 on exactly these points by default. Speed, SEO basics and security aren't an extra — they're the starting point.",
+    planTitle: "Your action plan + instant price estimate",
+    planIntro: "Based on what's red and amber above, here's the recommended order — with an indicative price per step (excl. VAT).",
+    planStep: "Step",
+    planNothing: "No urgent interventions needed. A maintenance plan keeps it this way.",
+    planTotal: "Total of individual fixes",
+    planRebuild: "Or: all in one — rebuild in Next.js",
+    planRebuildNote: "Instead of patches: a fast, secure site aiming for 100/100, whose code and data you own. Often better value than the sum above.",
+    planCare: "Then: worry-free maintenance",
+    planCareNote: "Hosting, SSL, backups, updates and support — so it still scores 100/100 a year from now.",
+    excl: "excl. VAT",
+    perMonth: "per month",
+    from: "from",
+    ctaButton: "Discuss this report with me",
+    disclaimer: "Quick, honest heuristic check from our server — not a full pentest. Prices are indicative; an exact quote follows a short chat.",
+    reportFor: "Website analysis for",
+    reportBy: "Prepared by Studio VM · studio-vm.be · +32 477 99 56 51",
+    modules: {
+      security: { name: "Security pack", desc: "Force HTTPS, security headers, close version leaks, harden cookies." },
+      speed: { name: "Speed optimization", desc: "Caching, compression, script cleanup, weight reduction." },
+      seo: { name: "SEO foundation", desc: "Titles, metas, heading structure, Open Graph and structured data." },
+      mobile: { name: "Mobile & accessibility", desc: "Responsive viewport, alt text, readability on phones." },
+      migration: { name: "Content migration", desc: "Move existing content off WordPress/Wix/Squarespace." },
+      rebuild: { name: "Full rebuild (Next.js)", desc: "A new, fast, secure site that you own." },
+      care: { name: "Care plan", desc: "Hosting, SSL, backups, updates and support." },
+    },
+    plan: {
+      title: (st) => `Your plan: no more tinkering in ${st} — a clean rebuild you own`,
+      why: (st, s) =>
+        `Keeping ${st} patched is throwing good money after bad: every fix is temporary, plugin-dependent and doesn't address the cause (score ${s}/100). I rebuild exactly what your site does — clean, fast and secure in Next.js — and migrate your content while preserving your Google rankings. No plugins, no surprises, you own the code and data.`,
+      haveTitle: "What I detected on your site",
+      feat: {
+        pages: "pages",
+        shop: "Webshop / online sales",
+        multilingual: "Multilingual",
+        forms: "Forms",
+        booking: "Booking / appointments",
+        blog: "Blog / news",
+        members: "Member area / e-learning",
+        mediaHeavy: "Image-heavy / galleries",
+        pageBuilder: "Page builder (Elementor/Divi…)",
+        plugins: "plugins detected",
+      },
+      buildTitle: "What I build instead",
+      phasesTitle: "Phased approach",
+      phases: [
+        { t: "1 · Audit & content inventory", d: "I list every page, feature and URL so nothing is lost." },
+        { t: "2 · Design on your brand", d: "A custom, fast design — no template, mobile-first." },
+        { t: "3 · Build in Next.js", d: "The whole site rebuilt natively, without plugins." },
+        { t: "4 · Content migration", d: "Texts, images and pages moved over and cleaned up." },
+        { t: "5 · SEO preservation", d: "A 301 redirect plan so your Google rankings move with you." },
+        { t: "6 · Launch & handover", d: "Taken live; you get the code, data and an admin." },
+      ],
+      mod: {
+        base_starter: { name: "One-pager", desc: "One strong page, custom design, mobile, contact, SEO basics — cleanly built." },
+        base_pro: { name: "Full site (Pro)", desc: "Multiple sections, cleanly built and ready to scale." },
+        base_webshop: { name: "Webshop", desc: "Full shop (Mollie/Stripe), stock, orders admin." },
+        multilingual: { name: "Multilingual", desc: "Same content, clean language switch + hreflang for SEO." },
+        forms: { name: "Forms + follow-up", desc: "Contact/quote forms with spam filter and mail follow-up." },
+        booking: { name: "Booking module", desc: "Appointments/bookings with calendar and confirmations." },
+        blog: { name: "Blog / news CMS", desc: "Own editorial environment for articles — without WordPress." },
+        members: { name: "Member area", desc: "Gated section with logins and roles." },
+        admin: { name: "Own admin / CMS", desc: "Manage texts, images and pages yourself — no invoice for every change." },
+        content: { name: "Texts", desc: "Professional, SEO-aware web copy for your pages." },
+        seoPreserve: { name: "SEO preservation & redirects", desc: "Full 301 plan + sitemap so you don't drop in Google." },
+        photoshoot: { name: "Photo shoot / visuals", desc: "No usable photos? A half-day professional shoot of your business, products or team — edited and web-ready." },
+      },
+      base: "Starting point",
+      addons: "Tailored to what you have",
+      total: "Total estimate",
+      approx: "indicative, exact quote after a short chat",
+      timeline: "Timeline",
+      timelineNote:
+        "Built in 1–2 weeks. Only depends on your domain release and whether photo material is available.",
+      weeks: (a, b) => `${a}–${b} weeks`,
+      careTitle: "Then: worry-free maintenance",
+      careNote: "Hosting, SSL, backups, updates and support — so it stays 100/100.",
+      optTitle: "Optional — if you don't have visuals yet",
+      optNote: "Good photos make or break a site. Nothing usable? I arrange a shoot. Only if you need it — otherwise just leave it out.",
+      own: "On delivery you own all the code and data. No lock-in, no mandatory subscription.",
+      cta: "Discuss this plan with me",
+    },
+    copyTpl: (h, s, g, st) =>
+      `Scan of ${h} (via studio-vm.be/scan)\nGrade: ${g} — ${s}/100\nPlatform: ${st}\n\nA Studio VM build aims for 100/100. Let's talk: studio-vm.be`,
+  },
 };
 
 const fmt = (n: number, locale: Locale) =>
@@ -1224,7 +1546,7 @@ export function ScanReport({
             <p className="text-sm font-medium leading-relaxed">
               {locale === "fr"
                 ? "Votre prix fixe exact — forfait, maintenance obligatoire, domaine et e-mail — se compose dans le configurateur, où vous verrouillez tout (acompte de 30 %)."
-                : locale === "en"
+                : locale !== "nl"
                   ? "Your exact fixed price — package, required maintenance, domain and email — is built in the configurator, where you lock everything in (30% deposit)."
                   : "Je exacte vaste prijs — pakket, verplicht onderhoud, domein en e-mail — stel je samen in de configurator, waar je alles vastlegt (30% aanbetaling)."}
             </p>

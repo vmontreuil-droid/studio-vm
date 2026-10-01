@@ -6,15 +6,19 @@ export const contentType = "image/png";
 export const alt = "Studio VM";
 
 const tagline: Record<Locale, string> = {
-  nl: "Websites en webshops voor lokale ondernemers.",
-  fr: "Sites web et boutiques pour entrepreneurs locaux.",
-  en: "Websites and webshops for local entrepreneurs.",
+  nl: "3D-modellen voor machinesturing.",
+  fr: "Modèles 3D pour le guidage d'engins.",
+  en: "3D models for machine control.",
+  de: "3D-Modelle für Maschinensteuerung.",
+  es: "Modelos 3D para control de máquinas.",
 };
 
 const sub: Record<Locale, string> = {
-  nl: "Vincent Montreuil · West-Vlaanderen",
-  fr: "Vincent Montreuil · Flandre-Occidentale",
-  en: "Vincent Montreuil · West Flanders",
+  nl: "Vincent Montreuil · West-Vlaanderen · overal in Europa",
+  fr: "Vincent Montreuil · Flandre-Occidentale · partout en Europe",
+  en: "Vincent Montreuil · West Flanders · anywhere in Europe",
+  de: "Vincent Montreuil · Westflandern · überall in Europa",
+  es: "Vincent Montreuil · Flandes Occidental · en toda Europa",
 };
 
 export default async function OG({

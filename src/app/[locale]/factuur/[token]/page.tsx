@@ -79,6 +79,32 @@ const L = {
     issuedOn: "Issued on",
     print: "Print / PDF",
   },
+  de: {
+    title: "Rechnung",
+    from: "Von",
+    to: "An",
+    desc: "Beschreibung",
+    excl: "Zwischensumme (exkl. MwSt.)",
+    vat: "MwSt. 21%",
+    incl: "Gesamt inkl. MwSt.",
+    paid: "BEZAHLT",
+    paidOn: "Bezahlt am",
+    issuedOn: "Ausgestellt am",
+    print: "Drucken / PDF",
+  },
+  es: {
+    title: "Factura",
+    from: "De",
+    to: "Para",
+    desc: "Descripción",
+    excl: "Subtotal (IVA no incluido)",
+    vat: "IVA 21%",
+    incl: "Total IVA incluido",
+    paid: "PAGADA",
+    paidOn: "Pagada el",
+    issuedOn: "Emitida el",
+    print: "Imprimir / PDF",
+  },
 } as const;
 
 export default async function PublicInvoice({

@@ -91,6 +91,54 @@ const T: Record<
     werkgebied: "Models are delivered digitally, so distance doesn't matter. I work in each country's national coordinate system and height datum — from Lambert 72 to UTM.",
     cta: { eyebrow: "Work together?", titel: "Send your plans, get a tailored quote", sub: "Or just call: +32 477 99 56 51.", knop: "Request a quote" },
   },
+  de: {
+    meta: {
+      title: "Über Vincent — 3D-Modelle für Maschinensteuerung | Studio VM",
+      description: "Vincent Montreuil erstellt 3D-Modelle für GPS-gesteuerte Maschinen, für Bauunternehmen in ganz Europa. Persönlicher Kontakt, präzise Arbeit.",
+    },
+    eyebrow: "Über mich",
+    titel: "Ein Ansprechpartner, vom Plan bis zum Modell",
+    lead: "Ich bin Vincent Montreuil. Von Anzegem (Westflandern, Belgien) aus erstelle ich 3D-Modelle für Maschinensteuerung, für Bauunternehmen in ganz Europa.",
+    verhaal: [
+      "Eine GPS-gesteuerte Maschine ist nur so gut wie das Modell, das in ihr steckt. Eine falsche Höhe, eine vergessene Bruchkante oder ein Modell im falschen Koordinatensystem — und der Bagger gräbt sauber an der falschen Stelle. Darum dreht sich meine Arbeit: Modelle, die stimmen, geprüft, bevor sie das Haus verlassen.",
+      "Sie senden Ihre Pläne, ich erstelle das Modell und liefere es im Format Ihrer Maschinensteuerung. Sie arbeiten mit mehreren Marken? Dann erhalten Sie das Modell für jedes System. Keine Software zu lernen, keine Lizenzen zu kaufen.",
+      "Studio VM ist bewusst klein. Sie sprechen direkt mit demjenigen, der das Modell erstellt — ohne Zwischenstellen, ohne Weiterverbinden. Das macht es schneller, klarer und günstiger.",
+    ],
+    waardenKop: "Wie ich arbeite",
+    waarden: [
+      { titel: "Direkter Kontakt", tekst: "Sie sprechen mit demjenigen, der das Modell erstellt. Fragen zu einer Höhe oder einem Detail sind sofort geklärt." },
+      { titel: "Präzise und geprüft", tekst: "Höhen, Neigungen und Anschlüsse werden vor der Lieferung geprüft." },
+      { titel: "Klare Fristen", tekst: "Frühzeitig, normal oder kurzfristig: Sie wissen vorab, wann Sie das Modell erhalten und was es kostet." },
+      { titel: "Klare Aufgabenteilung", tekst: "Ich liefere das Modell; Sie behalten die Hoheit über Ihre Maschine, Ihre Kalibrierung und die Kontrolle auf der Baustelle." },
+    ],
+    werkgebiedKop: "Einsatzgebiet: ganz Europa",
+    werkgebied: "Modelle werden digital geliefert, die Entfernung spielt also keine Rolle. Ich arbeite im nationalen Koordinatensystem und Höhenbezug jedes Landes — von Lambert 72 bis UTM.",
+    cta: { eyebrow: "Zusammenarbeiten?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Oder rufen Sie einfach an: +32 477 99 56 51.", knop: "Angebot anfordern" },
+  },
+  es: {
+    meta: {
+      title: "Sobre Vincent — modelos 3D para control de maquinaria | Studio VM",
+      description: "Vincent Montreuil crea modelos 3D para máquinas guiadas por GPS, para contratistas de toda Europa. Trato personal, trabajo preciso.",
+    },
+    eyebrow: "Sobre mí",
+    titel: "Un único interlocutor, del plano al modelo",
+    lead: "Soy Vincent Montreuil. Desde Anzegem (Flandes Occidental, Bélgica) creo modelos 3D para control de maquinaria, para contratistas de toda Europa.",
+    verhaal: [
+      "Una máquina guiada por GPS es tan buena como el modelo que lleva dentro. Una cota equivocada, una línea de ruptura olvidada o un modelo en el sistema de coordenadas incorrecto — y la excavadora excava con precisión en el lugar equivocado. De eso trata mi trabajo: modelos correctos, verificados antes de salir.",
+      "Usted envía sus planos, yo construyo el modelo y lo entrego en el formato de su sistema de control de maquinaria. ¿Trabaja con varias marcas? Recibe el modelo para cada sistema. Sin software que aprender ni licencias que comprar.",
+      "Studio VM es pequeño a propósito. Usted habla directamente con quien hace el modelo — sin intermediarios ni transferencias. Eso lo hace más rápido, más claro y más asequible.",
+    ],
+    waardenKop: "Cómo trabajo",
+    waarden: [
+      { titel: "Contacto directo", tekst: "Habla con quien hace el modelo. Una duda sobre una cota o un detalle se resuelve al instante." },
+      { titel: "Preciso y verificado", tekst: "Cotas, pendientes y encuentros se comprueban antes de la entrega." },
+      { titel: "Plazos claros", tekst: "Anticipado, normal o urgente: sabe de antemano cuándo recibe el modelo y cuánto cuesta." },
+      { titel: "Funciones bien definidas", tekst: "Yo entrego el modelo; usted sigue al mando de su máquina, su calibración y el control en obra." },
+    ],
+    werkgebiedKop: "Ámbito de trabajo: toda Europa",
+    werkgebied: "Los modelos se entregan en formato digital, así que la distancia no importa. Trabajo en el sistema de coordenadas nacional y la referencia altimétrica de cada país — de Lambert 72 a UTM.",
+    cta: { eyebrow: "¿Trabajamos juntos?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "O simplemente llame: +32 477 99 56 51.", knop: "Solicitar presupuesto" },
+  },
 };
 
 const ICONEN = [MessageSquare, Crosshair, Clock, ShieldCheck];

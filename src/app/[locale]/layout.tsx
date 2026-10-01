@@ -64,7 +64,7 @@ export default async function LocaleLayout({
         <>
           <OrganizationJsonLd />
           <WebsiteJsonLd locale={typedLocale} />
-          <CookieBanner />
+          <CookieBanner locale={typedLocale} />
           <ShortcutsOverlay locale={typedLocale} />
           <PageViewTracker locale={typedLocale} />
         </>

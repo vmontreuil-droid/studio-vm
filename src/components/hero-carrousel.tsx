@@ -8,13 +8,13 @@ type Dia = { basis: string; label: Record<Locale, string>; sub: Record<Locale, s
 
 // Eerst één model in vier weergaven (het verhaal van een levering), daarna andere projecten.
 const DIAS: Dia[] = [
-  { basis: "/3d/r/p-libramont-hoogte", label: { nl: "Hoogtekleuren", fr: "Couleurs hypsométriques", en: "Height colours" }, sub: { nl: "Ontwerpoppervlak", fr: "Surface de projet", en: "Design surface" } },
-  { basis: "/3d/r/p-libramont-helling", label: { nl: "Helling", fr: "Pente", en: "Slope" }, sub: { nl: "Controle afwatering", fr: "Contrôle des écoulements", en: "Drainage check" } },
-  { basis: "/3d/r/p-libramont-hoogtelijn", label: { nl: "Hoogtelijnen", fr: "Courbes de niveau", en: "Contours" }, sub: { nl: "Lezen en uitzetten", fr: "Lecture et implantation", en: "Reading and setting out" } },
-  { basis: "/3d/r/p-libramont-draad", label: { nl: "Driehoeksnet", fr: "Réseau de triangles", en: "Triangle network" }, sub: { nl: "TIN · waarop de machine stuurt", fr: "TIN · ce que suit la machine", en: "TIN · what the machine follows" } },
-  { basis: "/3d/r/t029", label: { nl: "Wegenis", fr: "Voiries", en: "Roads" }, sub: { nl: "Aftakking met verkanting", fr: "Embranchement avec dévers", en: "Junction with crossfall" } },
-  { basis: "/3d/r/t014", label: { nl: "Platform", fr: "Plateforme", en: "Platform" }, sub: { nl: "Funderingsputten op niveau", fr: "Puits de fondation à niveau", en: "Foundation pits at level" } },
-  { basis: "/3d/r/t013", label: { nl: "Terrein", fr: "Terrain", en: "Terrain" }, sub: { nl: "Bestaand maaiveld", fr: "Terrain existant", en: "Existing ground" } },
+  { basis: "/3d/r/p-libramont-hoogte", label: { nl: "Hoogtekleuren", fr: "Couleurs hypsométriques", en: "Height colours", de: "Höhenfarben", es: "Colores hipsométricos" }, sub: { nl: "Ontwerpoppervlak", fr: "Surface de projet", en: "Design surface", de: "Planungsoberfläche", es: "Superficie de proyecto" } },
+  { basis: "/3d/r/p-libramont-helling", label: { nl: "Helling", fr: "Pente", en: "Slope", de: "Neigung", es: "Pendiente" }, sub: { nl: "Controle afwatering", fr: "Contrôle des écoulements", en: "Drainage check", de: "Entwässerungsprüfung", es: "Control de desagüe" } },
+  { basis: "/3d/r/p-libramont-hoogtelijn", label: { nl: "Hoogtelijnen", fr: "Courbes de niveau", en: "Contours", de: "Höhenlinien", es: "Curvas de nivel" }, sub: { nl: "Lezen en uitzetten", fr: "Lecture et implantation", en: "Reading and setting out", de: "Lesen und Abstecken", es: "Lectura y replanteo" } },
+  { basis: "/3d/r/p-libramont-draad", label: { nl: "Driehoeksnet", fr: "Réseau de triangles", en: "Triangle network", de: "Dreiecksnetz", es: "Red de triángulos" }, sub: { nl: "TIN · waarop de machine stuurt", fr: "TIN · ce que suit la machine", en: "TIN · what the machine follows", de: "TIN · woran die Maschine steuert", es: "TIN · lo que sigue la máquina" } },
+  { basis: "/3d/r/t029", label: { nl: "Wegenis", fr: "Voiries", en: "Roads", de: "Straßenbau", es: "Viales" }, sub: { nl: "Aftakking met verkanting", fr: "Embranchement avec dévers", en: "Junction with crossfall", de: "Abzweigung mit Querneigung", es: "Bifurcación con peralte" } },
+  { basis: "/3d/r/t014", label: { nl: "Platform", fr: "Plateforme", en: "Platform", de: "Planum", es: "Plataforma" }, sub: { nl: "Funderingsputten op niveau", fr: "Puits de fondation à niveau", en: "Foundation pits at level", de: "Fundamentgruben auf Höhe", es: "Pozos de cimentación a cota" } },
+  { basis: "/3d/r/t013", label: { nl: "Terrein", fr: "Terrain", en: "Terrain", de: "Gelände", es: "Terreno" }, sub: { nl: "Bestaand maaiveld", fr: "Terrain existant", en: "Existing ground", de: "Bestehendes Gelände", es: "Terreno existente" } },
 ];
 
 const DUUR = 4200;

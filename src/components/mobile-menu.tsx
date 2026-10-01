@@ -9,7 +9,16 @@ import { LangSwitcher } from "@/components/lang-switcher";
 import { Logo } from "@/components/logo";
 import { localePath, type Locale } from "@/lib/i18n/config";
 
+const MM: Record<Locale, { open: string; close: string; offerte: string; taal: string }> = {
+  nl: { open: "Menu openen", close: "Sluiten", offerte: "Offerte aanvragen", taal: "Taal" },
+  fr: { open: "Ouvrir le menu", close: "Fermer", offerte: "Demander un devis", taal: "Langue" },
+  en: { open: "Open menu", close: "Close", offerte: "Request a quote", taal: "Language" },
+  de: { open: "Menü öffnen", close: "Schließen", offerte: "Angebot anfordern", taal: "Sprache" },
+  es: { open: "Abrir menú", close: "Cerrar", offerte: "Solicitar presupuesto", taal: "Idioma" },
+};
+
 export function MobileMenu({ locale }: { locale: Locale }) {
+  const mm = MM[locale] ?? MM.nl;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -36,8 +45,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
-        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground lg:hidden"
+        aria-label={mm.open}
+        className="rounded-full border p-2 text-muted transition-colors hover:bg-card-hover hover:text-foreground xl:hidden"
       >
         <Menu className="h-4 w-4" strokeWidth={2} />
       </button>
@@ -57,7 +66,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Sluiten"
+              aria-label={mm.close}
               className="rounded-full border p-2 text-muted hover:bg-card-hover hover:text-foreground"
             >
               <X className="h-5 w-5" strokeWidth={2} />
@@ -94,12 +103,12 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background"
             >
               <FileUp className="h-4 w-4" strokeWidth={2} />
-              {locale === "fr" ? "Demander un devis" : locale === "en" ? "Request a quote" : "Offerte aanvragen"}
+              {mm.offerte}
             </Link>
           </div>
           <div className="flex shrink-0 items-center justify-between px-5 py-4">
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-              {locale === "fr" ? "Langue" : locale === "en" ? "Language" : "Taal"}
+              {mm.taal}
             </span>
             <LangSwitcher current={locale} />
           </div>

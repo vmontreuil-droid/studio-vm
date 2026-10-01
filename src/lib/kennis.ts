@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 // Kennisbank — 3D-ontwerpmodellen voor GPS-machinesturing.
 //
-// Drietalig (nl/fr/en). De slug blijft Nederlands en is in alle talen gelijk.
+// Vijftalig (nl/fr/en/de/es). De slug blijft Nederlands en is in alle talen gelijk.
 // Inhoud is algemeen vakkennis voor aannemers en werfleiders: geen
 // bestandsformaat-internals, geen klant- of werfnamen, geen prijzen.
 // ─────────────────────────────────────────────────────────────────────────
@@ -150,6 +150,90 @@ export const KENNIS: KennisArtikel[] = [
           },
         ],
       },
+      de: {
+        titel: "Was ist ein 3D-Planungsmodell?",
+        samenvatting:
+          "Ein Planungsmodell übersetzt Ihre Pläne in eine digitale Oberfläche, an der sich ein Bagger, Grader oder eine Planierraupe orientieren kann. Was es ist, wie die Maschine es nutzt und warum es nicht dasselbe ist wie das bestehende Gelände.",
+        secties: [
+          {
+            kop: "Vom Plan zur Oberfläche",
+            tekst: [
+              "Ein Planungssatz besteht meist aus einem Lageplan, einem Längsschnitt und einer Reihe von Querprofilen. Für einen Menschen reicht das, um den Entwurf zu verstehen. Eine Maschinensteuerung braucht jedoch etwas anderes: eine durchgehende Oberfläche, auf der für jeden Punkt im Arbeitsbereich eine Sollhöhe bekannt ist.",
+              "Diese Oberfläche nennt man Planungsmodell oder Planungsoberfläche. Sie wird als TIN (Triangulated Irregular Network) aufgebaut, also als digitales Geländemodell (DGM) aus aneinandergrenzenden Dreiecken, deren Eckpunkte jeweils exakte X-, Y- und Z-Koordinaten haben. Zwischen diesen Eckpunkten wird linear interpoliert, sodass die Maschine überall eine Höhe ablesen kann.",
+              "Zu einem guten Modell gehören neben der Oberfläche auch Linien: Achsen, Kanten, Bordsteine, Böschungsfüße und Böschungsoberkanten. Diese Linien helfen dem Maschinenführer bei der Orientierung und bestimmen mit, wie die Dreiecke verlaufen.",
+            ],
+          },
+          {
+            kop: "Wie die Maschine das Modell nutzt",
+            tekst: [
+              "Eine Maschine mit 3D-Steuerung kennt über GNSS-Empfänger (oder ein Tachymeter) ihre eigene Position und die ihres Arbeitswerkzeugs, etwa der Schneide des Löffels oder des Schilds. Das System vergleicht laufend die Höhe dieses Werkzeugs mit der Sollhöhe aus dem Modell an derselben Stelle.",
+              "Die Abweichung erscheint auf dem Display in der Kabine als „zu hoch“ oder „zu tief“, meist mit einem Wert in Zentimetern. Bei halbautomatischen Systemen führt die Hydraulik das Schild oder den Löffel selbst nach. So lässt sich ohne Pflöcke und ohne ständiges Abstecken graben, planieren und feinplanieren.",
+              "Die Maschine folgt dem Modell wortwörtlich. Jeder Fehler im Modell, so klein er auch sein mag, wird daher ebenso wortwörtlich ausgeführt. Die Qualität des Modells ist deshalb genauso wichtig wie die Qualität der Maschine.",
+            ],
+          },
+          {
+            kop: "Planung oder bestehendes Gelände",
+            tekst: [
+              "Es ist wichtig, zwei Oberflächen auseinanderzuhalten. Das bestehende Gelände (die Aufnahme des Ist-Zustands) beschreibt die Baustelle, wie sie heute aussieht. Die Planungsoberfläche beschreibt, wie sie nach den Arbeiten aussehen soll.",
+              "Die Maschine arbeitet immer nach der Planung. Das bestehende Gelände dient dazu festzulegen, wo die Planung an die Umgebung anschließt, wo Böschungen enden und wie viel Boden abgetragen oder aufgefüllt werden muss. Ohne zuverlässige Aufnahme des Bestands kann ein Entwurf auf dem Papier korrekt wirken und auf der Baustelle dennoch seltsam anschließen.",
+            ],
+          },
+          {
+            kop: "Mehrere Schichten in einem Projekt",
+            tekst: [
+              "Ein Straßenbauprojekt oder eine Baugrube hat selten nur eine einzige Planungshöhe. Häufig werden mehrere Oberflächen erstellt, jeweils für eine Bauphase:",
+            ],
+            lijst: [
+              "Aushubsohle bzw. Sohle der Baugrube;",
+              "Oberkante Tragschicht oder Frostschutzschicht;",
+              "Fertighöhe (zum Beispiel Unterkante Deckschicht);",
+              "Böschungen, Gräben und Anschlüsse an das bestehende Gelände.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "¿Qué es un modelo 3D de diseño?",
+        samenvatting:
+          "Un modelo de diseño traduce sus planos en una superficie digital que una excavadora, motoniveladora o bulldozer puede seguir. Qué es, cómo lo utiliza la máquina y por qué no es lo mismo que el terreno existente.",
+        secties: [
+          {
+            kop: "Del plano a la superficie",
+            tekst: [
+              "Un juego de planos de obra suele constar de una planta, un perfil longitudinal y una serie de perfiles transversales. Para una persona es suficiente para entender el proyecto, pero un sistema de control de maquinaria necesita algo distinto: una superficie continua en la que se conozca una cota de proyecto para cada punto de la zona de trabajo.",
+              "Esa superficie se denomina modelo de diseño o superficie de diseño. Se construye como un TIN (Triangulated Irregular Network): un modelo digital del terreno formado por triángulos contiguos en el que cada vértice tiene coordenadas X, Y y Z exactas. Entre esos vértices se interpola linealmente, de modo que la máquina puede leer una cota en cualquier punto.",
+              "Un buen modelo incluye además líneas: ejes, bordes, bordillos, pies y coronaciones de talud. Estas líneas ayudan al operador a orientarse y determinan en parte cómo se forman los triángulos.",
+            ],
+          },
+          {
+            kop: "Cómo utiliza la máquina el modelo",
+            tekst: [
+              "Una máquina con control 3D conoce su propia posición y la de su herramienta de trabajo, como el filo del cazo o la hoja, mediante receptores GNSS (o una estación total). El sistema compara continuamente la cota de esa herramienta con la cota de proyecto del modelo en el mismo lugar.",
+              "La diferencia aparece en la pantalla de la cabina como «alto» o «bajo», normalmente con un valor en centímetros. En los sistemas semiautomáticos, la hidráulica corrige por sí sola la hoja o el cazo. Así se puede excavar, nivelar y refinar sin estacas y sin replanteos continuos.",
+              "La máquina sigue el modelo al pie de la letra. Cualquier error en el modelo, por pequeño que sea, se ejecuta también al pie de la letra. Por eso la calidad del modelo es tan importante como la de la máquina.",
+            ],
+          },
+          {
+            kop: "Diseño frente a terreno existente",
+            tekst: [
+              "Es importante distinguir dos superficies. El terreno existente (el levantamiento de la situación actual) describe la obra tal como está hoy. La superficie de diseño describe cómo debe quedar una vez terminados los trabajos.",
+              "La máquina trabaja siempre según el diseño. El terreno existente sirve para determinar dónde el diseño enlaza con su entorno, dónde terminan los taludes y cuánto material hay que excavar o rellenar. Sin un levantamiento fiable de la situación existente, un diseño puede parecer correcto sobre el papel y, aun así, enlazar de forma extraña en obra.",
+            ],
+          },
+          {
+            kop: "Varias capas en un mismo proyecto",
+            tekst: [
+              "Un proyecto de carretera o una excavación rara vez tiene una única cota de proyecto. A menudo se elaboran varias superficies, cada una para una fase de la ejecución:",
+            ],
+            lijst: [
+              "cota de excavación o fondo de excavación;",
+              "cara superior de la base o subbase;",
+              "cota terminada (por ejemplo, cara inferior del pavimento);",
+              "taludes, cunetas y enlaces con el terreno existente.",
+            ],
+          },
+        ],
+      },
     },
   },
 
@@ -284,6 +368,92 @@ export const KENNIS: KennisArtikel[] = [
             tekst: [
               "Besides its role in the model, linework has a practical function in the cab. The operator sees their position relative to the centreline, the edge of the surfacing or the edge of the excavation. Many systems can also guide to a line, for instance to dig a ditch along a fixed alignment or hold a given offset.",
               "Clear linework, logically split into well-named layers, makes work in the machine easier. Too much detail (text labels, hatching, dimensions) clutters the display and is therefore left out.",
+            ],
+          },
+        ],
+      },
+      de: {
+        titel: "Linien und Bruchkanten",
+        samenvatting:
+          "Bruchkanten legen fest, wo die Oberfläche ihre Neigung ändert. Ohne korrekte Bruchkanten schneidet das Dreiecksnetz quer durch Bordsteine und Böschungskanten. Warum Linien so wichtig sind, für das Modell ebenso wie für den Maschinenführer.",
+        secties: [
+          {
+            kop: "Was ist eine Bruchkante?",
+            tekst: [
+              "Eine Bruchkante ist eine 3D-Linie entlang einer Stelle, an der sich die Neigung der Oberfläche abrupt ändert: der Rand einer Fahrbahn, der Fuß oder die Oberkante einer Böschung, die Sohle eines Grabens, die Oberkante eines Bordsteins.",
+              "Beim Aufbau eines TIN werden die Dreiecke zwischen den vorhandenen Punkten gebildet. Ohne Bruchkanten entscheidet die Software selbst, welche Punkte miteinander verbunden werden, und das kann quer über eine Kante hinweg geschehen. Eine Bruchkante zwingt die Dreiecksseiten, dieser Linie zu folgen, sodass der Knick im Gelände genau an der richtigen Stelle liegt.",
+            ],
+          },
+          {
+            kop: "Typische Linien in einer Planung",
+            tekst: [
+              "In Straßen- und Kanalbauprojekten kehren immer dieselben Arten von Linien wieder. Jede davon hat eine Funktion im Modell oder auf dem Display der Maschine:",
+            ],
+            lijst: [
+              "Achse: Bezug für Stationierung, Querprofile und seitlichen Abstand;",
+              "Kanten von Befestigung und Tragschicht;",
+              "Bordsteine und Rinnen, möglichst mit eigener Höhe;",
+              "Böschungsfuß und Böschungsoberkante;",
+              "Grabensohle und Grabenkanten;",
+              "Anschlusslinie an das bestehende Gelände (Durchstoßlinie).",
+            ],
+          },
+          {
+            kop: "Warum die Linien die Qualität bestimmen",
+            tekst: [
+              "Ein Modell ohne oder mit unvollständigen Bruchkanten kann aus der Ferne gut aussehen und im Detail dennoch Fehler enthalten: eine Fahrbahn, die zwischen zwei Profilen leicht durchhängt, eine Böschung, die zu früh flacher wird, ein Graben, der dort ansteigt, wo er es nicht sollte.",
+              "Eine häufige Ursache sind Linien, die nur in 2D gezeichnet sind. Eine Linie ohne Höhe oder mit Höhe null zieht die Oberfläche nach unten oder wird ignoriert. Bei der Modellierung wird deshalb jede relevante Linie auf die richtige Höhe gebracht, aus den Profilen, den Höhenkoten im Plan oder den angrenzenden Oberflächen.",
+              "Auch sich kreuzende Linien mit unterschiedlichen Höhen verdienen Aufmerksamkeit. Zwei Bruchkanten, die demselben Punkt verschiedene Höhen zuweisen, erzeugen einen Widerspruch, der zuerst gelöst werden muss.",
+            ],
+          },
+          {
+            kop: "Linien für den Maschinenführer",
+            tekst: [
+              "Neben ihrer Rolle im Modell haben Linien eine praktische Funktion in der Kabine. Der Maschinenführer sieht seine Position relativ zur Achse, zum Rand der Befestigung oder zum Rand der Baugrube. Viele Systeme können auch an einer Linie entlang steuern, etwa um einen Graben entlang einer festen Trasse auszuheben oder einen seitlichen Abstand einzuhalten.",
+              "Übersichtliche Linien, sinnvoll auf klar benannte Layer verteilt, erleichtern die Arbeit in der Maschine. Zu viele Details (Beschriftungen, Schraffuren, Bemaßungen) machen das Display unlesbar und werden daher weggelassen.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Líneas y líneas de ruptura",
+        samenvatting:
+          "Las líneas de ruptura definen dónde cambia la pendiente de la superficie. Sin líneas de ruptura correctas, la red de triángulos atraviesa bordillos y aristas de talud. Por qué las líneas son tan importantes, tanto para el modelo como para el operador.",
+        secties: [
+          {
+            kop: "¿Qué es una línea de ruptura?",
+            tekst: [
+              "Una línea de ruptura es una línea 3D situada donde la pendiente de la superficie cambia bruscamente: el borde de una calzada, el pie o la coronación de un talud, el fondo de una cuneta, la parte superior de un bordillo.",
+              "Al construir un TIN, los triángulos se forman entre los puntos disponibles. Sin líneas de ruptura, el software decide por sí mismo qué puntos unir, y eso puede cruzar una arista. Una línea de ruptura obliga a los lados de los triángulos a seguir esa línea, de modo que el quiebro del terreno queda exactamente en su sitio.",
+            ],
+          },
+          {
+            kop: "Líneas típicas en un diseño",
+            tekst: [
+              "En los proyectos de carreteras y saneamiento se repiten siempre los mismos tipos de líneas. Cada una tiene una función en el modelo o en la pantalla de la máquina:",
+            ],
+            lijst: [
+              "eje: referencia para el PK, los perfiles transversales y el desplazamiento lateral;",
+              "bordes del pavimento y de la base;",
+              "bordillos y rigolas, a ser posible con su propia cota;",
+              "pie y coronación de talud;",
+              "fondo y bordes de cuneta;",
+              "línea de enlace con el terreno existente (línea de intersección con el terreno).",
+            ],
+          },
+          {
+            kop: "Por qué las líneas determinan la calidad",
+            tekst: [
+              "Un modelo sin líneas de ruptura, o con líneas incompletas, puede parecer correcto de lejos y aun así contener errores en el detalle: una calzada que se hunde ligeramente entre dos perfiles, un talud que se suaviza demasiado pronto, una cuneta que sube donde no debería.",
+              "Una causa frecuente son las líneas dibujadas solo en 2D. Una línea sin cota, o con cota cero, arrastra la superficie hacia abajo o se ignora. Por eso, durante el modelado, cada línea relevante se lleva a su cota correcta a partir de los perfiles, las cotas del plano o las superficies colindantes.",
+              "Las líneas que se cruzan con cotas distintas también requieren atención. Dos líneas de ruptura que asignan una cota diferente al mismo punto generan una contradicción que debe resolverse primero.",
+            ],
+          },
+          {
+            kop: "Líneas para el operador",
+            tekst: [
+              "Además de su papel en el modelo, las líneas tienen una función práctica en la cabina. El operador ve su posición respecto al eje, al borde del pavimento o al borde de la excavación. Muchos sistemas también pueden guiarse por una línea, por ejemplo para excavar una cuneta a lo largo de un trazado fijo o mantener un desplazamiento lateral.",
+              "Unas líneas claras, repartidas con lógica en capas con nombres explícitos, facilitan el trabajo en la máquina. Demasiado detalle (textos, sombreados, cotas de dimensión) vuelve ilegible la pantalla y por eso se elimina.",
             ],
           },
         ],
@@ -444,6 +614,104 @@ export const KENNIS: KennisArtikel[] = [
           },
         ],
       },
+      de: {
+        titel: "Koordinatenreferenzsysteme und Höhenbezug",
+        samenvatting:
+          "Ein Modell ist erst nutzbar, wenn es im selben System liegt wie die Maschine. Welche Koordinatensysteme und Höhenbezüge in den einzelnen Ländern üblich sind, was eine Baustellenkalibrierung bewirkt und was bei einer falschen Wahl passiert.",
+        secties: [
+          {
+            kop: "Zwei Bezüge: Lage und Höhe",
+            tekst: [
+              "Jede Koordinate in einem Modell besteht aus einer Lage (X und Y, bzw. Rechts- und Hochwert) und einer Höhe (Z). Für beide ist ein Bezug erforderlich. Die Lage wird in einem Koordinatenreferenzsystem mit eigener Projektion angegeben; die Höhe bezieht sich auf ein nationales Höhensystem, das meist an einen mittleren Meeresspiegel gebunden ist.",
+              "GNSS-Empfänger messen von Haus aus in einem globalen Bezugssystem (in Europa ETRS89) mit ellipsoidischer Höhe. Die Maschinensteuerung rechnet diese Messungen in das nationale System und über ein Geoidmodell in die nationale Höhe um. Das Modell muss in genau demselben System vorliegen.",
+            ],
+          },
+          {
+            kop: "Übliche Systeme nach Land",
+            tekst: [
+              "Nachfolgend die Systeme, die in der Praxis am häufigsten auf Plänen vorkommen. Ein Projekt kann jederzeit in einem anderen oder lokalen System gezeichnet sein; deshalb fragen wir dies stets nach.",
+            ],
+            lijst: [
+              "Belgien: Belgian Lambert 72 oder Lambert 2008, Höhe TAW/DNG (Ostende).",
+              "Niederlande: RD New (Amersfoort), Höhe NAP.",
+              "Frankreich: Lambert-93 oder eine der Kegelzonen CC42 bis CC50, Höhe NGF-IGN69.",
+              "Deutschland: ETRS89 / UTM (Zone 32 oder 33), Höhe DHHN2016.",
+              "Luxemburg: LUREF (Luxembourg TM), Höhe NG95.",
+              "Vereinigtes Königreich: OSGB36 / British National Grid, Höhe ODN (Newlyn).",
+              "Schweiz: CH1903+ / LV95, Höhe LN02.",
+              "Andere europäische Länder: häufig ETRS89 / UTM in der passenden Zone, mit EVRF2007 oder einem nationalen Höhensystem.",
+            ],
+          },
+          {
+            kop: "Lokale Baustellenkalibrierung",
+            tekst: [
+              "Auf vielen Baustellen wird nicht direkt im nationalen System gearbeitet, sondern mit einer lokalen Baustellenkalibrierung (auch Lokalisierung genannt). Dabei werden einige bekannte Punkte auf der Baustelle eingemessen, und es werden eine kleine Verschiebung, eine Drehung und gegebenenfalls ein Maßstab berechnet, damit die GNSS-Messungen exakt zu diesen Punkten passen.",
+              "Eine Kalibrierung gleicht Ungenauigkeiten in älteren Plänen oder in der Transformation zwischen Systemen aus, gilt aber nur innerhalb des Bereichs der verwendeten Punkte. Außerhalb davon können Abweichungen schnell anwachsen. Einrichtung und Pflege der Kalibrierung auf der Maschine bleiben in der Verantwortung des Bauunternehmens oder seines Vermessers; wir sorgen dafür, dass das Modell im vereinbarten System vorliegt.",
+            ],
+          },
+          {
+            kop: "Was bei einem falschen System passiert",
+            tekst: [
+              "Ein falsches System führt selten zu einer Fehlermeldung. Das Modell wird ganz normal eingelesen, liegt aber an der falschen Stelle oder auf der falschen Höhe. Die Folgen sind unterschiedlich:",
+            ],
+            lijst: [
+              "Ein völlig anderes System platziert das Modell Kilometer entfernt oder sogar in einem anderen Land; die Maschine findet es nicht.",
+              "Zwei verwandte Systeme (zum Beispiel zwei Versionen eines nationalen Systems) führen zu einer Verschiebung von einigen Zentimetern bis zu mehreren hundert Metern.",
+              "Ein falscher Höhenbezug oder ein fehlendes Geoidmodell verursacht einen Höhenfehler von einigen Zentimetern bis über einen Meter, der auf dem Display nicht auffällt.",
+              "Daher gilt: Prüfen Sie vor dem Start immer an einem bekannten Punkt, sowohl in der Lage als auch in der Höhe.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Sistemas de referencia de coordenadas y referencias altimétricas",
+        samenvatting:
+          "Un modelo solo es utilizable si está en el mismo sistema que la máquina. Qué sistemas y referencias altimétricas son habituales en cada país, qué hace una calibración de obra y qué ocurre cuando se elige el sistema equivocado.",
+        secties: [
+          {
+            kop: "Dos referencias: posición y altura",
+            tekst: [
+              "Cada coordenada de un modelo consta de una posición (X e Y, o este y norte) y una altura (Z). Cada una necesita una referencia. La posición se expresa en un sistema de referencia de coordenadas con su propia proyección; la altura se mide respecto a una referencia altimétrica nacional, normalmente vinculada a un nivel medio del mar.",
+              "Los receptores GNSS miden de forma nativa en un marco global (ETRS89 en Europa) con altura elipsoidal. El sistema de control de maquinaria convierte esas mediciones al sistema nacional y, mediante un modelo de geoide, a la altura nacional. El modelo debe estar exactamente en ese mismo sistema.",
+            ],
+          },
+          {
+            kop: "Sistemas habituales por país",
+            tekst: [
+              "A continuación, los sistemas que aparecen con más frecuencia en los planos. Un proyecto siempre puede estar dibujado en otro sistema o en un sistema local; por eso lo comprobamos siempre.",
+            ],
+            lijst: [
+              "Bélgica: Belgian Lambert 72 o Lambert 2008, altura TAW/DNG (Ostende).",
+              "Países Bajos: RD New (Amersfoort), altura NAP.",
+              "Francia: Lambert-93 o una de las zonas cónicas CC42 a CC50, altura NGF-IGN69.",
+              "Alemania: ETRS89 / UTM (huso 32 o 33), altura DHHN2016.",
+              "Luxemburgo: LUREF (Luxembourg TM), altura NG95.",
+              "Reino Unido: OSGB36 / British National Grid, altura ODN (Newlyn).",
+              "Suiza: CH1903+ / LV95, altura LN02.",
+              "Otros países europeos: a menudo ETRS89 / UTM en el huso correspondiente, con EVRF2007 o un sistema altimétrico nacional.",
+            ],
+          },
+          {
+            kop: "Calibración local de obra",
+            tekst: [
+              "En muchas obras no se trabaja directamente en el sistema nacional, sino con una calibración de obra local (también llamada localización). Se miden algunos puntos conocidos en la obra y se calculan una pequeña traslación, una rotación y, en su caso, un factor de escala para que las mediciones GNSS coincidan exactamente con esos puntos.",
+              "Una calibración compensa imprecisiones de planos antiguos o de la transformación entre sistemas, pero solo es válida dentro de la zona delimitada por los puntos utilizados. Fuera de ella, las desviaciones pueden crecer rápidamente. La configuración y el mantenimiento de la calibración en la máquina siguen siendo responsabilidad del contratista o de su topógrafo; nosotros nos aseguramos de que el modelo esté en el sistema acordado.",
+            ],
+          },
+          {
+            kop: "Qué ocurre con un sistema equivocado",
+            tekst: [
+              "Un sistema equivocado rara vez provoca un mensaje de error. El modelo se carga con normalidad, pero queda en el lugar equivocado o a la altura equivocada. Las consecuencias varían:",
+            ],
+            lijst: [
+              "Un sistema completamente distinto sitúa el modelo a kilómetros de distancia, o incluso en otro país; la máquina no lo encuentra.",
+              "Dos sistemas relacionados (por ejemplo, dos versiones de un sistema nacional) producen un desplazamiento de unos centímetros a varios cientos de metros.",
+              "Una referencia altimétrica errónea o la falta de un modelo de geoide producen un error de altura de centímetros a más de un metro, que no llama la atención en la pantalla.",
+              "De ahí la regla: compruebe siempre en un punto conocido antes de empezar, tanto en posición como en altura.",
+            ],
+          },
+        ],
+      },
     },
   },
 
@@ -586,6 +854,98 @@ export const KENNIS: KennisArtikel[] = [
               "is the model in the expected place relative to the machine;",
               "is the level correct on a known point;",
               "are the expected surfaces and layers present.",
+            ],
+          },
+        ],
+      },
+      de: {
+        titel: "Dateien nach Marke und System",
+        samenvatting:
+          "Jedes Maschinensteuerungssystem liest seine eigenen Dateien. Wie wir mit den verschiedenen Marken umgehen, welche Austauschformate breit akzeptiert sind und warum Sie die Datei immer selbst auf Ihrem System prüfen.",
+        secties: [
+          {
+            kop: "Jedes System sein eigenes Format",
+            tekst: [
+              "Auf europäischen Baustellen sind verschiedene Marken von Maschinensteuerungen im Einsatz, darunter Trimble, Topcon, Leica, Unicontrol und CHCNAV, sowie Systeme, die von Maschinenherstellern wie Komatsu und Caterpillar ab Werk eingebaut oder unterstützt werden.",
+              "Jedes dieser Systeme verwendet seine eigene Software und liest seine eigenen Projektdateien. Auch innerhalb einer Marke können verschiedene Generationen oder Softwareversionen eigene Anforderungen daran stellen, wie ein Projekt geliefert werden muss: welche Dateien zusammengehören, wie sie benannt sind und wo sie auf dem Speichermedium liegen müssen.",
+              "Deshalb fragen wir bei jedem Auftrag nach, welches System und welche Softwareversion auf der Maschine laufen. So wird das Modell in der Form geliefert, die dieses System erwartet.",
+            ],
+          },
+          {
+            kop: "Austauschformate",
+            tekst: [
+              "Neben den herstellereigenen Formaten gibt es offene Austauschformate, die von den meisten Systemen und von Bürosoftware gelesen werden:",
+            ],
+            lijst: [
+              "LandXML: ein offener Standard, der Oberflächen (TIN), Linien, Achsen und Punkte mit ihren Koordinaten enthalten kann. Viele Maschinensteuerungsprogramme können LandXML direkt einlesen oder umwandeln.",
+              "DXF: das gängige CAD-Austauschformat, vor allem nützlich für Linien und 3D-Polylinien sowie als Hintergrundzeichnung.",
+              "Eine TIN-Oberfläche in einem neutralen Format, für alle, die das Modell in ihrer eigenen Software weiterbearbeiten möchten.",
+            ],
+          },
+          {
+            kop: "Mehrere Systeme gleichzeitig",
+            tekst: [
+              "Arbeiten Sie auf derselben Baustelle mit Maschinen verschiedener Marken oder mieten Sie eine Maschine mit einem anderen System an? Dann wird dasselbe Modell für jedes System separat geliefert. Oberfläche und Linien sind identisch; nur die Verpackung unterscheidet sich.",
+              "So wird verhindert, dass zwei Maschinen auf derselben Baustelle leicht unterschiedlichen Planungen folgen. Geben Sie bei der Anfrage alle Systeme an, die das Modell verwenden werden.",
+            ],
+          },
+          {
+            kop: "Prüfung auf Ihrem eigenen System",
+            tekst: [
+              "Wir liefern ein Modell, das den übermittelten Plänen entspricht, im vereinbarten Koordinatensystem und im passenden Format für Ihr System. Die Maschinensteuerung selbst bleibt jedoch in Ihrer Verantwortung: Installation, Kalibrierung der Maschine, Baustellenkalibrierung, Softwareversion und Einstellungen.",
+              "Laden Sie die Datei daher immer auf Ihr eigenes System und prüfen Sie sie vor Beginn der Arbeiten:",
+            ],
+            lijst: [
+              "Wird das Projekt gefunden und lässt es sich öffnen?",
+              "Liegt das Modell an der erwarteten Stelle relativ zur Maschine?",
+              "Stimmt die Höhe an einem bekannten Punkt?",
+              "Sind die erwarteten Oberflächen und Layer vorhanden?",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Archivos por marca y sistema",
+        samenvatting:
+          "Cada sistema de control de maquinaria lee sus propios archivos. Cómo trabajamos con las distintas marcas, qué formatos de intercambio están ampliamente aceptados y por qué usted siempre debe comprobar el archivo en su propio sistema.",
+        secties: [
+          {
+            kop: "Cada sistema, su propio formato",
+            tekst: [
+              "En las obras europeas se utilizan diversas marcas de control de maquinaria, entre ellas Trimble, Topcon, Leica, Unicontrol y CHCNAV, además de sistemas instalados o soportados de fábrica por fabricantes como Komatsu y Caterpillar.",
+              "Cada uno de estos sistemas utiliza su propio software y lee sus propios archivos de proyecto. Incluso dentro de una misma marca, distintas generaciones o versiones de software pueden tener requisitos propios sobre cómo debe entregarse un proyecto: qué archivos van juntos, cómo se nombran y dónde deben ubicarse en el soporte de almacenamiento.",
+              "Por eso, en cada encargo preguntamos qué sistema y qué versión de software funcionan en la máquina. Así el modelo se entrega en la forma que ese sistema espera.",
+            ],
+          },
+          {
+            kop: "Formatos de intercambio",
+            tekst: [
+              "Además de los formatos propios de los fabricantes, existen formatos de intercambio abiertos que la mayoría de los sistemas y del software de oficina pueden leer:",
+            ],
+            lijst: [
+              "LandXML: un estándar abierto que puede contener superficies (TIN), líneas, ejes y puntos con sus coordenadas. Muchos programas de control de maquinaria pueden importarlo directamente o convertirlo.",
+              "DXF: el formato de intercambio CAD habitual, útil sobre todo para líneas y polilíneas 3D, y como plano de fondo.",
+              "Una superficie TIN en un formato neutro, para quien desee seguir trabajando el modelo en su propio software.",
+            ],
+          },
+          {
+            kop: "Varios sistemas a la vez",
+            tekst: [
+              "¿Trabaja con máquinas de distintas marcas en la misma obra, o alquila una máquina con otro sistema? En ese caso, el mismo modelo se entrega por separado para cada sistema. La superficie y las líneas son idénticas; solo cambia el formato de entrega.",
+              "Así se evita que dos máquinas en la misma obra sigan diseños ligeramente distintos. Indique en su solicitud todos los sistemas que vayan a utilizar el modelo.",
+            ],
+          },
+          {
+            kop: "Comprobación en su propio sistema",
+            tekst: [
+              "Entregamos un modelo conforme a los planos facilitados, en el sistema de coordenadas acordado y en el formato correspondiente a su sistema. No obstante, el sistema de control de maquinaria sigue siendo responsabilidad suya: instalación, calibración de la máquina, calibración de obra, versión de software y configuración.",
+              "Cargue siempre el archivo en su propio sistema y compruébelo antes de empezar los trabajos:",
+            ],
+            lijst: [
+              "que el proyecto se encuentra y se abre correctamente;",
+              "que el modelo está en el lugar esperado respecto a la máquina;",
+              "que la cota es correcta en un punto conocido;",
+              "que están presentes las superficies y capas previstas.",
             ],
           },
         ],
@@ -742,6 +1102,102 @@ export const KENNIS: KennisArtikel[] = [
           },
         ],
       },
+      de: {
+        titel: "Was sollten Sie liefern?",
+        samenvatting:
+          "Ein gutes Modell beginnt mit vollständigen Plänen. Ein Überblick darüber, was wir benötigen, in welcher Form und welche Angaben häufig vergessen werden.",
+        secties: [
+          {
+            kop: "Die Pläne",
+            tekst: [
+              "Je vollständiger die Unterlagen, desto schneller und genauer das Modell. Senden Sie am besten alles, was auch das ausführende Unternehmen für die Bauausführung verwendet:",
+            ],
+            lijst: [
+              "Absteckplan oder Lageplan mit Koordinaten;",
+              "Längsschnitte von Straßen, Leitungen und Gräben;",
+              "Querprofile oder Regelquerschnitte mit Aufbau und Neigungen;",
+              "Höhenangaben: Fußbodenhöhen, Schachtdeckel, Bordsteinhöhen, Fertighöhen;",
+              "Aufnahme des bestehenden Geländes, sofern vorhanden;",
+              "Detailzeichnungen von Anschlüssen, Zufahrten, Kreuzungen oder Baugruben.",
+            ],
+          },
+          {
+            kop: "In welchem Format",
+            tekst: [
+              "Digitale CAD-Dateien (DWG oder DXF) werden bevorzugt. Sie enthalten die echten Koordinaten und oft bereits 3D-Linien oder Höhenpunkte, was die Modellierung genauer und schneller macht.",
+              "Auch PDF ist verwendbar. Der Plan wird dann anhand bekannter Punkte oder des Koordinatengitters auf der Zeichnung maßstäblich und lagerichtig eingepasst. Das erfordert mehr Zeit, und die Genauigkeit hängt von der Qualität des Dokuments ab. Eine eingescannte Papierzeichnung ist am ungenauesten.",
+              "Gibt es eine Aufnahme oder ein Modell in LandXML oder eine frühere Planung in einem anderen Format? Senden Sie diese mit; sie kann als Kontrolle oder als Grundlage dienen.",
+              "Senden Sie möglichst die Originalzeichnungen, wie der Planer sie erstellt hat, mit intakten Layern. Bearbeitete oder reduzierte Fassungen verlieren mitunter gerade die Informationen, die für das Modell nötig sind.",
+            ],
+          },
+          {
+            kop: "Koordinatensystem und Höhenbezug",
+            tekst: [
+              "Geben Sie an, in welchem Koordinatensystem und mit welchem Höhenbezug das Projekt gezeichnet ist und in welchem System die Maschine arbeitet. Steht dies nicht auf dem Plan, schlagen wir anhand des Landes und der Lage der Baustelle ein gängiges System vor und bitten um Bestätigung.",
+              "Arbeitet die Maschine mit einer lokalen Baustellenkalibrierung, teilen Sie uns bitte auch die verwendeten Passpunkte mit ihren Koordinaten mit. So lässt sich prüfen, ob Modell und Kalibrierung zueinander passen.",
+            ],
+          },
+          {
+            kop: "Praktische Angaben",
+            tekst: ["Neben den Plänen benötigen wir noch einige Angaben, um den Auftrag gut einzuplanen:"],
+            lijst: [
+              "Adresse oder Lage der Baustelle (Gemeinde, Straße oder Koordinaten);",
+              "Marke, Typ und Softwareversion der Maschinensteuerung, je Maschine;",
+              "welche Schichten oder Phasen Sie als separate Oberfläche wünschen (zum Beispiel Aushub, Tragschicht, Fertighöhe);",
+              "der gewünschte Liefertermin;",
+              "eine Kontaktperson, die Fragen zur Planung beantworten kann.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "¿Qué debe facilitarnos?",
+        samenvatting:
+          "Un buen modelo empieza con planos completos. Un resumen de lo que necesitamos, en qué forma y qué información se olvida con frecuencia.",
+        secties: [
+          {
+            kop: "Los planos",
+            tekst: [
+              "Cuanto más completa sea la documentación, más rápido y preciso será el modelo. Envíe preferiblemente todo lo que el contratista utiliza para la ejecución:",
+            ],
+            lijst: [
+              "plano de replanteo o planta general con coordenadas;",
+              "perfiles longitudinales de viales, conducciones y cunetas;",
+              "perfiles transversales o secciones tipo con paquete de firme y pendientes;",
+              "cotas: cotas de solera, tapas de pozo, alturas de bordillo, cotas terminadas;",
+              "levantamiento del terreno existente, si se dispone de él;",
+              "planos de detalle de enlaces, accesos, intersecciones o excavaciones.",
+            ],
+          },
+          {
+            kop: "En qué formato",
+            tekst: [
+              "Se prefieren archivos CAD digitales (DWG o DXF). Contienen las coordenadas reales y a menudo ya líneas 3D o puntos acotados, lo que hace el modelado más preciso y rápido.",
+              "También se puede utilizar un PDF. En ese caso, el plano se escala y se sitúa en coordenadas a partir de puntos conocidos o de la cuadrícula del dibujo. Esto requiere más tiempo y la precisión depende de la calidad del documento. Un plano en papel escaneado es el menos preciso.",
+              "¿Dispone de un levantamiento o un modelo en LandXML, o de un diseño anterior en otro formato? Envíelo también; puede servir de control o de base.",
+              "Envíe preferiblemente los planos originales tal como los elaboró el proyectista, con sus capas intactas. Las versiones editadas o simplificadas a veces pierden precisamente la información que necesita el modelo.",
+            ],
+          },
+          {
+            kop: "Sistema de coordenadas y referencia altimétrica",
+            tekst: [
+              "Indique en qué sistema de coordenadas y con qué referencia altimétrica está dibujado el proyecto, y en qué sistema trabaja la máquina. Si no figura en el plano, proponemos un sistema habitual según el país y la ubicación de la obra y le pedimos confirmación.",
+              "Si la máquina trabaja con una calibración de obra local, facilítenos también los puntos de control utilizados con sus coordenadas. Así se puede verificar que el modelo y la calibración concuerdan.",
+            ],
+          },
+          {
+            kop: "Datos prácticos",
+            tekst: ["Además de los planos, necesitamos algunos datos para planificar bien el encargo:"],
+            lijst: [
+              "dirección o ubicación de la obra (municipio, calle o coordenadas);",
+              "marca, tipo y versión de software del sistema de control de maquinaria, por máquina;",
+              "qué capas o fases desea como superficies separadas (por ejemplo, excavación, base, cota terminada);",
+              "la fecha de entrega deseada;",
+              "una persona de contacto que pueda responder a preguntas sobre el diseño.",
+            ],
+          },
+        ],
+      },
     },
   },
 
@@ -882,6 +1338,96 @@ export const KENNIS: KennisArtikel[] = [
               "compare the displayed position and level with the known values;",
               "check on a second point, ideally at the other end of the site;",
               "if there is a deviation: first check the coordinate system, calibration and machine settings, and only then the model.",
+            ],
+          },
+        ],
+      },
+      de: {
+        titel: "Kontrolle und Toleranzen",
+        samenvatting:
+          "Ein Modell wird geprüft, bevor es ausgeliefert wird, und sollte auf der Baustelle erneut geprüft werden. Wie diese Kontrolle abläuft und welche Toleranzen in der Praxis üblich sind.",
+        secties: [
+          {
+            kop: "Kontrolle während der Modellierung",
+            tekst: [
+              "Ein Modell wird nicht nur aufgebaut, sondern auch mit den Ausgangsplänen abgeglichen. Diese Kontrolle erfolgt auf mehreren Ebenen:",
+            ],
+            lijst: [
+              "Höhen: die Höhenangaben im Plan (Fußbodenhöhen, Bordsteine, Schachtdeckel) werden mit dem Modell an derselben Stelle verglichen;",
+              "Neigungen: Längs- und Querneigungen werden nachgemessen und mit den Profilen verglichen;",
+              "Anschlüsse: Übergänge zwischen Planungsteilen und zum bestehenden Gelände dürfen keine Sprünge oder unerwarteten Knicke aufweisen;",
+              "Höhenlinien: eine Höhenliniendarstellung macht Unregelmäßigkeiten sichtbar, etwa eine Fahrbahn, die zwischen zwei Profilen durchhängt, oder eine Böschung, die plötzlich ihre Neigung ändert;",
+              "Vollständigkeit: sind alle für die Ausführung nötigen Bereiche, Schichten und Linien vorhanden.",
+            ],
+          },
+          {
+            kop: "Widersprüche in den Plänen",
+            tekst: [
+              "Pläne enthalten manchmal widersprüchliche Angaben: eine Höhe im Lageplan, die nicht mit dem Längsschnitt übereinstimmt, oder eine Neigung, die nicht zu den angegebenen Höhen passt. Solche Stellen werden nicht stillschweigend ergänzt, sondern gemeldet, damit der Planer oder die Bauleitung entscheiden kann, welcher Wert gilt.",
+            ],
+          },
+          {
+            kop: "Toleranzen im Allgemeinen",
+            tekst: [
+              "Die auf der Baustelle erreichte Genauigkeit hängt von mehr als nur dem Modell ab: von der Art der Positionierung (GNSS oder Tachymeter), der Qualität der Korrekturdaten, der Kalibrierung der Maschine und dem Untergrund. Das Modell selbst sollte daher deutlich innerhalb der Toleranzen der Arbeiten liegen, damit es keinen spürbaren Beitrag zum Gesamtfehler leistet.",
+              "In der Praxis gelten für Erdarbeiten meist Toleranzen von wenigen Zentimetern, für Trag- und Deckschichten strengere Werte. Die genauen Toleranzen stehen im Leistungsverzeichnis oder in den technischen Vorschriften des Projekts; diese sind stets maßgebend. GNSS-Maschinensteuerung ist in der Höhe in der Regel weniger genau als in der Lage, was beim Feinplanum ins Gewicht fällt.",
+            ],
+          },
+          {
+            kop: "Kontrolle auf der Baustelle vor dem Start",
+            tekst: [
+              "Bevor der erste Löffel in den Boden geht, sollte das Modell auf der Baustelle geprüft werden. Das ist ein kurzer, aber wesentlicher Schritt:",
+            ],
+            lijst: [
+              "setzen Sie das Werkzeug auf einen bekannten Punkt mit zuverlässigen Koordinaten und Höhe (einen Festpunkt, einen vorhandenen Schachtdeckel oder einen eingemessenen Pflock);",
+              "vergleichen Sie die angezeigte Position und Höhe mit den bekannten Werten;",
+              "prüfen Sie an einem zweiten Punkt, möglichst am anderen Ende der Baustelle;",
+              "bei einer Abweichung: zuerst Koordinatensystem, Kalibrierung und Maschineneinstellungen prüfen, erst danach das Modell.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Control y tolerancias",
+        samenvatting:
+          "Un modelo se comprueba antes de entregarse y debe comprobarse de nuevo en obra. Cómo se realiza ese control y qué tolerancias son habituales en la práctica.",
+        secties: [
+          {
+            kop: "Control durante el modelado",
+            tekst: [
+              "Un modelo no solo se construye, sino que también se verifica frente a los planos de origen. Ese control se realiza a varios niveles:",
+            ],
+            lijst: [
+              "cotas: las cotas del plano (cotas de solera, bordillos, tapas de pozo) se comparan con el modelo en el mismo lugar;",
+              "pendientes: las pendientes longitudinales y transversales se miden y se comparan con los perfiles;",
+              "enlaces: las transiciones entre partes del diseño y con el terreno existente no deben presentar escalones ni quiebros inesperados;",
+              "curvas de nivel: una vista de curvas de nivel revela irregularidades, como una calzada que se hunde entre dos perfiles o un talud que cambia de pendiente de repente;",
+              "integridad: ¿están presentes todas las zonas, capas y líneas necesarias para la ejecución?",
+            ],
+          },
+          {
+            kop: "Contradicciones en los planos",
+            tekst: [
+              "Los planos contienen a veces información contradictoria: una cota en planta que no coincide con el perfil longitudinal, o una pendiente que no encaja con las cotas indicadas. Estos puntos no se completan en silencio, sino que se comunican, para que el proyectista o el jefe de obra decida qué valor se aplica.",
+            ],
+          },
+          {
+            kop: "Tolerancias en términos generales",
+            tekst: [
+              "La precisión que se alcanza en obra depende de algo más que del modelo: del tipo de posicionamiento (GNSS o estación total), de la calidad de los datos de corrección, de la calibración de la máquina y del terreno. Por eso el modelo debe situarse holgadamente dentro de las tolerancias de la obra, para no contribuir de forma apreciable al error total.",
+              "En la práctica, los movimientos de tierras admiten normalmente tolerancias de unos pocos centímetros, mientras que las capas de base y de acabado tienen límites más estrictos. Las tolerancias exactas figuran en el pliego de condiciones o en las prescripciones técnicas del proyecto, que siempre prevalecen. El control de maquinaria con GNSS suele ser menos preciso en altura que en planimetría, algo que cuenta en los acabados finos.",
+            ],
+          },
+          {
+            kop: "Control en obra antes de empezar",
+            tekst: [
+              "Antes de que el primer cazo toque el suelo, el modelo debe comprobarse en obra. Es un paso breve pero esencial:",
+            ],
+            lijst: [
+              "sitúe la herramienta sobre un punto conocido con coordenadas y cota fiables (una base de replanteo, una tapa de pozo existente o una estaca levantada);",
+              "compare la posición y la cota mostradas con los valores conocidos;",
+              "compruebe en un segundo punto, preferiblemente en el otro extremo de la obra;",
+              "si hay una desviación: revise primero el sistema de coordenadas, la calibración y la configuración de la máquina, y solo después el modelo.",
             ],
           },
         ],
@@ -1047,6 +1593,108 @@ export const KENNIS: KennisArtikel[] = [
           },
         ],
       },
+      de: {
+        titel: "Häufig gestellte Fragen",
+        samenvatting:
+          "Antworten auf die Fragen, die am häufigsten gestellt werden: Lieferfristen, Abrechnung, mehrere Systeme, Änderungen, Lieferung und Verantwortung.",
+        secties: [
+          {
+            kop: "Wie schnell kann ein Modell geliefert werden?",
+            tekst: [
+              "Das hängt vom Umfang des Projekts und vom Zeitpunkt der Anfrage ab. Wir arbeiten mit drei Kategorien: frühzeitig (mehr als drei Wochen vor dem gewünschten Liefertermin), Standard (eine bis drei Wochen) und kurzfristig (fünf Werktage oder weniger).",
+              "Je früher die Pläne vorliegen, desto mehr Spielraum besteht, Fragen zur Planung in Ruhe abzustimmen. Kurzfristige Aufträge sind möglich, solange es die Planung zulässt, werden im Angebot jedoch als solche ausgewiesen.",
+            ],
+          },
+          {
+            kop: "Wie wird abgerechnet?",
+            tekst: [
+              "Die Abrechnung erfolgt nach Stunden. Nach Eingang der Pläne erhalten Sie ein Angebot mit einer Schätzung der Stundenzahl, sodass Sie vorab wissen, womit Sie rechnen können. Stellt sich während der Arbeit heraus, dass das Projekt wesentlich anders ist als erwartet, wird dies zuerst mit Ihnen besprochen.",
+            ],
+          },
+          {
+            kop: "Kostet ein Modell für mehrere Systeme extra?",
+            tekst: [
+              "Nein. Das Modell wird einmal aufgebaut. Die Lieferung für mehrere Systeme oder Marken, zum Beispiel für eine eigene und eine gemietete Maschine, erfolgt ohne Aufpreis. Geben Sie bei der Anfrage jedoch alle Systeme und Softwareversionen an.",
+            ],
+          },
+          {
+            kop: "Was, wenn sich die Planung ändert?",
+            tekst: [
+              "Planungen ändern sich im Laufe eines Projekts, das ist normal. Senden Sie die geänderten Pläne mit einer kurzen Beschreibung der Änderungen. Anpassungen werden wie alles andere nach Stunden abgerechnet. Fehler im Modell gegenüber den übermittelten Plänen werden selbstverständlich kostenlos korrigiert.",
+            ],
+          },
+          {
+            kop: "Wie erhalte ich die Dateien?",
+            tekst: [
+              "Die Dateien stehen in Ihrem Kundenportal bereit und können nach Bezahlung der Rechnung heruntergeladen werden. Dort finden Sie auch frühere Versionen und die zugehörigen Dokumente.",
+            ],
+          },
+          {
+            kop: "Wer ist für die Maschinensteuerung verantwortlich?",
+            tekst: [
+              "Das Modell wird nach den übermittelten Plänen und im vereinbarten Koordinatensystem aufgebaut. Die Maschinensteuerung selbst bleibt in der Verantwortung des Kunden: Installation, Kalibrierung von Maschine und Baustelle, Software und Einstellungen.",
+              "Prüfen Sie das Modell daher vor Beginn immer auf Ihrem eigenen System und an einem bekannten Punkt auf der Baustelle. Bei Fragen zur Planung selbst bleibt der Planer oder das Ingenieurbüro Ihr Ansprechpartner.",
+            ],
+          },
+          {
+            kop: "Arbeiten Sie auch außerhalb Belgiens?",
+            tekst: [
+              "Ja. Modelle werden für Baustellen in ganz Europa erstellt, im Koordinatensystem und Höhenbezug des jeweiligen Landes oder in einem lokalen System Ihrer Wahl. Die Kommunikation ist auf Niederländisch, Französisch oder Englisch möglich.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Preguntas frecuentes",
+        samenvatting:
+          "Respuestas a las preguntas que más se repiten: plazos de entrega, facturación, varios sistemas, modificaciones, entrega y responsabilidad.",
+        secties: [
+          {
+            kop: "¿Con qué rapidez se puede entregar un modelo?",
+            tekst: [
+              "Depende del tamaño del proyecto y del momento en que llega la solicitud. Trabajamos con tres categorías: anticipada (más de tres semanas antes de la fecha de entrega deseada), estándar (de una a tres semanas) y de última hora (cinco días laborables o menos).",
+              "Cuanto antes lleguen los planos, más margen hay para aclarar con calma las dudas sobre el diseño. Los encargos de última hora son posibles siempre que la planificación lo permita, pero se indican como tales en el presupuesto.",
+            ],
+          },
+          {
+            kop: "¿Cómo se factura?",
+            tekst: [
+              "Se factura por horas. Tras recibir los planos, usted recibe un presupuesto con una estimación del número de horas, para que sepa de antemano a qué atenerse. Si durante el trabajo resulta que el encargo es sustancialmente distinto de lo previsto, se comenta primero con usted.",
+            ],
+          },
+          {
+            kop: "¿Cuesta más un modelo para varios sistemas?",
+            tekst: [
+              "No. El modelo se construye una sola vez. La entrega para varios sistemas o marcas, por ejemplo para su propia máquina y una de alquiler, no tiene coste adicional. Basta con indicar todos los sistemas y versiones de software en su solicitud.",
+            ],
+          },
+          {
+            kop: "¿Y si cambia el diseño?",
+            tekst: [
+              "Los diseños cambian durante un proyecto, y es normal. Envíe los planos modificados con una breve descripción de los cambios. Las modificaciones se facturan por horas, como el resto. Los errores del modelo respecto a los planos facilitados se corrigen, por supuesto, sin coste.",
+            ],
+          },
+          {
+            kop: "¿Cómo recibo los archivos?",
+            tekst: [
+              "Los archivos se ponen a su disposición en su portal de cliente y pueden descargarse una vez pagada la factura. Allí encontrará también las versiones anteriores y los documentos correspondientes.",
+            ],
+          },
+          {
+            kop: "¿Quién es responsable del sistema de control de maquinaria?",
+            tekst: [
+              "El modelo se elabora según los planos facilitados y en el sistema de coordenadas acordado. El sistema de control de maquinaria sigue siendo responsabilidad del cliente: instalación, calibración de la máquina y de la obra, software y configuración.",
+              "Compruebe siempre el modelo en su propio sistema y en un punto conocido de la obra antes de empezar. Para dudas sobre el propio diseño, el proyectista o la ingeniería consultora sigue siendo el interlocutor.",
+            ],
+          },
+          {
+            kop: "¿Trabajan también fuera de Bélgica?",
+            tekst: [
+              "Sí. Los modelos se elaboran para obras en toda Europa, en el sistema de coordenadas y la referencia altimétrica del país correspondiente o en un sistema local de su elección. La comunicación es posible en neerlandés, francés o inglés.",
+            ],
+          },
+        ],
+      },
     },
   },
 
@@ -1193,6 +1841,98 @@ export const KENNIS: KennisArtikel[] = [
           },
         ],
       },
+      de: {
+        titel: "Vom PDF oder Papierplan zum Modell",
+        samenvatting:
+          "Nicht jedes Projekt wird mit CAD-Dateien geliefert. Auch aus einem PDF oder einem Papierplan lässt sich ein Modell aufbauen, das erfordert jedoch zusätzliche Informationen und zusätzliche Kontrolle. Wie das funktioniert, wo die Grenzen liegen und was Sie selbst am besten prüfen.",
+        secties: [
+          {
+            kop: "Warum CAD bevorzugt wird",
+            tekst: [
+              "Eine DWG- oder DXF-Datei enthält die Zeichnung so, wie der Planer sie erstellt hat: Linien mit echten Koordinaten, oft im richtigen System und manchmal bereits mit Höhen. Ein PDF ist im Grunde ein Ausdruck. Auch wenn die Linien scharf aussehen, ist der Bezug zu den Koordinaten verloren, und Höhen sind nur noch als Text vorhanden.",
+              "Fragen Sie daher zuerst beim Planer oder Ingenieurbüro nach, ob die digitalen Dateien verfügbar sind. Das spart Zeit und ergibt ein genaueres Modell. Gelingt das nicht, ist ein PDF dennoch verwendbar.",
+            ],
+          },
+          {
+            kop: "Maßstab und Bemaßung",
+            tekst: [
+              "Ein Plan auf Papier oder als PDF stimmt nur in dem Maßstab, in dem er gezeichnet wurde. Beim Drucken, Kopieren oder Scannen kann sich dieser Maßstab leicht verschieben, und nicht immer in beiden Richtungen gleich stark. Ein angegebener Maßstab wie 1:200 ist daher ein Ausgangspunkt, keine Garantie.",
+              "Der Plan wird anhand bekannter Maße maßstäblich eingepasst: einer Maßkette, eines Koordinatengitters, des Abstands zwischen zwei Punkten mit bekannten Koordinaten. Je mehr solcher Referenzen über das Blatt verteilt sind, desto besser lässt sich eine Maßstabsabweichung erkennen und korrigieren.",
+            ],
+          },
+          {
+            kop: "Welche Informationen helfen",
+            tekst: ["Da ein PDF weniger Informationen trägt als eine CAD-Datei, sind ergänzende Angaben umso wichtiger:"],
+            lijst: [
+              "Höhenangaben und Höhenpunkte im Lageplan;",
+              "Längs- und Querprofile, mit Stationierung oder Abständen;",
+              "Festpunkte oder Polygonpunkte mit Koordinaten und Höhe;",
+              "ein Koordinatengitter auf dem Plan;",
+              "das Koordinatensystem und der Höhenbezug, in dem das Projekt gezeichnet ist.",
+            ],
+          },
+          {
+            kop: "Wie das Modell aufgebaut wird",
+            tekst: [
+              "Zuerst wird der Plan georeferenziert: anhand der Festpunkte oder des Gitters maßstäblich eingepasst und an die richtige Stelle im Koordinatensystem gelegt. Danach werden die relevanten Linien nachgezeichnet (digitalisiert): Achsen, Kanten, Bordsteine, Böschungen.",
+              "Diese Linien erhalten anschließend ihre Höhe aus den Höhenangaben und den Profilen. Zum Schluss wird das Ergebnis mit den Maßen und Höhen im Plan abgeglichen. Wo ein gemessener Abstand oder eine Höhe nicht mit dem Plan übereinstimmt, wird dies gemeldet, statt stillschweigend angepasst.",
+            ],
+          },
+          {
+            kop: "Grenzen und was Sie selbst prüfen",
+            tekst: [
+              "Die Genauigkeit eines Modells aus einem PDF hängt von der Qualität des Dokuments, der Linienstärke, dem Maßstab und der Anzahl zuverlässiger Referenzen ab. Der Scan eines zerknitterten oder mehrfach kopierten Plans ist am ungenauesten. Höhen sind meist zuverlässiger als die Lage, weil sie als Zahl auf dem Plan stehen.",
+              "Prüfen Sie das Modell daher vor dem Start besonders sorgfältig: an mehreren bekannten Punkten, sowohl in der Lage als auch in der Höhe, und möglichst über die gesamte Baustelle verteilt. Im Zweifel über ein Maß gilt der Plan des Planers, nicht das Modell.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Del PDF o plano en papel al modelo",
+        samenvatting:
+          "No todos los proyectos llegan con archivos CAD. También se puede construir un modelo a partir de un PDF o de un plano en papel, pero eso requiere información y controles adicionales. Cómo funciona, dónde están los límites y qué conviene que compruebe usted mismo.",
+        secties: [
+          {
+            kop: "Por qué se prefiere el CAD",
+            tekst: [
+              "Un archivo DWG o DXF contiene el dibujo tal como lo hizo el proyectista: líneas con coordenadas reales, a menudo en el sistema correcto y a veces ya con cotas. Un PDF es, en esencia, una impresión. Aunque las líneas se vean nítidas, se ha perdido el vínculo con las coordenadas y las cotas solo sobreviven como texto.",
+              "Por eso, pregunte primero al proyectista o a la ingeniería si los archivos digitales están disponibles. Eso ahorra tiempo y da un modelo más preciso. Si no es posible, un PDF sigue siendo utilizable.",
+            ],
+          },
+          {
+            kop: "Escala y acotación",
+            tekst: [
+              "Un plano en papel o en PDF solo es correcto a la escala a la que se dibujó. Al imprimir, copiar o escanear, esa escala puede desviarse ligeramente, y no siempre por igual en ambas direcciones. Una escala indicada como 1:200 es, por tanto, un punto de partida, no una garantía.",
+              "El plano se escala a partir de medidas conocidas: una línea de cota, una cuadrícula de coordenadas, la distancia entre dos puntos de coordenadas conocidas. Cuantas más referencias haya repartidas por la hoja, mejor se puede detectar y corregir una desviación de escala.",
+            ],
+          },
+          {
+            kop: "Qué información ayuda",
+            tekst: ["Como un PDF contiene menos información que un archivo CAD, los datos complementarios son aún más importantes:"],
+            lijst: [
+              "cotas y puntos acotados en la planta;",
+              "perfiles longitudinales y transversales, con PK o distancias;",
+              "puntos de referencia o de poligonal con coordenadas y altura;",
+              "una cuadrícula de coordenadas en el plano;",
+              "el sistema de coordenadas y la referencia altimétrica en que está dibujado el proyecto.",
+            ],
+          },
+          {
+            kop: "Cómo se construye el modelo",
+            tekst: [
+              "Primero se georreferencia el plano: se escala y se sitúa en el lugar correcto del sistema de coordenadas a partir de los puntos de referencia o de la cuadrícula. Después se calcan (digitalizan) las líneas relevantes: ejes, bordes, bordillos, taludes.",
+              "A continuación, esas líneas reciben su cota a partir de los puntos acotados y los perfiles. Por último, el resultado se contrasta con las medidas y cotas del plano. Cuando una distancia o cota medida no coincide con el plano, se comunica en lugar de ajustarse en silencio.",
+            ],
+          },
+          {
+            kop: "Límites y qué debe comprobar usted",
+            tekst: [
+              "La precisión de un modelo hecho a partir de un PDF depende de la calidad del documento, del grosor de las líneas, de la escala y del número de referencias fiables. El escaneado de un plano arrugado o copiado varias veces es el menos preciso. Las cotas suelen ser más fiables que la posición en planta, porque figuran como números en el plano.",
+              "Compruebe por ello el modelo con especial cuidado antes de empezar: en varios puntos conocidos, tanto en posición como en altura, y preferiblemente repartidos por toda la obra. En caso de duda sobre una medida, prevalece el plano del proyectista, no el modelo.",
+            ],
+          },
+        ],
+      },
     },
   },
 
@@ -1302,6 +2042,76 @@ export const KENNIS: KennisArtikel[] = [
             tekst: [
               "A volume is never more accurate than the surfaces it is calculated from. A survey with few points, an outdated survey or ground that has changed since gives a volume that differs from reality. Vegetation, temporary stockpiles or standing water at the time of the survey also affect the result.",
               "Volumes from the model are therefore a by-product of the modelling work and are indicative. They help with estimating and planning, but they are not guaranteed quantities for payment or a bill of quantities. For contractual quantities, the surveyor’s measurements and the terms of the specification remain decisive.",
+            ],
+          },
+        ],
+      },
+      de: {
+        titel: "Erdbau und Massen",
+        samenvatting:
+          "Ein Planungsmodell steuert nicht nur die Maschine, es hilft auch, den Erdbau zu verstehen: wo abgetragen, wo aufgefüllt wird und wie viel. Was eine solche Massenberechnung aussagt und was nicht.",
+        secties: [
+          {
+            kop: "Zwei Oberflächen vergleichen",
+            tekst: [
+              "Ein Volumen entsteht durch den Vergleich zweier Oberflächen: des bestehenden Geländes, wie es aufgenommen wurde, und der Planungsoberfläche. An jeder Stelle wird der Höhenunterschied zwischen beiden bestimmt und über den gesamten Arbeitsbereich aufsummiert.",
+              "Liegt das bestehende Gelände höher als die Planung, muss Boden weg: das ist Abtrag. Liegt es tiefer, muss Boden hinzu: das ist Auftrag. Eine Karte mit beiden Zonen in Farbe zeigt auf einen Blick, wo die Schwerpunkte der Arbeiten liegen.",
+            ],
+          },
+          {
+            kop: "Massenbilanz",
+            tekst: [
+              "Die Massenbilanz stellt das gesamte Abtragsvolumen dem gesamten Auftragsvolumen gegenüber. Gibt es mehr Abtrag als Auftrag, bleibt Boden übrig, der abgefahren werden muss. Gibt es mehr Auftrag, muss Material angeliefert werden.",
+              "Dabei spielt mit, dass Boden sein Volumen verändert. Gelöster Boden nimmt mehr Raum ein als im gewachsenen Zustand (Auflockerung), verdichteter Boden weniger. Zudem ist nicht jeder Aushub zur Wiederverwendung geeignet. Eine geometrische Bilanz ist daher ein Ausgangspunkt für die Planung von Transport und Material, nicht die endgültige Antwort.",
+            ],
+          },
+          {
+            kop: "Schichten und warum die Dicke zählt",
+            tekst: [
+              "Unter einer Befestigung liegen meist mehrere Schichten, etwa eine Frostschutzschicht und eine Tragschicht. Jede Schicht hat eine planmäßige Dicke. Wird bis zur Fertighöhe statt bis zur Unterkante des Aufbaus gerechnet, wird der Abtrag unterschätzt.",
+              "Deshalb werden die Schichten am besten als separate Oberflächen modelliert. So lässt sich das Abtragsvolumen bis zum Planum bestimmen und für jede Schicht die benötigte Materialmenge. Ein Unterschied von wenigen Zentimetern in der Schichtdicke wirkt klein, summiert sich auf einer großen Fläche aber schnell.",
+            ],
+          },
+          {
+            kop: "Richtwert, keine Garantie",
+            tekst: [
+              "Ein Volumen ist nie genauer als die Oberflächen, aus denen es berechnet wurde. Eine Aufnahme mit wenigen Punkten, eine veraltete Aufnahme oder ein seither verändertes Gelände ergibt ein Volumen, das von der Wirklichkeit abweicht. Auch Bewuchs, Zwischenlager oder Wasser zum Zeitpunkt der Aufnahme beeinflussen das Ergebnis.",
+              "Volumen aus dem Modell sind daher ein Nebenprodukt der Modellierung und haben Richtwertcharakter. Sie helfen beim Schätzen und Planen, sind aber keine garantierten Mengen für Abrechnung oder Aufmaß. Für vertragliche Mengen bleiben die Aufnahme durch einen Vermesser und die Vereinbarungen im Leistungsverzeichnis maßgebend.",
+            ],
+          },
+        ],
+      },
+      es: {
+        titel: "Movimiento de tierras y volúmenes",
+        samenvatting:
+          "Un modelo de diseño no solo guía la máquina: también ayuda a entender el movimiento de tierras, es decir, dónde hay desmonte, dónde hay terraplén y cuánto. Qué dice un cálculo de volúmenes y qué no dice.",
+        secties: [
+          {
+            kop: "Comparar dos superficies",
+            tekst: [
+              "Un volumen se obtiene comparando dos superficies: el terreno existente, tal como se ha levantado, y la superficie de diseño. En cada punto se determina la diferencia de cota entre ambas y se suma sobre toda la zona de trabajo.",
+              "Si el terreno existente está más alto que el diseño, hay que retirar material: es el desmonte. Si está más bajo, hay que aportarlo: es el terraplén. Un mapa con ambas zonas en color muestra de un vistazo dónde se concentran los trabajos.",
+            ],
+          },
+          {
+            kop: "Compensación de tierras",
+            tekst: [
+              "La compensación de tierras contrapone el volumen total de desmonte al volumen total de terraplén. Si hay más desmonte que terraplén, sobra material que debe llevarse fuera de la obra. Si hay más terraplén, hay que traer material.",
+              "Hay que tener en cuenta además que el suelo cambia de volumen. El material excavado ocupa más espacio que en su estado natural (esponjamiento), y el compactado, menos. Además, no todo el material excavado es apto para reutilizarse. Un balance geométrico es, por tanto, un punto de partida para planificar transporte y materiales, no la respuesta definitiva.",
+            ],
+          },
+          {
+            kop: "Las capas y por qué cuenta el espesor",
+            tekst: [
+              "Bajo un pavimento suele haber varias capas, como una subbase y una base. Cada capa tiene un espesor de proyecto. Si se calcula hasta la cota terminada en lugar de hasta el fondo del paquete de firme, el desmonte se subestima.",
+              "Por eso conviene modelar las capas como superficies separadas. Así se puede determinar el volumen de desmonte hasta la explanada y el volumen de material necesario para cada capa. Unos centímetros de diferencia en el espesor parecen poco, pero sobre una superficie grande se acumulan rápidamente.",
+            ],
+          },
+          {
+            kop: "Orientativo, no una garantía",
+            tekst: [
+              "Un volumen nunca es más preciso que las superficies con las que se calcula. Un levantamiento con pocos puntos, un levantamiento antiguo o un terreno que ha cambiado desde entonces dan un volumen que se aparta de la realidad. La vegetación, los acopios temporales o el agua en el momento del levantamiento también influyen en el resultado.",
+              "Los volúmenes del modelo son, por tanto, un subproducto del trabajo de modelado y tienen un valor orientativo. Ayudan a estimar y planificar, pero no son cantidades garantizadas para certificaciones ni mediciones. Para las cantidades contractuales, siguen siendo determinantes el levantamiento de un topógrafo y lo establecido en el pliego de condiciones.",
             ],
           },
         ],
