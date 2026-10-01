@@ -31,6 +31,14 @@ type Quote = {
   monthly_total_cents: number | null;
   status: string;
   source: string | null;
+  snapshot: {
+    werf?: { gemeente?: string; land?: string };
+    merken?: string[];
+    categorie?: string;
+    werk?: string | null;
+    leverdatum?: string | null;
+    bestanden?: unknown[];
+  } | null;
 };
 
 const eurc = (x: number | null | undefined) =>
@@ -100,12 +108,14 @@ function shortMessage(msg: string | null): string {
 }
 
 const SOURCE_LABEL: Record<string, string> = {
+  "3d-model": "3D-model",
   builder: "Builder",
   "offerte-configurator": "Configurator",
   "offerte-calculator": "Calculator",
   contact: "Contactformulier",
 };
 const SOURCE_COLOR: Record<string, string> = {
+  "3d-model": "#c2410c",
   builder: "var(--accent)",
   "offerte-configurator": "#0ea5e9",
   "offerte-calculator": "#8b5cf6",
@@ -438,7 +448,42 @@ export default async function AdminAanvragen({
 
               {/* Body */}
               <div className="px-5 py-4">
-                {isBuilder ? (
+                {q.source === "3d-model" ? (
+                  <div className="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Werk</p>
+                      <p className="mt-0.5 font-medium">
+                        {q.snapshot?.werk || "3D-model"}
+                        {q.snapshot?.werf?.gemeente && <span className="text-muted"> · {q.snapshot.werf.gemeente} ({q.snapshot.werf.land?.toUpperCase()})</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Categorie</p>
+                      <p className={`mt-0.5 font-medium ${q.snapshot?.categorie === "last-minute" ? "text-red-500" : ""}`}>
+                        {q.snapshot?.categorie ?? "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Leverdatum</p>
+                      <p className="mt-0.5 font-medium">
+                        {q.snapshot?.leverdatum ? new Date(`${q.snapshot.leverdatum}T00:00:00`).toLocaleDateString("nl-BE") : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Plannen</p>
+                      <p className="mt-0.5 font-medium">{q.snapshot?.bestanden?.length ?? 0}</p>
+                    </div>
+                    {q.snapshot?.merken && q.snapshot.merken.length > 0 && (
+                      <div className="sm:col-span-2 xl:col-span-4">
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {q.snapshot.merken.map((m) => (
+                            <span key={m} className="rounded-full bg-background px-2 py-0.5 text-[11px]">{m}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : isBuilder ? (
                   <div className="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-widest text-muted">

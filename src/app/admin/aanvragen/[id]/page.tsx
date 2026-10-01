@@ -98,6 +98,105 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+// ---- 3D-modelaanvraag (bron '3d-model', details in snapshot) ----
+type Snap3D = {
+  werf?: { straat?: string; postcode?: string; gemeente?: string; land?: string; lat?: number | null; lon?: number | null; gevonden?: string | null };
+  stelsel?: { stelsel?: string; epsg?: string; hoogte?: string; opmerking?: string } | null;
+  eigenStelsel?: string | null;
+  merken?: string[];
+  categorie?: string;
+  machines?: string[];
+  werk?: string | null;
+  leverdatum?: string | null;
+  bestanden?: { naam: string; pad: string; grootte?: number }[];
+};
+
+const CAT_KLEUR: Record<string, string> = {
+  vroegtijdig: "bg-emerald-500/15 text-emerald-600",
+  normaal: "bg-accent/15 text-accent",
+  "last-minute": "bg-red-500 text-white",
+};
+
+async function Aanvraag3D({ quoteId, snap }: { quoteId: string; snap: Snap3D | null }) {
+  const { data: pr } = await getSupabaseAdmin()
+    .from("projecten")
+    .select("id, status, titel")
+    .eq("quote_id", quoteId)
+    .maybeSingle();
+  const project = pr as { id: string; status: string; titel: string } | null;
+  const s = snap ?? {};
+  const w = s.werf ?? {};
+  const adres = [w.straat, [w.postcode, w.gemeente].filter(Boolean).join(" "), w.land?.toUpperCase()]
+    .filter(Boolean)
+    .join(", ");
+  const kaart = w.lat != null && w.lon != null ? `https://www.google.com/maps?q=${w.lat},${w.lon}` : null;
+  return (
+    <div className="mt-6 rounded-2xl border-2 border-accent/30 bg-card p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">3D-modelaanvraag</p>
+          {s.categorie && (
+            <span className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase ${CAT_KLEUR[s.categorie] ?? "bg-muted/15"}`}>
+              {s.categorie}
+            </span>
+          )}
+        </div>
+        {project ? (
+          <Link
+            href={`/admin/projecten/${project.id}`}
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Open project-cockpit →
+          </Link>
+        ) : (
+          <span className="text-xs text-muted">Geen gekoppeld project gevonden</span>
+        )}
+      </div>
+      <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Field label="Soort werk" value={s.werk} />
+        <Field label="Gewenste leverdatum" value={s.leverdatum ? new Date(`${s.leverdatum}T00:00:00`).toLocaleDateString("nl-BE", { weekday: "short", day: "numeric", month: "long", year: "numeric" }) : null} />
+        <Field label="Machines" value={s.machines?.join(", ")} />
+        <Field
+          label="Machinesturingen"
+          value={
+            s.merken?.length ? (
+              <span className="flex flex-wrap gap-1.5">
+                {s.merken.map((m) => (
+                  <span key={m} className="rounded-full border px-2 py-0.5 text-xs">{m}</span>
+                ))}
+              </span>
+            ) : null
+          }
+        />
+        <Field
+          label="Werf"
+          value={
+            adres ? (
+              <>
+                {adres}
+                {kaart && (
+                  <a href={kaart} target="_blank" rel="noreferrer" className="ml-2 text-accent underline">kaart →</a>
+                )}
+              </>
+            ) : null
+          }
+        />
+        <Field
+          label="Stelsel"
+          value={
+            s.eigenStelsel
+              ? `Eigen: ${s.eigenStelsel}`
+              : s.stelsel
+                ? `${s.stelsel.stelsel ?? ""}${s.stelsel.epsg ? ` (${s.stelsel.epsg})` : ""}${s.stelsel.hoogte ? ` · ${s.stelsel.hoogte}` : ""}`
+                : null
+          }
+        />
+        <Field label="Plannen" value={s.bestanden?.length ? `${s.bestanden.length} bestand${s.bestanden.length === 1 ? "" : "en"} — te downloaden in de project-cockpit` : "geen"} />
+      </dl>
+    </div>
+  );
+}
+
 export default async function QuoteDetail({
   params,
 }: {
@@ -177,6 +276,8 @@ export default async function QuoteDetail({
           </a>
         </div>
       </div>
+
+      {q.source === "3d-model" && <Aanvraag3D quoteId={q.id} snap={q.snapshot as unknown as Snap3D | null} />}
 
       {/* Acties */}
       <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-card shadow-sm p-4">

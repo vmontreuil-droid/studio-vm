@@ -41,6 +41,9 @@ import {
   LayoutTemplate,
   LineChart,
   Share2,
+  Layers,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -54,12 +57,14 @@ export type AdminCounts = {
   facturenOpen: number;
   ticketsOpen: number;
   formNieuw: number;
+  projectenActief: number;
 };
 
 // Billit-stijl: gegroepeerde navigatie i.p.v. één lange lijst, zoals een
 // echt boekhoud-/facturatieprogramma. Elke route blijft behouden.
 const groups: {
   title: string;
+  collapsed?: boolean;
   items: readonly {
     href: string;
     label: string;
@@ -76,59 +81,42 @@ const groups: {
     ],
   },
   {
+    title: "Projecten",
+    items: [
+      { href: "/admin/projecten", label: "Projecten", icon: Layers, badge: "projectenActief" },
+      { href: "/admin/planning", label: "Planning", icon: CalendarDays },
+      { href: "/admin/aanvragen", label: "Aanvragen", icon: Inbox, badge: "nieuw" },
+      { href: "/admin/tickets", label: "Tickets & revisies", icon: Headphones, badge: "ticketsOpen" },
+      { href: "/admin/formulieren", label: "Contactberichten", icon: MailOpen, badge: "formNieuw" },
+    ],
+  },
+  {
     title: "Verkoop",
     items: [
       { href: "/admin/offertes", label: "Offertes", icon: FileText, badge: "offertesOpen" },
       { href: "/admin/facturen", label: "Facturen", icon: Receipt, badge: "facturenOpen" },
       { href: "/admin/creditnotas", label: "Creditnota's", icon: FileMinus },
-      { href: "/admin/abonnementen", label: "Abonnementen", icon: Repeat },
-      { href: "/admin/producten", label: "Producten", icon: Package },
       { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
+      { href: "/admin/producten", label: "Diensten & tarieven", icon: Package },
     ],
   },
   {
-    title: "Aankoop",
+    title: "Aankoop & bank",
     items: [
       { href: "/admin/aankoopfacturen", label: "Aankoopfacturen", icon: ReceiptText },
       { href: "/admin/leveranciers", label: "Leveranciers", icon: Truck },
-    ],
-  },
-  {
-    title: "Bank",
-    items: [
       { href: "/admin/bank", label: "Bank", icon: Landmark },
     ],
   },
   {
-    title: "Opvolging",
+    title: "Prospectie",
     items: [
-      { href: "/admin/aanvragen", label: "Aanvragen", icon: Inbox, badge: "nieuw" },
-      { href: "/admin/formulieren", label: "Formulieren", icon: MailOpen, badge: "formNieuw" },
-      { href: "/admin/tickets", label: "Tickets", icon: Headphones, badge: "ticketsOpen" },
-    ],
-  },
-  {
-    title: "Sites & tools",
-    items: [
-      { href: "/admin/sites", label: "Sites Studio-vm", icon: Globe },
-      { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
-      { href: "/admin/monitors", label: "Monitors", icon: Activity, badge: "monitorsActief" },
-      { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
-      { href: "/admin/templates-lab", label: "Templates-lab", icon: LayoutTemplate },
-      { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
-      { href: "/admin/prospects", label: "Prospects", icon: Building2 },
+      { href: "/admin/prospects", label: "Aannemers", icon: Building2 },
       { href: "/admin/outreach", label: "Outreach-engine", icon: Send },
+      { href: "/admin/email-finder", label: "Contactadres-zoeker", icon: MailSearch },
       { href: "/admin/social", label: "Social Media", icon: Share2 },
-      { href: "/admin/mail-preview", label: "Mail-preview", icon: MailOpen },
-    ],
-  },
-  {
-    title: "Content",
-    items: [
-      { href: "/admin/journal", label: "Journal", icon: Newspaper },
-      { href: "/admin/changelog", label: "Changelog", icon: History },
-      { href: "/admin/now", label: "/now", icon: Clock },
       { href: "/admin/newsletter", label: "Nieuwsbrief", icon: Mail },
+      { href: "/admin/mail-preview", label: "Mail-preview", icon: MailOpen },
     ],
   },
   {
@@ -137,6 +125,22 @@ const groups: {
       { href: "/admin/rapporten", label: "Rapporten", icon: BarChart3 },
       { href: "/admin/documenten", label: "Documenten", icon: FolderArchive },
       { href: "/admin/instellingen", label: "Instellingen", icon: Settings },
+    ],
+  },
+  {
+    // Overblijfsel uit de websitetijd: bewaard, maar uit het zicht.
+    title: "Archief websites",
+    collapsed: true,
+    items: [
+      { href: "/admin/abonnementen", label: "Abonnementen", icon: Repeat },
+      { href: "/admin/sites", label: "Sites", icon: Globe },
+      { href: "/admin/scans", label: "Scans", icon: Gauge, badge: "scans" },
+      { href: "/admin/monitors", label: "Monitors", icon: Activity, badge: "monitorsActief" },
+      { href: "/admin/designs", label: "Ontwerpen", icon: Palette },
+      { href: "/admin/templates-lab", label: "Templates-lab", icon: LayoutTemplate },
+      { href: "/admin/journal", label: "Journal", icon: Newspaper },
+      { href: "/admin/changelog", label: "Changelog", icon: History },
+      { href: "/admin/now", label: "/now", icon: Clock },
     ],
   },
 ];
@@ -179,13 +183,8 @@ function Sidebar({
       </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4">
-        {groups.map((group) => (
-          <div key={group.title}>
-            {!collapsed && (
-              <p className="px-3 pb-2 font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
-                {group.title}
-              </p>
-            )}
+        {groups.map((group) => {
+          const items = (
             <div className="flex flex-col gap-1">
               {group.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = exact
@@ -226,8 +225,30 @@ function Sidebar({
                 );
               })}
             </div>
-          </div>
-        ))}
+          );
+          if (group.collapsed && !collapsed) {
+            const bevatActief = group.items.some((it) => path.startsWith(it.href));
+            return (
+              <details key={group.title} open={bevatActief} className="group/arch">
+                <summary className="flex cursor-pointer list-none items-center gap-1 px-3 pb-2 font-mono text-[10px] font-medium uppercase tracking-widest text-muted hover:text-foreground [&::-webkit-details-marker]:hidden">
+                  <ChevronRight className="h-3 w-3 transition-transform group-open/arch:rotate-90" strokeWidth={2.5} />
+                  {group.title}
+                </summary>
+                {items}
+              </details>
+            );
+          }
+          return (
+            <div key={group.title}>
+              {!collapsed && (
+                <p className="px-3 pb-2 font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
+                  {group.title}
+                </p>
+              )}
+              {items}
+            </div>
+          );
+        })}
       </nav>
 
       <div className="mt-auto border-t border-border p-3">
@@ -420,7 +441,7 @@ export function AdminShell({
           <AdminSearch />
           <div className="ml-auto flex items-center gap-3 text-xs text-muted">
             <span className="font-mono uppercase tracking-widest">
-              Studio-vm BV
+              Studio VM
             </span>
           </div>
         </header>

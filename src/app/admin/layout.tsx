@@ -36,26 +36,34 @@ export default async function AdminLayout({
     nieuwR,
     monitorsR,
     scansR,
-    emailsR,
     offertesR,
     facturenR,
     ticketsR,
     formR,
+    projectenR,
   ] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
     db.from("scan_requests").select("id", head),
-    db.from("scan_requests").select("email").limit(2000),
     db.from("offers").select("id", head).eq("status", "open"),
     db.from("invoices").select("id", head).eq("status", "open"),
     db.from("tickets").select("id", head).neq("status", "gesloten"),
     db.from("form_submissions").select("id", head).eq("is_read", false),
+    db
+      .from("projecten")
+      .select("id", head)
+      .in("status", ["aanvraag", "offerte", "akkoord", "productie"]),
   ]);
-  // "Klanten"-badge = uniek aantal klanten over álle bronnen heen,
-  // zodat het cijfer overeenkomt met de klantenlijst.
-  const [subEmR, quoteEmR, offerEmR, invEmR] = await Promise.all([
+  // "Klanten"-badge = dezelfde bronnen als de klantenlijst (zonder
+  // scan-leads uit de websitetijd), zodat het cijfer overeenkomt.
+  const [prEmR, subEmR, quoteEmR, offerEmR, invEmR] = await Promise.all([
+    db.from("projecten").select("client_email").limit(5000),
     db.from("subscriptions").select("client_email").limit(5000),
-    db.from("quotes").select("email").limit(5000),
+    db
+      .from("quotes")
+      .select("email")
+      .in("source", ["3d-model", "contact", "offerte-configurator", "builder"])
+      .limit(5000),
     db.from("offers").select("client_email").limit(5000),
     db.from("invoices").select("client_email").limit(5000),
   ]);
@@ -64,14 +72,13 @@ export default async function AdminLayout({
     const k = v?.toLowerCase().trim();
     if (k) klantSet.add(k);
   };
-  for (const e of (emailsR.data as { email: string }[] | null) ?? [])
-    add(e.email);
+  for (const r of (prEmR.data as { client_email: string }[] | null) ?? [])
+    add(r.client_email);
   for (const r of (subEmR.data as { client_email: string }[] | null) ?? [])
     add(r.client_email);
   for (const r of (quoteEmR.data as { email: string }[] | null) ?? [])
     add(r.email);
-  for (const r of (offerEmR.data as { client_email: string }[] | null) ??
-    [])
+  for (const r of (offerEmR.data as { client_email: string }[] | null) ?? [])
     add(r.client_email);
   for (const r of (invEmR.data as { client_email: string }[] | null) ?? [])
     add(r.client_email);
@@ -85,6 +92,7 @@ export default async function AdminLayout({
     facturenOpen: facturenR.count ?? 0,
     ticketsOpen: ticketsR.count ?? 0,
     formNieuw: formR.count ?? 0,
+    projectenActief: projectenR.count ?? 0,
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;

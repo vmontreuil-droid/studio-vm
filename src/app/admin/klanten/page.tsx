@@ -1,231 +1,180 @@
 import Link from "next/link";
-import { ArrowRight, UserPlus } from "lucide-react";
+import { ArrowRight, UserPlus, Layers, Search } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { addClient } from "@/app/actions/portal-admin";
 import { TrendChart } from "@/components/trend-chart";
 import { ChartCard } from "@/components/charts";
-import type { ScanResult } from "@/app/actions/scan";
 
 export const dynamic = "force-dynamic";
 
-type Row = {
-  id: string;
-  email: string;
-  url: string;
-  scan: ScanResult;
-  created_at: string;
-};
-
+// Een klant = iemand met een project, offerte, factuur, abonnement of
+// een 3D-/contactaanvraag. Scan-leads uit de websitetijd tellen niet mee.
 type Client = {
   email: string;
-  scans: number;
+  naam: string | null;
+  bedrijf: string | null;
+  eersteAt: string;
   lastAt: string;
-  host: string;
-  grade: string | null;
-  score: number | null;
+  projecten: number;
+  actief: number;
+  betaaldCent: number;
+  openCent: number;
 };
+
+const ACTIEF = new Set(["aanvraag", "offerte", "akkoord", "productie", "geleverd"]);
 
 export default async function AdminKlanten({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; f?: string }>;
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const sp = await searchParams;
+  const db = getSupabaseAdmin();
 
-  const { data } = await getSupabaseAdmin()
-    .from("scan_requests")
-    .select("id, email, url, scan, created_at")
-    .order("created_at", { ascending: false })
-    .limit(2000);
-  const rows = (data as Row[]) ?? [];
+  const [{ data: prData }, { data: offerData }, { data: invData }, { data: subData }, { data: qData }] =
+    await Promise.all([
+      db.from("projecten").select("client_email, status, created_at, updated_at").limit(5000),
+      db.from("offers").select("client_email, client_name, client_company, created_at").limit(5000),
+      db.from("invoices").select("client_email, amount_cents, status, issued_at").limit(5000),
+      db.from("subscriptions").select("client_email, created_at").limit(5000),
+      db
+        .from("quotes")
+        .select("email, name, company, created_at, source")
+        .in("source", ["3d-model", "contact", "offerte-configurator", "builder"])
+        .limit(5000),
+    ]);
 
   const byEmail = new Map<string, Client>();
-  for (const r of rows) {
-    const key = r.email?.toLowerCase().trim();
-    if (!key) continue;
-    const sc = r.scan && r.scan.ok ? r.scan : null;
-    const existing = byEmail.get(key);
-    if (existing) {
-      existing.scans += 1;
-      continue; // rows zijn al nieuw→oud gesorteerd, eerste = laatste
+  const raak = (email: string | null | undefined, at: string | null | undefined) => {
+    const key = email?.toLowerCase().trim();
+    if (!key) return null;
+    const t = at ?? new Date(0).toISOString();
+    let c = byEmail.get(key);
+    if (!c) {
+      c = { email: key, naam: null, bedrijf: null, eersteAt: t, lastAt: t, projecten: 0, actief: 0, betaaldCent: 0, openCent: 0 };
+      byEmail.set(key, c);
     }
-    byEmail.set(key, {
-      email: key,
-      scans: 1,
-      lastAt: r.created_at,
-      host: sc ? sc.host : r.url,
-      grade: sc ? sc.grade : null,
-      score: sc ? sc.score : null,
-    });
+    if (t > c.lastAt) c.lastAt = t;
+    if (t < c.eersteAt) c.eersteAt = t;
+    return c;
+  };
+
+  for (const p of (prData as { client_email: string; status: string; created_at: string; updated_at: string }[] | null) ?? []) {
+    const c = raak(p.client_email, p.updated_at ?? p.created_at);
+    if (!c) continue;
+    c.projecten += 1;
+    if (ACTIEF.has(p.status)) c.actief += 1;
   }
-  // Ook klanten die via de configurator binnenkwamen (geen scan) of
-  // een abonnement hebben, horen hier — niet enkel scan-leads.
-  const [
-    { data: subData },
-    { data: cfgData },
-    { data: offerData },
-    { data: invData },
-  ] = await Promise.all([
-    getSupabaseAdmin()
-      .from("subscriptions")
-      .select("client_email, plan, created_at")
-      .order("created_at", { ascending: false })
-      .limit(2000),
-    getSupabaseAdmin()
-      .from("quotes")
-      .select("email, name, company, created_at, source")
-      .in("source", ["offerte-configurator", "builder"])
-      .order("created_at", { ascending: false })
-      .limit(2000),
-    getSupabaseAdmin()
-      .from("offers")
-      .select("client_email, client_company, title, created_at")
-      .order("created_at", { ascending: false })
-      .limit(2000),
-    getSupabaseAdmin()
-      .from("invoices")
-      .select("client_email, number, created_at")
-      .order("created_at", { ascending: false })
-      .limit(2000),
-  ]);
-  for (const s of (subData as
-    | { client_email: string; plan: string; created_at: string }[]
-    | null) ?? []) {
-    const key = s.client_email?.toLowerCase().trim();
-    if (!key || byEmail.has(key)) continue;
-    byEmail.set(key, {
-      email: key,
-      scans: 0,
-      lastAt: s.created_at,
-      host: `Abonnement ${s.plan}`,
-      grade: null,
-      score: null,
-    });
+  for (const o of (offerData as { client_email: string; client_name: string | null; client_company: string | null; created_at: string }[] | null) ?? []) {
+    const c = raak(o.client_email, o.created_at);
+    if (!c) continue;
+    c.naam ??= o.client_name;
+    c.bedrijf ??= o.client_company;
   }
-  for (const c of (cfgData as
-    | {
-        email: string;
-        name: string;
-        company: string | null;
-        created_at: string;
-        source: string | null;
-      }[]
-    | null) ?? []) {
-    const key = c.email?.toLowerCase().trim();
-    if (!key || byEmail.has(key)) continue;
-    byEmail.set(key, {
-      email: key,
-      scans: 0,
-      lastAt: c.created_at,
-      host:
-        c.company ||
-        c.name ||
-        (c.source === "builder" ? "Via builder" : "Via configurator"),
-      grade: null,
-      score: null,
-    });
+  for (const iv of (invData as { client_email: string; amount_cents: number; status: string; issued_at: string }[] | null) ?? []) {
+    const c = raak(iv.client_email, iv.issued_at);
+    if (!c) continue;
+    if (iv.status === "betaald") c.betaaldCent += iv.amount_cents ?? 0;
+    else if (iv.status === "open") c.openCent += iv.amount_cents ?? 0;
+  }
+  for (const s of (subData as { client_email: string; created_at: string }[] | null) ?? []) {
+    raak(s.client_email, s.created_at);
+  }
+  for (const q of (qData as { email: string; name: string | null; company: string | null; created_at: string }[] | null) ?? []) {
+    const c = raak(q.email, q.created_at);
+    if (!c) continue;
+    c.naam ??= q.name;
+    c.bedrijf ??= q.company;
   }
 
-  for (const o of (offerData as
-    | {
-        client_email: string;
-        client_company: string | null;
-        title: string | null;
-        created_at: string;
-      }[]
-    | null) ?? []) {
-    const key = o.client_email?.toLowerCase().trim();
-    if (!key || byEmail.has(key)) continue;
-    byEmail.set(key, {
-      email: key,
-      scans: 0,
-      lastAt: o.created_at,
-      host: o.client_company || o.title || "Offerte-klant",
-      grade: null,
-      score: null,
-    });
-  }
-  for (const iv of (invData as
-    | { client_email: string; number: string; created_at: string }[]
-    | null) ?? []) {
-    const key = iv.client_email?.toLowerCase().trim();
-    if (!key || byEmail.has(key)) continue;
-    byEmail.set(key, {
-      email: key,
-      scans: 0,
-      lastAt: iv.created_at,
-      host: `Factuur ${iv.number}`,
-      grade: null,
-      score: null,
-    });
-  }
-
-  let clients = [...byEmail.values()];
-  clients.sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+  const alle = [...byEmail.values()];
+  let clients = [...alle].sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+  if (sp.f === "actief") clients = clients.filter((c) => c.actief > 0);
+  if (sp.f === "open") clients = clients.filter((c) => c.openCent > 0);
   if (sp.q) {
     const n = sp.q.toLowerCase();
     clients = clients.filter(
-      (c) => c.email.includes(n) || c.host.toLowerCase().includes(n),
+      (c) =>
+        c.email.includes(n) ||
+        (c.naam ?? "").toLowerCase().includes(n) ||
+        (c.bedrijf ?? "").toLowerCase().includes(n),
     );
   }
 
-  const allClients = [...byEmail.values()];
-  const nowK = new Date();
-  const newPerMonth = Array.from({ length: 6 }, (_, k) => {
-    const dt = new Date(nowK.getFullYear(), nowK.getMonth() - (5 - k), 1);
+  const eur = (c: number) =>
+    `€ ${(c / 100).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const nu = new Date();
+  const nieuwPerMaand = Array.from({ length: 12 }, (_, k) => {
+    const dt = new Date(nu.getFullYear(), nu.getMonth() - (11 - k), 1);
     const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
     return {
       label: dt.toLocaleDateString("nl-BE", { month: "short" }),
-      value: allClients.filter((c) => (c.lastAt ?? "").startsWith(ym))
-        .length,
+      value: alle.filter((c) => c.eersteAt.startsWith(ym)).length,
     };
   });
+  const totaalBetaald = alle.reduce((t, c) => t + c.betaaldCent, 0);
+  const totaalOpen = alle.reduce((t, c) => t + c.openCent, 0);
+  const metActief = alle.filter((c) => c.actief > 0).length;
 
-  const gradeColor = (s: number | null) =>
-    s == null
-      ? "bg-muted/15 text-muted"
-      : s >= 75
-        ? "bg-green-500/15 text-green-600 dark:text-green-400"
-        : s >= 45
-          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-          : "bg-red-500/15 text-red-500";
+  const filters = [
+    { k: undefined, label: `Alle (${alle.length})` },
+    { k: "actief", label: `Met lopend project (${metActief})` },
+    { k: "open", label: `Openstaand saldo (${alle.filter((c) => c.openCent > 0).length})` },
+  ];
+  const href = (f?: string) => {
+    const p = new URLSearchParams();
+    if (f) p.set("f", f);
+    if (sp.q) p.set("q", sp.q);
+    const s = p.toString();
+    return `/admin/klanten${s ? `?${s}` : ""}`;
+  };
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Klanten</h1>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Klanten</h1>
+          <p className="mt-1 text-sm text-muted">
+            Aannemers en opdrachtgevers met een project, offerte, factuur of aanvraag.
+          </p>
+        </div>
         <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={sp.q ?? ""}
-            placeholder="Zoek op e-mail of site…"
-            className="rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
-          />
-          <button
-            type="submit"
-            className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover"
-          >
+          {sp.f && <input type="hidden" name="f" value={sp.f} />}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <input
+              name="q"
+              defaultValue={sp.q ?? ""}
+              placeholder="Naam, bedrijf of e-mail…"
+              className="w-64 rounded-full border bg-background py-2 pl-9 pr-4 text-sm outline-none focus:border-accent"
+            />
+          </div>
+          <button type="submit" className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
             Zoek
           </button>
         </form>
       </div>
 
-      <p className="mt-2 text-sm text-muted">
-        {clients.length} klant{clients.length === 1 ? "" : "en"} — automatisch
-        uit scans, configurator-aanvragen en abonnementen.
-      </p>
+      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { k: "Klanten", v: String(alle.length) },
+          { k: "Met lopend project", v: String(metActief) },
+          { k: "Totaal betaald", v: eur(totaalBetaald) },
+          { k: "Openstaand", v: eur(totaalOpen) },
+        ].map((s) => (
+          <div key={s.k} className="rounded-2xl bg-card p-5 shadow-sm">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{s.k}</p>
+            <p className="mt-2 truncate text-2xl font-bold tracking-tight">{s.v}</p>
+          </div>
+        ))}
+      </div>
 
-      <div className="mt-5">
-        <ChartCard title="Nieuwe klanten — laatste 6 maanden">
-          <TrendChart
-            id="kl-nieuw"
-            color="var(--accent)"
-            height={140}
-            points={newPerMonth}
-          />
+      <div className="mt-3">
+        <ChartCard title="Nieuwe klanten — laatste 12 maanden">
+          <TrendChart id="kl-nieuw" color="var(--accent)" height={140} points={nieuwPerMaand} />
         </ChartCard>
       </div>
 
@@ -238,7 +187,7 @@ export default async function AdminKlanten({
           name="client_email"
           type="email"
           required
-          placeholder="Klant toevoegen — e-mailadres"
+          placeholder="Klant toevoegen — e-mailadres (krijgt toegang tot het klantenportaal)"
           className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
         />
         <button
@@ -249,49 +198,80 @@ export default async function AdminKlanten({
         </button>
       </form>
 
-      <div className="mt-6 space-y-3">
-        {clients.length === 0 && (
-          <p className="rounded-2xl bg-card shadow-sm p-6 text-sm text-muted">
-            Nog geen klanten. Zodra iemand een scan met e-mail doet,
-            verschijnt die hier automatisch.
-          </p>
-        )}
-        {clients.map((c) => (
+      <div className="mt-6 flex flex-wrap gap-2">
+        {filters.map((f) => (
           <Link
-            key={c.email}
-            href={`/admin/klanten/${encodeURIComponent(c.email)}`}
-            className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-card shadow-sm p-5 transition-colors hover:bg-card-hover"
+            key={f.label}
+            href={href(f.k)}
+            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              (sp.f ?? undefined) === f.k ? "border-accent bg-accent/10 font-medium text-accent" : "text-muted hover:bg-card-hover"
+            }`}
           >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                {c.score != null && (
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-xs font-semibold ${gradeColor(
-                      c.score,
-                    )}`}
-                  >
-                    {c.grade} · {c.score}
-                  </span>
-                )}
-                <span className="truncate font-medium">{c.email}</span>
-              </div>
-              <p className="mt-1 truncate text-sm text-muted">{c.host}</p>
-              <p className="mt-1 font-mono text-[11px] text-muted">
-                {c.scans > 0
-                  ? `${c.scans} scan${c.scans === 1 ? "" : "s"}`
-                  : "via configurator / abonnement"}{" "}
-                · laatst{" "}
-                {new Date(c.lastAt).toLocaleDateString("nl-BE", {
-                  timeZone: "Europe/Brussels",
-                })}
-              </p>
-            </div>
-            <ArrowRight
-              className="h-4 w-4 shrink-0 text-muted"
-              strokeWidth={2}
-            />
+            {f.label}
           </Link>
         ))}
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-2xl bg-card shadow-sm">
+        {clients.length === 0 ? (
+          <p className="p-6 text-sm text-muted">
+            Geen klanten gevonden. Zodra iemand een 3D-model aanvraagt, verschijnt die hier automatisch.
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="hidden border-b text-left font-mono text-[10px] uppercase tracking-widest text-muted md:table-header-group">
+              <tr>
+                <th className="px-5 py-3 font-medium">Klant</th>
+                <th className="px-3 py-3 font-medium">Projecten</th>
+                <th className="px-3 py-3 text-right font-medium">Betaald</th>
+                <th className="px-3 py-3 text-right font-medium">Openstaand</th>
+                <th className="px-3 py-3 font-medium">Laatst</th>
+                <th className="w-8" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {clients.map((c) => {
+                const link = `/admin/klanten/${encodeURIComponent(c.email)}`;
+                return (
+                  <tr key={c.email} className="group flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 transition-colors hover:bg-card-hover md:table-row md:p-0">
+                    <td className="min-w-0 flex-1 md:px-5 md:py-4">
+                      <Link href={link} className="block">
+                        <span className="block truncate font-medium">{c.bedrijf || c.naam || c.email}</span>
+                        <span className="block truncate text-xs text-muted">
+                          {c.bedrijf && c.naam ? `${c.naam} · ` : ""}
+                          {c.email}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="md:px-3 md:py-4">
+                      <span className="inline-flex items-center gap-1.5 text-xs">
+                        <Layers className="h-3.5 w-3.5 text-muted" />
+                        {c.projecten}
+                        {c.actief > 0 && (
+                          <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] text-accent">
+                            {c.actief} lopend
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="font-mono text-xs md:px-3 md:py-4 md:text-right">{c.betaaldCent ? eur(c.betaaldCent) : "—"}</td>
+                    <td className={`font-mono text-xs md:px-3 md:py-4 md:text-right ${c.openCent ? "font-semibold text-amber-600" : ""}`}>
+                      {c.openCent ? eur(c.openCent) : "—"}
+                    </td>
+                    <td className="font-mono text-[11px] text-muted md:px-3 md:py-4">
+                      {new Date(c.lastAt).toLocaleDateString("nl-BE", { timeZone: "Europe/Brussels" })}
+                    </td>
+                    <td className="md:pr-5">
+                      <Link href={link} aria-label={`Open ${c.email}`}>
+                        <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </>
   );
