@@ -517,12 +517,12 @@ export default async function AdminDashboard() {
             <Link
               key={s.k}
               href={s.href}
-              className={`rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-md ${s.alarm ? "ring-2 ring-red-500/60" : ""}`}
+              className={`rounded-2xl bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6 ${s.alarm ? "ring-2 ring-red-500/60" : ""}`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{s.k}</p>
                 <span
-                  className={`grid h-10 w-10 place-items-center rounded-full ${s.alarm ? "bg-red-500 text-white" : "bg-accent/10 text-accent"}`}
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full sm:h-10 sm:w-10 ${s.alarm ? "bg-red-500 text-white" : "bg-accent/10 text-accent"}`}
                 >
                   <Icon className="h-5 w-5" strokeWidth={2} />
                 </span>
@@ -645,11 +645,11 @@ export default async function AdminDashboard() {
             <Link
               key={s.k}
               href={s.href}
-              className="rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="rounded-2xl bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{s.k}</p>
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/10 text-accent">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent/10 text-accent sm:h-10 sm:w-10">
                   <Icon className="h-5 w-5" strokeWidth={2} />
                 </span>
               </div>
