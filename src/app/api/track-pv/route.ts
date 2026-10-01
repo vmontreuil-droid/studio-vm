@@ -12,6 +12,16 @@ export const dynamic = "force-dynamic";
 // 'unieke bezoekers' kunnen tellen zonder iemand te kunnen identificeren.
 export async function POST(req: NextRequest) {
   if (!adminConfigured) return NextResponse.json({ ok: true });
+  // Lokale ontwikkeling niet meetellen: de dev-server schrijft anders in de
+  // live statistieken (zelfde database).
+  const host = (req.headers.get("host") ?? "").toLowerCase();
+  if (
+    process.env.NODE_ENV !== "production" ||
+    host.startsWith("localhost") ||
+    host.startsWith("127.0.0.1")
+  ) {
+    return NextResponse.json({ ok: true });
+  }
 
   try {
     const body = (await req.json().catch(() => null)) as
