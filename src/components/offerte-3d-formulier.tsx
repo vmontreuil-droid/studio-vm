@@ -19,13 +19,16 @@ import { LANDEN, stelselVoor, isLand } from "@/lib/stelsel";
 import type { Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 
-// Per systeem waar het formaat verschilt (Trimble: machine vs. veldsoftware).
+// Per systeem waar het formaat verschilt.
 const MERKEN = [
   "Trimble GCS900",
   "Trimble Earthworks",
   "Trimble Access",
-  "Topcon",
-  "Leica",
+  "Topcon 3D-MC",
+  "Topcon MC-Max",
+  "Topcon Pocket-3D",
+  "Leica iCON site",
+  "Leica MC1",
   "Unicontrol",
   "CHCNAV",
   "Komatsu",
