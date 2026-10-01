@@ -16,6 +16,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isEmail, sendMail } from "@/lib/monitor";
 import { siteUrl } from "@/lib/supabase/config";
 import { isLand, stelselVoor, type StelselVoorstel } from "@/lib/stelsel";
+import { ensurePortalUser } from "@/lib/portal-access";
 
 const BUCKET = "plannen";
 const MAX_BESTANDEN = 15;
@@ -183,6 +184,35 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     return { ok: false, fout: "opslag" };
   }
 
+  // Portaaltoegang + project: de klant volgt zijn aanvraag meteen in het portaal.
+  await ensurePortalUser(v.email, {
+    name: v.naam,
+    phone: v.telefoon,
+    company: v.bedrijf,
+    vat_number: v.btw || null,
+  });
+  const quoteId = (ins.data as { id?: string } | null)?.id ?? null;
+  const { error: projFout } = await db.from("projecten").insert({
+    client_email: v.email,
+    quote_id: quoteId,
+    titel: `${v.werk || "3D-model"} — ${v.werfGemeente}`.slice(0, 140),
+    categorie: v.categorie,
+    merken,
+    werf: {
+      straat: v.werfStraat,
+      postcode: v.werfPostcode,
+      gemeente: v.werfGemeente,
+      land: v.werfLand,
+      lat: geo?.lat ?? null,
+      lon: geo?.lon ?? null,
+    },
+    stelsel,
+    plannen: bestanden,
+    leverdatum: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v.leverdatum) ? v.leverdatum : null,
+    opmerking: v.omschrijving || null,
+  });
+  if (projFout) console.error("[offerte-3d] project aanmaken mislukt:", projFout.message);
+
   // Downloadlinks voor de plannen (7 dagen geldig) — voor de mail aan Vincent.
   const links: { naam: string; url: string }[] = [];
   for (const b of bestanden) {
@@ -227,6 +257,8 @@ ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li
       stelsel: "Voorgesteld stelsel",
       merk: "Machinesturing",
       bestanden: "Bestanden",
+      portaal: "Volg je project in je klantenportaal: daar vind je je plannen, straks de offerte en de modelbestanden. Je logt in met dit e-mailadres — je krijgt een inloglink, geen wachtwoord nodig.",
+      portaalKnop: "Naar mijn portaal",
       vraag: "Klopt er iets niet, of wil je nog plannen bijsturen? Antwoord gewoon op deze mail.",
       groet: "Met vriendelijke groet,",
     },
@@ -239,6 +271,8 @@ ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li
       stelsel: "Système proposé",
       merk: "Guidage",
       bestanden: "Fichiers",
+      portaal: "Suivez votre projet dans votre espace client : vous y trouverez vos plans, puis le devis et les fichiers du modèle. Connexion avec cette adresse e-mail — vous recevez un lien, pas de mot de passe.",
+      portaalKnop: "Vers mon espace",
       vraag: "Une erreur, ou d'autres plans à envoyer ? Répondez simplement à ce mail.",
       groet: "Bien cordialement,",
     },
@@ -251,6 +285,8 @@ ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li
       stelsel: "Proposed system",
       merk: "Machine control",
       bestanden: "Files",
+      portaal: "Follow your project in your client portal: you will find your plans there, and later the quote and the model files. Log in with this email address — you get a login link, no password needed.",
+      portaalKnop: "Go to my portal",
       vraag: "Anything wrong, or more plans to add? Simply reply to this email.",
       groet: "Kind regards,",
     },
@@ -270,6 +306,8 @@ ${rij(B.stelsel, `${esc(stelsel.stelsel)} · ${esc(stelsel.hoogte)}`)}
 ${rij(B.merk, esc(merk))}
 ${rij(B.bestanden, String(bestanden.length))}
 </table>
+<p style="margin-top:16px">${B.portaal}</p>
+<p><a href="${siteUrl}/${locale}/portail" style="display:inline-block;background:#1c1917;color:#fafaf9;padding:10px 20px;border-radius:999px;text-decoration:none;font-size:14px">${B.portaalKnop} →</a></p>
 <p style="margin-top:16px">${B.vraag}</p>
 <p>${B.groet}<br>Vincent Montreuil<br><span style="color:#78716c">Studio VM · +32 477 99 56 51 · studio-vm.be</span></p>
 </div>`,

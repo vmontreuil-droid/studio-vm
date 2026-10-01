@@ -4,17 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Boxes,
   LayoutDashboard,
   FileText,
   Receipt,
   CreditCard,
   LifeBuoy,
   UserRound,
-  TrendingUp,
-  ListChecks,
   FolderOpen,
   CalendarClock,
-  Inbox,
   PanelLeft,
   LogOut,
   Menu,
@@ -71,17 +69,11 @@ export function PortalShell({
     {
       title: g.project,
       entries: [
-        { href: `${base}/voortgang`, label: t.progress, icon: TrendingUp },
-        { href: `${base}/checklist`, label: t.checklist, icon: ListChecks },
         {
-          href: `${base}/berichten`,
-          label:
-            locale === "fr"
-              ? "Messages"
-              : locale === "en"
-                ? "Messages"
-                : "Berichten",
-          icon: Inbox,
+          href: `${base}/projecten`,
+          label: locale === "fr" ? "Projets" : locale === "en" ? "Projects" : "Projecten",
+          icon: Boxes,
+          badge: counts.projecten,
         },
       ],
     },

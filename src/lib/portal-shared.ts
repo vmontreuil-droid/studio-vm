@@ -141,6 +141,7 @@ export function statusLabel(status: string, loc: Locale): string {
 }
 
 export type PortalCounts = {
+  projecten?: number;
   offers: number;
   invoices: number;
   tickets: number;
