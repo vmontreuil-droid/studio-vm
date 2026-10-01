@@ -21,6 +21,7 @@ import { HeroCarrousel } from "@/components/hero-carrousel";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { talen } from "@/lib/seo";
+import { LANDEN, stelselVoor, type Land } from "@/lib/stelsel";
 
 /* ─────────────────────────────────────────────────────────────────────────
  * Studio VM — 3D-modellen voor machinesturing.
@@ -641,7 +642,21 @@ function Toepassingen({ x }: { x: Xt }) {
   );
 }
 
+// Een greep uit de landen die het offerteformulier kent; het stelsel komt uit
+// dezelfde functie als het voorstel bij een aanvraag, dus altijd gelijk.
+const STELSEL_LANDEN: Land[] = ["BE", "NL", "LU", "FR", "DE", "AT", "CH", "GB", "IE", "ES", "PT", "IT", "PL", "DK", "SE", "NO"];
+
+const MEER_LANDEN: Record<Locale, (n: number) => string> = {
+  nl: (n) => `${n} Europese landen ondersteund — bij elke aanvraag stelt het formulier het stelsel van de werf voor.`,
+  fr: (n) => `${n} pays européens pris en charge — à chaque demande, le formulaire propose le système du chantier.`,
+  en: (n) => `${n} European countries supported — every request proposes the coordinate system of the site.`,
+  de: (n) => `${n} europäische Länder unterstützt — bei jeder Anfrage schlägt das Formular das System der Baustelle vor.`,
+  es: (n) => `${n} países europeos admitidos — en cada solicitud el formulario propone el sistema de la obra.`,
+};
+
+
 function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
+  const landNaam = new Intl.DisplayNames([locale === "en" ? "en-GB" : locale], { type: "region" });
   return (
     <section className="reveal-on-scroll border-b bg-card">
       <div className="wrap grid gap-12 py-24 sm:py-28 lg:grid-cols-2 lg:items-center xl:gap-20">
@@ -662,17 +677,33 @@ function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </Link>
         </div>
-        <ul className="divide-y overflow-hidden rounded-2xl border bg-background">
-          {x.stelselVoorbeelden.map((v) => (
-            <li key={v.land} className="flex items-center justify-between gap-4 px-6 py-4">
-              <span className="flex items-center gap-3 font-medium">
-                <Crosshair className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                {v.land}
-              </span>
-              <span className="text-right font-mono text-xs text-muted">{v.stelsel}</span>
-            </li>
-          ))}
-        </ul>
+        <div>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {STELSEL_LANDEN.map((land) => {
+              const v = stelselVoor(land, null, null);
+              return (
+                <li key={land} className="flex items-start gap-3 rounded-xl border bg-background px-4 py-3">
+                  <span className="mt-0.5 grid h-7 w-9 shrink-0 place-items-center rounded-md border bg-card font-mono text-[11px] font-semibold text-accent" aria-hidden>
+                    {land}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-medium">{landNaam.of(land) ?? land}</span>
+                      <span className="shrink-0 font-mono text-[10px] text-muted">{v.epsg}</span>
+                    </span>
+                    <span className="block font-mono text-[11px] leading-relaxed text-muted">
+                      {v.stelsel} · {v.hoogte}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-4 flex items-center gap-2 text-sm text-muted">
+            <Crosshair className="h-4 w-4 text-accent" strokeWidth={1.5} />
+            {MEER_LANDEN[locale](LANDEN.length)}
+          </p>
+        </div>
       </div>
     </section>
   );
