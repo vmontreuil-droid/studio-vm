@@ -10,6 +10,7 @@ import {
   Circle,
   ArrowLeft,
   Send,
+  UserRound,
 } from "lucide-react";
 import {
   isValidLocale,
@@ -28,7 +29,9 @@ type Ticket = {
   replies: { author: "klant" | "studio"; body: string; at: string }[];
 };
 
-const STORAGE_KEY = "studio-vm-tickets";
+// v2: nieuwe demo-inhoud (3D-modellen). Oude sleutel bevatte nog
+// website-voorbeelden die anders uit localStorage zouden terugkomen.
+const STORAGE_KEY = "studio-vm-tickets-v2";
 
 const T: Record<
   Locale,
@@ -62,145 +65,145 @@ const T: Record<
   nl: {
     eyebrow: "Support",
     title: "Tickets",
-    intro: "Open een ticket, volg de status, krijg meldingen per e-mail. Demo — werkt lokaal in je browser.",
-    reset: "Reset demo",
+    intro: "Zo verloopt support in het klantenportaal: vragen over een model of een revisie na een planwijziging, met status en antwoord per ticket. Dit is een demo — ze werkt enkel lokaal in uw browser.",
+    reset: "Demo resetten",
     newTicket: "Nieuw ticket",
     listReplies: (n) => `${n} reactie${n === 1 ? "" : "s"}`,
     status: { open: "Open", "in-progress": "In behandeling", resolved: "Opgelost" },
     formTitle: "Nieuw ticket",
-    formIntro: "Beschrijf wat je nodig hebt. Een echte build mailt dit ook naar Studio VM.",
+    formIntro: "Beschrijf uw vraag of de gewenste wijziging. In het klantenportaal komt een ticket meteen bij Studio VM terecht.",
     category: "Categorie",
     titleLabel: "Titel",
-    titlePh: "Bv. Nieuw product toevoegen",
+    titlePh: "Bv. Revisie rioleringsplan fase 2",
     descLabel: "Beschrijving",
-    descPh: "Wat heb je nodig? Hoe dringend?",
-    submit: "Verstuur ticket",
-    cancel: "Annuleer",
+    descPh: "Over welk project en welke machinesturing gaat het? Wat is er gewijzigd en tegen wanneer hebt u het nodig?",
+    submit: "Ticket versturen",
+    cancel: "Annuleren",
     back: "Terug",
     openedOn: "Geopend op",
-    replyPh: "Reageer op dit ticket...",
-    sendReply: "Verstuur reactie",
-    emptyDetail: "Selecteer een ticket links of open een nieuw ticket.",
-    categories: ["Algemene vraag", "Content (foto/tekst)", "Bug", "Webshop", "Domain / DNS", "Andere"],
+    replyPh: "Reageer op dit ticket…",
+    sendReply: "Reactie versturen",
+    emptyDetail: "Selecteer links een ticket of open een nieuw ticket.",
+    categories: ["Vraag over een model", "Revisie na planwijziging", "Bestand of machinesturing", "Coördinaten & hoogtes", "Facturatie", "Andere"],
     seed: [
-      { id: "DEMO-1", title: "Foto's hoofdpagina updaten", description: "Kunnen jullie de bovenste 3 foto's op de homepage vervangen? Nieuwe versies staan in mijn Drive.", category: "Content", status: "in-progress", createdAt: "2026-05-12T09:14:00", replies: [{ author: "studio", body: "Bedankt — ik heb de foto's binnen, ik werk ze 's middags in. Eind van de dag online.", at: "2026-05-12T10:02:00" }] },
-      { id: "DEMO-2", title: "Nieuw product toevoegen aan webshop", description: "Ik heb een nieuw seizoensproduct. Foto's en beschrijving stuur ik na.", category: "Webshop", status: "resolved", createdAt: "2026-05-08T14:30:00", replies: [{ author: "studio", body: "Online sinds vrijdag, voorraad op 12 ingesteld. Laat weten als 't klopt.", at: "2026-05-09T11:20:00" }, { author: "klant", body: "Perfect, dank!", at: "2026-05-09T11:45:00" }] },
+      { id: "DEMO-1", title: "Revisie: rioleringsplan fase 2 gewijzigd", description: "Het studiebureau heeft een nieuwe versie van het rioleringsplan gestuurd (rev. C). Kunt u het model aanpassen? Het plan zit in bijlage.", category: "Revisie na planwijziging", status: "in-progress", createdAt: "2026-09-14T08:12:00", replies: [{ author: "studio", body: "Ontvangen — ik verwerk rev. C vandaag. Versie 3 staat morgenvroeg klaar voor Trimble en Topcon. De revisie wordt per uur gefactureerd.", at: "2026-09-14T09:05:00" }] },
+      { id: "DEMO-2", title: "Model opent niet op de graafmachine", description: "Bij het openen van het model op onze Unicontrol-machine krijgen we de melding dat het coördinatenstelsel niet gevonden wordt.", category: "Bestand of machinesturing", status: "resolved", createdAt: "2026-09-08T13:40:00", replies: [{ author: "studio", body: "Het model stond in Lambert 2008, uw machine is ingesteld op Lambert 72. Versie 2 in Lambert 72 staat klaar in het portaal — controleer ze eerst op een gekend punt.", at: "2026-09-08T15:10:00" }, { author: "klant", body: "Werkt perfect, dank u!", at: "2026-09-09T07:30:00" }] },
     ],
     localeCode: "nl-BE",
   },
   fr: {
     eyebrow: "Support",
     title: "Tickets",
-    intro: "Ouvrez un ticket, suivez le statut, recevez des notifications par e-mail. Démo — fonctionne localement dans votre navigateur.",
+    intro: "Voici comment fonctionne le support dans le portail client : questions sur un modèle ou révision après une modification de plan, avec statut et réponse par ticket. Ceci est une démo — elle fonctionne uniquement en local dans votre navigateur.",
     reset: "Réinitialiser la démo",
     newTicket: "Nouveau ticket",
     listReplies: (n) => `${n} réponse${n === 1 ? "" : "s"}`,
     status: { open: "Ouvert", "in-progress": "En cours", resolved: "Résolu" },
     formTitle: "Nouveau ticket",
-    formIntro: "Décrivez ce dont vous avez besoin. Un vrai projet envoie aussi ceci à Studio VM par e-mail.",
+    formIntro: "Décrivez votre question ou la modification souhaitée. Dans le portail client, un ticket arrive directement chez Studio VM.",
     category: "Catégorie",
     titleLabel: "Titre",
-    titlePh: "Ex. Ajouter un nouveau produit",
+    titlePh: "Ex. Révision plan d'égouttage phase 2",
     descLabel: "Description",
-    descPh: "De quoi avez-vous besoin ? Quelle urgence ?",
+    descPh: "De quel projet et de quel système de guidage s'agit-il ? Qu'est-ce qui a changé et pour quand en avez-vous besoin ?",
     submit: "Envoyer le ticket",
     cancel: "Annuler",
     back: "Retour",
     openedOn: "Ouvert le",
-    replyPh: "Répondre à ce ticket...",
+    replyPh: "Répondre à ce ticket…",
     sendReply: "Envoyer la réponse",
     emptyDetail: "Sélectionnez un ticket à gauche ou ouvrez un nouveau ticket.",
-    categories: ["Question générale", "Contenu (photo/texte)", "Bug", "Boutique", "Domaine / DNS", "Autre"],
+    categories: ["Question sur un modèle", "Révision après modification de plan", "Fichier ou système de guidage", "Coordonnées & altitudes", "Facturation", "Autre"],
     seed: [
-      { id: "DEMO-1", title: "Mettre à jour les photos de la page d'accueil", description: "Pouvez-vous remplacer les 3 photos du haut sur la page d'accueil ? Les nouvelles versions sont dans mon Drive.", category: "Contenu", status: "in-progress", createdAt: "2026-05-12T09:14:00", replies: [{ author: "studio", body: "Merci — j'ai les photos, je les intègre cet après-midi. En ligne en fin de journée.", at: "2026-05-12T10:02:00" }] },
-      { id: "DEMO-2", title: "Ajouter un nouveau produit à la boutique", description: "J'ai un nouveau produit de saison. J'envoie photos et description ensuite.", category: "Boutique", status: "resolved", createdAt: "2026-05-08T14:30:00", replies: [{ author: "studio", body: "En ligne depuis vendredi, stock réglé à 12. Dites-moi si c'est bon.", at: "2026-05-09T11:20:00" }, { author: "klant", body: "Parfait, merci !", at: "2026-05-09T11:45:00" }] },
+      { id: "DEMO-1", title: "Révision : plan d'égouttage phase 2 modifié", description: "Le bureau d'études a envoyé une nouvelle version du plan d'égouttage (rév. C). Pouvez-vous adapter le modèle ? Le plan est en pièce jointe.", category: "Révision après modification de plan", status: "in-progress", createdAt: "2026-09-14T08:12:00", replies: [{ author: "studio", body: "Bien reçu — je traite la rév. C aujourd'hui. La version 3 sera prête demain matin pour Trimble et Topcon. La révision est facturée à l'heure.", at: "2026-09-14T09:05:00" }] },
+      { id: "DEMO-2", title: "Le modèle ne s'ouvre pas sur la pelle", description: "En ouvrant le modèle sur notre machine Unicontrol, nous recevons le message que le système de coordonnées est introuvable.", category: "Fichier ou système de guidage", status: "resolved", createdAt: "2026-09-08T13:40:00", replies: [{ author: "studio", body: "Le modèle était en Lambert 2008, votre machine est réglée sur Lambert 72. La version 2 en Lambert 72 est prête dans le portail — vérifiez-la d'abord sur un point connu.", at: "2026-09-08T15:10:00" }, { author: "klant", body: "Parfait, merci !", at: "2026-09-09T07:30:00" }] },
     ],
     localeCode: "fr-BE",
   },
   en: {
     eyebrow: "Support",
     title: "Tickets",
-    intro: "Open a ticket, track the status, get email notifications. Demo — works locally in your browser.",
+    intro: "This is how support works in the client portal: questions about a model or a revision after a plan change, with status and reply per ticket. This is a demo — it only runs locally in your browser.",
     reset: "Reset demo",
     newTicket: "New ticket",
     listReplies: (n) => `${n} repl${n === 1 ? "y" : "ies"}`,
     status: { open: "Open", "in-progress": "In progress", resolved: "Resolved" },
     formTitle: "New ticket",
-    formIntro: "Describe what you need. A real build also emails this to Studio VM.",
+    formIntro: "Describe your question or the change you need. In the client portal, a ticket goes straight to Studio VM.",
     category: "Category",
     titleLabel: "Title",
-    titlePh: "E.g. Add a new product",
+    titlePh: "E.g. Revision sewer plan phase 2",
     descLabel: "Description",
-    descPh: "What do you need? How urgent?",
+    descPh: "Which project and which machine control system is it about? What has changed and when do you need it?",
     submit: "Send ticket",
     cancel: "Cancel",
     back: "Back",
     openedOn: "Opened on",
-    replyPh: "Reply to this ticket...",
+    replyPh: "Reply to this ticket…",
     sendReply: "Send reply",
     emptyDetail: "Select a ticket on the left or open a new ticket.",
-    categories: ["General question", "Content (photo/text)", "Bug", "Webshop", "Domain / DNS", "Other"],
+    categories: ["Question about a model", "Revision after plan change", "File or machine control", "Coordinates & heights", "Billing", "Other"],
     seed: [
-      { id: "DEMO-1", title: "Update homepage photos", description: "Can you replace the top 3 photos on the homepage? New versions are in my Drive.", category: "Content", status: "in-progress", createdAt: "2026-05-12T09:14:00", replies: [{ author: "studio", body: "Thanks — I have the photos, I'll work them in this afternoon. Online by end of day.", at: "2026-05-12T10:02:00" }] },
-      { id: "DEMO-2", title: "Add a new product to the webshop", description: "I have a new seasonal product. I'll send photos and description after.", category: "Webshop", status: "resolved", createdAt: "2026-05-08T14:30:00", replies: [{ author: "studio", body: "Online since Friday, stock set to 12. Let me know if it's right.", at: "2026-05-09T11:20:00" }, { author: "klant", body: "Perfect, thanks!", at: "2026-05-09T11:45:00" }] },
+      { id: "DEMO-1", title: "Revision: sewer plan phase 2 changed", description: "The engineering firm sent a new version of the sewer plan (rev. C). Could you update the model? The plan is attached.", category: "Revision after plan change", status: "in-progress", createdAt: "2026-09-14T08:12:00", replies: [{ author: "studio", body: "Received — I will process rev. C today. Version 3 will be ready tomorrow morning for Trimble and Topcon. The revision is billed by the hour.", at: "2026-09-14T09:05:00" }] },
+      { id: "DEMO-2", title: "Model won't open on the excavator", description: "When we open the model on our Unicontrol machine, we get a message that the coordinate system cannot be found.", category: "File or machine control", status: "resolved", createdAt: "2026-09-08T13:40:00", replies: [{ author: "studio", body: "The model was in Lambert 2008; your machine is set to Lambert 72. Version 2 in Lambert 72 is ready in the portal — please check it on a known point first.", at: "2026-09-08T15:10:00" }, { author: "klant", body: "Works perfectly, thanks!", at: "2026-09-09T07:30:00" }] },
     ],
     localeCode: "en-GB",
   },
   de: {
     eyebrow: "Support",
     title: "Tickets",
-    intro: "Eröffnen Sie ein Ticket, verfolgen Sie den Status und erhalten Sie Benachrichtigungen per E-Mail. Demo — läuft lokal in Ihrem Browser.",
+    intro: "So funktioniert der Support im Kundenportal: Fragen zu einem Modell oder eine Revision nach einer Planänderung, mit Status und Antwort pro Ticket. Dies ist eine Demo — sie läuft nur lokal in Ihrem Browser.",
     reset: "Demo zurücksetzen",
     newTicket: "Neues Ticket",
     listReplies: (n) => `${n} Antwort${n === 1 ? "" : "en"}`,
     status: { open: "Offen", "in-progress": "In Bearbeitung", resolved: "Gelöst" },
     formTitle: "Neues Ticket",
-    formIntro: "Beschreiben Sie, was Sie benötigen. Ein echtes Projekt sendet dies auch per E-Mail an Studio VM.",
+    formIntro: "Beschreiben Sie Ihre Frage oder die gewünschte Änderung. Im Kundenportal geht ein Ticket direkt an Studio VM.",
     category: "Kategorie",
     titleLabel: "Titel",
-    titlePh: "z. B. Neues Produkt hinzufügen",
+    titlePh: "z. B. Revision Kanalplan Abschnitt 2",
     descLabel: "Beschreibung",
-    descPh: "Was benötigen Sie? Wie dringend ist es?",
+    descPh: "Um welches Projekt und welche Maschinensteuerung geht es? Was hat sich geändert und bis wann benötigen Sie es?",
     submit: "Ticket senden",
     cancel: "Abbrechen",
     back: "Zurück",
     openedOn: "Eröffnet am",
-    replyPh: "Auf dieses Ticket antworten...",
+    replyPh: "Auf dieses Ticket antworten…",
     sendReply: "Antwort senden",
     emptyDetail: "Wählen Sie links ein Ticket aus oder eröffnen Sie ein neues Ticket.",
-    categories: ["Allgemeine Frage", "Inhalt (Foto/Text)", "Fehler", "Webshop", "Domain / DNS", "Sonstiges"],
+    categories: ["Frage zu einem Modell", "Revision nach Planänderung", "Datei oder Maschinensteuerung", "Koordinaten & Höhen", "Rechnung", "Sonstiges"],
     seed: [
-      { id: "DEMO-1", title: "Fotos der Startseite aktualisieren", description: "Können Sie die oberen 3 Fotos auf der Startseite ersetzen? Die neuen Versionen liegen in meinem Drive.", category: "Inhalt", status: "in-progress", createdAt: "2026-05-12T09:14:00", replies: [{ author: "studio", body: "Danke — die Fotos sind angekommen, ich baue sie heute Nachmittag ein. Bis Ende des Tages online.", at: "2026-05-12T10:02:00" }] },
-      { id: "DEMO-2", title: "Neues Produkt im Webshop hinzufügen", description: "Ich habe ein neues Saisonprodukt. Fotos und Beschreibung schicke ich nach.", category: "Webshop", status: "resolved", createdAt: "2026-05-08T14:30:00", replies: [{ author: "studio", body: "Seit Freitag online, Lagerbestand auf 12 gesetzt. Geben Sie mir Bescheid, ob alles stimmt.", at: "2026-05-09T11:20:00" }, { author: "klant", body: "Perfekt, danke!", at: "2026-05-09T11:45:00" }] },
+      { id: "DEMO-1", title: "Revision: Kanalplan Abschnitt 2 geändert", description: "Das Ingenieurbüro hat eine neue Version des Kanalplans geschickt (Rev. C). Können Sie das Modell anpassen? Der Plan liegt bei.", category: "Revision nach Planänderung", status: "in-progress", createdAt: "2026-09-14T08:12:00", replies: [{ author: "studio", body: "Erhalten — ich bearbeite Rev. C heute. Version 3 steht morgen früh für Trimble und Topcon bereit. Die Revision wird nach Stunden abgerechnet.", at: "2026-09-14T09:05:00" }] },
+      { id: "DEMO-2", title: "Modell öffnet sich nicht auf dem Bagger", description: "Beim Öffnen des Modells auf unserer Unicontrol-Maschine erscheint die Meldung, dass das Koordinatensystem nicht gefunden wird.", category: "Datei oder Maschinensteuerung", status: "resolved", createdAt: "2026-09-08T13:40:00", replies: [{ author: "studio", body: "Das Modell lag in ETRS89 / UTM 32N vor, Ihre Maschine ist auf Gauß-Krüger eingestellt. Version 2 in Gauß-Krüger steht im Portal bereit — bitte zuerst an einem bekannten Punkt prüfen.", at: "2026-09-08T15:10:00" }, { author: "klant", body: "Funktioniert einwandfrei, danke!", at: "2026-09-09T07:30:00" }] },
     ],
     localeCode: "de-DE",
   },
   es: {
     eyebrow: "Soporte",
     title: "Tickets",
-    intro: "Abra un ticket, siga su estado y reciba notificaciones por correo electrónico. Demo — funciona localmente en su navegador.",
+    intro: "Así funciona el soporte en el portal de clientes: preguntas sobre un modelo o una revisión tras un cambio de plano, con estado y respuesta por ticket. Esto es una demo — solo funciona localmente en su navegador.",
     reset: "Restablecer demo",
     newTicket: "Nuevo ticket",
     listReplies: (n) => `${n} respuesta${n === 1 ? "" : "s"}`,
     status: { open: "Abierto", "in-progress": "En curso", resolved: "Resuelto" },
     formTitle: "Nuevo ticket",
-    formIntro: "Describa lo que necesita. Un proyecto real también envía esto por correo a Studio VM.",
+    formIntro: "Describa su pregunta o el cambio que necesita. En el portal de clientes, un ticket llega directamente a Studio VM.",
     category: "Categoría",
     titleLabel: "Título",
-    titlePh: "P. ej. Añadir un nuevo producto",
+    titlePh: "P. ej. Revisión plano de saneamiento fase 2",
     descLabel: "Descripción",
-    descPh: "¿Qué necesita? ¿Con qué urgencia?",
+    descPh: "¿De qué proyecto y de qué sistema de control de máquina se trata? ¿Qué ha cambiado y para cuándo lo necesita?",
     submit: "Enviar ticket",
     cancel: "Cancelar",
     back: "Volver",
     openedOn: "Abierto el",
-    replyPh: "Responder a este ticket...",
+    replyPh: "Responder a este ticket…",
     sendReply: "Enviar respuesta",
     emptyDetail: "Seleccione un ticket a la izquierda o abra un nuevo ticket.",
-    categories: ["Consulta general", "Contenido (foto/texto)", "Error", "Tienda online", "Dominio / DNS", "Otro"],
+    categories: ["Pregunta sobre un modelo", "Revisión tras cambio de plano", "Archivo o control de máquina", "Coordenadas y cotas", "Facturación", "Otro"],
     seed: [
-      { id: "DEMO-1", title: "Actualizar las fotos de la página de inicio", description: "¿Pueden sustituir las 3 fotos superiores de la página de inicio? Las nuevas versiones están en mi Drive.", category: "Contenido", status: "in-progress", createdAt: "2026-05-12T09:14:00", replies: [{ author: "studio", body: "Gracias — ya tengo las fotos, las incorporo esta tarde. En línea antes de que acabe el día.", at: "2026-05-12T10:02:00" }] },
-      { id: "DEMO-2", title: "Añadir un nuevo producto a la tienda online", description: "Tengo un nuevo producto de temporada. Enviaré las fotos y la descripción más adelante.", category: "Tienda online", status: "resolved", createdAt: "2026-05-08T14:30:00", replies: [{ author: "studio", body: "En línea desde el viernes, stock fijado en 12. Dígame si está todo correcto.", at: "2026-05-09T11:20:00" }, { author: "klant", body: "¡Perfecto, gracias!", at: "2026-05-09T11:45:00" }] },
+      { id: "DEMO-1", title: "Revisión: plano de saneamiento fase 2 modificado", description: "La ingeniería ha enviado una nueva versión del plano de saneamiento (rev. C). ¿Puede adaptar el modelo? Adjunto el plano.", category: "Revisión tras cambio de plano", status: "in-progress", createdAt: "2026-09-14T08:12:00", replies: [{ author: "studio", body: "Recibido — proceso la rev. C hoy. La versión 3 estará lista mañana por la mañana para Trimble y Topcon. La revisión se factura por horas.", at: "2026-09-14T09:05:00" }] },
+      { id: "DEMO-2", title: "El modelo no se abre en la excavadora", description: "Al abrir el modelo en nuestra máquina Unicontrol aparece el mensaje de que no se encuentra el sistema de coordenadas.", category: "Archivo o control de máquina", status: "resolved", createdAt: "2026-09-08T13:40:00", replies: [{ author: "studio", body: "El modelo estaba en ETRS89 / UTM 30N y su máquina está configurada en ED50 / UTM 30N. La versión 2 en ED50 está lista en el portal; compruébela primero en un punto conocido.", at: "2026-09-08T15:10:00" }, { author: "klant", body: "¡Funciona perfectamente, gracias!", at: "2026-09-09T07:30:00" }] },
     ],
     localeCode: "es-ES",
   },
@@ -279,7 +282,7 @@ export default function SupportPage() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-16">
+        <div className="wrap py-16 2xl:py-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -315,7 +318,7 @@ export default function SupportPage() {
       </section>
 
       <section className="border-b">
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 lg:grid-cols-[1fr_2fr]">
+        <div className="wrap grid gap-8 py-12 lg:grid-cols-[1fr_2fr] xl:gap-12 2xl:py-16">
           <ul className="space-y-2">
             {tickets.map((tk) => (
               <li key={tk.id}>
@@ -593,7 +596,7 @@ function Bubble({
           isStudio ? "bg-accent text-white" : "border bg-background text-muted"
         }`}
       >
-        {isStudio ? "VM" : "JI"}
+        {isStudio ? "VM" : <UserRound className="h-3.5 w-3.5" strokeWidth={2} />}
       </div>
       <div className="flex-1">
         <p

@@ -31,45 +31,45 @@ const L: Record<
     open: "Openstaand",
     overdue: "Vervallen",
     history: "Betalingshistoriek",
-    none: "Nog geen betalingen of facturen.",
+    none: "Nog geen facturen of betalingen.",
     intro:
-      "Hier zie je al je betalingen en facturen op één plek: je aanbetaling, latere maandfacturen en hun status. Een betaalde aanbetaling verschijnt hier zodra ze door de betaalprovider bevestigd is.",
+      "Hier ziet u al uw facturen en betalingen op één plek. U ontvangt een factuur per project; revisies na een planwijziging worden apart per uur gefactureerd. Zodra een factuur betaald is, worden de modelbestanden van dat project vrijgegeven om te downloaden. Een betaling verschijnt hier zodra de betaalprovider ze bevestigd heeft.",
   },
   fr: {
     paid: "Payé",
     open: "À payer",
     overdue: "Échu",
     history: "Historique des paiements",
-    none: "Aucun paiement ou facture.",
+    none: "Aucune facture ni aucun paiement pour l'instant.",
     intro:
-      "Vous voyez ici tous vos paiements et factures au même endroit : votre acompte, les factures mensuelles ultérieures et leur statut. Un acompte payé apparaît dès qu'il est confirmé par le prestataire de paiement.",
+      "Vous voyez ici toutes vos factures et tous vos paiements au même endroit. Vous recevez une facture par projet ; les révisions après une modification de plan sont facturées séparément à l'heure. Dès qu'une facture est payée, les fichiers du modèle de ce projet sont débloqués pour le téléchargement. Un paiement apparaît ici dès qu'il est confirmé par le prestataire de paiement.",
   },
   en: {
     paid: "Paid",
     open: "Outstanding",
     overdue: "Overdue",
     history: "Payment history",
-    none: "No payments or invoices yet.",
+    none: "No invoices or payments yet.",
     intro:
-      "Here you see all your payments and invoices in one place: your deposit, later monthly invoices and their status. A paid deposit appears here as soon as it's confirmed by the payment provider.",
+      "Here you see all your invoices and payments in one place. You receive one invoice per project; revisions after a plan change are billed separately by the hour. As soon as an invoice is paid, the model files of that project are unlocked for download. A payment appears here once the payment provider has confirmed it.",
   },
   de: {
     paid: "Bezahlt",
     open: "Offen",
     overdue: "Überfällig",
     history: "Zahlungsverlauf",
-    none: "Noch keine Zahlungen oder Rechnungen.",
+    none: "Noch keine Rechnungen oder Zahlungen.",
     intro:
-      "Hier sehen Sie alle Ihre Zahlungen und Rechnungen an einem Ort: Ihre Anzahlung, spätere Monatsrechnungen und deren Status. Eine bezahlte Anzahlung erscheint hier, sobald sie vom Zahlungsanbieter bestätigt wurde.",
+      "Hier sehen Sie alle Ihre Rechnungen und Zahlungen an einem Ort. Sie erhalten eine Rechnung pro Projekt; Revisionen nach einer Planänderung werden separat nach Stunden abgerechnet. Sobald eine Rechnung bezahlt ist, werden die Modelldateien des Projekts zum Download freigegeben. Eine Zahlung erscheint hier, sobald der Zahlungsanbieter sie bestätigt hat.",
   },
   es: {
     paid: "Pagado",
     open: "Pendiente",
     overdue: "Vencido",
     history: "Historial de pagos",
-    none: "Todavía no hay pagos ni facturas.",
+    none: "Todavía no hay facturas ni pagos.",
     intro:
-      "Aquí ve todos sus pagos y facturas en un solo lugar: su anticipo, las facturas mensuales posteriores y su estado. Un anticipo pagado aparece aquí en cuanto lo confirma el proveedor de pagos.",
+      "Aquí ve todas sus facturas y pagos en un solo lugar. Recibe una factura por proyecto; las revisiones tras un cambio de plano se facturan aparte por horas. En cuanto se paga una factura, los archivos del modelo de ese proyecto quedan disponibles para su descarga. Un pago aparece aquí en cuanto lo confirma el proveedor de pagos.",
   },
 };
 

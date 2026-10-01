@@ -18,65 +18,121 @@ export const dynamic = "force-dynamic";
 const L: Record<
   Locale,
   {
+    intro: string;
     none: string;
     newTicket: string;
     subject: string;
     message: string;
+    bodyPh: string;
+    replyPh: string;
+    revisionNote: string;
     send: string;
     reply: string;
     you: string;
     studio: string;
+    stats: (open: number, closed: number, msgs: number) => string;
+    msgN: (n: number) => string;
   }
 > = {
   nl: {
+    intro:
+      "Een vraag over een model, een revisie na een planwijziging of een probleem op de machine? Open hier een ticket — ik antwoord op werkdagen binnen 24 u.",
     none: "Nog geen tickets. Open er hieronder een.",
     newTicket: "Nieuw ticket",
-    subject: "Onderwerp",
+    subject: "Onderwerp (bv. project of werf + korte omschrijving)",
     message: "Bericht",
+    bodyPh:
+      "Beschrijf uw vraag of de gewenste wijziging. Vermeld het project, de machinesturing en — bij een revisie — welk plan gewijzigd is.",
+    replyPh: "Uw reactie…",
+    revisionNote:
+      "Revisies na een planwijziging worden per uur gefactureerd. U kunt ze ook rechtstreeks op de pagina van het project aanvragen.",
     send: "Versturen",
     reply: "Antwoorden",
-    you: "Jij",
+    you: "U",
     studio: "Studio VM",
+    stats: (o, c, m) =>
+      `${o} open · ${c} gesloten · ${m} ${m === 1 ? "bericht" : "berichten"}`,
+    msgN: (n) => `${n} ${n === 1 ? "bericht" : "berichten"}`,
   },
   fr: {
-    none: "Aucun ticket. Ouvrez-en un ci-dessous.",
+    intro:
+      "Une question sur un modèle, une révision après une modification de plan ou un problème sur la machine ? Ouvrez un ticket ici — je réponds sous 24 h les jours ouvrables.",
+    none: "Aucun ticket pour l'instant. Ouvrez-en un ci-dessous.",
     newTicket: "Nouveau ticket",
-    subject: "Sujet",
+    subject: "Sujet (p. ex. projet ou chantier + brève description)",
     message: "Message",
+    bodyPh:
+      "Décrivez votre question ou la modification souhaitée. Mentionnez le projet, le système de guidage et — pour une révision — le plan modifié.",
+    replyPh: "Votre réponse…",
+    revisionNote:
+      "Les révisions après une modification de plan sont facturées à l'heure. Vous pouvez aussi les demander directement sur la page du projet.",
     send: "Envoyer",
     reply: "Répondre",
     you: "Vous",
     studio: "Studio VM",
+    stats: (o, c, m) =>
+      `${o} ${o === 1 ? "ouvert" : "ouverts"} · ${c} ${c === 1 ? "fermé" : "fermés"} · ${m} ${m === 1 ? "message" : "messages"}`,
+    msgN: (n) => `${n} ${n === 1 ? "message" : "messages"}`,
   },
   en: {
+    intro:
+      "A question about a model, a revision after a plan change or an issue on the machine? Open a ticket here — I reply within 24 hours on working days.",
     none: "No tickets yet. Open one below.",
     newTicket: "New ticket",
-    subject: "Subject",
+    subject: "Subject (e.g. project or site + short description)",
     message: "Message",
+    bodyPh:
+      "Describe your question or the change you need. Mention the project, the machine control system and — for a revision — which plan has changed.",
+    replyPh: "Your reply…",
+    revisionNote:
+      "Revisions after a plan change are billed by the hour. You can also request them directly on the project page.",
     send: "Send",
     reply: "Reply",
     you: "You",
     studio: "Studio VM",
+    stats: (o, c, m) =>
+      `${o} open · ${c} closed · ${m} ${m === 1 ? "message" : "messages"}`,
+    msgN: (n) => `${n} ${n === 1 ? "message" : "messages"}`,
   },
   de: {
+    intro:
+      "Eine Frage zu einem Modell, eine Revision nach einer Planänderung oder ein Problem an der Maschine? Eröffnen Sie hier ein Ticket — ich antworte an Werktagen innerhalb von 24 Std.",
     none: "Noch keine Tickets. Eröffnen Sie unten eines.",
     newTicket: "Neues Ticket",
-    subject: "Betreff",
+    subject: "Betreff (z. B. Projekt oder Baustelle + kurze Beschreibung)",
     message: "Nachricht",
+    bodyPh:
+      "Beschreiben Sie Ihre Frage oder die gewünschte Änderung. Nennen Sie das Projekt, die Maschinensteuerung und — bei einer Revision — den geänderten Plan.",
+    replyPh: "Ihre Antwort…",
+    revisionNote:
+      "Revisionen nach einer Planänderung werden nach Stunden abgerechnet. Sie können sie auch direkt auf der Projektseite anfragen.",
     send: "Senden",
     reply: "Antworten",
     you: "Sie",
     studio: "Studio VM",
+    stats: (o, c, m) =>
+      `${o} offen · ${c} geschlossen · ${m} ${m === 1 ? "Nachricht" : "Nachrichten"}`,
+    msgN: (n) => `${n} ${n === 1 ? "Nachricht" : "Nachrichten"}`,
   },
   es: {
+    intro:
+      "¿Una pregunta sobre un modelo, una revisión tras un cambio de plano o un problema en la máquina? Abra un ticket aquí — respondo en menos de 24 h en días laborables.",
     none: "Todavía no hay tickets. Abra uno a continuación.",
     newTicket: "Nuevo ticket",
-    subject: "Asunto",
+    subject: "Asunto (p. ej., proyecto u obra + breve descripción)",
     message: "Mensaje",
+    bodyPh:
+      "Describa su pregunta o el cambio que necesita. Indique el proyecto, el sistema de control de máquina y — en caso de revisión — qué plano ha cambiado.",
+    replyPh: "Su respuesta…",
+    revisionNote:
+      "Las revisiones tras un cambio de plano se facturan por horas. También puede solicitarlas directamente en la página del proyecto.",
     send: "Enviar",
     reply: "Responder",
     you: "Usted",
     studio: "Studio VM",
+    stats: (o, c, m) =>
+      `${o} ${o === 1 ? "abierto" : "abiertos"} · ${c} ${c === 1 ? "cerrado" : "cerrados"} · ${m} ${m === 1 ? "mensaje" : "mensajes"}`,
+    msgN: (n) => `${n} ${n === 1 ? "mensaje" : "mensajes"}`,
   },
 };
 
@@ -125,13 +181,16 @@ export default async function PortalTickets({
               {t.tickets}
             </h1>
             {tickets.length > 0 && (
-              <p className="mt-0.5 text-sm text-muted">
-                {openCnt} open · {closedCnt} gesloten · {totalMsgs} berichten
+              <p className="mt-0.5 font-mono text-xs text-muted">
+                {l.stats(openCnt, closedCnt, totalMsgs)}
               </p>
             )}
           </div>
         </div>
       </div>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+        {l.intro}
+      </p>
 
       <div className="mt-8 space-y-5">
         {tickets.length === 0 && (
@@ -170,7 +229,7 @@ export default async function PortalTickets({
                       <span>·</span>
                     </>
                   )}
-                  <span>{items.length} msg</span>
+                  <span>{l.msgN(items.length)}</span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 uppercase tracking-widest ${badge(
                       tk.status,
@@ -197,7 +256,7 @@ export default async function PortalTickets({
                             : "bg-foreground/10 text-foreground"
                         }`}
                       >
-                        {isStudio ? "VM" : (l.you[0] ?? "J")}
+                        {isStudio ? "VM" : (l.you[0] ?? "U")}
                       </span>
                       <div
                         className={`min-w-0 flex-1 rounded-xl px-4 py-2.5 text-sm ${
@@ -230,7 +289,7 @@ export default async function PortalTickets({
                     name="body"
                     required
                     rows={3}
-                    placeholder={l.message}
+                    placeholder={l.replyPh}
                     className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
                   />
                   <div className="mt-2 flex justify-end">
@@ -258,16 +317,19 @@ export default async function PortalTickets({
             name="subject"
             required
             placeholder={l.subject}
+            aria-label={l.subject}
             className="mb-2 w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
           />
           <textarea
             name="body"
             required
             rows={4}
-            placeholder={l.message}
+            placeholder={l.bodyPh}
+            aria-label={l.message}
             className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
           />
-          <div className="mt-3 flex justify-end">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="max-w-md text-xs text-muted">{l.revisionNote}</p>
             <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
               <Send className="h-4 w-4" strokeWidth={2.5} />
               {l.send}

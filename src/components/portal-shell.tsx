@@ -42,13 +42,20 @@ export function PortalShell({
   const base = `/${locale}/portail/dashboard`;
   const G: Record<
     Locale,
-    { project: string; admin: string; support: string }
+    {
+      project: string;
+      admin: string;
+      support: string;
+      toggle: string;
+      close: string;
+      menu: string;
+    }
   > = {
-    nl: { project: "Project", admin: "Administratie", support: "Support & account" },
-    fr: { project: "Projet", admin: "Administration", support: "Aide & compte" },
-    en: { project: "Project", admin: "Billing", support: "Support & account" },
-    de: { project: "Projekt", admin: "Verwaltung", support: "Support & Konto" },
-    es: { project: "Proyecto", admin: "Administración", support: "Soporte y cuenta" },
+    nl: { project: "3D-modellen", admin: "Administratie", support: "Support & account", toggle: "Zijbalk in- of uitklappen", close: "Sluiten", menu: "Menu" },
+    fr: { project: "Modèles 3D", admin: "Administration", support: "Aide & compte", toggle: "Réduire ou déplier la barre latérale", close: "Fermer", menu: "Menu" },
+    en: { project: "3D models", admin: "Billing", support: "Support & account", toggle: "Collapse or expand sidebar", close: "Close", menu: "Menu" },
+    de: { project: "3D-Modelle", admin: "Verwaltung", support: "Support & Konto", toggle: "Seitenleiste ein- oder ausklappen", close: "Schließen", menu: "Menü" },
+    es: { project: "Modelos 3D", admin: "Administración", support: "Soporte y cuenta", toggle: "Contraer o expandir la barra lateral", close: "Cerrar", menu: "Menú" },
   };
   const g = G[locale];
   const groups: {
@@ -213,8 +220,8 @@ export function PortalShell({
         <button
           type="button"
           onClick={toggleRail}
-          aria-label="Balk in-/uitklappen"
-          title="Balk in-/uitklappen"
+          aria-label={g.toggle}
+          title={g.toggle}
           className={`hidden rounded-lg p-1.5 text-muted transition-colors hover:bg-card-hover hover:text-foreground md:block ${
             rail ? "md:mt-1" : "ml-auto"
           }`}
@@ -330,7 +337,7 @@ export function PortalShell({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Menu"
+          aria-label={g.menu}
           className="rounded-lg border p-2 text-foreground"
         >
           <Menu className="h-5 w-5" strokeWidth={2} />
@@ -357,7 +364,7 @@ export function PortalShell({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          aria-label="Sluiten"
+          aria-label={g.close}
           className="absolute right-3 top-4 z-10 rounded-lg p-1.5 text-muted hover:text-foreground md:hidden"
         >
           <X className="h-5 w-5" strokeWidth={2} />

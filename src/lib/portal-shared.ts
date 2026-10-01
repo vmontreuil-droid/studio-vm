@@ -158,6 +158,10 @@ export type PortalCounts = {
   sites: number; // aantal actieve site-abonnementen (= sites toegelaten)
 };
 
+// Labels voor het klantenportaal (3D-modellen voor machinesturing).
+// scans / subscription / mywebsite / progress / checklist / domain zijn
+// restanten uit de websiteperiode: niet meer in het portaalmenu, enkel
+// bewaard zodat het type stabiel blijft.
 export const PORTAL_T: Record<
   Locale,
   {

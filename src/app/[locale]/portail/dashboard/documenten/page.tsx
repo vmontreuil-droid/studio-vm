@@ -43,57 +43,63 @@ const L: Record<
     open: string;
     total: string;
     uploadHint: string;
+    remove: string;
   }
 > = {
   nl: {
-    sub: "Contracten, ontwerpen en facturen van mij — en alles wat jij aanlevert, op één plek.",
+    sub: "Uw aangeleverde plannen en de documenten van Studio VM — offertes, facturen en geleverde bestanden — op één plek. De modelbestanden per machinesturing vindt u bij elk project.",
     fromStudio: "Van Studio VM",
-    fromYou: "Door jou aangeleverd",
+    fromYou: "Door u aangeleverd",
     noneStudio: "Nog niets gedeeld.",
-    noneYou: "Sleep hierboven je logo, teksten of foto's erin.",
+    noneYou: "Sleep hierboven uw plannen (PDF, DWG, DXF, LandXML) of andere projectbestanden erin.",
     open: "Openen",
     total: "documenten",
-    uploadHint: "Aanleveren",
+    uploadHint: "Plannen aanleveren",
+    remove: "Verwijderen",
   },
   fr: {
-    sub: "Contrats, maquettes et factures de ma part — et tout ce que vous fournissez, au même endroit.",
+    sub: "Vos plans et les documents de Studio VM — devis, factures et fichiers livrés — au même endroit. Les fichiers du modèle par système de guidage se trouvent dans chaque projet.",
     fromStudio: "De Studio VM",
     fromYou: "Fournis par vous",
     noneStudio: "Rien de partagé pour l'instant.",
-    noneYou: "Glissez ci-dessus votre logo, vos textes ou photos.",
+    noneYou: "Glissez ci-dessus vos plans (PDF, DWG, DXF, LandXML) ou d'autres fichiers du projet.",
     open: "Ouvrir",
     total: "documents",
-    uploadHint: "Téléverser",
+    uploadHint: "Envoyer des plans",
+    remove: "Supprimer",
   },
   en: {
-    sub: "Contracts, designs and invoices from me — and everything you provide, in one place.",
+    sub: "Your plans and the documents from Studio VM — quotes, invoices and delivered files — in one place. The model files per machine control system are in each project.",
     fromStudio: "From Studio VM",
     fromYou: "Provided by you",
     noneStudio: "Nothing shared yet.",
-    noneYou: "Drag your logo, texts or photos in above.",
+    noneYou: "Drag your plans (PDF, DWG, DXF, LandXML) or other project files in above.",
     open: "Open",
     total: "documents",
-    uploadHint: "Upload",
+    uploadHint: "Upload plans",
+    remove: "Delete",
   },
   de: {
-    sub: "Verträge, Entwürfe und Rechnungen von mir — und alles, was Sie bereitstellen, an einem Ort.",
+    sub: "Ihre Pläne und die Dokumente von Studio VM — Angebote, Rechnungen und gelieferte Dateien — an einem Ort. Die Modelldateien pro Maschinensteuerung finden Sie im jeweiligen Projekt.",
     fromStudio: "Von Studio VM",
     fromYou: "Von Ihnen bereitgestellt",
     noneStudio: "Noch nichts geteilt.",
-    noneYou: "Ziehen Sie Ihr Logo, Ihre Texte oder Fotos oben hinein.",
+    noneYou: "Ziehen Sie Ihre Pläne (PDF, DWG, DXF, LandXML) oder andere Projektdateien oben hinein.",
     open: "Öffnen",
     total: "Dokumente",
-    uploadHint: "Hochladen",
+    uploadHint: "Pläne hochladen",
+    remove: "Löschen",
   },
   es: {
-    sub: "Contratos, diseños y facturas de mi parte — y todo lo que usted aporte, en un solo lugar.",
+    sub: "Sus planos y los documentos de Studio VM — presupuestos, facturas y archivos entregados — en un solo lugar. Los archivos del modelo por sistema de control de máquina están en cada proyecto.",
     fromStudio: "De Studio VM",
     fromYou: "Aportado por usted",
     noneStudio: "Todavía no se ha compartido nada.",
-    noneYou: "Arrastre arriba su logotipo, textos o fotos.",
+    noneYou: "Arrastre arriba sus planos (PDF, DWG, DXF, LandXML) u otros archivos del proyecto.",
     open: "Abrir",
     total: "documentos",
-    uploadHint: "Subir",
+    uploadHint: "Subir planos",
+    remove: "Eliminar",
   },
 };
 
@@ -105,7 +111,8 @@ function iconFor(name: string) {
   if (["xls", "xlsx", "csv", "ods", "numbers"].includes(ext))
     return FileSpreadsheet;
   if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return FileArchive;
-  if (["js", "ts", "tsx", "jsx", "json", "html", "css", "py", "sh"].includes(ext))
+  // CAD-plannen en modelbestanden (DWG/DXF/LandXML/…).
+  if (["dwg", "dxf", "xml", "landxml", "ttm", "tp3", "svd", "svl", "json"].includes(ext))
     return FileCode2;
   if (["ttf", "otf", "woff", "woff2"].includes(ext)) return FileType;
   return FileText;
@@ -121,6 +128,8 @@ function colorFor(name: string): string {
     return "text-green-600 dark:text-green-400";
   if (["doc", "docx"].includes(ext))
     return "text-sky-600 dark:text-sky-400";
+  if (["dwg", "dxf", "xml", "landxml"].includes(ext))
+    return "text-teal-600 dark:text-teal-400";
   if (["zip", "rar", "7z"].includes(ext))
     return "text-amber-600 dark:text-amber-400";
   return "text-accent";
@@ -209,7 +218,7 @@ export default async function PortalDocuments({
           {own && (
             <form action={deleteOwnDocument.bind(null, d.id)}>
               <SubmitButton
-                ariaLabel="Verwijder"
+                ariaLabel={l.remove}
                 className="rounded-full border p-2 text-muted transition-colors hover:text-red-500"
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.75} />

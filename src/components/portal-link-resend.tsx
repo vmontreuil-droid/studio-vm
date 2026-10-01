@@ -22,53 +22,53 @@ const C: Record<
   }
 > = {
   nl: {
-    title: "Al een scan gedaan? Haal je portaal terug",
+    title: "Portaallink kwijt? Vraag ze opnieuw aan",
     intro:
-      "Geef het e-mailadres in dat je bij de scan gebruikte. Heb je een klantenportaal, dan stuur ik de link er meteen opnieuw heen.",
-    ph: "jouw@email.be",
+      "Geef het e-mailadres in waarmee u bij Studio VM gekend bent. Hebt u een klantenportaal, dan stuur ik de link meteen opnieuw.",
+    ph: "naam@bedrijf.be",
     submit: "Stuur mijn portaallink",
     sending: "Versturen…",
-    done: "Als er een scan op dit adres bestaat, is de portaallink onderweg. Kijk ook even in spam.",
+    done: "Als er een klantenportaal bestaat voor dit adres, is de link onderweg. Kijk ook even in uw spammap.",
     errEmail: "Vul een geldig e-mailadres in.",
   },
   fr: {
-    title: "Déjà fait un scan ? Récupérez votre portail",
+    title: "Lien du portail perdu ? Demandez-le à nouveau",
     intro:
-      "Entrez l'adresse e-mail utilisée lors du scan. Si vous avez un portail client, je vous renvoie le lien aussitôt.",
-    ph: "votre@email.be",
+      "Saisissez l'adresse e-mail sous laquelle vous êtes connu chez Studio VM. Si vous avez un portail client, je vous renvoie le lien aussitôt.",
+    ph: "nom@entreprise.be",
     submit: "Envoyer mon lien de portail",
     sending: "Envoi…",
-    done: "Si un scan existe pour cette adresse, le lien du portail est en route. Vérifiez aussi les spams.",
+    done: "Si un portail client existe pour cette adresse, le lien est en route. Vérifiez aussi vos courriers indésirables.",
     errEmail: "Saisissez une adresse e-mail valide.",
   },
   en: {
-    title: "Already scanned? Get your portal back",
+    title: "Lost your portal link? Request it again",
     intro:
-      "Enter the email you used for the scan. If you have a client portal, I'll resend the link right away.",
-    ph: "you@email.com",
+      "Enter the email address Studio VM knows you by. If you have a client portal, I will resend the link right away.",
+    ph: "name@company.com",
     submit: "Send my portal link",
     sending: "Sending…",
-    done: "If a scan exists for this address, the portal link is on its way. Check spam too.",
+    done: "If a client portal exists for this address, the link is on its way. Please check your spam folder too.",
     errEmail: "Enter a valid email address.",
   },
   de: {
-    title: "Schon gescannt? Holen Sie sich Ihr Portal zurück",
+    title: "Portal-Link verloren? Fordern Sie ihn erneut an",
     intro:
-      "Geben Sie die E-Mail-Adresse ein, die Sie beim Scan verwendet haben. Wenn Sie ein Kundenportal haben, sende ich Ihnen den Link sofort erneut zu.",
-    ph: "ihre@email.de",
+      "Geben Sie die E-Mail-Adresse ein, unter der Sie bei Studio VM bekannt sind. Wenn Sie ein Kundenportal haben, sende ich Ihnen den Link sofort erneut zu.",
+    ph: "name@firma.de",
     submit: "Portal-Link senden",
     sending: "Wird gesendet…",
-    done: "Falls für diese Adresse ein Scan existiert, ist der Portal-Link unterwegs. Prüfen Sie bitte auch den Spam-Ordner.",
+    done: "Falls für diese Adresse ein Kundenportal existiert, ist der Link unterwegs. Prüfen Sie bitte auch den Spam-Ordner.",
     errEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
   },
   es: {
-    title: "¿Ya hizo un análisis? Recupere su portal",
+    title: "¿Ha perdido el enlace al portal? Solicítelo de nuevo",
     intro:
-      "Introduzca el correo electrónico que utilizó para el análisis. Si tiene un portal de cliente, le reenviaré el enlace de inmediato.",
-    ph: "su@email.es",
+      "Introduzca la dirección de correo electrónico con la que Studio VM le conoce. Si tiene un portal de cliente, le reenviaré el enlace de inmediato.",
+    ph: "nombre@empresa.es",
     submit: "Enviar mi enlace al portal",
     sending: "Enviando…",
-    done: "Si existe un análisis para esta dirección, el enlace al portal está en camino. Revise también la carpeta de spam.",
+    done: "Si existe un portal de cliente para esta dirección, el enlace está en camino. Revise también la carpeta de spam.",
     errEmail: "Introduzca una dirección de correo electrónico válida.",
   },
 };
