@@ -233,23 +233,23 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
 
   return (
     <main className="border-b">
-      <section className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-        <div className="max-w-3xl">
+      <section className="wrap py-16 sm:py-20 2xl:py-24">
+        <div className="max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-          <p className="mt-6 text-lg leading-relaxed text-muted">{t.intro}</p>
+          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-14 grid gap-6 md:grid-cols-3 xl:gap-8">
           {CATS.map(({ id, icoon: Icoon }) => {
             const uitgelicht = id === "normaal";
             return (
               <div
                 key={id}
-                className={`relative rounded-3xl border p-8 ${uitgelicht ? "border-accent bg-card shadow-xl shadow-accent/5" : "bg-card"}`}
+                className={`relative rounded-3xl border p-8 xl:p-10 ${uitgelicht ? "border-accent bg-card shadow-xl shadow-accent/5" : "bg-card"}`}
               >
                 {uitgelicht && (
-                  <span className="absolute -top-3 left-8 rounded-full bg-accent px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-white">
+                  <span className="absolute -top-3 left-8 rounded-full bg-accent xl:left-10 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-white">
                     {t.aanbevolen}
                   </span>
                 )}
@@ -257,7 +257,7 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
                 <h2 className="mt-5 text-xl font-semibold tracking-tight">{t.cats[id].titel}</h2>
                 <p className="mt-1 text-sm text-muted">{t.cats[id].termijn}</p>
                 <p className="mt-8 flex items-baseline gap-2">
-                  <span className="text-5xl font-semibold tracking-tight">{euro(UURTARIEF_CENT[id], locale)}</span>
+                  <span className="text-5xl font-semibold tracking-tight 2xl:text-6xl">{euro(UURTARIEF_CENT[id], locale)}</span>
                   <span className="text-sm text-muted">{t.perUur}</span>
                 </p>
                 <p className="mt-1 font-mono text-xs uppercase tracking-widest text-muted">{t.exBtw}</p>
@@ -266,7 +266,7 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
           })}
         </div>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-2">
+        <div className="mt-16 grid gap-6 lg:grid-cols-2 xl:gap-8 2xl:grid-cols-3">
           <div className="rounded-3xl border bg-card p-8">
             <h2 className="text-lg font-semibold tracking-tight">{t.inbegrepenKop}</h2>
             <ul className="mt-5 space-y-3">
@@ -278,7 +278,7 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
               ))}
             </ul>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-6 2xl:contents 2xl:space-y-0">
             <div className="rounded-3xl border bg-card p-8">
               <h2 className="text-lg font-semibold tracking-tight">{t.hoeKop}</h2>
               <ul className="mt-5 space-y-3">

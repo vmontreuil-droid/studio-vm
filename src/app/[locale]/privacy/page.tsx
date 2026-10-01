@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { InhoudToc } from "@/components/inhoud-toc";
 
 type Block = {
   title: string;
@@ -128,50 +129,62 @@ export default async function PrivacyPage({
     <main>
       <article>
         <header className="border-b">
-          <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent">
-              {c.eyebrow}
-            </p>
-            <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-              {c.title}
-            </h1>
-            <p className="mt-4 text-sm text-muted">
-              {c.updated}:{" "}
-              {new Date().toLocaleDateString(c.localeCode, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+          <div className="wrap py-16 sm:py-20">
+            <div className="mx-auto max-w-3xl lg:max-w-[72rem]">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">
+                {c.eyebrow}
+              </p>
+              <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">
+                {c.title}
+              </h1>
+              <p className="mt-4 text-sm text-muted">
+                {c.updated}:{" "}
+                {new Date().toLocaleDateString(c.localeCode, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
         </header>
-        <div className="mx-auto max-w-3xl space-y-8 px-6 py-16 text-foreground">
-          {c.blocks.map((b) => (
-            <section key={b.title}>
-              <h2 className="text-xl font-semibold tracking-tight">{b.title}</h2>
-              <div className="mt-3 space-y-3 leading-relaxed text-foreground/90">
-                {b.paras?.map((p) => <p key={p}>{p}</p>)}
-                {b.list && (
-                  <ul className="list-disc space-y-2 pl-6">
-                    {b.list.map((li) => (
-                      <li key={li}>{li}</li>
-                    ))}
-                  </ul>
-                )}
-                {b.afterList && <p>{b.afterList}</p>}
-                {b.title === c.blocks[c.blocks.length - 1].title && (
-                  <p>
-                    <Link
-                      href={localePath(locale, "/cookies")}
-                      className="text-accent underline"
-                    >
-                      {c.cookiesLinkLabel}
-                    </Link>
-                  </p>
-                )}
-              </div>
-            </section>
-          ))}
+        <div className="wrap py-16">
+          <div className="mx-auto grid max-w-3xl gap-12 lg:max-w-[72rem] lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] xl:gap-20">
+            <aside className="hidden lg:block lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto">
+              <InhoudToc
+                kop={c.eyebrow}
+                items={c.blocks.map((b, i) => ({ id: `sectie-${i + 1}`, label: b.title }))}
+              />
+            </aside>
+            <div className="max-w-3xl space-y-8 text-foreground">
+              {c.blocks.map((b, i) => (
+                <section key={b.title} id={`sectie-${i + 1}`} className="scroll-mt-28">
+                  <h2 className="text-xl font-semibold tracking-tight">{b.title}</h2>
+                  <div className="mt-3 space-y-3 leading-relaxed text-foreground/90">
+                    {b.paras?.map((p) => <p key={p}>{p}</p>)}
+                    {b.list && (
+                      <ul className="list-disc space-y-2 pl-6">
+                        {b.list.map((li) => (
+                          <li key={li}>{li}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {b.afterList && <p>{b.afterList}</p>}
+                    {b.title === c.blocks[c.blocks.length - 1].title && (
+                      <p>
+                        <Link
+                          href={localePath(locale, "/cookies")}
+                          className="text-accent underline"
+                        >
+                          {c.cookiesLinkLabel}
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
         </div>
       </article>
     </main>

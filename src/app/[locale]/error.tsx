@@ -70,7 +70,7 @@ export default function Error({
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center sm:py-32">
+        <div className="wrap py-24 text-center sm:py-32 2xl:py-40">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border bg-card">
             <AlertTriangle className="h-7 w-7 text-accent" strokeWidth={1.5} />
           </div>

@@ -56,16 +56,16 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
         ))}
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-6">
         {lijst.map((r, i) => (
           <button
             key={r.id}
             onClick={() => setOpen(i)}
-            className="group overflow-hidden rounded-3xl border bg-card text-left transition-colors hover:border-accent"
+            className="group flex flex-col overflow-hidden rounded-3xl border bg-card text-left transition-colors hover:border-accent"
           >
-            <div className="relative aspect-[16/10] overflow-hidden">
-              <Image src={r.licht} alt={r[locale].titel} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
-              <Image src={r.donker} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
+              <Image src={r.licht} alt={r[locale].titel} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image src={r.donker} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
               <span className="absolute right-3 top-3 rounded-full bg-black/50 p-2 text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-4 w-4" strokeWidth={2} />
               </span>
@@ -101,7 +101,7 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
               </div>
             </div>
             <div className="relative flex flex-1 items-center justify-center px-4 pb-6 sm:px-16" onClick={(e) => e.stopPropagation()}>
-              <div className="relative h-full max-h-[78vh] w-full max-w-6xl overflow-hidden rounded-3xl border bg-card">
+              <div className="relative h-full max-h-[78vh] w-full max-w-6xl 2xl:max-h-[82vh] 2xl:max-w-[110rem] overflow-hidden rounded-3xl border bg-card">
                 <Image src={huidig.licht} alt={huidig[locale].titel} fill sizes="100vw" className="alleen-licht object-contain" />
                 <Image src={huidig.donker} alt="" fill sizes="100vw" className="alleen-donker object-contain" />
               </div>

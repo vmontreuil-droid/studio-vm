@@ -157,11 +157,13 @@ export default async function OverPage({ params }: { params: Promise<{ locale: s
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
-          <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-          <p className="mt-6 text-xl leading-relaxed">{t.lead}</p>
-          <div className="mt-8 space-y-5 text-lg leading-relaxed text-muted">
+        <div className="wrap grid gap-8 py-16 sm:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-16 xl:gap-24 2xl:py-28">
+          <div className="max-w-3xl lg:sticky lg:top-28 lg:self-start">
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+            <p className="mt-6 text-xl leading-relaxed 2xl:text-2xl">{t.lead}</p>
+          </div>
+          <div className="max-w-3xl space-y-5 text-lg leading-relaxed text-muted lg:pt-10">
             {t.verhaal.map((p) => (
               <p key={p}>{p}</p>
             ))}
@@ -169,13 +171,13 @@ export default async function OverPage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-20">
-          <h2 className="text-3xl font-semibold tracking-tight">{t.waardenKop}</h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="wrap py-20 2xl:py-24">
+          <h2 className="text-3xl font-semibold tracking-tight 2xl:text-4xl">{t.waardenKop}</h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 2xl:gap-8">
             {t.waarden.map((w, i) => {
               const Icoon = ICONEN[i];
               return (
-                <div key={w.titel} className="rounded-2xl border bg-background p-6">
+                <div key={w.titel} className="rounded-2xl border bg-background p-6 2xl:p-8">
                   <Icoon className="h-6 w-6 text-accent" strokeWidth={1.5} />
                   <h3 className="mt-4 font-semibold tracking-tight">{w.titel}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted">{w.tekst}</p>
@@ -183,9 +185,9 @@ export default async function OverPage({ params }: { params: Promise<{ locale: s
               );
             })}
           </div>
-          <div className="mt-10 flex gap-4 rounded-2xl border bg-background p-6">
+          <div className="mt-10 flex gap-4 rounded-2xl border bg-background p-6 2xl:mt-8 2xl:p-8">
             <Globe2 className="h-6 w-6 shrink-0 text-accent" strokeWidth={1.5} />
-            <div>
+            <div className="max-w-4xl">
               <h3 className="font-semibold tracking-tight">{t.werkgebiedKop}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{t.werkgebied}</p>
             </div>

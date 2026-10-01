@@ -103,17 +103,17 @@ export default async function RealisatiesPage({ params }: { params: Promise<{ lo
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-          <div className="max-w-3xl">
+        <div className="wrap py-16 sm:py-20 2xl:py-24">
+          <div className="max-w-3xl 2xl:max-w-4xl">
             <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-            <p className="mt-6 text-lg leading-relaxed text-muted">{t.intro}</p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+            <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
           </div>
         </div>
       </section>
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-20">
+        <div className="wrap py-20 2xl:py-24">
           <div className="max-w-3xl">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">{t.uitgelichtEyebrow}</p>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.uitgelichtTitel}</h2>
@@ -126,7 +126,7 @@ export default async function RealisatiesPage({ params }: { params: Promise<{ lo
       </section>
 
       <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-20">
+        <div className="wrap py-20 2xl:py-24">
           <div className="mb-10 max-w-3xl">
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {t.galerijEyebrow} · {REALISATIES.length}

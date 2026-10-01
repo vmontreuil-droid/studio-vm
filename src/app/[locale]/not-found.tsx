@@ -108,22 +108,22 @@ export default async function NotFound() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center sm:py-32">
+        <div className="wrap py-24 text-center sm:py-32 2xl:py-40">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             {m.eyebrow}
           </p>
-          <h1 className="mt-4 text-balance text-5xl font-semibold tracking-tight sm:text-7xl">
+          <h1 className="mx-auto mt-4 max-w-4xl text-balance text-5xl font-semibold tracking-tight sm:text-7xl 2xl:text-8xl">
             {m.titlePrefix}
             <span className="text-accent">.</span>
             {m.titleSuffix}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-muted">{m.intro}</p>
-          <ul className="mx-auto mt-10 max-w-md space-y-2 text-left">
+          <ul className="mx-auto mt-10 grid max-w-md gap-2 text-left sm:max-w-3xl sm:grid-cols-2 xl:mt-14 xl:max-w-6xl xl:grid-cols-4 xl:gap-3">
             {m.suggestions.map((s) => (
               <li key={s.href}>
                 <Link
                   href={localePath(locale, s.href)}
-                  className="group flex items-center justify-between rounded-2xl border bg-card px-5 py-4 transition-colors hover:bg-card-hover"
+                  className="group flex h-full items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4 transition-colors hover:bg-card-hover"
                 >
                   <div>
                     <p className="font-semibold tracking-tight">{s.label}</p>

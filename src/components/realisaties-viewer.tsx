@@ -27,7 +27,7 @@ function Beeld({ src, alt, actief }: { src: string; alt: string; actief: boolean
 
 export function RealisatiesViewer({ locale }: { locale: Locale }) {
   return (
-    <div className="space-y-16">
+    <div className="space-y-16 2xl:space-y-24">
       {UITGELICHT.map((p, i) => (
         <Project key={p.id} id={p.id} titel={p[locale].titel} tekst={p[locale].tekst} omgekeerd={i % 2 === 1} locale={locale} />
       ))}
@@ -38,7 +38,7 @@ export function RealisatiesViewer({ locale }: { locale: Locale }) {
 function Project({ id, titel, tekst, omgekeerd, locale }: { id: string; titel: string; tekst: string; omgekeerd: boolean; locale: Locale }) {
   const [w, setW] = useState<Weergave>("hoogte");
   return (
-    <div className={`grid items-center gap-8 lg:gap-12 ${omgekeerd ? "lg:grid-cols-[1fr_1.5fr]" : "lg:grid-cols-[1.5fr_1fr]"}`}>
+    <div className={`grid items-center gap-8 lg:gap-12 2xl:gap-20 ${omgekeerd ? "lg:grid-cols-[1fr_1.5fr]" : "lg:grid-cols-[1.5fr_1fr]"}`}>
       <div className={omgekeerd ? "lg:order-2" : ""}>
         <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border bg-card shadow-xl shadow-black/5">
           {/* Alle vier weergaven tegelijk geladen → wisselen zonder wachten; per thema licht/donker */}
@@ -73,7 +73,7 @@ function Project({ id, titel, tekst, omgekeerd, locale }: { id: string; titel: s
           ))}
         </div>
       </div>
-      <div className={omgekeerd ? "lg:order-1" : ""}>
+      <div className={`max-w-xl ${omgekeerd ? "lg:order-1" : ""}`}>
         <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">{titel}</h3>
         <p className="mt-4 text-lg leading-relaxed text-muted">{tekst}</p>
       </div>

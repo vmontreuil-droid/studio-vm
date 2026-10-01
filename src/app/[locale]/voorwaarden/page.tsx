@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { InhoudToc } from "@/components/inhoud-toc";
 
 type Copy = {
   metaTitle: string;
@@ -153,38 +154,51 @@ export default async function VoorwaardenPage({
     <main>
       <article>
         <header className="border-b">
-          <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent">
-              {c.eyebrow}
-            </p>
-            <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-              {c.title}
-            </h1>
-            <p className="mt-4 text-sm text-muted">
-              {c.updated}:{" "}
-              {new Date("2026-10-01").toLocaleDateString(c.localeCode, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+          <div className="wrap py-16 sm:py-20">
+            <div className="mx-auto max-w-3xl lg:max-w-[72rem]">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">
+                {c.eyebrow}
+              </p>
+              <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">
+                {c.title}
+              </h1>
+              <p className="mt-4 text-sm text-muted">
+                {c.updated}:{" "}
+                {new Date("2026-10-01").toLocaleDateString(c.localeCode, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
         </header>
 
-        <div className="mx-auto max-w-3xl space-y-10 px-6 py-16">
-          {c.sections.map((s, i) => (
-            <section key={s.title}>
-              <h2 className="flex items-baseline gap-3 text-xl font-semibold tracking-tight">
-                <span className="font-mono text-sm text-accent">{i + 1}.</span>
-                {s.title}
-              </h2>
-              <p className="mt-3 leading-relaxed text-foreground/90">{s.body}</p>
-            </section>
-          ))}
+        <div className="wrap py-16">
+          <div className="mx-auto grid max-w-3xl gap-12 lg:max-w-[72rem] lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] xl:gap-20">
+            <aside className="hidden lg:block lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto">
+              <InhoudToc
+                kop={c.eyebrow}
+                genummerd
+                items={c.sections.map((s, i) => ({ id: `artikel-${i + 1}`, label: s.title }))}
+              />
+            </aside>
+            <div className="max-w-3xl space-y-10">
+              {c.sections.map((s, i) => (
+                <section key={s.title} id={`artikel-${i + 1}`} className="scroll-mt-28">
+                  <h2 className="flex items-baseline gap-3 text-xl font-semibold tracking-tight">
+                    <span className="font-mono text-sm text-accent">{i + 1}.</span>
+                    {s.title}
+                  </h2>
+                  <p className="mt-3 leading-relaxed text-foreground/90">{s.body}</p>
+                </section>
+              ))}
 
-          <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
-            {c.footer}
-          </p>
+              <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
+                {c.footer}
+              </p>
+            </div>
+          </div>
         </div>
       </article>
     </main>

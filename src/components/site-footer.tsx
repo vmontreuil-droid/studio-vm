@@ -169,13 +169,13 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
   return (
     <footer className="border-t bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-1">
+      <div className="wrap py-16 xl:py-20">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] xl:gap-14">
+          <div className="sm:col-span-2 md:col-span-4 lg:col-span-1">
             <p aria-label="Studio VM" className="leading-none">
               <Logo className="text-6xl sm:text-7xl" />
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
               {t.footer.tagline}
             </p>
             <div className="mt-4 space-y-1.5 text-sm text-muted">

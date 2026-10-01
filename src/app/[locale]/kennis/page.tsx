@@ -59,25 +59,27 @@ export default async function KennisPage({ params }: { params: Promise<{ locale:
 
   return (
     <main className="border-b">
-      <section className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-        <div className="max-w-3xl">
+      <section className="wrap py-16 sm:py-20 2xl:py-24">
+        <div className="max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-          <p className="mt-6 text-lg leading-relaxed text-muted">{t.intro}</p>
+          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
         </div>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {KENNIS.map((a) => {
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
+          {KENNIS.map((a, idx) => {
             const Icoon = ICONEN[a.icoon];
             const x = a.i18n[locale];
+            // Oneven aantal → in de 2-koloms weergave (sm–lg) de laatste kaart liggend over de volle breedte.
+            const wees = idx === KENNIS.length - 1 && KENNIS.length % 2 === 1;
             return (
               <Link
                 key={a.slug}
                 href={localePath(locale, `/kennis/${a.slug}`)}
-                className="group flex flex-col overflow-hidden rounded-3xl border bg-card transition-colors hover:border-accent"
+                className={`group flex flex-col overflow-hidden rounded-3xl border bg-card transition-colors hover:border-accent ${wees ? "sm:max-lg:col-span-2 sm:max-lg:flex-row" : ""}`}
               >
-                <div className="relative aspect-[16/9] overflow-hidden bg-card">
-                  <Image src={KOPBEELD[a.slug].licht} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <Image src={KOPBEELD[a.slug].donker} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className={`relative aspect-[16/9] overflow-hidden bg-card ${wees ? "sm:max-lg:w-1/2 sm:max-lg:shrink-0" : ""}`}>
+                  <Image src={KOPBEELD[a.slug].licht} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <Image src={KOPBEELD[a.slug].donker} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
                 </div>
                 <div className="flex flex-1 flex-col p-6">
                   <h2 className="flex items-start gap-2 font-semibold tracking-tight">

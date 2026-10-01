@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { InhoudToc } from "@/components/inhoud-toc";
 
 type Copy = {
   metaTitle: string;
@@ -170,72 +171,89 @@ export default async function CookiesPage({
     <main>
       <article>
         <header className="border-b">
-          <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent">
-              {c.eyebrow}
-            </p>
-            <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-              {c.title}
-            </h1>
-            <p className="mt-4 text-sm text-muted">
-              {c.updated}:{" "}
-              {new Date().toLocaleDateString(c.localeCode, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+          <div className="wrap py-16 sm:py-20">
+            <div className="mx-auto max-w-3xl lg:max-w-[72rem]">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">
+                {c.eyebrow}
+              </p>
+              <h1 className="mt-2 text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">
+                {c.title}
+              </h1>
+              <p className="mt-4 text-sm text-muted">
+                {c.updated}:{" "}
+                {new Date().toLocaleDateString(c.localeCode, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
         </header>
-        <div className="mx-auto max-w-3xl space-y-10 px-6 py-16">
-          <section>
-            <h2 className="text-xl font-semibold tracking-tight">{c.shortTitle}</h2>
-            <p className="mt-3 leading-relaxed">{c.shortBody}</p>
-          </section>
+        <div className="wrap py-16">
+          <div className="mx-auto grid max-w-3xl gap-12 lg:max-w-[72rem] lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)] xl:gap-20">
+            <aside className="hidden lg:block lg:sticky lg:top-28 lg:self-start">
+              <InhoudToc
+                kop={c.eyebrow}
+                items={[
+                  { id: "kort", label: c.shortTitle },
+                  { id: "opslag", label: c.tableTitle },
+                  { id: "verwijderen", label: c.removeTitle },
+                  { id: "analytics", label: c.analyticsTitle },
+                ]}
+              />
+            </aside>
+            <div className="min-w-0 max-w-3xl space-y-10 xl:max-w-4xl">
+              <section id="kort" className="scroll-mt-28">
+                <h2 className="text-xl font-semibold tracking-tight">{c.shortTitle}</h2>
+                <p className="mt-3 max-w-3xl leading-relaxed">{c.shortBody}</p>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold tracking-tight">{c.tableTitle}</h2>
-            <div className="mt-4 overflow-hidden rounded-2xl border">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-card">
-                  <tr>
-                    {[c.cols.name, c.cols.purpose, c.cols.duration, c.cols.type].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-muted"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {c.rows.map((r) => (
-                    <tr key={r.name}>
-                      <td className="px-4 py-3 font-mono text-xs">{r.name}</td>
-                      <td className="px-4 py-3">{r.purpose}</td>
-                      <td className="px-4 py-3 text-muted">{r.duration}</td>
-                      <td className="px-4 py-3 text-muted">{r.type}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <section id="opslag" className="scroll-mt-28">
+                <h2 className="text-xl font-semibold tracking-tight">{c.tableTitle}</h2>
+                <div className="mt-4 overflow-x-auto rounded-2xl border">
+                  <table className="w-full min-w-[40rem] text-left text-sm">
+                    <thead className="bg-card">
+                      <tr>
+                        {[c.cols.name, c.cols.purpose, c.cols.duration, c.cols.type].map(
+                          (h) => (
+                            <th
+                              key={h}
+                              className="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-muted"
+                            >
+                              {h}
+                            </th>
+                          ),
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {c.rows.map((r) => (
+                        <tr key={r.name}>
+                          <td className="px-4 py-3 font-mono text-xs">{r.name}</td>
+                          <td className="px-4 py-3">{r.purpose}</td>
+                          <td className="px-4 py-3 text-muted">{r.duration}</td>
+                          <td className="px-4 py-3 text-muted">{r.type}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section id="verwijderen" className="scroll-mt-28">
+                <h2 className="text-xl font-semibold tracking-tight">{c.removeTitle}</h2>
+                <p className="mt-3 max-w-3xl leading-relaxed">{c.removeBody}</p>
+              </section>
+
+              <section id="analytics" className="scroll-mt-28">
+                <h2 className="text-xl font-semibold tracking-tight">
+                  {c.analyticsTitle}
+                </h2>
+                <p className="mt-3 max-w-3xl leading-relaxed">{c.analyticsBody}</p>
+              </section>
             </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold tracking-tight">{c.removeTitle}</h2>
-            <p className="mt-3 leading-relaxed">{c.removeBody}</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold tracking-tight">
-              {c.analyticsTitle}
-            </h2>
-            <p className="mt-3 leading-relaxed">{c.analyticsBody}</p>
-          </section>
+          </div>
         </div>
       </article>
     </main>

@@ -19,21 +19,8 @@ import { LANDEN, stelselVoor, isLand } from "@/lib/stelsel";
 import type { Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 
-// Per systeem waar het formaat verschilt.
-const MERKEN = [
-  "Trimble GCS900",
-  "Trimble Earthworks",
-  "Trimble Access",
-  "Topcon 3D-MC",
-  "Topcon MC-Max",
-  "Topcon Pocket-3D",
-  "Leica iCON site",
-  "Leica MC1",
-  "Unicontrol",
-  "CHCNAV",
-  "Komatsu",
-  "Caterpillar",
-];
+// Per systeem waar het formaat verschilt (gedeelde lijst met de admin).
+import { MERKEN } from "@/lib/projecten";
 
 const L = {
   nl: {
@@ -424,12 +411,12 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
   return (
     <form
       action={(fd) => startTransition(() => verstuur(fd))}
-      className="space-y-8"
+      className="space-y-8 2xl:grid 2xl:grid-cols-2 2xl:gap-8 2xl:space-y-0"
     >
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
 
       <Blok icoon={Building2} titel={t.bedrijfKop}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
           <Veld naam="bedrijf" label={t.bedrijf} verplicht autoComplete="organization" />
           <Veld naam="naam" label={t.naam} verplicht autoComplete="name" />
           <Veld naam="email" label={t.email} type="email" verplicht autoComplete="email" />
@@ -485,7 +472,7 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
         </div>
       </Blok>
 
-      <Blok icoon={Cpu} titel={t.machineKop}>
+      <Blok icoon={Cpu} titel={t.machineKop} breed>
         <fieldset>
           <legend className="font-mono text-xs uppercase tracking-widest text-muted">
             {t.merk}
@@ -534,7 +521,7 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
         </fieldset>
       </Blok>
 
-      <Blok icoon={ClipboardList} titel={t.projectKop}>
+      <Blok icoon={ClipboardList} titel={t.projectKop} breed>
         <fieldset className="mb-6">
           <legend className="font-mono text-xs uppercase tracking-widest text-muted">
             {t.categorie}
@@ -576,7 +563,7 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
         </div>
       </Blok>
 
-      <Blok icoon={FileUp} titel={t.plannenKop} uitleg={t.plannenUitleg}>
+      <Blok icoon={FileUp} titel={t.plannenKop} uitleg={t.plannenUitleg} breed>
         <button
           type="button"
           onClick={() => kiezer.current?.click()}
@@ -622,7 +609,7 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
         )}
       </Blok>
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border bg-card p-5 text-sm leading-relaxed">
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border bg-card p-5 text-sm leading-relaxed 2xl:col-span-2">
         <input type="checkbox" name="verantwoordelijk" value="ja" required className="mt-1 accent-[var(--accent)]" />
         <span>
           {t.verantwoordelijk}
@@ -631,13 +618,13 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
       </label>
 
       {status?.soort === "fout" && (
-        <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
+        <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm 2xl:col-span-2">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" strokeWidth={2} />
           {status.tekst}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 2xl:col-span-2">
         <p className="text-xs text-muted">{t.verplicht}</p>
         <button
           type="submit"
@@ -659,15 +646,18 @@ function Blok({
   icoon: Icoon,
   titel,
   uitleg,
+  breed,
   children,
 }: {
   icoon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   titel: string;
   uitleg?: string;
+  /** Op brede schermen (2xl) over beide kolommen van het formulier. */
+  breed?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border bg-card p-6 sm:p-8">
+    <section className={`rounded-3xl border bg-card p-6 sm:p-8 ${breed ? "2xl:col-span-2" : ""}`}>
       <h2 className="flex items-center gap-3 text-lg font-semibold tracking-tight">
         <Icoon className="h-5 w-5 text-accent" strokeWidth={1.5} />
         {titel}

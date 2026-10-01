@@ -262,24 +262,24 @@ export default async function ModellenPage({ params }: { params: Promise<{ local
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-          <div className="max-w-3xl">
+        <div className="wrap py-16 sm:py-20 2xl:py-24">
+          <div className="max-w-3xl 2xl:max-w-4xl">
             <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-            <p className="mt-6 text-lg leading-relaxed text-muted">{t.intro}</p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+            <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
           </div>
         </div>
       </section>
 
       {t.onderdelen.map((o, i) => (
         <section key={o.titel} className={`reveal-on-scroll border-b ${i % 2 ? "bg-card" : ""}`}>
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
-            <div className={i % 2 ? "lg:order-2" : ""}>
+          <div className={`wrap grid items-center gap-12 py-20 lg:grid-cols-2 xl:gap-20 2xl:py-24 ${i % 2 ? "2xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]" : "2xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]"}`}>
+            <div className={`max-w-2xl ${i % 2 ? "lg:order-2" : ""}`}>
               <p className="font-mono text-xs uppercase tracking-widest text-accent">
                 <Layers className="mr-2 inline h-4 w-4" strokeWidth={1.5} />
                 {String(i + 1).padStart(2, "0")}
               </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight">{o.titel}</h2>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight 2xl:text-4xl">{o.titel}</h2>
               <p className="mt-5 text-lg leading-relaxed text-muted">{o.tekst}</p>
               <ul className="mt-6 space-y-2.5">
                 {o.punten.map((p) => (
@@ -290,17 +290,17 @@ export default async function ModellenPage({ params }: { params: Promise<{ local
                 ))}
               </ul>
             </div>
-            <div className={`relative aspect-[4/3] overflow-hidden rounded-3xl border bg-[#0b1220] ${i % 2 ? "lg:order-1" : ""}`}>
-              <Image src={o.beeld} alt={o.titel} fill sizes="(max-width: 1024px) 100vw, 50vw" className={`${o.donker ? "alleen-licht " : ""}object-cover`} />
-              {o.donker && <Image src={o.donker} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="alleen-donker object-cover" />}
+            <div className={`relative aspect-[4/3] overflow-hidden rounded-3xl border bg-[#0b1220] 2xl:aspect-[16/10] ${i % 2 ? "lg:order-1" : ""}`}>
+              <Image src={o.beeld} alt={o.titel} fill sizes="(max-width: 1024px) 100vw, 60vw" className={`${o.donker ? "alleen-licht " : ""}object-cover`} />
+              {o.donker && <Image src={o.donker} alt="" fill sizes="(max-width: 1024px) 100vw, 60vw" className="alleen-donker object-cover" />}
             </div>
           </div>
         </section>
       ))}
 
       <section className="reveal-on-scroll border-b">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-[1.2fr_1fr]">
-          <div>
+        <div className="wrap grid gap-10 py-20 lg:grid-cols-[1.2fr_1fr] xl:gap-20 2xl:py-24">
+          <div className="max-w-3xl">
             <p className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
               <MonitorSmartphone className="h-4 w-4" strokeWidth={1.5} />
               {t.formatenEyebrow}

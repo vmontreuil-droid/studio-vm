@@ -31,7 +31,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
-      <div className="flex w-full items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-10">
+      <div className="wrap flex items-center justify-between gap-3 py-4">
         <Link
           href={home}
           aria-label="Studio VM"

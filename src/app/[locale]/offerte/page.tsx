@@ -131,14 +131,14 @@ export default async function OffertePage({ params }: { params: Promise<{ locale
 
   return (
     <main className="border-b">
-      <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-        <div className="max-w-3xl">
+      <div className="wrap py-16 sm:py-20 2xl:py-24">
+        <div className="max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{t.titel}</h1>
-          <p className="mt-6 text-lg leading-relaxed text-muted">{t.intro}</p>
+          <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
         </div>
 
-        <div className="mt-14 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+        <div className="mt-14 grid gap-10 lg:grid-cols-[1.6fr_1fr] xl:gap-12 2xl:grid-cols-[minmax(0,2.6fr)_minmax(0,1fr)] 2xl:gap-16">
           <Offerte3dFormulier locale={locale} />
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">

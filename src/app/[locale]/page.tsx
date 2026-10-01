@@ -480,15 +480,15 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
         <div className="hero-sweep" />
         <div className="hero-sweep hero-sweep-rev" />
       </div>
-      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 sm:py-28 lg:grid-cols-[1.05fr_1fr] lg:py-32">
+      <div className="wrap relative z-10 grid items-center gap-12 py-20 sm:py-28 lg:grid-cols-[1.05fr_1fr] lg:py-32 xl:gap-16 2xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] 2xl:gap-24 2xl:py-36">
         <div>
           <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
             {x.eyebrow}
           </p>
-          <h1 className="text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl 2xl:text-8xl">
             {x.titel}
           </h1>
-          <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+          <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted sm:text-xl 2xl:max-w-2xl">
             {x.sub}
           </p>
           <ul className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-6">
@@ -525,13 +525,13 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
 function Merken({ x }: { x: Xt }) {
   return (
     <section className="border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+      <div className="wrap py-10">
         <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted">
           {x.merkenTitel}
         </p>
-        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 xl:gap-x-16">
           {MERKEN.map((m) => (
-            <li key={m} className="text-lg font-semibold tracking-tight text-foreground/70">
+            <li key={m} className="text-lg font-semibold tracking-tight text-foreground/70 xl:text-xl">
               {m}
             </li>
           ))}
@@ -545,9 +545,9 @@ function Merken({ x }: { x: Xt }) {
 function Levering({ x }: { x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+      <div className="wrap py-24 sm:py-28">
         <SectieKop eyebrow={x.leverEyebrow} titel={x.leverTitel} intro={x.leverIntro} />
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 2xl:gap-8">
           {x.lever.map((k, i) => (
             <article key={k.titel} className="group overflow-hidden rounded-2xl border bg-card">
               <div className="relative aspect-[4/3] overflow-hidden bg-[#0b1220]">
@@ -579,13 +579,13 @@ const STAP_ICONEN = [FileUp, Calculator, Layers, Send];
 function Werkwijze({ x }: { x: Xt }) {
   return (
     <section id="werkwijze" className="reveal-on-scroll scroll-mt-24 border-b bg-card">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+      <div className="wrap py-24 sm:py-28">
         <SectieKop eyebrow={x.stappenEyebrow} titel={x.stappenTitel} intro={x.stappenIntro} />
         <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
           {x.stappen.map((s, i) => {
             const Icoon = STAP_ICONEN[i];
             return (
-              <li key={s.titel} className="relative bg-background p-8">
+              <li key={s.titel} className="relative bg-background p-8 2xl:p-10">
                 <div className="flex items-center justify-between">
                   <Icoon className="h-6 w-6 text-accent" strokeWidth={1.5} />
                   <span className="font-mono text-3xl font-semibold text-foreground/10">
@@ -606,19 +606,19 @@ function Werkwijze({ x }: { x: Xt }) {
 function Toepassingen({ x }: { x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-28">
+      <div className="wrap py-24 sm:py-28">
         <SectieKop eyebrow={x.toepEyebrow} titel={x.toepTitel} intro={x.toepIntro} />
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
+        <div className="mt-14 grid gap-6 md:grid-cols-2 2xl:grid-cols-4 2xl:gap-8">
           {x.toep.map((k) => (
             <article
               key={k.titel}
-              className="group relative isolate aspect-[16/10] overflow-hidden rounded-3xl border bg-[#0b1220]"
+              className="group relative isolate aspect-[16/10] overflow-hidden rounded-3xl border bg-[#0b1220] 2xl:aspect-[4/5]"
             >
               <Image
                 src={k.beeld}
                 alt={k.titel}
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 25vw"
                 className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 text-white">
@@ -636,13 +636,13 @@ function Toepassingen({ x }: { x: Xt }) {
 function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b bg-card">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-24 sm:py-28 lg:grid-cols-2 lg:items-center">
+      <div className="wrap grid gap-12 py-24 sm:py-28 lg:grid-cols-2 lg:items-center xl:gap-20">
         <div>
           <p className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
             <Globe2 className="h-4 w-4" strokeWidth={1.5} />
             {x.stelselEyebrow}
           </p>
-          <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl 2xl:text-5xl">
             {x.stelselTitel}
           </h2>
           <p className="mt-6 max-w-xl leading-relaxed text-muted">{x.stelselTekst}</p>
@@ -672,10 +672,12 @@ function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
 
 function SectieKop({ eyebrow, titel, intro }: { eyebrow: string; titel: string; intro: string }) {
   return (
-    <div className="max-w-3xl">
-      <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">{eyebrow}</p>
-      <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{titel}</h2>
-      <p className="mt-5 text-lg leading-relaxed text-muted">{intro}</p>
+    <div className="max-w-3xl xl:grid xl:max-w-none xl:grid-cols-2 xl:items-end xl:gap-16 2xl:gap-24">
+      <div>
+        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">{eyebrow}</p>
+        <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl 2xl:text-5xl">{titel}</h2>
+      </div>
+      <p className="mt-5 text-lg leading-relaxed text-muted xl:mt-0 xl:max-w-2xl">{intro}</p>
     </div>
   );
 }
@@ -683,13 +685,13 @@ function SectieKop({ eyebrow, titel, intro }: { eyebrow: string; titel: string; 
 function Contact({ t }: { t: T }) {
   return (
     <section id="contact" className="reveal-on-scroll border-b">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32">
-        <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+      <div className="wrap py-24 sm:py-32">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] xl:gap-20 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] 2xl:gap-28">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
               {t.contact.eyebrow}
             </p>
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl 2xl:text-5xl">
               {t.contact.title}
             </h2>
             <p className="mt-6 max-w-xl text-muted">{t.contact.intro}</p>

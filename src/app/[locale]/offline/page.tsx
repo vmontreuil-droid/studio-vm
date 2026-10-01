@@ -72,14 +72,14 @@ export default async function OfflinePage({
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center sm:py-32">
+        <div className="wrap py-24 text-center sm:py-32 2xl:py-40">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border bg-card">
             <WifiOff className="h-7 w-7 text-muted" strokeWidth={1.5} />
           </div>
           <p className="mt-8 font-mono text-xs uppercase tracking-widest text-accent">
             {c.eyebrow}
           </p>
-          <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mx-auto mt-3 max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">
             {c.title}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-muted">{c.intro}</p>
