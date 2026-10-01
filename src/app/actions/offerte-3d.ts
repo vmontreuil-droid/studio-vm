@@ -60,6 +60,20 @@ export async function uploadPlekken(
   return { ok: true, plekken, map };
 }
 
+// Geen gewenste datum opgegeven: plan volgens de categorie (werkdagen),
+// zodat het project meteen in de leverplanning staat. Vroegtijdig = open.
+function standaardLeverdatum(categorie: string): string | null {
+  const werkdagen = categorie === "last-minute" ? 5 : categorie === "normaal" ? 15 : 0;
+  if (!werkdagen) return null;
+  const d = new Date();
+  let n = 0;
+  while (n < werkdagen) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) n++;
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 export type AanvraagResultaat = { ok: true } | { ok: false; fout: "ongeldig" | "opslag" };
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -184,7 +198,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     },
     stelsel,
     plannen: bestanden,
-    leverdatum: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v.leverdatum) ? v.leverdatum : null,
+    leverdatum: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v.leverdatum) ? v.leverdatum : standaardLeverdatum(v.categorie),
     opmerking: v.omschrijving || null,
   });
   if (projFout) console.error("[offerte-3d] project aanmaken mislukt:", projFout.message);
@@ -225,17 +239,17 @@ ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li
 
   const B = {
     nl: {
-      onderwerp: "We hebben je plannen ontvangen — Studio VM",
+      onderwerp: "We hebben uw plannen ontvangen — Studio VM",
       hallo: `Beste ${esc(v.naam)},`,
-      tekst: "Bedankt voor je aanvraag. Ik bekijk je plannen en bezorg je zo snel mogelijk een offerte op maat, met prijs en leverdatum.",
+      tekst: "Bedankt voor uw aanvraag. Ik bekijk uw plannen en bezorg u zo snel mogelijk een offerte op maat, met prijs en leverdatum.",
       samenvatting: "Wat ik ontving",
       werf: "Werf",
       stelsel: "Voorgesteld stelsel",
       merk: "Machinesturing",
       bestanden: "Bestanden",
-      portaal: "Volg je project in je klantenportaal: daar vind je je plannen, straks de offerte en de modelbestanden. Je logt in met dit e-mailadres — je krijgt een inloglink, geen wachtwoord nodig.",
+      portaal: "Volg uw project in uw klantenportaal: daar vindt u uw plannen, straks de offerte en de modelbestanden. U logt in met dit e-mailadres — u krijgt een inloglink, geen wachtwoord nodig.",
       portaalKnop: "Naar mijn portaal",
-      vraag: "Klopt er iets niet, of wil je nog plannen bijsturen? Antwoord gewoon op deze mail.",
+      vraag: "Klopt er iets niet, of wilt u nog plannen bijsturen? Antwoord gewoon op deze mail.",
       groet: "Met vriendelijke groet,",
     },
     fr: {

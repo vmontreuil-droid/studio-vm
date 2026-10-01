@@ -101,7 +101,7 @@ export default async function AdminDashboard() {
       .limit(1000),
     db
       .from("offers")
-      .select("id, client_email, title, amount_cents, status, created_at")
+      .select("id, client_email, title, amount_cents, status, created_at, valid_until")
       .order("created_at", { ascending: false })
       .limit(500),
     db
@@ -141,6 +141,7 @@ export default async function AdminDashboard() {
     amount_cents: number | null;
     status: string;
     created_at: string;
+    valid_until: string | null;
   };
   type Inv = {
     id: string;
@@ -308,8 +309,10 @@ export default async function AdminDashboard() {
       ),
     };
   });
+  // Verlopen offertes tellen niet meer als "open".
+  const vandaagYmd = `${vandaag.getFullYear()}-${String(vandaag.getMonth() + 1).padStart(2, "0")}-${String(vandaag.getDate()).padStart(2, "0")}`;
   const openOfferValue = offers
-    .filter((o) => o.status === "open")
+    .filter((o) => o.status === "open" && (!o.valid_until || o.valid_until >= vandaagYmd))
     .reduce((t, o) => t + (o.amount_cents ?? 0), 0);
   const unreadForms = forms.filter((f) => !f.is_read).length;
   const collectionRate =

@@ -45,7 +45,11 @@ export default async function AdminLayout({
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
     db.from("scan_requests").select("id", head),
-    db.from("offers").select("id", head).eq("status", "open"),
+    db
+      .from("offers")
+      .select("id", head)
+      .eq("status", "open")
+      .or(`valid_until.is.null,valid_until.gte.${new Date().toISOString().slice(0, 10)}`),
     db.from("invoices").select("id", head).eq("status", "open"),
     db.from("tickets").select("id", head).neq("status", "gesloten"),
     db.from("form_submissions").select("id", head).eq("is_read", false),

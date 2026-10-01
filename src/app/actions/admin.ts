@@ -57,7 +57,18 @@ export async function deleteQuote(formData: FormData): Promise<void> {
   if (!(await guard())) return;
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await getSupabaseAdmin().from("quotes").delete().eq("id", id);
+  const db = getSupabaseAdmin();
+  // Een 3D-aanvraag heeft plannen in de privé-bucket. Zolang er nog een
+  // project aan de aanvraag hangt, horen ze bij dat project; anders mogen
+  // ze mee weg, zodat er geen verweesde bestanden achterblijven.
+  const { data: q } = await db.from("quotes").select("source, snapshot").eq("id", id).maybeSingle();
+  const aanvraag = q as { source: string | null; snapshot: { bestanden?: { pad?: string }[] } | null } | null;
+  if (aanvraag?.source === "3d-model") {
+    const { count } = await db.from("projecten").select("id", { count: "exact", head: true }).eq("quote_id", id);
+    const paden = (aanvraag.snapshot?.bestanden ?? []).map((b) => b.pad).filter((p): p is string => !!p);
+    if (!count && paden.length) await db.storage.from("plannen").remove(paden);
+  }
+  await db.from("quotes").delete().eq("id", id);
   revalidatePath("/admin"); revalidatePath("/admin/aanvragen"); revalidatePath("/admin/monitors");
   redirect("/admin/aanvragen");
 }
