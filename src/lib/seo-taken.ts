@@ -106,7 +106,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "gbp-afwerken",
     titel: "Bedrijfsprofiel afwerken",
-    uitleg: "De 9 Services, een eerste Post (foto 10-tracé-op-luchtfoto), Afspraken-link naar /nl/offerte en LinkedIn bij Profielen.",
+    uitleg: "De 9 Services, een eerste Post (foto 10-tracé-op-luchtfoto) en de Afspraken-link naar /nl/offerte. Geen LinkedIn bij Profielen (staat er een, verwijder die).",
     vanaf: "2026-10-02",
     link: { label: "Bedrijfsprofiel", href: "https://business.google.com" },
   },
@@ -118,16 +118,9 @@ export const SEO_TAKEN: SeoTaak[] = [
     link: { label: "Bing Places", href: "https://www.bingplaces.com" },
   },
   {
-    id: "linkedin",
-    titel: "LinkedIn-profiel bijwerken",
-    uitleg: "Kop: '3D-Topograaf · 3D-modellen voor machinesturing — Trimble, Topcon, Leica, Unicontrol | Studio VM' en https://www.studio-vm.be/nl bij contactgegevens. Optioneel een bedrijfspagina Studio VM.",
-    vanaf: "2026-10-02",
-    link: { label: "LinkedIn", href: "https://www.linkedin.com/in/vincentmontreuil" },
-  },
-  {
     id: "facebook-oud",
     titel: "Oude Facebookpagina 'Studio-vm' ombouwen of verwijderen",
-    uitleg: "Staat nog als webdesigner met cover 'WEBSTUDIO · WAREGEM'. Naam Studio VM, 3D-beschrijving, nieuwe cover (10-tracé-op-luchtfoto), plaats Anzegem — of verwijderen. Idem voor andere oude profielen.",
+    uitleg: "Nieuwe cover en bio staan erop. Nog: naam 'Studio VM' (zonder streepje), straat en huisnummer verbergen (enkel Anzegem), talen Duits en Spaans toevoegen, LinkedIn-link verwijderen.",
     vanaf: "2026-10-03",
     link: { label: "Facebook", href: "https://www.facebook.com/pages/?category=your_pages" },
   },
