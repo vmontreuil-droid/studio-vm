@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { REALISATIES, CATEGORIEEN, BEELD_ALT, type Categorie, type Realisatie } from "@/lib/realisaties";
 import type { Locale } from "@/lib/i18n/config";
+import { SysteemChips } from "@/components/systeem-chips";
 
 const ALLE: Record<Locale, string> = { nl: "Alle", fr: "Tous", en: "All", de: "Alle", es: "Todos" };
 const geenAbonnement = () => () => {};
@@ -78,10 +79,11 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
                 <Maximize2 className="h-4 w-4" strokeWidth={2} />
               </span>
             </div>
-            <div className="p-5">
+            <div className="flex flex-1 flex-col p-5">
               <p className="font-mono text-[10px] uppercase tracking-widest text-accent">{CATEGORIEEN[r.cat][locale]}</p>
               <p className="mt-1.5 font-semibold tracking-tight">{r[locale].titel}</p>
               <p className="mt-1 text-sm leading-relaxed text-muted">{r[locale].tekst}</p>
+              <SysteemChips systemen={r.systemen} locale={locale} className="mt-auto pt-3" />
             </div>
           </button>
         ))}
@@ -97,9 +99,14 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
             className="fixed inset-0 z-[95] flex flex-col bg-background/95 backdrop-blur-md"
           >
             <div className="flex items-center justify-between gap-4 px-5 py-4">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-accent">{CATEGORIEEN[huidig.cat][locale]}</p>
-                <p className="font-semibold tracking-tight">{huidig[locale].titel}</p>
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                  {CATEGORIEEN[huidig.cat][locale]}
+                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <p className="font-semibold tracking-tight">{huidig[locale].titel}</p>
+                  <SysteemChips systemen={huidig.systemen} locale={locale} />
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-mono text-xs text-muted">{(open ?? 0) + 1} / {lijst.length}</span>

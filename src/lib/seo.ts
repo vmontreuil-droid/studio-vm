@@ -110,11 +110,11 @@ export const KRUIMEL: Record<KruimelPad, Record<Locale, string>> = {
     es: "Base de conocimiento",
   },
   "/over": {
-    nl: "Over Vincent Montreuil",
-    fr: "À propos de Vincent Montreuil",
-    en: "About Vincent Montreuil",
-    de: "Über Vincent Montreuil",
-    es: "Sobre Vincent Montreuil",
+    nl: "Over Studio VM",
+    fr: "À propos de Studio VM",
+    en: "About Studio VM",
+    de: "Über Studio VM",
+    es: "Sobre Studio VM",
   },
   "/voorwaarden": {
     nl: "Algemene voorwaarden",

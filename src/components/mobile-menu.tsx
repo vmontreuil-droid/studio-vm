@@ -110,7 +110,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
               {mm.taal}
             </span>
-            <LangSwitcher current={locale} />
+            <LangSwitcher current={locale} naKeuze={() => setOpen(false)} />
           </div>
           </div>,
           document.body,

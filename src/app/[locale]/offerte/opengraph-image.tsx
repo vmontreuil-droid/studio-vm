@@ -1,9 +1,14 @@
 import { ImageResponse } from "next/og";
-import { isValidLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { isValidLocale, DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/config";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Studio VM — offerte / quote";
+
+// Eén kaart per taal, bij de build gemaakt.
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }));
+}
 
 const head: Record<Locale, string> = {
   nl: "Vraag een offerte aan.",
@@ -19,12 +24,13 @@ const sub: Record<Locale, string> = {
   de: "Pläne hochladen · 3D-Modell im Format Ihrer Maschine",
   es: "Suba sus planos · modelo 3D en el formato de su máquina",
 };
+// Geen persoonsnaam op de kaart: de site spreekt als Studio VM.
 const regio: Record<Locale, string> = {
-  nl: "Vincent Montreuil · West-Vlaanderen",
-  fr: "Vincent Montreuil · Flandre-Occidentale",
-  en: "Vincent Montreuil · West Flanders",
-  de: "Vincent Montreuil · Westflandern",
-  es: "Vincent Montreuil · Flandes Occidental",
+  nl: "Studio VM · West-Vlaanderen",
+  fr: "Studio VM · Flandre-Occidentale",
+  en: "Studio VM · West Flanders",
+  de: "Studio VM · Westflandern",
+  es: "Studio VM · Flandes Occidental",
 };
 
 export default async function OG({

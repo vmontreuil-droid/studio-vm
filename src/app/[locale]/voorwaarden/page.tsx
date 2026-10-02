@@ -2,25 +2,32 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { InhoudToc } from "@/components/inhoud-toc";
-import { talen } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import { KRUIMEL, paginaMeta } from "@/lib/seo";
+import { graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
+import { identiteitsregel } from "@/lib/bedrijf";
+import { PAGINA_BIJGEWERKT, datumLabel } from "@/lib/bijgewerkt";
+
+const PAD = "/voorwaarden";
 
 type Copy = {
-  metaTitle: string;
+  meta: { title: string; description: string };
   eyebrow: string;
   title: string;
   updated: string;
-  localeCode: string;
   sections: { title: string; body: string }[];
-  footer: string;
 };
 
 const copy: Record<Locale, Copy> = {
   nl: {
-    metaTitle: "Algemene voorwaarden — Studio VM",
+    meta: {
+      title: "Algemene voorwaarden | Studio VM",
+      description:
+        "Algemene voorwaarden van Studio VM voor 3D-modellen voor machinesturing: offerte, levertermijn, revisies, betaling, aansprakelijkheid en toepasselijk recht.",
+    },
     eyebrow: "Voorwaarden",
     title: "Algemene voorwaarden",
     updated: "Laatst bijgewerkt",
-    localeCode: "nl-BE",
     sections: [
       { title: "Toepassing", body: "Deze voorwaarden gelden voor elke offerte en opdracht van Studio VM (Vincent Montreuil) voor het maken van 3D-modellen voor machinesturing, tenzij schriftelijk anders overeengekomen. Door een offerte goed te keuren aanvaardt de klant deze voorwaarden." },
       { title: "De dienst", body: "Studio VM maakt 3D-ontwerpmodellen (ontwerpoppervlak, lijnwerk, hoogtelijnen) op basis van de plannen die de klant aanlevert, en levert die digitaal in het formaat van de door de klant gekozen machinesturing(en). Studio VM verhuurt of installeert geen machinesturing, voert geen opmetingen of uitzetwerk op de werf uit en houdt geen toezicht op de uitvoering, tenzij uitdrukkelijk schriftelijk overeengekomen." },
@@ -36,14 +43,16 @@ const copy: Record<Locale, Copy> = {
       { title: "Bewaring van bestanden", body: "Plannen en modellen blijven minstens 12 maanden na levering beschikbaar in het klantenportaal. De klant bewaart zelf een kopie. Daarna kunnen ze verwijderd worden." },
       { title: "Toepasselijk recht", body: "Op elke overeenkomst is het Belgisch recht van toepassing. Bij geschillen zijn de rechtbanken van Kortrijk bevoegd." },
     ],
-    footer: "Studio VM · Vincent Montreuil · West-Vlaanderen, België · info@studio-vm.be · BE 0672.960.066",
   },
   fr: {
-    metaTitle: "Conditions générales — Studio VM",
+    meta: {
+      title: "Conditions générales | Studio VM",
+      description:
+        "Conditions générales de Studio VM pour les modèles 3D de guidage d'engins : devis, délais, révisions, paiement, responsabilité et droit applicable.",
+    },
     eyebrow: "Conditions",
     title: "Conditions générales",
     updated: "Dernière mise à jour",
-    localeCode: "fr-BE",
     sections: [
       { title: "Application", body: "Les présentes conditions s'appliquent à toute offre et mission de Studio VM (Vincent Montreuil) pour la réalisation de modèles 3D destinés au guidage d'engins, sauf convention écrite contraire. En approuvant un devis, le client accepte ces conditions." },
       { title: "Le service", body: "Studio VM réalise des modèles 3D de projet (surface de projet, filaire, courbes de niveau) sur base des plans fournis par le client, et les livre numériquement dans le format du ou des systèmes de guidage choisis par le client. Studio VM ne loue ni n'installe de systèmes de guidage, n'effectue pas de levés ni d'implantations sur chantier et n'assure aucune surveillance de l'exécution, sauf accord écrit exprès." },
@@ -59,14 +68,16 @@ const copy: Record<Locale, Copy> = {
       { title: "Conservation des fichiers", body: "Les plans et modèles restent disponibles dans l'espace client pendant au moins 12 mois après livraison. Le client en conserve lui-même une copie. Ils peuvent ensuite être supprimés." },
       { title: "Droit applicable", body: "Toute convention est régie par le droit belge. En cas de litige, les tribunaux de Courtrai sont compétents." },
     ],
-    footer: "Studio VM · Vincent Montreuil · Flandre-Occidentale, Belgique · info@studio-vm.be · BE 0672.960.066",
   },
   en: {
-    metaTitle: "Terms and conditions — Studio VM",
+    meta: {
+      title: "Terms and conditions | Studio VM",
+      description:
+        "Studio VM terms and conditions for machine control 3D models: quotes, delivery times, revisions, payment, liability and applicable law.",
+    },
     eyebrow: "Terms",
     title: "Terms and conditions",
     updated: "Last updated",
-    localeCode: "en-GB",
     sections: [
       { title: "Application", body: "These terms apply to every quote and assignment by Studio VM (Vincent Montreuil) for creating 3D models for machine control, unless agreed otherwise in writing. By approving a quote, the client accepts these terms." },
       { title: "The service", body: "Studio VM creates 3D design models (design surface, linework, contour lines) based on the plans supplied by the client, and delivers them digitally in the format of the machine control system(s) chosen by the client. Studio VM does not rent or install machine control systems, does not carry out surveys or setting-out on site and does not supervise the works, unless expressly agreed in writing." },
@@ -82,14 +93,16 @@ const copy: Record<Locale, Copy> = {
       { title: "Retention of files", body: "Plans and models remain available in the client portal for at least 12 months after delivery. The client keeps a copy themselves. They may be deleted afterwards." },
       { title: "Applicable law", body: "Every agreement is governed by Belgian law. Disputes fall under the jurisdiction of the courts of Kortrijk." },
     ],
-    footer: "Studio VM · Vincent Montreuil · West Flanders, Belgium · info@studio-vm.be · BE 0672.960.066",
   },
   de: {
-    metaTitle: "Allgemeine Geschäftsbedingungen — Studio VM",
+    meta: {
+      title: "Allgemeine Geschäftsbedingungen | Studio VM",
+      description:
+        "Die AGB von Studio VM für 3D-Modelle für Maschinensteuerung: Angebot, Lieferfrist, Revisionen, Zahlung, Haftung und anwendbares Recht.",
+    },
     eyebrow: "AGB",
     title: "Allgemeine Geschäftsbedingungen",
     updated: "Zuletzt aktualisiert",
-    localeCode: "de-DE",
     sections: [
       { title: "Geltungsbereich", body: "Diese Bedingungen gelten für jedes Angebot und jeden Auftrag von Studio VM (Vincent Montreuil) zur Erstellung von 3D-Modellen für Maschinensteuerungen, sofern nicht schriftlich etwas anderes vereinbart wurde. Mit der Annahme eines Angebots akzeptiert der Kunde diese Bedingungen." },
       { title: "Die Leistung", body: "Studio VM erstellt 3D-Planungsmodelle (Planungsoberfläche, Linienwerk, Höhenlinien) auf Grundlage der vom Kunden gelieferten Pläne und liefert diese digital im Format der vom Kunden gewählten Maschinensteuerung(en). Studio VM vermietet oder installiert keine Maschinensteuerungen, führt keine Vermessungen oder Absteckungen auf der Baustelle durch und übernimmt keine Bauüberwachung, sofern dies nicht ausdrücklich schriftlich vereinbart wurde." },
@@ -105,14 +118,16 @@ const copy: Record<Locale, Copy> = {
       { title: "Aufbewahrung von Dateien", body: "Pläne und Modelle bleiben mindestens 12 Monate nach Lieferung im Kundenportal verfügbar. Der Kunde bewahrt selbst eine Kopie auf. Danach können sie gelöscht werden." },
       { title: "Anwendbares Recht", body: "Für jeden Vertrag gilt belgisches Recht. Für Streitigkeiten sind die Gerichte von Kortrijk zuständig." },
     ],
-    footer: "Studio VM · Vincent Montreuil · Westflandern, Belgien · info@studio-vm.be · BE 0672.960.066",
   },
   es: {
-    metaTitle: "Condiciones generales — Studio VM",
+    meta: {
+      title: "Condiciones generales | Studio VM",
+      description:
+        "Condiciones generales de Studio VM para modelos 3D de control de maquinaria: presupuesto, plazos, revisiones, pago, responsabilidad y ley aplicable.",
+    },
     eyebrow: "Condiciones",
     title: "Condiciones generales",
     updated: "Última actualización",
-    localeCode: "es-ES",
     sections: [
       { title: "Ámbito de aplicación", body: "Las presentes condiciones se aplican a todo presupuesto y encargo de Studio VM (Vincent Montreuil) para la elaboración de modelos 3D destinados al control de maquinaria, salvo acuerdo escrito en contrario. Al aprobar un presupuesto, el cliente acepta estas condiciones." },
       { title: "El servicio", body: "Studio VM elabora modelos 3D de proyecto (superficie de proyecto, líneas, curvas de nivel) a partir de los planos facilitados por el cliente, y los entrega en formato digital para el sistema o sistemas de control de maquinaria elegidos por el cliente. Studio VM no alquila ni instala sistemas de control de maquinaria, no realiza levantamientos ni replanteos en obra y no supervisa la ejecución de los trabajos, salvo acuerdo expreso por escrito." },
@@ -128,7 +143,6 @@ const copy: Record<Locale, Copy> = {
       { title: "Conservación de archivos", body: "Los planos y modelos permanecen disponibles en el portal de clientes durante al menos 12 meses tras la entrega. El cliente conserva una copia por su cuenta. Después, podrán ser eliminados." },
       { title: "Legislación aplicable", body: "Todo contrato se rige por el Derecho belga. En caso de litigio, serán competentes los tribunales de Kortrijk." },
     ],
-    footer: "Studio VM · Vincent Montreuil · Flandes Occidental, Bélgica · info@studio-vm.be · BE 0672.960.066",
   },
 };
 
@@ -139,7 +153,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { title: copy[locale].metaTitle, alternates: talen(locale, "/voorwaarden") };
+  return paginaMeta(locale, PAD, copy[locale].meta);
 }
 
 export default async function VoorwaardenPage({
@@ -153,6 +167,13 @@ export default async function VoorwaardenPage({
 
   return (
     <main>
+      <JsonLd
+        data={graph(
+          siteNodes(locale),
+          kruimels(locale, PAD, [{ naam: KRUIMEL[PAD][locale], pad: PAD }]),
+          webPagina(locale, PAD, { naam: c.meta.title, beschrijving: c.meta.description }),
+        )}
+      />
       <article>
         <header className="border-b">
           <div className="wrap py-16 sm:py-20">
@@ -164,12 +185,7 @@ export default async function VoorwaardenPage({
                 {c.title}
               </h1>
               <p className="mt-4 text-sm text-muted">
-                {c.updated}:{" "}
-                {new Date("2026-10-01").toLocaleDateString(c.localeCode, {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {c.updated}: {datumLabel(locale, PAGINA_BIJGEWERKT[PAD])}
               </p>
             </div>
           </div>
@@ -196,7 +212,7 @@ export default async function VoorwaardenPage({
               ))}
 
               <p className="rounded-2xl border bg-card p-6 text-sm text-muted">
-                {c.footer}
+                {identiteitsregel(locale)}
               </p>
             </div>
           </div>

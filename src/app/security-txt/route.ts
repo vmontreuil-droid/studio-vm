@@ -10,6 +10,9 @@ Canonical: https://www.studio-vm.be/.well-known/security.txt
 # Geen bug-bounty, wel oprechte dank.
 `;
 
+// Vaste tekst: bij de build één keer opbouwen.
+export const dynamic = "force-static";
+
 export function GET() {
   return new Response(body, {
     headers: {

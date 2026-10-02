@@ -2,6 +2,11 @@ export const LOCALES = ["nl", "fr", "en", "de", "es"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "nl";
 
+// Verzoekheader die middleware.ts zet op elk adres met een taal. Enkel
+// global-not-found.tsx leest hem: die staat buiten [locale] en kent anders
+// de taal van een onbekend adres (/es/foo) niet.
+export const TAAL_HEADER = "x-taal";
+
 export function isValidLocale(value: string | undefined | null): value is Locale {
   return !!value && (LOCALES as readonly string[]).includes(value);
 }

@@ -1,40 +1,58 @@
 import { ImageResponse } from "next/og";
 import { isValidLocale, DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/config";
+import { KENNIS, kennisArtikel } from "@/lib/kennis";
+
+// Deelkaart per kennisartikel: zelfde ontwerp en kleuren als de kaart van
+// [locale]/opengraph-image, met de artikeltitel als kop.
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-// Pagina's zetten hun eigen, vertaalde alt via paginaMeta().
-export const alt = "Studio VM — 3D";
+export const alt = "Studio VM";
 
-// Eén kaart per taal, bij de build gemaakt.
 export function generateStaticParams() {
-  return LOCALES.map((locale) => ({ locale }));
+  return LOCALES.flatMap((locale) => KENNIS.map((a) => ({ locale, slug: a.slug })));
 }
 
-const tagline: Record<Locale, string> = {
-  nl: "3D-modellen voor machinesturing.",
-  fr: "Modèles 3D pour le guidage d'engins.",
-  en: "3D models for machine control.",
-  de: "3D-Modelle für Maschinensteuerung.",
-  es: "Modelos 3D para control de maquinaria.",
+const KENNISBANK: Record<Locale, string> = {
+  nl: "Kennisbank",
+  fr: "Base de connaissances",
+  en: "Knowledge base",
+  de: "Wissensdatenbank",
+  es: "Base de conocimiento",
 };
 
-// Geen persoonsnaam op de kaart: de site spreekt als Studio VM.
-const sub: Record<Locale, string> = {
-  nl: "Studio VM · West-Vlaanderen · overal in Europa",
-  fr: "Studio VM · Flandre-Occidentale · partout en Europe",
-  en: "Studio VM · West Flanders · anywhere in Europe",
-  de: "Studio VM · Westflandern · überall in Europa",
-  es: "Studio VM · Flandes Occidental · en toda Europa",
-};
+/** Lange titels krijgen een kleinere letter, zodat ze binnen de kaart passen. */
+function kopGrootte(titel: string): number {
+  const n = titel.length;
+  if (n <= 24) return 84;
+  if (n <= 36) return 76;
+  if (n <= 50) return 68;
+  return 62;
+}
+
+/**
+ * Satori legt de regel uit met de breedte van losse letters, maar tekent elk
+ * woord mét kerning, dus smaller. Daardoor valt achter lange woorden een gat
+ * ("Koordinatenreferenzsysteme   und"). Elke letter apart zetten houdt meten
+ * en tekenen gelijk; de woorden lopen dan door met een vaste tussenruimte.
+ * Een spatie voor ? ! : ; » of na « blijft vast, zodat zo'n teken nooit
+ * alleen op een regel komt.
+ */
+function kopWoorden(titel: string): string[] {
+  return titel.normalize("NFC").split(/(?<!«) (?![?!:;»])/);
+}
 
 export default async function OG({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { locale } = await params;
+  const { locale, slug } = await params;
   const l: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
+  const artikel = kennisArtikel(slug) ?? KENNIS[0];
+  const titel = artikel.i18n[l].titel;
+  const grootte = kopGrootte(titel);
+  const tussenruimte = Math.round(grootte * 0.25);
 
   return new ImageResponse(
     (
@@ -97,15 +115,27 @@ export default async function OG({
         <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
           <h1
             style={{
-              fontSize: 84,
+              display: "flex",
+              flexWrap: "wrap",
+              columnGap: tussenruimte,
+              fontSize: grootte,
               fontWeight: 700,
-              letterSpacing: -2,
               lineHeight: 1.05,
               margin: 0,
-              maxWidth: 940,
+              maxWidth: 1040,
             }}
           >
-            {tagline[l]}
+            {kopWoorden(titel).map((woord, i) => (
+              <div key={i} style={{ display: "flex" }}>
+                {Array.from(woord).map((teken, j) =>
+                  teken === " " ? (
+                    <span key={j} style={{ width: tussenruimte }} />
+                  ) : (
+                    <span key={j}>{teken}</span>
+                  ),
+                )}
+              </div>
+            ))}
           </h1>
         </div>
         <div
@@ -117,7 +147,7 @@ export default async function OG({
             fontSize: 26,
           }}
         >
-          <span>{sub[l]}</span>
+          <span>{`Studio VM · ${KENNISBANK[l]}`}</span>
           <span style={{ color: "#f59e0b", fontFamily: "monospace" }}>
             studio-vm.be/{l}
           </span>

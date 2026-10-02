@@ -7,39 +7,42 @@ import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
 import { KOPBEELD } from "@/components/kennis-illustraties";
 import { KENNIS } from "@/lib/kennis";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { talen } from "@/lib/seo";
+import { KRUIMEL, canoniek, paginaMeta } from "@/lib/seo";
+import { siteNodes, kruimels, webPagina, itemLijst, graph } from "@/lib/schema";
+import { Broodkruimel } from "@/components/broodkruimel";
+import { JsonLd } from "@/components/json-ld";
 
 const T: Record<Locale, { meta: { title: string; description: string }; eyebrow: string; titel: string; intro: string; lees: string }> = {
   nl: {
-    meta: { title: "Kennisbank — 3D-modellen voor machinesturing | Studio VM", description: "Uitleg over terreinmodellen, breeklijnen, coördinatenstelsels, bestanden per merk en wat u best aanlevert." },
+    meta: { title: "Kennisbank 3D-modellen en machinebesturing | Studio VM", description: "Uitleg over terreinmodellen, breeklijnen, coördinatenstelsels, bestanden per merk en wat u aanlevert. Praktische kennis voor aannemers en machinisten." },
     eyebrow: "Kennisbank",
     titel: "Alles over 3D-modellen voor machinesturing",
-    intro: "Praktische uitleg voor aannemers en werfleiders: hoe een model in elkaar zit, welk stelsel u nodig hebt en wat u best aanlevert.",
+    intro: "Praktische uitleg voor aannemers, werfleiders en uitvoerders: hoe een model in elkaar zit, welk stelsel u nodig hebt en wat u best aanlevert.",
     lees: "Lees meer",
   },
   fr: {
-    meta: { title: "Base de connaissances — modèles 3D pour le guidage d'engins | Studio VM", description: "Explications sur les modèles de terrain, lignes de rupture, systèmes de coordonnées, fichiers par marque et ce qu'il faut fournir." },
+    meta: { title: "Guide des modèles 3D pour le guidage d'engins | Studio VM", description: "Modèles de terrain, lignes de rupture, systèmes de coordonnées, fichiers par marque et ce qu'il faut fournir : des explications pratiques pour entrepreneurs." },
     eyebrow: "Base de connaissances",
     titel: "Tout sur les modèles 3D pour le guidage d'engins",
     intro: "Des explications pratiques pour entrepreneurs et conducteurs de travaux : comment un modèle est construit, quel système il vous faut et quoi fournir.",
     lees: "Lire la suite",
   },
   en: {
-    meta: { title: "Knowledge base — 3D models for machine control | Studio VM", description: "Explanations of terrain models, breaklines, coordinate systems, files per brand and what to supply." },
+    meta: { title: "Machine control 3D model knowledge base | Studio VM", description: "Terrain models, breaklines, coordinate systems, files per brand and what to supply: practical explanations for contractors and machine operators." },
     eyebrow: "Knowledge base",
     titel: "All about 3D models for machine control",
     intro: "Practical explanations for contractors and site managers: how a model is built, which system you need and what to supply.",
     lees: "Read more",
   },
   de: {
-    meta: { title: "Wissensdatenbank — 3D-Modelle für Maschinensteuerung | Studio VM", description: "Erklärungen zu Geländemodellen, Bruchkanten, Koordinatensystemen, Dateien je Marke und was Sie am besten liefern." },
+    meta: { title: "Wissen: 3D-Modelle für Maschinensteuerung | Studio VM", description: "Geländemodelle, Bruchkanten, Koordinatensysteme, Dateien je Marke und was Sie liefern sollten: praxisnahe Erklärungen für Bauunternehmen." },
     eyebrow: "Wissensdatenbank",
     titel: "Alles über 3D-Modelle für Maschinensteuerung",
     intro: "Praxisnahe Erklärungen für Bauunternehmen und Bauleiter: wie ein Modell aufgebaut ist, welches Koordinatensystem Sie benötigen und was Sie am besten liefern.",
     lees: "Weiterlesen",
   },
   es: {
-    meta: { title: "Base de conocimiento — modelos 3D para control de maquinaria | Studio VM", description: "Explicaciones sobre modelos de terreno, líneas de ruptura, sistemas de coordenadas, archivos por marca y qué conviene aportar." },
+    meta: { title: "Guía de modelos 3D para control de maquinaria | Studio VM", description: "Modelos de terreno, líneas de ruptura, sistemas de coordenadas, archivos por marca y qué aportar: explicaciones prácticas para contratistas." },
     eyebrow: "Base de conocimiento",
     titel: "Todo sobre modelos 3D para control de maquinaria",
     intro: "Explicaciones prácticas para contratistas y jefes de obra: cómo se construye un modelo, qué sistema de coordenadas necesita y qué conviene aportar.",
@@ -50,18 +53,34 @@ const T: Record<Locale, { meta: { title: string; description: string }; eyebrow:
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: talen(locale, "/kennis") };
+  return paginaMeta(locale, "/kennis", T[locale].meta);
 }
 
 export default async function KennisPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const t = T[locale];
+  const kruimel = KRUIMEL["/kennis"][locale];
+
+  const schema = graph(
+    siteNodes(locale),
+    kruimels(locale, "/kennis", [{ naam: kruimel, pad: "/kennis" }]),
+    webPagina(locale, "/kennis", {
+      type: "CollectionPage",
+      naam: t.meta.title,
+      beschrijving: t.meta.description,
+      mainEntity: itemLijst(
+        KENNIS.map((a) => ({ url: canoniek(locale, `/kennis/${a.slug}`), naam: a.i18n[locale].titel })),
+      ),
+    }),
+  );
 
   return (
     <main className="border-b">
+      <JsonLd data={schema} />
       <section className="wrap py-16 sm:py-20 2xl:py-24">
-        <div className="max-w-3xl 2xl:max-w-4xl">
+        <Broodkruimel locale={locale} items={[{ naam: kruimel }]} />
+        <div className="mt-8 max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
           <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">{t.titel}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{t.intro}</p>
@@ -79,7 +98,7 @@ export default async function KennisPage({ params }: { params: Promise<{ locale:
                 className={`group flex flex-col overflow-hidden rounded-3xl border bg-card transition-colors hover:border-accent ${wees ? "sm:max-lg:col-span-2 sm:max-lg:flex-row" : ""}`}
               >
                 <div className={`relative aspect-[16/9] overflow-hidden bg-card ${wees ? "sm:max-lg:w-1/2 sm:max-lg:shrink-0" : ""}`}>
-                  <Image src={KOPBEELD[a.slug].licht} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <Image src={KOPBEELD[a.slug].licht} alt={x.titel} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
                   <Image src={KOPBEELD[a.slug].donker} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
                 </div>
                 <div className="flex flex-1 flex-col p-6">

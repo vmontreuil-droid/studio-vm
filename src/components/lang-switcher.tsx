@@ -1,19 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Check } from "lucide-react";
-import {
-  LOCALES,
-  LOCALE_LABELS,
-  LOCALE_NAMES,
-  type Locale,
-  isValidLocale,
-} from "@/lib/i18n/config";
+import { LOCALES, LOCALE_LABELS, LOCALE_NAMES, type Locale } from "@/lib/i18n/config";
+import { bewaarTaal, padZonderTaal } from "@/components/taal-links";
 
-export function LangSwitcher({ current, compact = false }: { current: Locale; compact?: boolean }) {
-  const router = useRouter();
-  const pathname = usePathname() ?? "/";
+/**
+ * Taalkeuze. Elke optie is een echte link naar dezelfde pagina in die taal
+ * (crawlbaar, werkt zonder JavaScript); bij een klik wordt de keuze ook in
+ * een cookie bewaard. `naKeuze` laat bv. het gsm-menu sluiten.
+ */
+export function LangSwitcher({
+  current,
+  compact = false,
+  naKeuze,
+}: {
+  current: Locale;
+  compact?: boolean;
+  naKeuze?: () => void;
+}) {
+  const rest = padZonderTaal(usePathname());
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -34,17 +42,10 @@ export function LangSwitcher({ current, compact = false }: { current: Locale; co
     };
   }, [open]);
 
-  const change = (target: Locale) => {
-    document.cookie = `locale=${target}; path=/; max-age=${365 * 86400}; SameSite=Lax`;
-    const segments = pathname.split("/").filter(Boolean);
-    if (segments.length > 0 && isValidLocale(segments[0])) {
-      segments[0] = target;
-    } else {
-      segments.unshift(target);
-    }
-    const next = `/${segments.join("/")}`;
-    router.push(next);
-    router.refresh();
+  const kies = (l: Locale) => {
+    bewaarTaal(l);
+    setOpen(false);
+    naKeuze?.();
   };
 
   if (compact) {
@@ -65,22 +66,21 @@ export function LangSwitcher({ current, compact = false }: { current: Locale; co
         {open && (
           <div role="menu" className="absolute right-0 top-full z-50 mt-2 min-w-40 overflow-hidden rounded-xl border bg-background p-1 shadow-lg">
             {LOCALES.map((l) => (
-              <button
+              <Link
                 key={l}
-                type="button"
+                href={`/${l}${rest}`}
+                prefetch={false}
+                hrefLang={l}
+                lang={l}
                 role="menuitemradio"
                 aria-checked={l === current}
-                lang={l}
-                onClick={() => {
-                  setOpen(false);
-                  if (l !== current) change(l);
-                }}
+                onClick={() => kies(l)}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-card-hover ${l === current ? "font-medium" : "text-muted hover:text-foreground"}`}
               >
                 <span className="w-6 font-mono text-[11px] text-accent">{LOCALE_LABELS[l]}</span>
                 <span className="flex-1">{LOCALE_NAMES[l]}</span>
                 {l === current && <Check className="h-3.5 w-3.5 text-accent" strokeWidth={2} />}
-              </button>
+              </Link>
             ))}
           </div>
         )}
@@ -95,14 +95,16 @@ export function LangSwitcher({ current, compact = false }: { current: Locale; co
       className="inline-flex items-center gap-0.5 rounded-full border bg-background p-0.5 font-mono text-[11px]"
     >
       {LOCALES.map((l) => (
-        <button
+        <Link
           key={l}
-          type="button"
-          onClick={() => change(l)}
-          aria-pressed={l === current}
+          href={`/${l}${rest}`}
+          prefetch={false}
+          hrefLang={l}
+          lang={l}
+          onClick={() => kies(l)}
+          aria-current={l === current ? "true" : undefined}
           aria-label={LOCALE_NAMES[l]}
           title={LOCALE_NAMES[l]}
-          lang={l}
           className={`rounded-full px-2 py-1 leading-none transition-colors ${
             l === current
               ? "bg-foreground text-background"
@@ -110,7 +112,7 @@ export function LangSwitcher({ current, compact = false }: { current: Locale; co
           }`}
         >
           {LOCALE_LABELS[l]}
-        </button>
+        </Link>
       ))}
     </div>
   );

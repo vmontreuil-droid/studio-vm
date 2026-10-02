@@ -1,100 +1,145 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
-test.describe("Routing & i18n", () => {
-  test("/ redirect naar een locale", async ({ page }) => {
-    const res = await page.goto("/");
-    expect(res?.ok()).toBeTruthy();
-    await expect(page).toHaveURL(/\/(nl|fr|en)(\/|$|#|\?)/);
+// Rooktest voor de 3D-site. Draait tegen BASE_URL (bv. een productiebuild op
+// een eigen poort), anders tegen de lokale server op :3100.
+const BASE = process.env.BASE_URL || "http://localhost:3100";
+const SITE = "https://www.studio-vm.be";
+const LOCALES = ["nl", "fr", "en", "de", "es"] as const;
+
+test.use({ baseURL: BASE });
+
+async function jsonLd(page: Page, pad: string): Promise<unknown[]> {
+  const res = await page.goto(pad);
+  expect(res?.status(), `${pad} status`).toBe(200);
+  const blokken = await page
+    .locator('script[type="application/ld+json"]')
+    .allTextContents();
+  expect(blokken.length, `${pad}: aantal JSON-LD-blokken`).toBeGreaterThan(0);
+  return blokken.map((b) => JSON.parse(b) as unknown);
+}
+
+test.describe("Routing & talen", () => {
+  test("/ stuurt door naar een taal", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/(nl|fr|en|de|es)$/);
   });
 
-  test("home rendert per locale met juiste lang", async ({ page }) => {
-    for (const [loc, frag] of [
-      ["nl", "Websites die werken"],
-      ["fr", "Des sites qui travaillent"],
-      ["en", "Websites that work"],
-    ] as const) {
-      await page.goto(`/${loc}`);
-      await expect(page.locator("html")).toHaveAttribute("lang", loc);
-      await expect(page.locator("h1")).toContainText(frag);
-    }
-  });
-
-  test("hoofdnavigatie werkt locale-bewust", async ({ page }) => {
-    await page.goto("/nl");
-    await page
-      .locator("header")
-      .getByRole("link", { name: "Pricing", exact: true })
-      .click();
-    await expect(page).toHaveURL(/\/nl\/pricing/);
-    await expect(page.locator("h1")).toBeVisible();
-  });
-
-  test("404 voor onbestaande pagina", async ({ page }) => {
-    const res = await page.goto("/nl/bestaat-echt-niet-xyz");
-    expect(res?.status()).toBe(404);
-  });
-});
-
-test.describe("Tools", () => {
-  test("scanner toont een URL-invoer", async ({ page }) => {
-    await page.goto("/nl/scan", { waitUntil: "domcontentloaded" });
-    await expect(page.locator('input[name="url"]')).toBeVisible({
-      timeout: 15_000,
+  for (const l of LOCALES) {
+    test(`/${l} heeft lang="${l}" en een zichtbare h1`, async ({ page }) => {
+      const res = await page.goto(`/${l}`);
+      expect(res?.status()).toBe(200);
+      await expect(page.locator("html")).toHaveAttribute("lang", l);
+      await expect(page.locator("h1")).toBeVisible();
     });
+  }
+
+  for (const pad of ["/nl/bestaat-niet", "/nl/kennis/bestaat-niet", "/wp-login.php"]) {
+    test(`${pad} geeft 404`, async ({ request }) => {
+      const r = await request.get(pad, { failOnStatusCode: false });
+      expect(r.status()).toBe(404);
+    });
+  }
+
+  test("/es/foo: vertaalde 404 al in de server-HTML (zonder JavaScript)", async ({ request }) => {
+    const r = await request.get("/es/foo", { failOnStatusCode: false });
+    expect(r.status()).toBe(404);
+    const html = await r.text();
+    expect(html).toMatch(/<html[^>]*lang="es"/);
+    expect(html).toContain("no existe");
+    expect(html).toContain("<header");
+    expect(html).toContain("<footer");
   });
 
-  test("offerte-calculator toont een totaalprijs", async ({ page }) => {
-    await page.goto("/nl/offerte");
-    const aside = page.locator("aside");
-    await expect(aside.getByText(/Jouw totaal/i).first()).toBeVisible();
-    await expect(aside.getByText(/€\s?\d/).first()).toBeVisible();
-  });
-
-  test("ROI-calculator rekent en toont verlies", async ({ page }) => {
-    await page.goto("/en/roi");
-    await expect(page.getByText(/What slowness costs you/i)).toBeVisible();
-  });
-
-  test("portail valt terug op demo zonder Supabase-env", async ({ page }) => {
-    const res = await page.goto("/nl/portail");
-    expect(res?.ok()).toBeTruthy();
-    await expect(page.locator("body")).toContainText(/Demo-portaal|Inloggen/);
-  });
+  for (const l of LOCALES) {
+    test(`/${l}/support stuurt blijvend door naar /${l}/portail`, async ({ request }) => {
+      const r = await request.get(`/${l}/support`, { maxRedirects: 0, failOnStatusCode: false });
+      expect(r.status()).toBe(308);
+      expect(new URL(r.headers()["location"], BASE).pathname).toBe(`/${l}/portail`);
+    });
+  }
 });
 
 test.describe("SEO & metadata", () => {
-  test("sitemap.xml is geldige XML met locale-URLs", async ({ request }) => {
+  test("/fr/tarieven: canonical, og:url en hreflang x-default", async ({ page }) => {
+    await page.goto("/fr/tarieven");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `${SITE}/fr/tarieven`,
+    );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      `${SITE}/fr/tarieven`,
+    );
+    await expect(
+      page.locator('link[rel="alternate"][hreflang="x-default"]'),
+    ).toHaveAttribute("href", `${SITE}/en/tarieven`);
+  });
+
+  for (const pad of ["/nl", "/nl/tarieven", "/nl/kennis/veelgestelde-vragen"]) {
+    test(`JSON-LD op ${pad} parseert en heeft een @graph`, async ({ page }) => {
+      const blokken = await jsonLd(page, pad);
+      const tekst = JSON.stringify(blokken);
+      expect(tekst).toContain('"@graph"');
+      if (pad.endsWith("veelgestelde-vragen")) expect(tekst).toContain('"FAQPage"');
+      // Geen persoon als entiteit, geen verzonnen beoordelingen.
+      expect(tekst).not.toContain('"Person"');
+      expect(tekst).not.toMatch(/AggregateRating|"Review"|"review"|aggregateRating/);
+    });
+  }
+
+  test("sitemap.xml telt 95 adressen, zonder /support", async ({ request }) => {
     const r = await request.get("/sitemap.xml");
     expect(r.ok()).toBeTruthy();
     const body = await r.text();
-    expect(body).toContain("<urlset");
-    expect(body).toContain("/nl");
-    expect(body).toContain("/fr");
-    expect(body).toContain("/en");
+    expect(body.match(/<loc>/g)?.length).toBe(95);
+    expect(body).not.toContain("/support");
   });
 
-  test("robots.txt verwijst naar sitemap", async ({ request }) => {
+  test("robots.txt verwijst naar de sitemap", async ({ request }) => {
     const r = await request.get("/robots.txt");
     expect(r.ok()).toBeTruthy();
     expect(await r.text()).toContain("Sitemap:");
   });
 
-  test("changelog RSS is application/rss+xml", async ({ request }) => {
-    const r = await request.get("/nl/changelog/rss.xml");
+  test("llms.txt is bereikbaar als platte tekst", async ({ request }) => {
+    const r = await request.get("/llms.txt");
     expect(r.ok()).toBeTruthy();
-    expect(r.headers()["content-type"]).toContain("rss+xml");
+    expect(r.headers()["content-type"]).toContain("text/plain");
+    expect(await r.text()).toContain("# Studio VM");
+  });
+});
+
+test.describe("Pagina's", () => {
+  test("/nl/offerte toont het offerteformulier", async ({ page }) => {
+    await page.goto("/nl/offerte");
+    const formulier = page.locator("form").filter({ has: page.locator('textarea[name="omschrijving"]') });
+    await expect(formulier).toBeVisible();
+    await expect(formulier.locator('select[name="werk"]')).toBeVisible();
+    await expect(formulier.locator('button[type="submit"]')).toBeVisible();
   });
 
-  test("home bevat Organization + WebSite JSON-LD", async ({ page }) => {
+  test("/nl/over spreekt als Studio VM, zonder persoonsnaam in de inhoud", async ({ page }) => {
+    const res = await page.goto("/nl/over");
+    expect(res?.status()).toBe(200);
+    await expect(page.locator("h1")).toContainText("Studio VM");
+    const inhoud = await page.locator("#main").innerText();
+    expect(inhoud).not.toMatch(/Vincent|Montreuil/);
+    expect(inhoud).not.toMatch(/MV3D|Convertor|landmeter/i);
+  });
+
+  test("zoekvenster opent met Control+K", async ({ page }) => {
     await page.goto("/nl");
-    const html = await page.content();
-    expect(html).toContain('"@type":"Organization"');
-    expect(html).toContain('"@type":"WebSite"');
+    await page.waitForLoadState("networkidle");
+    await page.keyboard.press("Control+k");
+    await expect(page.getByRole("dialog")).toBeVisible();
   });
+});
 
-  test("security.txt aanwezig (RFC 9116)", async ({ request }) => {
-    const r = await request.get("/.well-known/security.txt");
-    expect(r.ok()).toBeTruthy();
-    expect(await r.text()).toContain("Contact:");
+test.describe("Zonder JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("de h1 op /nl is zichtbaar", async ({ page }) => {
+    await page.goto("/nl");
+    await expect(page.locator("h1")).toBeVisible();
   });
 });

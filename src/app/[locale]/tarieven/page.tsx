@@ -2,14 +2,54 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, Zap, CalendarCheck, Check, ShieldAlert, FileUp, ArrowRight } from "lucide-react";
+import { JsonLd } from "@/components/json-ld";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
-import { talen } from "@/lib/seo";
+import { KRUIMEL, paginaMeta } from "@/lib/seo";
+import { ID, dienstNodes, graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
+import { kennisArtikel } from "@/lib/kennis";
+
+const PAD = "/tarieven";
+
+// Titel en beschrijving met de echte prijzen uit lib/tarieven: zo lopen ze
+// nooit uit de pas met de kaarten op de pagina.
+function meta(l: Locale): { title: string; description: string } {
+  const v = euro(UURTARIEF_CENT.vroegtijdig, l);
+  const n = euro(UURTARIEF_CENT.normaal, l);
+  const lm = euro(UURTARIEF_CENT["last-minute"], l);
+  const min = MINIMUM_UREN;
+  switch (l) {
+    case "nl":
+      return {
+        title: `Prijs 3D-model machinebesturing: vanaf ${v}/uur | Studio VM`,
+        description: `${v} vroegtijdig, ${n} normaal, ${lm} last-minute per uur excl. btw. Minimum ${min} uur, extra systemen zonder meerprijs. Vraag een offerte op maat aan.`,
+      };
+    case "fr":
+      return {
+        title: `Prix d'un modèle 3D de guidage : dès ${v}/h | Studio VM`,
+        description: `${v} anticipé, ${n} normal, ${lm} urgent par heure HTVA. Minimum ${min} heure, systèmes supplémentaires sans surcoût. Demandez un devis sur mesure.`,
+      };
+    case "en":
+      return {
+        title: `Machine control model pricing: from ${v}/hour | Studio VM`,
+        description: `${v} early, ${n} standard, ${lm} last-minute per hour excl. VAT. Minimum ${min} hour, extra machine control systems at no extra cost. Request a tailored quote.`,
+      };
+    case "de":
+      return {
+        title: `Preise 3D-Modell Maschinensteuerung ab ${v}/Std. | Studio VM`,
+        description: `${v} frühzeitig, ${n} normal, ${lm} kurzfristig pro Stunde zzgl. MwSt. Mindestens ${min} Stunde, weitere Systeme ohne Aufpreis. Angebot anfordern.`,
+      };
+    case "es":
+      return {
+        title: `Modelos 3D para maquinaria: precio desde ${v}/h | Studio VM`,
+        description: `${v} anticipada, ${n} normal, ${lm} urgente por hora, IVA no incluido. Mínimo ${min} hora, sistemas adicionales sin coste extra. Solicite un presupuesto.`,
+      };
+  }
+}
 
 const T: Record<
   Locale,
   {
-    meta: { title: string; description: string };
     eyebrow: string;
     titel: string;
     intro: string;
@@ -29,12 +69,8 @@ const T: Record<
   }
 > = {
   nl: {
-    meta: {
-      title: "Tarieven — 3D-modellen voor machinesturing | Studio VM",
-      description: "Transparante uurtarieven voor 3D-modellen voor machinesturing: vroegtijdig, normaal of last-minute. Alle formaten inbegrepen.",
-    },
     eyebrow: "Tarieven",
-    titel: "Eerlijke uurtarieven, vooraf geschat",
+    titel: "Uurtarieven voor 3D-modellen, vooraf geschat",
     intro: "U betaalt per uur modelleerwerk. Elke offerte vermeldt het geschatte aantal uren, zodat u vooraf weet waar u aan toe bent. Hoe vroeger u aanvraagt, hoe voordeliger.",
     perUur: "per uur",
     exBtw: "excl. btw",
@@ -43,7 +79,7 @@ const T: Record<
       normaal: { titel: "Normaal", termijn: "Levering binnen 1 à 3 weken" },
       "last-minute": { titel: "Last-minute", termijn: "Levering binnen 5 werkdagen" },
     },
-    aanbevolen: "Meest gekozen",
+    aanbevolen: "Aanbevolen",
     inbegrepenKop: "Altijd inbegrepen",
     inbegrepen: [
       "Ontwerpoppervlak, lijnwerk en hoogtelijnen",
@@ -66,12 +102,8 @@ const T: Record<
     cta: "Offerte aanvragen",
   },
   fr: {
-    meta: {
-      title: "Tarifs — modèles 3D pour le guidage d'engins | Studio VM",
-      description: "Tarifs horaires transparents pour modèles 3D de guidage d'engins : anticipé, normal ou urgent. Tous les formats inclus.",
-    },
     eyebrow: "Tarifs",
-    titel: "Des tarifs horaires honnêtes, estimés à l'avance",
+    titel: "Tarifs horaires des modèles 3D, estimés à l'avance",
     intro: "Vous payez à l'heure de modélisation. Chaque devis indique le nombre d'heures estimé, pour que vous sachiez à quoi vous attendre. Plus vous demandez tôt, plus c'est avantageux.",
     perUur: "par heure",
     exBtw: "HTVA",
@@ -80,7 +112,7 @@ const T: Record<
       normaal: { titel: "Normal", termijn: "Livraison dans 1 à 3 semaines" },
       "last-minute": { titel: "Urgent", termijn: "Livraison dans les 5 jours ouvrables" },
     },
-    aanbevolen: "Le plus choisi",
+    aanbevolen: "Recommandé",
     inbegrepenKop: "Toujours inclus",
     inbegrepen: [
       "Surface de projet, filaire et courbes de niveau",
@@ -103,12 +135,8 @@ const T: Record<
     cta: "Demander un devis",
   },
   en: {
-    meta: {
-      title: "Rates — 3D models for machine control | Studio VM",
-      description: "Transparent hourly rates for machine control 3D models: early, standard or last-minute. All formats included.",
-    },
     eyebrow: "Rates",
-    titel: "Fair hourly rates, estimated up front",
+    titel: "Hourly rates for 3D models, estimated up front",
     intro: "You pay per hour of modelling. Every quote states the estimated number of hours, so you know where you stand. The earlier you ask, the better the rate.",
     perUur: "per hour",
     exBtw: "excl. VAT",
@@ -117,7 +145,7 @@ const T: Record<
       normaal: { titel: "Standard", termijn: "Delivery within 1 to 3 weeks" },
       "last-minute": { titel: "Last-minute", termijn: "Delivery within 5 working days" },
     },
-    aanbevolen: "Most chosen",
+    aanbevolen: "Recommended",
     inbegrepenKop: "Always included",
     inbegrepen: [
       "Design surface, linework and contour lines",
@@ -140,12 +168,8 @@ const T: Record<
     cta: "Request a quote",
   },
   de: {
-    meta: {
-      title: "Preise — 3D-Modelle für Maschinensteuerung | Studio VM",
-      description: "Transparente Stundensätze für 3D-Modelle für Maschinensteuerung: frühzeitig, normal oder kurzfristig. Alle Formate inklusive.",
-    },
     eyebrow: "Preise",
-    titel: "Faire Stundensätze, vorab geschätzt",
+    titel: "Stundensätze für 3D-Modelle, vorab geschätzt",
     intro: "Sie zahlen pro Stunde Modellierungsarbeit. Jedes Angebot nennt die geschätzte Stundenzahl, damit Sie vorab wissen, woran Sie sind. Je früher Sie anfragen, desto günstiger.",
     perUur: "pro Stunde",
     exBtw: "zzgl. MwSt.",
@@ -154,7 +178,7 @@ const T: Record<
       normaal: { titel: "Normal", termijn: "Lieferung innerhalb von 1 bis 3 Wochen" },
       "last-minute": { titel: "Kurzfristig", termijn: "Lieferung innerhalb von 5 Werktagen" },
     },
-    aanbevolen: "Am häufigsten gewählt",
+    aanbevolen: "Empfohlen",
     inbegrepenKop: "Immer inklusive",
     inbegrepen: [
       "Planungsoberfläche, Linien und Höhenlinien",
@@ -177,12 +201,8 @@ const T: Record<
     cta: "Angebot anfordern",
   },
   es: {
-    meta: {
-      title: "Tarifas — modelos 3D para control de maquinaria | Studio VM",
-      description: "Tarifas por hora transparentes para modelos 3D de control de maquinaria: anticipada, normal o urgente. Todos los formatos incluidos.",
-    },
     eyebrow: "Tarifas",
-    titel: "Tarifas por hora justas, estimadas de antemano",
+    titel: "Tarifas por hora de modelos 3D, estimadas de antemano",
     intro: "Usted paga por hora de modelado. Cada presupuesto indica el número estimado de horas, para que sepa de antemano a qué atenerse. Cuanto antes lo solicite, más ventajoso.",
     perUur: "por hora",
     exBtw: "IVA no incluido",
@@ -191,7 +211,7 @@ const T: Record<
       normaal: { titel: "Normal", termijn: "Entrega en un plazo de 1 a 3 semanas" },
       "last-minute": { titel: "Urgente", termijn: "Entrega en un plazo de 5 días laborables" },
     },
-    aanbevolen: "La más elegida",
+    aanbevolen: "Recomendado",
     inbegrepenKop: "Siempre incluido",
     inbegrepen: [
       "Superficie de proyecto, líneas y curvas de nivel",
@@ -218,7 +238,16 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { ...T[locale].meta, alternates: talen(locale, "/tarieven") };
+  return paginaMeta(locale, PAD, meta(locale));
+}
+
+// Verder lezen onder de offerteknop: twee kennisartikels en de voorwaarden.
+const VERDER: string[] = ["/kennis/veelgestelde-vragen", "/kennis/wat-aanleveren", "/voorwaarden"];
+
+function verderLabel(pad: string, l: Locale): string {
+  if (pad === "/voorwaarden") return KRUIMEL["/voorwaarden"][l];
+  const slug = pad.replace("/kennis/", "");
+  return kennisArtikel(slug)?.i18n[l].titel ?? slug;
 }
 
 const CATS: { id: Categorie; icoon: typeof Clock }[] = [
@@ -231,9 +260,23 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   const t = T[locale];
+  const m = meta(locale);
 
   return (
     <main className="border-b">
+      <JsonLd
+        data={graph(
+          siteNodes(locale, { metDienst: true }),
+          dienstNodes(locale),
+          kruimels(locale, PAD, [{ naam: KRUIMEL[PAD][locale], pad: PAD }]),
+          webPagina(locale, PAD, {
+            naam: m.title,
+            beschrijving: m.description,
+            about: ID.dienst,
+            mainEntity: { "@id": ID.tarieven },
+          }),
+        )}
+      />
       <section className="wrap py-16 sm:py-20 2xl:py-24">
         <div className="max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>
@@ -314,6 +357,19 @@ export default async function TarievenPage({ params }: { params: Promise<{ local
             <ArrowRight className="h-4 w-4" strokeWidth={2} />
           </Link>
         </div>
+        <ul className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+          {VERDER.map((pad) => (
+            <li key={pad}>
+              <Link
+                href={localePath(locale, pad)}
+                className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline"
+              >
+                {verderLabel(pad, locale)}
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   );

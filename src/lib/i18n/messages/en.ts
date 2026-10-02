@@ -1,12 +1,15 @@
 import type { Messages } from "./nl";
+// Relative import: Playwright loads this file without the @/ path alias.
+import { UURTARIEF_CENT, MINIMUM_UREN, euro } from "../../tarieven";
+
+const P = euro(UURTARIEF_CENT.vroegtijdig, "en");
 
 const en: Messages = {
   meta: {
     siteName: "Studio VM",
-    title: "Studio VM — 3D models for machine control",
-    description:
-      "Your 2D plans turned into 3D design models for GPS-guided excavators, graders and dozers. Delivered in your machine's format and in the right coordinate system, anywhere in Europe.",
-    locale: "en_US",
+    title: "Machine control 3D models for earthworks | Studio VM",
+    description: `Your 2D drawings as 3D models for GPS-guided excavators, graders and dozers: Trimble, Topcon, Leica, Unicontrol and more. From ${P} per hour excl. VAT.`,
+    locale: "en_GB",
   },
   nav: {
     werk: "Work",
@@ -15,66 +18,16 @@ const en: Messages = {
     contact: "Contact",
     search: "Search",
     menu: "Menu",
+    over: "About Studio VM",
   },
-  hero: {
-    eyebrow: "Vincent Montreuil — web developer",
-    titles: [
-      "Websites that work for the people who use them.",
-      "Fast sites for local entrepreneurs.",
-      "No plugin spaghetti. No cost explosion.",
-      "A site that brings clients, not just compliments.",
-      "Your site, your code, your data — for good.",
-      "From slow WordPress to lightning fast.",
-    ],
-    subtitles: [
-      "I build fast, multilingual websites and webshops for local entrepreneurs in Flanders. No plugin spaghetti, no monthly cost explosion, with an admin built for you.",
-      "Restaurants, studios, photographers and SMEs — a site that loads before your visitor leaves.",
-      "One clean Next.js codebase instead of thirty plugins fighting each other.",
-      "Built around conversion: lightning fast, findable on Google and simple to manage yourself.",
-      "No code lock-in: you own everything I deliver. Maintenance is required, but you freely pick the level.",
-      "I migrate your existing site while keeping your Google rankings. Zero downtime.",
-    ],
-    ctaWerk: "See work",
-    ctaPricing: "Pricing",
-    ctaContact: "Let's talk",
-  },
-  stats: {
-    projects: "live projects",
-    languages: "languages (NL · FR · EN · DE · ES)",
-    stack: "Next.js + Supabase",
-    plugins: "WordPress plugins",
-    pagespeed: "avg. PageSpeed",
-    uptime: "uptime",
-    ervaring: "years experience",
-    respons: "response time",
-  },
-  werk: {
-    eyebrow: "Work",
-    title: "Recent work",
-    intro:
-      "A selection of the sites and webshops I've built recently — restaurants, ateliers, photographers and businesses.",
-  },
-  ctaBanner: {
-    eyebrow: "Ready to start?",
-    title: "A site that actually works for you.",
-    sub: "No plugin spaghetti, no surprises afterwards. Build your package and see your exact fixed price right away.",
-    button: "Build your package",
-  },
-  testimonials: {
-    eyebrow: "Clients",
-    title: "What they say afterwards",
-  },
-  mogelijkheden: {
-    eyebrow: "Capabilities",
-    title: "What I can build for you",
-    intro:
-      "Under the hood it's always the same stack — Next.js, Supabase, Tailwind. Which modules you need depends on your business. Here's an overview.",
+  aanbod: {
+    prijsregel: `From ${P} per hour excl. VAT · ${MINIMUM_UREN}-hour minimum · extra systems free · last-minute within 5 working days`,
   },
   contact: {
     eyebrow: "Contact",
     title: "A project in the pipeline or just a question?",
     intro:
-      "Send me a message — or call/email directly. I usually reply the same day. Already have plans? Request a quote straight away so I can take a look.",
+      "Send us a message, or call or email us directly. We usually reply the same day. Already have plans? Request a quote straight away so we can take a look.",
     location: "West Flanders, Belgium",
   },
   contactForm: {
@@ -91,28 +44,16 @@ const en: Messages = {
     submitting: "Sending...",
     openMail: "Open in mail client",
   },
-  newsletter: {
-    eyebrow: "Newsletter",
-    intro: "Once a month, a short email about what I built and learned.",
-    placeholder: "you@company.com",
-    label: "Subscribe",
-  },
   footer: {
-    tagline: "Vincent Montreuil — 3D models for machine control, anywhere in Europe.",
+    tagline: "Studio VM — 3D models for machine control, anywhere in Europe.",
     sections: {
       studio: "Studio",
       diensten: "Services",
       klanten: "For clients",
-      vincent: "About",
+      over: "About Studio VM",
       legal: "Legal",
     },
     built: "Modelled in Anzegem, delivered across Europe.",
-  },
-  notTranslated: {
-    title: "This page is only available in Dutch.",
-    body:
-      "The rest of the site is fully NL/FR/EN/DE/ES. This specific page isn't translated yet — let me know if you need it.",
-    cta: "Back to home",
   },
 };
 

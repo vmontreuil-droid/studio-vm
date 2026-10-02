@@ -10,10 +10,14 @@
 //
 // Prijzen komen uitsluitend uit lib/tarieven. Geen verzonnen beoordelingen,
 // klanten, cijfers of onderscheidingen.
+//
+// Geen Person-knoop: de site spreekt als Studio VM. Auteur, uitgever en
+// maker zijn altijd de organisatie (ID.org). De naam van de houder staat
+// enkel als legalName op het bedrijf, net als in de wettelijke footerregel.
 // ─────────────────────────────────────────────────────────────────────────
 
 import { SITE, canoniek, HOME_LABEL } from "./seo";
-import { BEDRIJF, FUNCTIE } from "./bedrijf";
+import { BEDRIJF } from "./bedrijf";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro } from "./tarieven";
 import { LANDEN } from "./stelsel";
 import { getMessages } from "./i18n";
@@ -23,7 +27,12 @@ export type Node = Record<string, unknown>;
 
 export const ID = {
   org: `${SITE}/#organization`,
-  person: `${SITE}/#vincent`,
+  /**
+   * @deprecated Er is geen Person-knoop meer: gebruik ID.org. Blijft als
+   * alias van ID.org bestaan, zodat een achtergebleven verwijzing naar het
+   * bedrijf wijst in plaats van naar een ontbrekende knoop.
+   */
+  person: `${SITE}/#organization`,
   website: `${SITE}/#website`,
   logo: `${SITE}/#logo`,
   dienst: `${SITE}/#dienst`,
@@ -171,22 +180,26 @@ function landen(l: Locale): Node[] {
   return LANDEN.map((c) => ({ "@type": "Country", name: namen.of(c) ?? c, identifier: c }));
 }
 
-function adres(volledig: boolean): Node {
+function adres(): Node {
   return {
     "@type": "PostalAddress",
-    ...(volledig ? { streetAddress: BEDRIJF.straat, postalCode: BEDRIJF.postcode } : {}),
+    streetAddress: BEDRIJF.straat,
+    postalCode: BEDRIJF.postcode,
     addressLocality: BEDRIJF.gemeente,
     addressRegion: BEDRIJF.provincie,
     addressCountry: BEDRIJF.landCode,
   };
 }
 
+/** Verwijzing naar Studio VM, voor author, publisher en creator. */
+const ORG = (): Node => ({ "@id": ID.org });
+
 const isHome = (pad: string) => pad === "" || pad === "/";
 
-// ── site: bedrijf, persoon, website ───────────────────────────────────────
+// ── site: bedrijf, website ────────────────────────────────────────────────
 
 /**
- * De drie vaste knopen van elke pagina: LocalBusiness, Person en WebSite.
+ * De vaste knopen van elke pagina: LocalBusiness (Studio VM) en WebSite.
  * `metDienst` voegt hasOfferCatalog toe; gebruik het enkel samen met
  * dienstNodes(l) in dezelfde graph.
  */
@@ -217,7 +230,7 @@ export function siteNodes(l: Locale, opts?: { metDienst?: boolean }): Node[] {
     vatID: BEDRIJF.btwCompact,
     // 0208 = Belgisch ondernemingsnummer (KBO) in ISO 6523.
     iso6523Code: `0208:${BEDRIJF.btwCompact.slice(2)}`,
-    address: adres(true),
+    address: adres(),
     areaServed: landen(l),
     priceRange: `${euro(UURTARIEF_CENT.vroegtijdig, l)}–${euro(UURTARIEF_CENT["last-minute"], l)} ${SUFFIX[l]}`,
     currenciesAccepted: "EUR",
@@ -231,25 +244,9 @@ export function siteNodes(l: Locale, opts?: { metDienst?: boolean }): Node[] {
         availableLanguage: TALEN,
       },
     ],
-    founder: { "@id": ID.person },
     knowsAbout: [...KNOWS[l], ...MERKEN],
     knowsLanguage: TALEN,
     ...(opts?.metDienst ? { hasOfferCatalog: { "@id": ID.tarieven } } : {}),
-  };
-
-  const persoon: Node = {
-    "@type": "Person",
-    "@id": ID.person,
-    name: BEDRIJF.houder,
-    givenName: "Vincent",
-    familyName: "Montreuil",
-    url: `${SITE}/${l}/over`,
-    jobTitle: FUNCTIE[l],
-    worksFor: { "@id": ID.org },
-    address: adres(false),
-    knowsLanguage: TALEN,
-    knowsAbout: KNOWS[l],
-    sameAs: [BEDRIJF.linkedin],
   };
 
   const website: Node = {
@@ -260,10 +257,11 @@ export function siteNodes(l: Locale, opts?: { metDienst?: boolean }): Node[] {
     alternateName: ["studio-vm.be"],
     description: m.meta.description,
     inLanguage: TALEN,
-    publisher: { "@id": ID.org },
+    publisher: ORG(),
+    creator: ORG(),
   };
 
-  return [bedrijf, persoon, website];
+  return [bedrijf, website];
 }
 
 // ── dienst + tarieven ─────────────────────────────────────────────────────
@@ -415,13 +413,8 @@ export function artikel(
     image: [o.beeld],
     datePublished: o.gepubliceerd,
     dateModified: o.bijgewerkt,
-    author: {
-      "@type": "Person",
-      "@id": ID.person,
-      name: BEDRIJF.houder,
-      url: `${SITE}/${l}/over`,
-    },
-    publisher: { "@id": ID.org },
+    author: ORG(),
+    publisher: ORG(),
     inLanguage: l,
     articleSection: o.sectie,
     isAccessibleForFree: true,
@@ -486,7 +479,7 @@ export function galerij(
           name: b.naam,
           caption: b.bijschrift,
           keywords: b.trefwoorden,
-          creator: { "@id": ID.person },
+          creator: ORG(),
           creditText: BEDRIJF.naam,
           copyrightNotice: `© ${BEDRIJF.naam}`,
         },

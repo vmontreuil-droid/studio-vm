@@ -18,15 +18,22 @@ import {
 import { ContactForm } from "@/components/contact-form";
 import { CtaBanner } from "@/components/cta-banner";
 import { HeroCarrousel } from "@/components/hero-carrousel";
+import { JsonLd } from "@/components/json-ld";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { talen } from "@/lib/seo";
+import { paginaMeta } from "@/lib/seo";
+import { ID, dienstNodes, graph, siteNodes, webPagina } from "@/lib/schema";
+import { BEDRIJF, FUNCTIE, LAND, PROVINCIE } from "@/lib/bedrijf";
+import { BEELD_ALT } from "@/lib/realisaties";
 import { LANDEN, stelselVoor, type Land } from "@/lib/stelsel";
 
 /* ─────────────────────────────────────────────────────────────────────────
  * Studio VM — 3D-modellen voor machinesturing.
- * Alle teksten van deze pagina staan in X (nl/fr/en). Beelden in /public/3d.
+ * Alle teksten van deze pagina staan in X (nl/fr/en/de/es). Beelden in /public/3d.
  * ───────────────────────────────────────────────────────────────────────── */
+
+// Enkel de vijf talen bestaan; al het andere (/wp-login.php, …) krijgt de 404.
+export const dynamicParams = false;
 
 type Kaart = { titel: string; tekst: string; beeld: string };
 type Stap = { titel: string; tekst: string };
@@ -46,14 +53,17 @@ const X: Record<
     leverTitel: string;
     leverIntro: string;
     lever: Kaart[];
+    leverLink: string;
     stappenEyebrow: string;
     stappenTitel: string;
     stappenIntro: string;
     stappen: Stap[];
+    tarievenLink: string;
     toepEyebrow: string;
     toepTitel: string;
     toepIntro: string;
     toep: Kaart[];
+    toepLink: string;
     stelselEyebrow: string;
     stelselTitel: string;
     stelselTekst: string;
@@ -68,7 +78,7 @@ const X: Record<
   nl: {
     eyebrow: "3D-modellen voor machinesturing",
     titel: "Van plan tot machine.",
-    sub: "Ik zet uw 2D-plannen om in nauwkeurige 3D-ontwerpmodellen die uw GPS-gestuurde kraan, grader of dozer meteen inleest — in het formaat van uw machine en in het juiste coördinatenstelsel, overal in Europa.",
+    sub: "Wij zetten uw 2D-plannen om in nauwkeurige 3D-ontwerpmodellen die uw GPS-gestuurde graafkraan, grader of dozer meteen inleest — in het formaat van uw machine en in het juiste coördinatenstelsel, overal in Europa.",
     beloftes: [
       "Geleverd in het formaat van uw machine",
       "Juist coördinatenstelsel per land",
@@ -76,7 +86,7 @@ const X: Record<
     ],
     ctaOfferte: "Offerte aanvragen",
     ctaWerkwijze: "Zo werkt het",
-    merkenTitel: "Voor alle gangbare machinesturingen",
+    merkenTitel: "Voor alle gangbare merken van machinebesturing",
     merkenNoot: "en andere systemen die LandXML of DXF lezen",
     leverEyebrow: "Wat u krijgt",
     leverTitel: "Een model dat uw machine begrijpt",
@@ -104,28 +114,31 @@ const X: Record<
         beeld: "/3d/model-talud-helling.jpg",
       },
     ],
+    leverLink: "Bekijk wat er in een model zit",
     stappenEyebrow: "Werkwijze",
     stappenTitel: "In vier stappen van plan naar machine",
-    stappenIntro: "U stuurt plannen, ik lever een model dat klaar is om in te laden. Geen software te leren, geen licenties te kopen.",
+    stappenIntro: "U stuurt plannen, wij leveren een model dat klaar is om in te laden. Geen software te leren, geen licenties te kopen.",
     stappen: [
       { titel: "Plannen opsturen", tekst: "PDF, DWG, DXF of LandXML — samen met het adres van de werf en het merk van uw machinesturing." },
       { titel: "Offerte op maat", tekst: "U krijgt een duidelijke prijs en leverdatum, op basis van uw plannen." },
-      { titel: "Modelleren en controleren", tekst: "Ik bouw het 3D-model en controleer niveaus, hellingen en aansluitingen." },
+      { titel: "Modelleren en controleren", tekst: "We bouwen het 3D-model en controleren niveaus, hellingen en aansluitingen." },
       { titel: "Klaar voor de machine", tekst: "Levering in het formaat van uw machine, in het coördinatenstelsel van de werf." },
     ],
+    tarievenLink: "Bekijk de tarieven",
     toepEyebrow: "Toepassingen",
     toepTitel: "Van bouwput tot wegtracé",
-    toepIntro: "Elk project waar een machine met GPS-sturing op het juiste niveau moet graven, egaliseren of aanleggen.",
+    toepIntro: "Elk project waar een machine met GPS-sturing op het juiste niveau moet graven, egaliseren of aanleggen, ook riolering, sleuven en sportvelden.",
     toep: [
       { titel: "Grondwerk en platformen", tekst: "Bedrijfsterreinen, verkavelingen en funderingsplatformen.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Wegenis en tracés", tekst: "Wegen, fietspaden en opritten met hun profielen.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Bouwputten", tekst: "Uitgravingen met taluds en werkvloeren op niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
       { titel: "Parkings en verhardingen", tekst: "Afwatering en hellingen tot op de centimeter.", beeld: "/3d/model-parking.jpg" },
     ],
+    toepLink: "Bekijk realisaties",
     stelselEyebrow: "Overal in Europa",
     stelselTitel: "Het juiste stelsel, vanaf het werfadres",
     stelselTekst:
-      "Een model in het verkeerde coördinatenstelsel ligt naast de werf. Daarom vraag ik bij elke aanvraag het adres van de werf: daaruit volgt meteen het stelsel en het hoogtereferentiekader van dat land.",
+      "Een model in het verkeerde coördinatenstelsel ligt naast de werf. Daarom vragen we bij elke aanvraag het adres van de werf: daaruit volgt meteen het stelsel en het hoogtereferentiekader van dat land.",
     stelselVoorbeelden: [
       { land: "België", stelsel: "Lambert 72 / 2008 · TAW" },
       { land: "Nederland", stelsel: "RD New · NAP" },
@@ -142,7 +155,7 @@ const X: Record<
   fr: {
     eyebrow: "Modèles 3D pour le guidage d'engins",
     titel: "Du plan à la machine.",
-    sub: "Je transforme vos plans 2D en modèles 3D précis que votre pelle, niveleuse ou bouteur à guidage GPS charge directement — dans le format de votre machine et dans le bon système de coordonnées, partout en Europe.",
+    sub: "Nous transformons vos plans 2D en modèles 3D précis que votre pelleteuse, niveleuse ou bulldozer à guidage GPS charge directement — dans le format de votre machine et dans le bon système de coordonnées, partout en Europe.",
     beloftes: [
       "Livré dans le format de votre machine",
       "Le bon système de coordonnées par pays",
@@ -178,28 +191,31 @@ const X: Record<
         beeld: "/3d/model-talud-helling.jpg",
       },
     ],
+    leverLink: "Voir ce que contient un modèle",
     stappenEyebrow: "Méthode",
     stappenTitel: "Du plan à la machine en quatre étapes",
-    stappenIntro: "Vous envoyez les plans, je livre un modèle prêt à charger. Aucun logiciel à apprendre, aucune licence à acheter.",
+    stappenIntro: "Vous envoyez les plans, nous livrons un modèle prêt à charger. Aucun logiciel à apprendre, aucune licence à acheter.",
     stappen: [
       { titel: "Envoyer les plans", tekst: "PDF, DWG, DXF ou LandXML — avec l'adresse du chantier et la marque de votre guidage." },
       { titel: "Devis sur mesure", tekst: "Vous recevez un prix et un délai clairs, sur base de vos plans." },
-      { titel: "Modélisation et contrôle", tekst: "Je construis le modèle 3D et vérifie niveaux, pentes et raccords." },
+      { titel: "Modélisation et contrôle", tekst: "Nous construisons le modèle 3D et vérifions niveaux, pentes et raccords." },
       { titel: "Prêt pour la machine", tekst: "Livraison dans le format de votre machine, dans le système de coordonnées du chantier." },
     ],
+    tarievenLink: "Voir les tarifs",
     toepEyebrow: "Applications",
     toepTitel: "De la fouille au tracé routier",
-    toepIntro: "Tout projet où une machine guidée par GPS doit creuser, régler ou poser au bon niveau.",
+    toepIntro: "Tout projet où une machine guidée par GPS doit creuser, régler ou poser au bon niveau, y compris égouttage, tranchées et terrains de sport.",
     toep: [
       { titel: "Terrassements et plateformes", tekst: "Zones d'activité, lotissements et plateformes de fondation.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Voiries et tracés", tekst: "Routes, pistes cyclables et accès avec leurs profils.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Fouilles", tekst: "Excavations avec talus et fonds de fouille à niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
       { titel: "Parkings et revêtements", tekst: "Écoulements et pentes au centimètre.", beeld: "/3d/model-parking.jpg" },
     ],
+    toepLink: "Voir les réalisations",
     stelselEyebrow: "Partout en Europe",
     stelselTitel: "Le bon système, dès l'adresse du chantier",
     stelselTekst:
-      "Un modèle dans le mauvais système de coordonnées tombe à côté du chantier. C'est pourquoi je demande l'adresse du chantier : elle détermine aussitôt le système et la référence altimétrique du pays.",
+      "Un modèle dans le mauvais système de coordonnées tombe à côté du chantier. C'est pourquoi nous demandons l'adresse du chantier : elle détermine aussitôt le système et la référence altimétrique du pays.",
     stelselVoorbeelden: [
       { land: "Belgique", stelsel: "Lambert 72 / 2008 · DNG" },
       { land: "Pays-Bas", stelsel: "RD New · NAP" },
@@ -216,7 +232,7 @@ const X: Record<
   en: {
     eyebrow: "3D models for machine control",
     titel: "From plan to machine.",
-    sub: "I turn your 2D plans into accurate 3D design models that your GPS-guided excavator, grader or dozer loads straight away — in your machine's format and in the right coordinate system, anywhere in Europe.",
+    sub: "We turn your 2D plans into accurate 3D design models that your GPS-guided excavator, grader or dozer loads straight away — in your machine's format and in the right coordinate system, anywhere in Europe.",
     beloftes: [
       "Delivered in your machine's format",
       "The right coordinate system per country",
@@ -252,28 +268,31 @@ const X: Record<
         beeld: "/3d/model-talud-helling.jpg",
       },
     ],
+    leverLink: "See what's in a model",
     stappenEyebrow: "How it works",
     stappenTitel: "From plan to machine in four steps",
-    stappenIntro: "You send the plans, I deliver a model that is ready to load. No software to learn, no licences to buy.",
+    stappenIntro: "You send the plans, we deliver a model that is ready to load. No software to learn, no licences to buy.",
     stappen: [
       { titel: "Send your plans", tekst: "PDF, DWG, DXF or LandXML — with the site address and the brand of your machine control." },
       { titel: "Tailored quote", tekst: "You get a clear price and delivery date, based on your plans." },
-      { titel: "Modelling and checks", tekst: "I build the 3D model and check levels, slopes and tie-ins." },
+      { titel: "Modelling and checks", tekst: "We build the 3D model and check levels, slopes and tie-ins." },
       { titel: "Ready for the machine", tekst: "Delivered in your machine's format, in the site's coordinate system." },
     ],
+    tarievenLink: "See the rates",
     toepEyebrow: "Applications",
     toepTitel: "From excavation to road alignment",
-    toepIntro: "Any project where a GPS-guided machine has to dig, grade or lay to the right level.",
+    toepIntro: "Any project where a GPS-guided machine has to dig, grade or lay to the right level, including sewers, trenches and sports fields.",
     toep: [
       { titel: "Earthworks and platforms", tekst: "Industrial sites, housing plots and foundation platforms.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Roads and alignments", tekst: "Roads, cycle paths and driveways with their profiles.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Excavations", tekst: "Pits with embankments and formation levels.", beeld: "/3d/model-platform-hoogte.jpg" },
       { titel: "Car parks and paving", tekst: "Drainage falls and slopes to the centimetre.", beeld: "/3d/model-parking.jpg" },
     ],
+    toepLink: "See projects",
     stelselEyebrow: "Anywhere in Europe",
     stelselTitel: "The right system, from the site address",
     stelselTekst:
-      "A model in the wrong coordinate system ends up next to the site. That is why I ask for the site address with every request: it immediately tells me the country's coordinate system and height datum.",
+      "A model in the wrong coordinate system ends up next to the site. That is why we ask for the site address with every request: it immediately tells us the country's coordinate system and height datum.",
     stelselVoorbeelden: [
       { land: "Belgium", stelsel: "Lambert 72 / 2008 · TAW" },
       { land: "Netherlands", stelsel: "RD New · NAP" },
@@ -290,7 +309,7 @@ const X: Record<
   de: {
     eyebrow: "3D-Modelle für Maschinensteuerung",
     titel: "Vom Plan zur Maschine.",
-    sub: "Ich verwandle Ihre 2D-Pläne in präzise 3D-Modelle, die Ihr GPS-gesteuerter Bagger, Grader oder Dozer sofort einliest — im Format Ihrer Maschine und im richtigen Koordinatensystem, überall in Europa.",
+    sub: "Wir verwandeln Ihre 2D-Pläne in präzise 3D-Modelle, die Ihr GPS-gesteuerter Bagger, Grader oder Dozer sofort einliest — im Format Ihrer Maschine und im richtigen Koordinatensystem, überall in Europa.",
     beloftes: [
       "Geliefert im Format Ihrer Maschine",
       "Das richtige Koordinatensystem je Land",
@@ -326,28 +345,31 @@ const X: Record<
         beeld: "/3d/model-talud-helling.jpg",
       },
     ],
+    leverLink: "Sehen, was in einem Modell steckt",
     stappenEyebrow: "Ablauf",
     stappenTitel: "In vier Schritten vom Plan zur Maschine",
-    stappenIntro: "Sie senden die Pläne, ich liefere ein Modell, das sofort geladen werden kann. Keine Software zu lernen, keine Lizenzen zu kaufen.",
+    stappenIntro: "Sie senden die Pläne, wir liefern ein Modell, das sofort geladen werden kann. Keine Software zu lernen, keine Lizenzen zu kaufen.",
     stappen: [
       { titel: "Pläne senden", tekst: "PDF, DWG, DXF oder LandXML — zusammen mit der Baustellenadresse und der Marke Ihrer Maschinensteuerung." },
       { titel: "Individuelles Angebot", tekst: "Sie erhalten einen klaren Preis und einen Liefertermin auf Grundlage Ihrer Pläne." },
-      { titel: "Modellieren und prüfen", tekst: "Ich erstelle das 3D-Modell und prüfe Höhen, Neigungen und Anschlüsse." },
+      { titel: "Modellieren und prüfen", tekst: "Wir erstellen das 3D-Modell und prüfen Höhen, Neigungen und Anschlüsse." },
       { titel: "Bereit für die Maschine", tekst: "Lieferung im Format Ihrer Maschine, im Koordinatensystem der Baustelle." },
     ],
+    tarievenLink: "Preise ansehen",
     toepEyebrow: "Anwendungen",
     toepTitel: "Von der Baugrube bis zur Straßentrasse",
-    toepIntro: "Jedes Projekt, bei dem eine GPS-gesteuerte Maschine auf der richtigen Höhe graben, planieren oder einbauen muss.",
+    toepIntro: "Jedes Projekt, bei dem eine GPS-gesteuerte Maschine auf der richtigen Höhe graben, planieren oder einbauen muss, auch Kanalbau, Gräben und Sportplätze.",
     toep: [
       { titel: "Erdbau und Planien", tekst: "Gewerbegebiete, Baugebiete und Gründungsplanien.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Straßenbau und Trassen", tekst: "Straßen, Radwege und Zufahrten mit ihren Profilen.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Baugruben", tekst: "Aushub mit Böschungen und Sohlen auf Höhe.", beeld: "/3d/model-platform-hoogte.jpg" },
       { titel: "Parkplätze und Befestigungen", tekst: "Entwässerung und Gefälle auf den Zentimeter genau.", beeld: "/3d/model-parking.jpg" },
     ],
+    toepLink: "Referenzen ansehen",
     stelselEyebrow: "Überall in Europa",
     stelselTitel: "Das richtige System, ab der Baustellenadresse",
     stelselTekst:
-      "Ein Modell im falschen Koordinatensystem liegt neben der Baustelle. Deshalb frage ich bei jeder Anfrage nach der Baustellenadresse: Daraus ergeben sich sofort das Koordinatensystem und der Höhenbezug des Landes.",
+      "Ein Modell im falschen Koordinatensystem liegt neben der Baustelle. Deshalb fragen wir bei jeder Anfrage nach der Baustellenadresse: Daraus ergeben sich sofort das Koordinatensystem und der Höhenbezug des Landes.",
     stelselVoorbeelden: [
       { land: "Belgien", stelsel: "Lambert 72 / 2008 · TAW" },
       { land: "Niederlande", stelsel: "RD New · NAP" },
@@ -364,7 +386,7 @@ const X: Record<
   es: {
     eyebrow: "Modelos 3D para control de maquinaria",
     titel: "Del plano a la máquina.",
-    sub: "Convierto sus planos 2D en modelos 3D precisos que su excavadora, motoniveladora o bulldozer con guiado GPS carga de inmediato — en el formato de su máquina y en el sistema de coordenadas correcto, en toda Europa.",
+    sub: "Convertimos sus planos 2D en modelos 3D precisos que su excavadora, motoniveladora o bulldozer con guiado GPS carga de inmediato — en el formato de su máquina y en el sistema de coordenadas correcto, en toda Europa.",
     beloftes: [
       "Entregado en el formato de su máquina",
       "El sistema de coordenadas correcto para cada país",
@@ -400,28 +422,31 @@ const X: Record<
         beeld: "/3d/model-talud-helling.jpg",
       },
     ],
+    leverLink: "Vea qué contiene un modelo",
     stappenEyebrow: "Método",
     stappenTitel: "Del plano a la máquina en cuatro pasos",
-    stappenIntro: "Usted envía los planos y yo entrego un modelo listo para cargar. Sin software que aprender ni licencias que comprar.",
+    stappenIntro: "Usted envía los planos y nosotros entregamos un modelo listo para cargar. Sin software que aprender ni licencias que comprar.",
     stappen: [
       { titel: "Enviar los planos", tekst: "PDF, DWG, DXF o LandXML — junto con la dirección de la obra y la marca de su sistema de control de maquinaria." },
       { titel: "Presupuesto a medida", tekst: "Recibe un precio y una fecha de entrega claros, basados en sus planos." },
-      { titel: "Modelado y control", tekst: "Construyo el modelo 3D y compruebo cotas, pendientes y encuentros." },
+      { titel: "Modelado y control", tekst: "Construimos el modelo 3D y comprobamos cotas, pendientes y encuentros." },
       { titel: "Listo para la máquina", tekst: "Entrega en el formato de su máquina, en el sistema de coordenadas de la obra." },
     ],
+    tarievenLink: "Ver las tarifas",
     toepEyebrow: "Aplicaciones",
     toepTitel: "De la excavación al trazado de carreteras",
-    toepIntro: "Cualquier proyecto en el que una máquina guiada por GPS deba excavar, nivelar o colocar a la cota correcta.",
+    toepIntro: "Cualquier proyecto en el que una máquina guiada por GPS deba excavar, nivelar o colocar a la cota correcta, también saneamiento, zanjas y campos deportivos.",
     toep: [
       { titel: "Movimiento de tierras y plataformas", tekst: "Polígonos industriales, urbanizaciones y plataformas de cimentación.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Viales y trazados", tekst: "Carreteras, carriles bici y accesos con sus perfiles.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Excavaciones", tekst: "Vaciados con taludes y fondos de excavación a cota.", beeld: "/3d/model-platform-hoogte.jpg" },
       { titel: "Aparcamientos y pavimentos", tekst: "Desagües y pendientes al centímetro.", beeld: "/3d/model-parking.jpg" },
     ],
+    toepLink: "Ver proyectos",
     stelselEyebrow: "En toda Europa",
     stelselTitel: "El sistema correcto, a partir de la dirección de la obra",
     stelselTekst:
-      "Un modelo en el sistema de coordenadas equivocado queda fuera de la obra. Por eso pido la dirección de la obra en cada solicitud: de ella se deducen de inmediato el sistema de coordenadas y la referencia altimétrica del país.",
+      "Un modelo en el sistema de coordenadas equivocado queda fuera de la obra. Por eso pedimos la dirección de la obra en cada solicitud: de ella se deducen de inmediato el sistema de coordenadas y la referencia altimétrica del país.",
     stelselVoorbeelden: [
       { land: "Bélgica", stelsel: "Lambert 72 / 2008 · TAW" },
       { land: "Países Bajos", stelsel: "RD New · NAP" },
@@ -442,7 +467,8 @@ const MERKEN = ["Trimble", "Topcon", "Leica", "Unicontrol", "CHCNAV", "Komatsu",
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { alternates: talen(locale, "") };
+  const m = getMessages(locale);
+  return paginaMeta(locale, "", { title: m.meta.title, description: m.meta.description });
 }
 
 export default async function Home({
@@ -457,11 +483,24 @@ export default async function Home({
 
   return (
     <main>
-      <Hero locale={locale} x={x} />
-      <Merken x={x} />
-      <Levering x={x} />
-      <Werkwijze x={x} />
-      <Toepassingen x={x} />
+      <JsonLd
+        data={graph(
+          siteNodes(locale, { metDienst: true }),
+          dienstNodes(locale),
+          webPagina(locale, "", {
+            naam: t.meta.title,
+            beschrijving: t.meta.description,
+            about: ID.org,
+            mainEntity: { "@id": ID.dienst },
+            metKruimels: false,
+          }),
+        )}
+      />
+      <Hero locale={locale} x={x} t={t} />
+      <Merken locale={locale} x={x} />
+      <Levering locale={locale} x={x} />
+      <Werkwijze locale={locale} x={x} />
+      <Toepassingen locale={locale} x={x} />
       <Stelsels locale={locale} x={x} />
       <CtaBanner
         locale={locale}
@@ -470,7 +509,7 @@ export default async function Home({
         sub={x.ctaSub}
         button={x.ctaKnop}
       />
-      <Contact t={t} />
+      <Contact locale={locale} t={t} />
     </main>
   );
 }
@@ -478,7 +517,7 @@ export default async function Home({
 type T = ReturnType<typeof getMessages>;
 type Xt = (typeof X)[Locale];
 
-function Hero({ locale, x }: { locale: Locale; x: Xt }) {
+function Hero({ locale, x, t }: { locale: Locale; x: Xt; t: T }) {
   return (
     <section className="relative isolate overflow-hidden border-b">
       <div aria-hidden className="hero-backdrop">
@@ -491,10 +530,12 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
       </div>
       <div className="wrap relative z-10 grid items-center gap-12 py-20 sm:py-28 lg:grid-cols-[1.05fr_1fr] lg:py-32 xl:gap-16 2xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] 2xl:gap-24 2xl:py-36">
         <div>
-          <p className="mb-6 font-mono text-xs uppercase tracking-widest text-accent">
-            {x.eyebrow}
-          </p>
+          {/* De eyebrow hoort bij de h1: zo staat het zoekwoord in de kop,
+              zonder dat er visueel iets verandert. */}
           <h1 className="text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl 2xl:text-8xl">
+            <span className="mb-6 block font-mono text-xs font-normal uppercase tracking-widest text-accent">
+              {x.eyebrow}
+            </span>{" "}
             {x.titel}
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted sm:text-xl 2xl:max-w-2xl">
@@ -508,6 +549,20 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
               </li>
             ))}
           </ul>
+          <p className="mt-6 text-sm">
+            <Link
+              href={localePath(locale, "/tarieven")}
+              className="font-medium text-foreground underline decoration-accent/60 underline-offset-4 transition-colors hover:text-accent"
+            >
+              {t.aanbod.prijsregel}
+            </Link>
+          </p>
+          <p className="mt-2 text-xs text-muted">
+            <Link href={localePath(locale, "/over")} className="hover:text-accent">
+              {BEDRIJF.naam}
+            </Link>{" "}
+            · {FUNCTIE[locale]} · {BEDRIJF.gemeente} ({PROVINCIE[locale]}), {LAND[locale]}
+          </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href={localePath(locale, "/offerte")}
@@ -531,7 +586,8 @@ function Hero({ locale, x }: { locale: Locale; x: Xt }) {
   );
 }
 
-function Merken({ x }: { x: Xt }) {
+function Merken({ locale, x }: { locale: Locale; x: Xt }) {
+  const merkenPagina = localePath(locale, "/3d-modellen#merken");
   return (
     <section className="border-b bg-card">
       <div className="wrap py-10">
@@ -541,7 +597,9 @@ function Merken({ x }: { x: Xt }) {
         <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 xl:gap-x-16">
           {MERKEN.map((m) => (
             <li key={m} className="text-lg font-semibold tracking-tight text-foreground/70 xl:text-xl">
-              {m}
+              <Link href={merkenPagina} className="transition-colors hover:text-accent">
+                {m}
+              </Link>
             </li>
           ))}
         </ul>
@@ -551,7 +609,7 @@ function Merken({ x }: { x: Xt }) {
   );
 }
 
-function Levering({ x }: { x: Xt }) {
+function Levering({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b">
       <div className="wrap py-24 sm:py-28">
@@ -562,7 +620,7 @@ function Levering({ x }: { x: Xt }) {
               <div className="relative aspect-[4/3] overflow-hidden bg-[#0b1220]">
                 <Image
                   src={k.beeld}
-                  alt={k.titel}
+                  alt={`${k.titel} — ${BEELD_ALT[locale]}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -578,6 +636,7 @@ function Levering({ x }: { x: Xt }) {
             </article>
           ))}
         </div>
+        <VerderLink href={localePath(locale, "/3d-modellen")} label={x.leverLink} />
       </div>
     </section>
   );
@@ -585,7 +644,7 @@ function Levering({ x }: { x: Xt }) {
 
 const STAP_ICONEN = [FileUp, Calculator, Layers, Send];
 
-function Werkwijze({ x }: { x: Xt }) {
+function Werkwijze({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section id="werkwijze" className="reveal-on-scroll scroll-mt-24 border-b bg-card">
       <div className="wrap py-24 sm:py-28">
@@ -603,6 +662,16 @@ function Werkwijze({ x }: { x: Xt }) {
                 </div>
                 <h3 className="mt-6 font-semibold tracking-tight">{s.titel}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{s.tekst}</p>
+                {/* Stap 2 (offerte op maat): de prijzen staan op /tarieven. */}
+                {i === 1 && (
+                  <Link
+                    href={localePath(locale, "/tarieven")}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+                  >
+                    {x.tarievenLink}
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+                  </Link>
+                )}
               </li>
             );
           })}
@@ -612,7 +681,7 @@ function Werkwijze({ x }: { x: Xt }) {
   );
 }
 
-function Toepassingen({ x }: { x: Xt }) {
+function Toepassingen({ locale, x }: { locale: Locale; x: Xt }) {
   return (
     <section className="reveal-on-scroll border-b">
       <div className="wrap py-24 sm:py-28">
@@ -625,7 +694,7 @@ function Toepassingen({ x }: { x: Xt }) {
             >
               <Image
                 src={k.beeld}
-                alt={k.titel}
+                alt={`${k.titel} — ${BEELD_ALT[locale]}`}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 25vw"
                 className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105"
@@ -637,8 +706,21 @@ function Toepassingen({ x }: { x: Xt }) {
             </article>
           ))}
         </div>
+        <VerderLink href={localePath(locale, "/realisaties")} label={x.toepLink} />
       </div>
     </section>
+  );
+}
+
+function VerderLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
+    >
+      {label}
+      <ArrowRight className="h-4 w-4" strokeWidth={2} />
+    </Link>
   );
 }
 
@@ -721,7 +803,7 @@ function SectieKop({ eyebrow, titel, intro }: { eyebrow: string; titel: string; 
   );
 }
 
-function Contact({ t }: { t: T }) {
+function Contact({ locale, t }: { locale: Locale; t: T }) {
   return (
     <section id="contact" className="reveal-on-scroll border-b">
       <div className="wrap py-24 sm:py-32">
@@ -736,24 +818,27 @@ function Contact({ t }: { t: T }) {
             <p className="mt-6 max-w-xl text-muted">{t.contact.intro}</p>
             <div className="mt-8 space-y-3">
               <a
-                href="mailto:info@studio-vm.be"
+                href={`mailto:${BEDRIJF.email}`}
                 className="flex items-center gap-3 text-sm transition-colors hover:text-accent"
               >
                 <Mail className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                info@studio-vm.be
+                {BEDRIJF.email}
               </a>
               <a
-                href="tel:+32477995651"
+                href={`tel:${BEDRIJF.telefoonE164}`}
                 className="flex items-center gap-3 text-sm transition-colors hover:text-accent"
               >
                 <Phone className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                +32 477 99 56 51
+                {BEDRIJF.telefoon}
               </a>
-              <p className="flex items-center gap-3 text-sm">
-                <MapPin className="h-4 w-4 text-accent" strokeWidth={1.5} />
-                {t.contact.location}
+              <p className="flex items-start gap-3 text-sm">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={1.5} />
+                <span>
+                  {BEDRIJF.naam} · {BEDRIJF.straat}, {BEDRIJF.postcode} {BEDRIJF.gemeente}, {LAND[locale]}
+                </span>
               </p>
             </div>
+            <VerderLink href={localePath(locale, "/over")} label={t.nav.over} />
           </div>
           <div className="rounded-2xl border bg-card p-6 sm:p-8">
             <ContactForm t={t.contactForm} />

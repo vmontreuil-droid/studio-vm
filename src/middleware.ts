@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { DEFAULT_LOCALE, isValidLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, TAAL_HEADER, isValidLocale } from "@/lib/i18n/config";
 
 // Bewust middleware.ts (edge) en geen proxy.ts: proxy draait verplicht op
 // Node in de functieregio; deze taalomleiding hoort aan de rand.
@@ -36,8 +36,14 @@ export function middleware(req: NextRequest) {
 
   const seg = pathname.split("/")[1] ?? "";
 
-  // Al een taal in het adres → niets te doen.
-  if (isValidLocale(seg)) return NextResponse.next();
+  // Al een taal in het adres → niets om te leiden. De taal gaat wel als
+  // verzoekheader mee: een onbekend adres (/es/foo) valt buiten elke route
+  // en krijgt global-not-found.tsx, die zo de 404 in de juiste taal toont.
+  if (isValidLocale(seg)) {
+    const headers = new Headers(req.headers);
+    headers.set(TAAL_HEADER, seg);
+    return NextResponse.next({ request: { headers } });
+  }
 
   // /NL/tarieven → /nl/tarieven (blijvend).
   const klein = seg.toLowerCase();

@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock, FileText, Crosshair } from "lucide-react";
 import { Offerte3dFormulier } from "@/components/offerte-3d-formulier";
+import { JsonLd } from "@/components/json-ld";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { KRUIMEL } from "@/lib/seo";
+import { ID, dienstNodes, graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
+import { META } from "./layout";
+
+const PAD = "/offerte";
 
 const T: Record<
   Locale,
@@ -19,14 +25,14 @@ const T: Record<
 > = {
   nl: {
     eyebrow: "Offerte aanvragen",
-    titel: "Stuur uw plannen, ontvang een offerte op maat",
+    titel: "Offerte voor uw 3D-model: stuur uw plannen",
     intro:
-      "Vul het formulier in en laad uw plannen op. Met het werfadres en het merk van uw machinesturing weet ik meteen in welk stelsel en formaat het model geleverd moet worden.",
+      "Vul het formulier in en laad uw plannen op. Met het werfadres en het merk van uw machinesturing weten we meteen in welk stelsel en formaat het model geleverd moet worden.",
     naKop: "Wat gebeurt er daarna?",
     na: [
       "U krijgt meteen een bevestiging per mail.",
-      "Ik bekijk uw plannen en stuur een offerte met prijs en leverdatum.",
-      "Na uw akkoord maak ik het model en lever ik het klaar voor de machine.",
+      "We bekijken uw plannen en sturen een offerte met prijs en leverdatum.",
+      "Na uw akkoord maken we het model en leveren we het klaar voor de machine.",
     ],
     plannenKop: "Wat stuurt u best mee?",
     plannen: [
@@ -36,18 +42,18 @@ const T: Record<
     ],
     stelselKop: "Waarom het werfadres?",
     stelsel:
-      "Elk land werkt met een eigen coördinatenstelsel en hoogtereferentie. Uit het adres leid ik het juiste stelsel af, zodat het model op de werf ligt en niet ernaast.",
+      "Elk land werkt met een eigen coördinatenstelsel en hoogtereferentie. Uit het adres leiden we het juiste stelsel af, zodat het model op de werf ligt en niet ernaast.",
   },
   fr: {
     eyebrow: "Demander un devis",
-    titel: "Envoyez vos plans, recevez un devis sur mesure",
+    titel: "Devis pour votre modèle 3D : envoyez vos plans",
     intro:
-      "Remplissez le formulaire et chargez vos plans. Avec l'adresse du chantier et la marque de votre guidage, je sais aussitôt dans quel système et quel format livrer le modèle.",
+      "Remplissez le formulaire et chargez vos plans. Avec l'adresse du chantier et la marque de votre guidage, nous savons aussitôt dans quel système et quel format livrer le modèle.",
     naKop: "Et ensuite ?",
     na: [
       "Vous recevez immédiatement une confirmation par mail.",
-      "J'examine vos plans et vous envoie un devis avec prix et délai.",
-      "Après votre accord, je réalise le modèle et le livre prêt pour la machine.",
+      "Nous examinons vos plans et vous envoyons un devis avec prix et délai.",
+      "Après votre accord, nous réalisons le modèle et le livrons prêt pour la machine.",
     ],
     plannenKop: "Que joindre ?",
     plannen: [
@@ -57,18 +63,18 @@ const T: Record<
     ],
     stelselKop: "Pourquoi l'adresse du chantier ?",
     stelsel:
-      "Chaque pays a son propre système de coordonnées et sa référence altimétrique. L'adresse me donne le bon système, pour que le modèle tombe sur le chantier et non à côté.",
+      "Chaque pays a son propre système de coordonnées et sa référence altimétrique. L'adresse nous donne le bon système, pour que le modèle tombe sur le chantier et non à côté.",
   },
   en: {
     eyebrow: "Request a quote",
-    titel: "Send your plans, get a tailored quote",
+    titel: "Quote for your 3D model: send your plans",
     intro:
-      "Fill in the form and upload your plans. With the site address and your machine control brand, I know straight away in which system and format the model must be delivered.",
+      "Fill in the form and upload your plans. With the site address and your machine control brand, we know straight away in which system and format the model must be delivered.",
     naKop: "What happens next?",
     na: [
       "You get an immediate confirmation by email.",
-      "I review your plans and send a quote with price and delivery date.",
-      "Once you agree, I build the model and deliver it ready for the machine.",
+      "We review your plans and send a quote with price and delivery date.",
+      "Once you agree, we build the model and deliver it ready for the machine.",
     ],
     plannenKop: "What should you send?",
     plannen: [
@@ -78,18 +84,18 @@ const T: Record<
     ],
     stelselKop: "Why the site address?",
     stelsel:
-      "Every country has its own coordinate system and height datum. The address tells me the right system, so the model lands on the site and not next to it.",
+      "Every country has its own coordinate system and height datum. The address tells us the right system, so the model lands on the site and not next to it.",
   },
   de: {
     eyebrow: "Angebot anfordern",
-    titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot",
+    titel: "Angebot für Ihr 3D-Modell: senden Sie Ihre Pläne",
     intro:
-      "Füllen Sie das Formular aus und laden Sie Ihre Pläne hoch. Mit der Baustellenadresse und der Marke Ihrer Maschinensteuerung weiß ich sofort, in welchem System und Format das Modell geliefert werden muss.",
+      "Füllen Sie das Formular aus und laden Sie Ihre Pläne hoch. Mit der Baustellenadresse und der Marke Ihrer Maschinensteuerung wissen wir sofort, in welchem System und Format das Modell geliefert werden muss.",
     naKop: "Wie geht es weiter?",
     na: [
       "Sie erhalten sofort eine Bestätigung per E-Mail.",
-      "Ich prüfe Ihre Pläne und sende Ihnen ein Angebot mit Preis und Liefertermin.",
-      "Nach Ihrer Zusage erstelle ich das Modell und liefere es einsatzbereit für die Maschine.",
+      "Wir prüfen Ihre Pläne und senden Ihnen ein Angebot mit Preis und Liefertermin.",
+      "Nach Ihrer Zusage erstellen wir das Modell und liefern es einsatzbereit für die Maschine.",
     ],
     plannenKop: "Was sollten Sie mitsenden?",
     plannen: [
@@ -99,18 +105,18 @@ const T: Record<
     ],
     stelselKop: "Warum die Baustellenadresse?",
     stelsel:
-      "Jedes Land arbeitet mit einem eigenen Koordinatensystem und Höhenbezug. Aus der Adresse leite ich das richtige System ab, damit das Modell auf der Baustelle liegt und nicht daneben.",
+      "Jedes Land arbeitet mit einem eigenen Koordinatensystem und Höhenbezug. Aus der Adresse leiten wir das richtige System ab, damit das Modell auf der Baustelle liegt und nicht daneben.",
   },
   es: {
     eyebrow: "Solicitar presupuesto",
-    titel: "Envíe sus planos y reciba un presupuesto a medida",
+    titel: "Presupuesto para su modelo 3D: envíe sus planos",
     intro:
-      "Rellene el formulario y suba sus planos. Con la dirección de la obra y la marca de su sistema de control de maquinaria, sé de inmediato en qué sistema y formato debo entregar el modelo.",
+      "Rellene el formulario y suba sus planos. Con la dirección de la obra y la marca de su sistema de control de maquinaria, sabemos de inmediato en qué sistema y formato debemos entregar el modelo.",
     naKop: "¿Qué pasa después?",
     na: [
       "Recibe de inmediato una confirmación por correo electrónico.",
-      "Reviso sus planos y le envío un presupuesto con precio y fecha de entrega.",
-      "Tras su aprobación, hago el modelo y lo entrego listo para la máquina.",
+      "Revisamos sus planos y le enviamos un presupuesto con precio y fecha de entrega.",
+      "Tras su aprobación, hacemos el modelo y lo entregamos listo para la máquina.",
     ],
     plannenKop: "¿Qué conviene enviar?",
     plannen: [
@@ -120,7 +126,7 @@ const T: Record<
     ],
     stelselKop: "¿Por qué la dirección de la obra?",
     stelsel:
-      "Cada país trabaja con su propio sistema de coordenadas y su referencia altimétrica. A partir de la dirección deduzco el sistema correcto, para que el modelo quede sobre la obra y no a su lado.",
+      "Cada país trabaja con su propio sistema de coordenadas y su referencia altimétrica. A partir de la dirección deducimos el sistema correcto, para que el modelo quede sobre la obra y no a su lado.",
   },
 };
 
@@ -131,6 +137,19 @@ export default async function OffertePage({ params }: { params: Promise<{ locale
 
   return (
     <main className="border-b">
+      <JsonLd
+        data={graph(
+          siteNodes(locale, { metDienst: true }),
+          dienstNodes(locale),
+          kruimels(locale, PAD, [{ naam: KRUIMEL[PAD][locale], pad: PAD }]),
+          webPagina(locale, PAD, {
+            type: "ContactPage",
+            naam: META[locale].title,
+            beschrijving: META[locale].description,
+            about: ID.dienst,
+          }),
+        )}
+      />
       <div className="wrap py-16 sm:py-20 2xl:py-24">
         <div className="max-w-3xl 2xl:max-w-4xl">
           <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">{t.eyebrow}</p>

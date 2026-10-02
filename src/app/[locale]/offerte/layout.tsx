@@ -1,32 +1,38 @@
 import type { Metadata } from "next";
-import { isValidLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
-import { talen } from "@/lib/seo";
+import { isValidLocale, type Locale } from "@/lib/i18n/config";
+import { paginaMeta } from "@/lib/seo";
 
-const META: Record<Locale, { title: string; description: string }> = {
+// Titel en beschrijving van /offerte. De pagina leest ze ook voor haar JSON-LD.
+export const META: Record<Locale, { title: string; description: string; ogAlt: string }> = {
   nl: {
-    title: "Offerte aanvragen — 3D-model voor machinesturing | Studio VM",
+    title: "Offerte voor een 3D-model machinebesturing | Studio VM",
     description:
-      "Laad uw plannen op, geef het werfadres en het merk van uw machinesturing. U krijgt een offerte op maat voor een 3D-model in het juiste formaat en coördinatenstelsel.",
+      "Laad uw plannen op, geef het werfadres en het merk van uw machinebesturing. U krijgt een offerte op maat, met het juiste coördinatenstelsel voorgesteld.",
+    ogAlt: "Offerte voor een 3D-model — Studio VM",
   },
   fr: {
-    title: "Demander un devis — modèle 3D pour le guidage d'engins | Studio VM",
+    title: "Devis pour un modèle 3D de guidage d'engins | Studio VM",
     description:
-      "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage. Vous recevez un devis sur mesure pour un modèle 3D dans le bon format et système de coordonnées.",
+      "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage. Vous recevez un devis sur mesure, avec le système de coordonnées proposé.",
+    ogAlt: "Devis pour un modèle 3D — Studio VM",
   },
   en: {
-    title: "Request a quote — 3D model for machine control | Studio VM",
+    title: "Quote for a machine control 3D model | Studio VM",
     description:
-      "Upload your plans, give the site address and your machine control brand. You get a tailored quote for a 3D model in the right format and coordinate system.",
+      "Upload your plans, give the site address and your machine control brand. You get a tailored quote, with the right coordinate system proposed for your site.",
+    ogAlt: "Quote for a 3D model — Studio VM",
   },
   de: {
-    title: "Angebot anfordern — 3D-Modell für Maschinensteuerung | Studio VM",
+    title: "Angebot für ein 3D-Modell anfordern | Studio VM",
     description:
-      "Laden Sie Ihre Pläne hoch, nennen Sie die Baustellenadresse und die Marke Ihrer Maschinensteuerung. Sie erhalten ein individuelles Angebot für ein 3D-Modell im richtigen Format und Koordinatensystem.",
+      "Laden Sie Ihre Pläne hoch und nennen Sie Baustellenadresse und Steuerungsmarke. Sie erhalten ein Angebot mit dem passenden Koordinatensystem.",
+    ogAlt: "Angebot für ein 3D-Modell — Studio VM",
   },
   es: {
-    title: "Solicitar presupuesto — modelo 3D para control de maquinaria | Studio VM",
+    title: "Presupuesto de modelo 3D para maquinaria | Studio VM",
     description:
-      "Suba sus planos, indique la dirección de la obra y la marca de su sistema de control de maquinaria. Recibirá un presupuesto a medida para un modelo 3D en el formato y sistema de coordenadas correctos.",
+      "Suba sus planos e indique la dirección de la obra y la marca de su sistema de control. Recibirá un presupuesto a medida con el sistema de coordenadas propuesto.",
+    ogAlt: "Presupuesto de modelo 3D — Studio VM",
   },
 };
 
@@ -36,26 +42,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const l: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
-  const m = META[l];
-  const alt = talen(l, "/offerte");
-  const url = String(alt.canonical);
-  return {
+  if (!isValidLocale(locale)) return {};
+  const m = META[locale];
+  return paginaMeta(locale, "/offerte", {
     title: m.title,
     description: m.description,
-    alternates: alt,
-    openGraph: {
-      title: m.title,
-      description: m.description,
-      url,
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: m.title,
-      description: m.description,
-    },
-  };
+    ogBeeld: { url: `/${locale}/offerte/opengraph-image`, alt: m.ogAlt },
+  });
 }
 
 export default function OfferteLayout({

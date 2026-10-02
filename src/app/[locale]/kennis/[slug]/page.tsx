@@ -2,25 +2,52 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { KENNIS, kennisArtikel } from "@/lib/kennis";
 import { CtaBanner } from "@/components/cta-banner";
 import { LOCALES, isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
 import { ILLUSTRATIES, KOPBEELD } from "@/components/kennis-illustraties";
 import { InhoudToc } from "@/components/inhoud-toc";
-import { talen } from "@/lib/seo";
+import { Broodkruimel } from "@/components/broodkruimel";
+import { JsonLd } from "@/components/json-ld";
+import { KRUIMEL, SITE, canoniek, paginaMeta, type KruimelPad } from "@/lib/seo";
+import { siteNodes, kruimels, webPagina, artikel, faqPagina, graph } from "@/lib/schema";
+import { BEDRIJF, FUNCTIE } from "@/lib/bedrijf";
+import { kennisDatum, datumLabel } from "@/lib/bijgewerkt";
 
-const T: Record<Locale, { terug: string; verder: string; cta: { eyebrow: string; titel: string; sub: string; knop: string } }> = {
-  nl: { terug: "Kennisbank", verder: "Volgend artikel", cta: { eyebrow: "Klaar om te starten?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Laad uw plannen op, geef het werfadres en kies uw machinesturingen.", knop: "Offerte aanvragen" } },
-  fr: { terug: "Base de connaissances", verder: "Article suivant", cta: { eyebrow: "Prêt à démarrer ?", titel: "Envoyez vos plans, recevez un devis sur mesure", sub: "Chargez vos plans, indiquez l'adresse du chantier et choisissez vos systèmes de guidage.", knop: "Demander un devis" } },
-  en: { terug: "Knowledge base", verder: "Next article", cta: { eyebrow: "Ready to start?", titel: "Send your plans, get a tailored quote", sub: "Upload your plans, give the site address and pick your machine control systems.", knop: "Request a quote" } },
-  de: { terug: "Wissensdatenbank", verder: "Nächster Artikel", cta: { eyebrow: "Bereit loszulegen?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Laden Sie Ihre Pläne hoch, nennen Sie die Baustellenadresse und wählen Sie Ihre Maschinensteuerungen.", knop: "Angebot anfordern" } },
-  es: { terug: "Base de conocimiento", verder: "Siguiente artículo", cta: { eyebrow: "¿Listo para empezar?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "Suba sus planos, indique la dirección de la obra y elija sus sistemas de control de maquinaria.", knop: "Solicitar presupuesto" } },
+const T: Record<
+  Locale,
+  {
+    terug: string;
+    verder: string;
+    door: string;
+    bij: string;
+    leesOok: string;
+    cta: { eyebrow: string; titel: string; sub: string; knop: string };
+  }
+> = {
+  nl: { terug: "Kennisbank", verder: "Volgend artikel", door: "Door", bij: "bijgewerkt", leesOok: "Lees ook", cta: { eyebrow: "Klaar om te starten?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Laad uw plannen op, geef het werfadres en kies uw machinesturingen.", knop: "Offerte aanvragen" } },
+  fr: { terug: "Base de connaissances", verder: "Article suivant", door: "Par", bij: "mis à jour le", leesOok: "À lire aussi", cta: { eyebrow: "Prêt à démarrer ?", titel: "Envoyez vos plans, recevez un devis sur mesure", sub: "Chargez vos plans, indiquez l'adresse du chantier et choisissez vos systèmes de guidage.", knop: "Demander un devis" } },
+  en: { terug: "Knowledge base", verder: "Next article", door: "By", bij: "updated", leesOok: "Read next", cta: { eyebrow: "Ready to start?", titel: "Send your plans, get a tailored quote", sub: "Upload your plans, give the site address and pick your machine control systems.", knop: "Request a quote" } },
+  de: { terug: "Wissensdatenbank", verder: "Nächster Artikel", door: "Von", bij: "aktualisiert am", leesOok: "Weiterlesen", cta: { eyebrow: "Bereit loszulegen?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Laden Sie Ihre Pläne hoch, nennen Sie die Baustellenadresse und wählen Sie Ihre Maschinensteuerungen.", knop: "Angebot anfordern" } },
+  es: { terug: "Base de conocimiento", verder: "Siguiente artículo", door: "Por", bij: "actualizado el", leesOok: "Lea también", cta: { eyebrow: "¿Listo para empezar?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "Suba sus planos, indique la dirección de la obra y elija sus sistemas de control de maquinaria.", knop: "Solicitar presupuesto" } },
 };
+
+// Enkel de negen artikels bestaan; elke andere slug is een echte 404.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return LOCALES.flatMap((locale) => KENNIS.map((a) => ({ locale, slug: a.slug })));
+}
+
+/** Label van een "Lees ook"-link: titel van het artikel, anders het kruimellabel. */
+function verwantLabel(pad: string, locale: Locale): string {
+  if (pad.startsWith("/kennis/")) {
+    const doel = kennisArtikel(pad.slice("/kennis/".length));
+    if (doel) return doel.i18n[locale].titel;
+  }
+  return KRUIMEL[pad as KruimelPad]?.[locale] ?? pad;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
@@ -28,11 +55,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const a = kennisArtikel(slug);
   if (!isValidLocale(locale) || !a) return {};
   const x = a.i18n[locale];
-  return {
-    title: `${x.titel} | Studio VM`,
-    description: x.samenvatting,
-    alternates: talen(locale, `/kennis/${slug}`),
-  };
+  const d = kennisDatum(slug);
+  return paginaMeta(locale, `/kennis/${slug}`, {
+    title: `${x.metaTitel} | Studio VM`,
+    description: x.metaBeschrijving,
+    type: "article",
+    publishedTime: d.gepubliceerd,
+    modifiedTime: d.bijgewerkt,
+    ogBeeld: { url: `/${locale}/kennis/${slug}/opengraph-image`, alt: x.titel },
+  });
 }
 
 export default async function ArtikelPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -41,29 +72,74 @@ export default async function ArtikelPage({ params }: { params: Promise<{ locale
   if (!isValidLocale(locale) || !a) notFound();
   const t = T[locale];
   const x = a.i18n[locale];
+  const d = kennisDatum(slug);
   const Icoon = ICONEN[a.icoon];
   const i = KENNIS.findIndex((k) => k.slug === slug);
   const volgend = KENNIS[(i + 1) % KENNIS.length];
 
+  const pad = `/kennis/${slug}`;
+  const kruimelItems = [
+    { naam: t.terug, pad: "/kennis" },
+    { naam: x.titel, pad },
+  ];
+  const beeld = `${SITE}${KOPBEELD[slug].licht}`;
+  const schema =
+    slug === "veelgestelde-vragen"
+      ? graph(
+          siteNodes(locale),
+          kruimels(locale, pad, kruimelItems),
+          faqPagina(locale, pad, {
+            naam: x.titel,
+            beschrijving: x.metaBeschrijving,
+            vragen: x.secties.map((s) => ({
+              vraag: s.kop,
+              antwoord: [...s.tekst, ...(s.lijst ?? [])].join("\n\n"),
+            })),
+          }),
+        )
+      : graph(
+          siteNodes(locale),
+          kruimels(locale, pad, kruimelItems),
+          webPagina(locale, pad, {
+            naam: x.titel,
+            beschrijving: x.metaBeschrijving,
+            mainEntity: { "@id": `${canoniek(locale, pad)}#article` },
+            beeld,
+          }),
+          artikel(locale, pad, {
+            titel: x.titel,
+            beschrijving: x.metaBeschrijving,
+            beeld,
+            gepubliceerd: d.gepubliceerd,
+            bijgewerkt: d.bijgewerkt,
+            sectie: t.terug,
+          }),
+        );
+
   return (
     <main>
+      <JsonLd data={schema} />
       <article className="border-b">
         <div className="wrap py-14 sm:py-20">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[15rem_minmax(0,1fr)_16rem] xl:gap-14 2xl:grid-cols-[17rem_minmax(0,1fr)_18rem] 2xl:gap-20">
             <div className="mx-auto w-full min-w-0 max-w-3xl">
-              <Link href={localePath(locale, "/kennis")} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent">
-                <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-                {t.terug}
-              </Link>
+              <Broodkruimel locale={locale} items={[{ naam: t.terug, pad: "/kennis" }, { naam: x.titel }]} />
               <p className="mt-8 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
                 <Icoon className="h-4 w-4" strokeWidth={1.5} />
                 {t.terug}
               </p>
               <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{x.titel}</h1>
               <p className="mt-6 text-xl leading-relaxed text-muted">{x.samenvatting}</p>
+              <p className="mt-6 text-sm text-muted">
+                {t.door}{" "}
+                <Link href={localePath(locale, "/over")} className="font-medium text-foreground hover:text-accent">
+                  {BEDRIJF.naam}
+                </Link>
+                , {FUNCTIE[locale]} · {t.bij} <time dateTime={d.bijgewerkt}>{datumLabel(locale, d.bijgewerkt)}</time>
+              </p>
               <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-3xl border bg-card">
-                <Image src={KOPBEELD[slug].licht} alt="" fill priority sizes="(max-width: 768px) 100vw, 768px" className="alleen-licht object-cover" />
-                <Image src={KOPBEELD[slug].donker} alt="" fill priority sizes="(max-width: 768px) 100vw, 768px" className="alleen-donker object-cover" />
+                <Image src={KOPBEELD[slug].licht} alt={x.titel} fill fetchPriority="high" sizes="(max-width: 768px) 100vw, 768px" className="alleen-licht object-cover" />
+                <Image src={KOPBEELD[slug].donker} alt="" fill fetchPriority="high" sizes="(max-width: 768px) 100vw, 768px" className="alleen-donker object-cover" />
               </div>
               <div className="mt-12 space-y-12">
                 {x.secties.map((s, si) => (
@@ -90,6 +166,26 @@ export default async function ArtikelPage({ params }: { params: Promise<{ locale
                   </section>
                 ))}
               </div>
+              {a.verwant.length > 0 && (
+                <section aria-labelledby="lees-ook" className="mt-16">
+                  <h2 id="lees-ook" className="text-xl font-semibold tracking-tight">
+                    {t.leesOok}
+                  </h2>
+                  <ul className="mt-5 grid gap-3 sm:grid-cols-3">
+                    {a.verwant.map((v) => (
+                      <li key={v}>
+                        <Link
+                          href={localePath(locale, v)}
+                          className="group flex h-full items-start justify-between gap-3 rounded-2xl border bg-card p-4 text-sm font-medium leading-snug transition-colors hover:border-accent"
+                        >
+                          <span>{verwantLabel(v, locale)}</span>
+                          <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-accent transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               {volgend && volgend.slug !== slug && (
                 <Link
                   href={localePath(locale, `/kennis/${volgend.slug}`)}

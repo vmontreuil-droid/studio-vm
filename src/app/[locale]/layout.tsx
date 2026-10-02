@@ -52,8 +52,10 @@ export async function generateMetadata({
     title: { default: m.meta.title, template: "%s" },
     description: m.meta.description,
     applicationName: "Studio VM",
-    authors: [{ name: "Vincent Montreuil", url: `${SITE}/${locale}/over` }],
-    creator: "Vincent Montreuil",
+    // De site spreekt als Studio VM, niet als persoon (geen naam buiten de
+    // wettelijke identiteitsregel).
+    authors: [{ name: "Studio VM", url: `${SITE}/${locale}/over` }],
+    creator: "Studio VM",
     publisher: "Studio VM",
     openGraph: {
       type: "website",

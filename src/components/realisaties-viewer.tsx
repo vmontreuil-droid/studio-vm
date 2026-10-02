@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Palette, TrendingUp, Spline, Triangle } from "lucide-react";
-import { UITGELICHT, WEERGAVEN, type Weergave } from "@/lib/realisaties";
+import { UITGELICHT, WEERGAVEN, type Systeem, type Weergave } from "@/lib/realisaties";
 import type { Locale } from "@/lib/i18n/config";
+import { SysteemChips } from "@/components/systeem-chips";
 
 const VOLGORDE: { w: Weergave; icoon: typeof Palette }[] = [
   { w: "hoogte", icoon: Palette },
@@ -30,13 +31,13 @@ export function RealisatiesViewer({ locale }: { locale: Locale }) {
   return (
     <div className="space-y-16 2xl:space-y-24">
       {UITGELICHT.map((p, i) => (
-        <Project key={p.id} id={p.id} titel={p[locale].titel} tekst={p[locale].tekst} omgekeerd={i % 2 === 1} eerste={i === 0} locale={locale} />
+        <Project key={p.id} id={p.id} titel={p[locale].titel} tekst={p[locale].tekst} systemen={p.systemen} omgekeerd={i % 2 === 1} eerste={i === 0} locale={locale} />
       ))}
     </div>
   );
 }
 
-function Project({ id, titel, tekst, omgekeerd, eerste, locale }: { id: string; titel: string; tekst: string; omgekeerd: boolean; eerste: boolean; locale: Locale }) {
+function Project({ id, titel, tekst, systemen, omgekeerd, eerste, locale }: { id: string; titel: string; tekst: string; systemen: Systeem[]; omgekeerd: boolean; eerste: boolean; locale: Locale }) {
   const [w, setW] = useState<Weergave>("hoogte");
   // Weergaven die al gemount mogen worden: de actieve plus wat de bezoeker al
   // aanwees, aantikte of met de toetsenbord-focus bereikte.
@@ -87,6 +88,7 @@ function Project({ id, titel, tekst, omgekeerd, eerste, locale }: { id: string; 
       </div>
       <div className={`max-w-xl ${omgekeerd ? "lg:order-1" : ""}`}>
         <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">{titel}</h3>
+        <SysteemChips systemen={systemen} locale={locale} className="mt-3" />
         <p className="mt-4 text-lg leading-relaxed text-muted">{tekst}</p>
       </div>
     </div>

@@ -2,33 +2,14 @@ import Link from "next/link";
 import { Mail, Lock, MapPin, Clock, Phone } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Logo } from "@/components/logo";
+import { TaalLinks } from "@/components/taal-links";
 import { getMessages } from "@/lib/i18n";
 import { localePath, type Locale } from "@/lib/i18n/config";
+import { BEDRIJF, LAND, identiteitsregel } from "@/lib/bedrijf";
 
-function brandIconBase(props: { className?: string }) {
-  return {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.5,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    className: props.className,
-    "aria-hidden": true,
-  };
-}
-
-function LinkedInIcon({ className }: { className?: string }) {
-  return (
-    <svg {...brandIconBase({ className })}>
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect width="4" height="12" x="2" y="9" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  );
-}
-
+// Geen LinkedIn-icoon: BEDRIJF.linkedin is een persoonlijk profiel en de site
+// spreekt enkel als Studio VM (naam alleen in de wettelijke identiteitsregel).
+// Terugzetten zodra er een Studio VM-bedrijfspagina is.
 
 const FL: Record<
   Locale,
@@ -43,13 +24,13 @@ const FL: Record<
     kennisbank: string;
     stelsels: string;
     over: string;
-    overVincent: string;
     voorwaarden: string;
+    bereikbaar: string;
   }
 > = {
   nl: {
     dienst: "3D-modellen",
-    modellen: "Wat ik lever",
+    modellen: "Wat een 3D-model bevat",
     werkwijze: "Werkwijze",
     realisaties: "Realisaties",
     tarieven: "Tarieven",
@@ -58,12 +39,12 @@ const FL: Record<
     kennisbank: "Kennisbank",
     stelsels: "Coördinatenstelsels",
     over: "Over",
-    overVincent: "Over Vincent",
     voorwaarden: "Algemene voorwaarden",
+    bereikbaar: "Altijd bereikbaar",
   },
   fr: {
     dienst: "Modèles 3D",
-    modellen: "Ce que je livre",
+    modellen: "Contenu d'un modèle 3D",
     werkwijze: "Méthode",
     realisaties: "Réalisations",
     tarieven: "Tarifs",
@@ -72,12 +53,12 @@ const FL: Record<
     kennisbank: "Base de connaissances",
     stelsels: "Systèmes de coordonnées",
     over: "À propos",
-    overVincent: "À propos de Vincent",
     voorwaarden: "Conditions générales",
+    bereikbaar: "Toujours joignable",
   },
   en: {
     dienst: "3D models",
-    modellen: "What I deliver",
+    modellen: "What a 3D model contains",
     werkwijze: "How it works",
     realisaties: "Projects",
     tarieven: "Rates",
@@ -86,12 +67,12 @@ const FL: Record<
     kennisbank: "Knowledge base",
     stelsels: "Coordinate systems",
     over: "About",
-    overVincent: "About Vincent",
     voorwaarden: "Terms & conditions",
+    bereikbaar: "Always reachable",
   },
   de: {
     dienst: "3D-Modelle",
-    modellen: "Was ich liefere",
+    modellen: "Inhalt eines 3D-Modells",
     werkwijze: "Arbeitsweise",
     realisaties: "Referenzen",
     tarieven: "Preise",
@@ -100,12 +81,12 @@ const FL: Record<
     kennisbank: "Wissensdatenbank",
     stelsels: "Koordinatensysteme",
     over: "Über uns",
-    overVincent: "Über Vincent",
     voorwaarden: "Allgemeine Geschäftsbedingungen",
+    bereikbaar: "Jederzeit erreichbar",
   },
   es: {
     dienst: "Modelos 3D",
-    modellen: "Qué entrego",
+    modellen: "Contenido de un modelo 3D",
     werkwijze: "Cómo trabajamos",
     realisaties: "Proyectos",
     tarieven: "Tarifas",
@@ -114,8 +95,8 @@ const FL: Record<
     kennisbank: "Base de conocimientos",
     stelsels: "Sistemas de coordenadas",
     over: "Acerca de",
-    overVincent: "Sobre Vincent",
     voorwaarden: "Condiciones generales",
+    bereikbaar: "Siempre disponible",
   },
 };
 
@@ -145,7 +126,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     {
       title: fl.over,
       links: [
-        { href: localePath(locale, "/over"), label: fl.overVincent },
+        { href: localePath(locale, "/over"), label: t.nav.over },
         { href: localePath(locale, "/#contact"), label: t.nav.contact },
       ],
     },
@@ -174,60 +155,45 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               <p className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
                 <span>
-                  Nieuwpoortstraat 14-301
+                  {BEDRIJF.straat}
                   <br />
-                  <span className="whitespace-nowrap">8570 Anzegem</span>
+                  <span className="whitespace-nowrap">
+                    {BEDRIJF.postcode} {BEDRIJF.gemeente}
+                  </span>
+                  <br />
+                  {LAND[locale]}
                 </span>
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.5} />
                 <a
-                  href="tel:+32477995651"
+                  href={`tel:${BEDRIJF.telefoonE164}`}
                   className="transition-colors hover:text-foreground"
                 >
-                  +32 477 99 56 51
+                  {BEDRIJF.telefoon}
                 </a>
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0" strokeWidth={1.5} />
                 <a
-                  href="mailto:info@studio-vm.be"
+                  href={`mailto:${BEDRIJF.email}`}
                   className="transition-colors hover:text-foreground"
                 >
-                  info@studio-vm.be
+                  {BEDRIJF.email}
                 </a>
               </p>
               <p className="flex items-center gap-2">
                 <Clock className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-                <span>
-                  {locale === "fr"
-                    ? "Toujours joignable"
-                    : locale === "en"
-                      ? "Always reachable"
-                      : locale === "de"
-                        ? "Jederzeit erreichbar"
-                        : locale === "es"
-                          ? "Siempre disponible"
-                          : "Altijd bereikbaar"}
-                </span>
+                <span>{fl.bereikbaar}</span>
               </p>
             </div>
             <div className="mt-6 flex gap-3">
               <a
-                href="mailto:info@studio-vm.be"
+                href={`mailto:${BEDRIJF.email}`}
                 aria-label="E-mail"
                 className="rounded-full border p-2 text-muted transition-colors hover:text-foreground"
               >
                 <Mail className="h-4 w-4" strokeWidth={1.5} />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/vincentmontreuil"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-                className="rounded-full border p-2 text-muted transition-colors hover:text-foreground"
-              >
-                <LinkedInIcon className="h-4 w-4" />
               </a>
             </div>
           </div>
@@ -255,21 +221,31 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
         <div className="mt-12 grid gap-8 border-t pt-8 lg:grid-cols-2">
           <NewsletterForm locale={locale} source="footer" />
-          <div className="flex flex-wrap items-end justify-end gap-4 text-xs">
-            <p className="font-mono text-muted">
-              © {new Date().getFullYear()} Studio VM · BE 0672.960.066
-            </p>
-            <p className="font-mono text-muted">{t.footer.built}</p>
-            <Link
-              href="/admin"
-              aria-label="Admin"
-              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono uppercase tracking-widest text-muted transition-colors hover:border-foreground hover:text-foreground"
-            >
-              <Lock className="h-3 w-3" strokeWidth={1.75} />
-              <span>Admin</span>
-            </Link>
+          <div className="flex flex-col items-start justify-end gap-4 text-xs lg:items-end">
+            <TaalLinks current={locale} />
+            <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+              <p className="font-mono text-muted">{t.footer.built}</p>
+              {/* Geen prefetch en nofollow: /admin is afgeschermd en hoort
+                  niet in de index. */}
+              <Link
+                href="/admin"
+                prefetch={false}
+                rel="nofollow"
+                aria-label="Admin"
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono uppercase tracking-widest text-muted transition-colors hover:border-foreground hover:text-foreground"
+              >
+                <Lock className="h-3 w-3" strokeWidth={1.75} />
+                <span>Admin</span>
+              </Link>
+            </div>
           </div>
         </div>
+        {/* Wettelijke identiteit van de eenmanszaak (naam, adres,
+            ondernemingsnummer): de enige plek op de gewone pagina's met de
+            naam van de houder. */}
+        <p className="mt-8 text-xs leading-relaxed text-muted">
+          © {new Date().getFullYear()} {identiteitsregel(locale)}
+        </p>
       </div>
     </footer>
   );

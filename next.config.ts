@@ -137,6 +137,8 @@ const nextConfig: NextConfig = {
       ["contact", ""],
       ["about", "over"],
       ["logos", ""],
+      // De publieke support-demo is weg; klanten openen tickets in het portaal.
+      ["support", "portail"],
     ];
     const paginas = naar.map(([oud, nieuw]) => ({
       source: `/:locale(nl|fr|en|de|es)/${oud}`,

@@ -167,9 +167,10 @@ export function PortailLogin({
           </span>
         </p>
         <div className="max-w-md">
-          <h2 className="text-balance text-3xl font-semibold tracking-tight">
+          {/* Geen kop: de h1 "Inloggen" moet de eerste kop op de pagina zijn. */}
+          <p className="text-balance text-3xl font-semibold tracking-tight">
             {t.panelTitle}
-          </h2>
+          </p>
           <ul className="mt-8 space-y-5">
             {t.features.map((f, i) => {
               const Icon = ICONS[i] ?? Layers;

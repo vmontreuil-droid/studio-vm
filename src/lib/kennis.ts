@@ -3,29 +3,51 @@
 //
 // Vijftalig (nl/fr/en/de/es). De slug blijft Nederlands en is in alle talen gelijk.
 // Inhoud is algemeen vakkennis voor aannemers en werfleiders: geen
-// bestandsformaat-internals, geen klant- of werfnamen, geen prijzen.
+// bestandsformaat-internals, geen klant- of werfnamen, prijzen enkel via
+// lib/tarieven.
 // ─────────────────────────────────────────────────────────────────────────
 
 import type { Locale } from "@/lib/i18n/config";
+import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
 
 export type KennisSectie = { kop: string; tekst: string[]; lijst?: string[] };
 
 export type KennisArtikel = {
   slug: string;
   icoon: "Layers" | "Spline" | "Globe2" | "FileStack" | "ClipboardCheck" | "Ruler" | "HelpCircle";
+  /** Verwante pagina's ("Lees ook"), als pad zonder taal. */
+  verwant: string[];
   beeld?: string;
-  i18n: Record<Locale, { titel: string; samenvatting: string; secties: KennisSectie[] }>;
+  i18n: Record<
+    Locale,
+    {
+      titel: string;
+      /** Zoekmachinetitel zonder " | Studio VM"; de pagina voegt dat toe. */
+      metaTitel: string;
+      /** Meta description, 110–160 tekens. */
+      metaBeschrijving: string;
+      samenvatting: string;
+      secties: KennisSectie[];
+    }
+  >;
 };
+
+/** Uurtarief in de opmaak van de taal, rechtstreeks uit lib/tarieven. */
+const e = (c: Categorie, l: Locale) => euro(UURTARIEF_CENT[c], l);
 
 export const KENNIS: KennisArtikel[] = [
   // ── 1. Wat is een 3D-model ───────────────────────────────────────────────
   {
     slug: "wat-is-een-3d-model",
     icoon: "Layers",
+    verwant: ["/kennis/lijnwerk-en-breeklijnen", "/kennis/wat-aanleveren", "/3d-modellen"],
     beeld: "/3d/terrein-hoogtekleuren.jpg",
     i18n: {
       nl: {
         titel: "Wat is een 3D-ontwerpmodel?",
+        metaTitel: "Wat is een 3D-model (DTM) voor machinebesturing?",
+        metaBeschrijving:
+          "Een 3D-ontwerpmodel zet uw plannen om in een digitaal oppervlak waarop een kraan, grader of dozer stuurt. Wat het is en hoe machinebesturing het gebruikt.",
         samenvatting:
           "Een ontwerpmodel vertaalt uw plannen naar een digitaal oppervlak waarop een graafmachine, grader of dozer zich kan richten. Wat het is, hoe de machine het gebruikt en waarom het niet hetzelfde is als het bestaande terrein.",
         secties: [
@@ -64,10 +86,27 @@ export const KENNIS: KennisArtikel[] = [
               "taluds, grachten en aansluitingen op de bestaande toestand.",
             ],
           },
+          {
+            kop: "DTM, TIN of ontwerpmodel: wat is het verschil?",
+            tekst: [
+              "Een digitaal terreinmodel (DTM) beschrijft een terrein als digitaal oppervlak. Bij machinebesturing is dat bijna altijd een driehoeksnet of TIN (triangulated irregular network): punten met een hoogte, onderling verbonden tot driehoeken.",
+              "Zowel het bestaande terrein als het ontwerp zijn zo’n oppervlak. Het ontwerpmodel is het oppervlak van het eindniveau of van een tussenlaag, zoals de onderfundering: daarop stuurt de machine de bak of het blad.",
+            ],
+          },
+          {
+            kop: "2D- of 3D-machinebesturing?",
+            tekst: [
+              "Bij 2D-machinebesturing werkt de machine ten opzichte van een referentie, zoals een laservlak of een ingestelde diepte en helling. Dat volstaat voor eenvoudige werken op één vlak of met één vaste helling.",
+              "Zodra het ontwerp in hoogte en richting verandert, zoals bij wegen met verkanting, taluds, afwateringen of meerdere niveaus, is 3D-machinebesturing aangewezen. De machine kent dan via GNSS (GPS) of een total station haar positie en volgt het 3D-ontwerpmodel. Dat model wordt eerst uit uw plannen opgebouwd.",
+            ],
+          },
         ],
       },
       fr: {
         titel: "Qu’est-ce qu’un modèle 3D de conception ?",
+        metaTitel: "Qu’est-ce qu’un modèle 3D de guidage d’engins ?",
+        metaBeschrijving:
+          "Un modèle de conception traduit vos plans en une surface numérique que suit une pelle, une niveleuse ou un bouteur. Ce que c’est et comment l’engin l’utilise.",
         samenvatting:
           "Un modèle de conception traduit vos plans en une surface numérique sur laquelle une pelle, une niveleuse ou un bouteur peut se guider. Ce que c’est, comment la machine l’utilise et pourquoi ce n’est pas la même chose que le terrain existant.",
         secties: [
@@ -106,10 +145,27 @@ export const KENNIS: KennisArtikel[] = [
               "talus, fossés et raccords avec l’existant.",
             ],
           },
+          {
+            kop: "MNT, TIN ou modèle de projet : quelle différence ?",
+            tekst: [
+              "Un modèle numérique de terrain (MNT) décrit un terrain sous forme de surface numérique. En guidage d’engins, il s’agit presque toujours d’un réseau de triangles ou TIN (triangulated irregular network) : des points avec une altitude, reliés entre eux en triangles.",
+              "Le terrain existant comme le projet sont de telles surfaces. Le modèle de projet est la surface du niveau fini ou d’une couche intermédiaire, comme la sous-fondation : c’est sur elle que l’engin guide son godet ou sa lame.",
+            ],
+          },
+          {
+            kop: "Guidage 2D ou 3D ?",
+            tekst: [
+              "En guidage 2D, l’engin travaille par rapport à une référence, comme un plan laser ou une profondeur et une pente réglées. Cela suffit pour des travaux simples sur un seul plan ou avec une pente fixe.",
+              "Dès que le projet varie en altitude et en direction, comme une route avec dévers, des talus, des écoulements ou plusieurs niveaux, le guidage 3D s’impose. L’engin connaît alors sa position par GNSS (GPS) ou station totale et suit le modèle 3D de projet. Ce modèle est d’abord construit à partir de vos plans.",
+            ],
+          },
         ],
       },
       en: {
         titel: "What is a 3D design model?",
+        metaTitel: "What is a machine control 3D design model?",
+        metaBeschrijving:
+          "A design model turns your drawings into a digital surface that an excavator, grader or dozer works to. What it is and how the machine uses it on site.",
         samenvatting:
           "A design model turns your drawings into a digital surface that an excavator, grader or dozer can work to. What it is, how the machine uses it and why it is not the same as the existing ground.",
         secties: [
@@ -148,10 +204,27 @@ export const KENNIS: KennisArtikel[] = [
               "slopes, ditches and tie-ins with the existing ground.",
             ],
           },
+          {
+            kop: "DTM, TIN or design model: what is the difference?",
+            tekst: [
+              "A digital terrain model (DTM) describes ground as a digital surface. In machine control it is almost always a triangle network or TIN (triangulated irregular network): points with a height, joined into triangles.",
+              "Both the existing ground and the design are such surfaces. The design model is the surface of the finished level or of an intermediate layer, such as the sub-base: that is what the machine steers its bucket or blade to.",
+            ],
+          },
+          {
+            kop: "2D or 3D machine control?",
+            tekst: [
+              "With 2D machine control, the machine works relative to a reference such as a laser plane or a set depth and slope. That is enough for simple work on a single plane or with one fixed gradient.",
+              "As soon as the design changes in height and direction, as with roads with crossfall, slopes, drainage falls or several levels, 3D machine control is the better choice. The machine then knows its position through GNSS (GPS) or a total station and follows the 3D design model. That model is first built from your drawings.",
+            ],
+          },
         ],
       },
       de: {
         titel: "Was ist ein 3D-Planungsmodell?",
+        metaTitel: "Was ist ein 3D-Modell für Maschinensteuerung?",
+        metaBeschrijving:
+          "Ein Planungsmodell übersetzt Ihre Pläne in eine digitale Oberfläche, nach der Bagger, Grader oder Planierraupe arbeiten. Was es ist und wie es genutzt wird.",
         samenvatting:
           "Ein Planungsmodell übersetzt Ihre Pläne in eine digitale Oberfläche, an der sich ein Bagger, Grader oder eine Planierraupe orientieren kann. Was es ist, wie die Maschine es nutzt und warum es nicht dasselbe ist wie das bestehende Gelände.",
         secties: [
@@ -190,10 +263,27 @@ export const KENNIS: KennisArtikel[] = [
               "Böschungen, Gräben und Anschlüsse an das bestehende Gelände.",
             ],
           },
+          {
+            kop: "DGM, TIN oder Planungsmodell: was ist der Unterschied?",
+            tekst: [
+              "Ein digitales Geländemodell (DGM) beschreibt ein Gelände als digitale Oberfläche. In der Maschinensteuerung ist das fast immer ein Dreiecksnetz oder TIN (triangulated irregular network): Punkte mit einer Höhe, zu Dreiecken verbunden.",
+              "Sowohl das Bestandsgelände als auch die Planung sind solche Oberflächen. Das Planungsmodell (Soll-DGM) ist die Oberfläche der Endhöhe oder einer Zwischenschicht, etwa der Tragschicht: Daran steuert die Maschine Löffel oder Schild.",
+            ],
+          },
+          {
+            kop: "2D- oder 3D-Maschinensteuerung?",
+            tekst: [
+              "Bei der 2D-Maschinensteuerung arbeitet die Maschine relativ zu einer Referenz, etwa einer Laserebene oder einer eingestellten Tiefe und Neigung. Das genügt für einfache Arbeiten auf einer Ebene oder mit einer festen Neigung.",
+              "Sobald sich die Planung in Höhe und Richtung ändert, etwa bei Straßen mit Querneigung, Böschungen, Entwässerungsgefälle oder mehreren Ebenen, ist die 3D-Maschinensteuerung die bessere Wahl. Die Maschine kennt dann ihre Position über GNSS (GPS) oder Totalstation und folgt dem 3D-Planungsmodell. Dieses Modell wird zuerst aus Ihren Plänen aufgebaut.",
+            ],
+          },
         ],
       },
       es: {
         titel: "¿Qué es un modelo 3D de diseño?",
+        metaTitel: "¿Qué es un modelo 3D para control de maquinaria?",
+        metaBeschrijving:
+          "Un modelo de diseño convierte sus planos en una superficie digital que sigue una excavadora, motoniveladora o bulldozer. Qué es y cómo lo usa la máquina.",
         samenvatting:
           "Un modelo de diseño traduce sus planos en una superficie digital que una excavadora, motoniveladora o bulldozer puede seguir. Qué es, cómo lo utiliza la máquina y por qué no es lo mismo que el terreno existente.",
         secties: [
@@ -232,6 +322,20 @@ export const KENNIS: KennisArtikel[] = [
               "taludes, cunetas y enlaces con el terreno existente.",
             ],
           },
+          {
+            kop: "MDT, TIN o modelo de proyecto: ¿cuál es la diferencia?",
+            tekst: [
+              "Un modelo digital del terreno (MDT) describe un terreno como una superficie digital. En el control de maquinaria casi siempre es una red de triángulos o TIN (triangulated irregular network): puntos con una cota, unidos en triángulos.",
+              "Tanto el terreno existente como el proyecto son superficies de este tipo. El modelo de proyecto es la superficie de la cota final o de una capa intermedia, como la subbase: sobre ella la máquina guía el cazo o la hoja.",
+            ],
+          },
+          {
+            kop: "¿Control de maquinaria 2D o 3D?",
+            tekst: [
+              "Con el control 2D, la máquina trabaja respecto a una referencia, como un plano láser o una profundidad y pendiente fijadas. Basta para trabajos sencillos en un solo plano o con una pendiente fija.",
+              "En cuanto el proyecto cambia en altura y dirección, como en viales con peralte, taludes, pendientes de drenaje o varios niveles, conviene el control 3D. La máquina conoce entonces su posición mediante GNSS (GPS) o estación total y sigue el modelo 3D de proyecto. Ese modelo se construye primero a partir de sus planos.",
+            ],
+          },
         ],
       },
     },
@@ -241,10 +345,14 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "lijnwerk-en-breeklijnen",
     icoon: "Spline",
+    verwant: ["/kennis/wat-is-een-3d-model", "/kennis/controle-en-toleranties", "/realisaties"],
     beeld: "/3d/terrein-lijnwerk.jpg",
     i18n: {
       nl: {
         titel: "Lijnwerk en breeklijnen",
+        metaTitel: "Breeklijnen en lijnwerk in een 3D-model",
+        metaBeschrijving:
+          "Breeklijnen bepalen waar het oppervlak knikt. Zonder correcte breeklijnen snijdt het driehoeksnet door boordstenen en taluds. Waarom lijnwerk telt.",
         samenvatting:
           "Breeklijnen bepalen waar het oppervlak van richting verandert. Zonder correcte breeklijnen snijdt het driehoekennet door boordstenen en taludkanten heen. Waarom lijnwerk zo belangrijk is, voor het model én voor de machinist.",
         secties: [
@@ -288,6 +396,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Lignes et lignes de rupture",
+        metaTitel: "Lignes de rupture et filaire d’un modèle 3D",
+        metaBeschrijving:
+          "Les lignes de rupture indiquent où la surface change de pente. Sans elles, les triangles traversent bordures et talus. Pourquoi le filaire est essentiel.",
         samenvatting:
           "Les lignes de rupture indiquent où la surface change de pente. Sans lignes de rupture correctes, le réseau de triangles traverse les bordures et les arêtes de talus. Pourquoi les lignes sont essentielles, pour le modèle comme pour le conducteur.",
         secties: [
@@ -331,6 +442,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "Linework and breaklines",
+        metaTitel: "Breaklines and linework in a 3D model",
+        metaBeschrijving:
+          "Breaklines define where the surface changes direction. Without them the triangle mesh cuts through kerbs and slope edges. Why linework matters.",
         samenvatting:
           "Breaklines define where the surface changes direction. Without correct breaklines, the triangle mesh cuts straight through kerbs and slope edges. Why linework matters so much, both for the model and for the operator.",
         secties: [
@@ -374,6 +488,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Linien und Bruchkanten",
+        metaTitel: "Bruchkanten und Linien im 3D-Modell",
+        metaBeschrijving:
+          "Bruchkanten legen fest, wo die Oberfläche abknickt. Ohne sie schneidet das Dreiecksnetz durch Bordsteine und Böschungen. Warum Linien so wichtig sind.",
         samenvatting:
           "Bruchkanten legen fest, wo die Oberfläche ihre Neigung ändert. Ohne korrekte Bruchkanten schneidet das Dreiecksnetz quer durch Bordsteine und Böschungskanten. Warum Linien so wichtig sind, für das Modell ebenso wie für den Maschinenführer.",
         secties: [
@@ -417,6 +534,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Líneas y líneas de ruptura",
+        metaTitel: "Líneas de ruptura en un modelo 3D",
+        metaBeschrijving:
+          "Las líneas de ruptura marcan dónde cambia la pendiente. Sin ellas, la red de triángulos atraviesa bordillos y taludes. Por qué las líneas son tan importantes.",
         samenvatting:
           "Las líneas de ruptura definen dónde cambia la pendiente de la superficie. Sin líneas de ruptura correctas, la red de triángulos atraviesa bordillos y aristas de talud. Por qué las líneas son tan importantes, tanto para el modelo como para el operador.",
         secties: [
@@ -465,10 +585,14 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "coordinatenstelsels",
     icoon: "Globe2",
+    verwant: ["/kennis/bestanden-per-merk", "/kennis/controle-en-toleranties", "/offerte"],
     beeld: "/3d/trace-luchtfoto.jpg",
     i18n: {
       nl: {
         titel: "Coördinatenstelsels en hoogtereferenties",
+        metaTitel: "Coördinatenstelsel en hoogtereferentie per land",
+        metaBeschrijving:
+          "Lambert 72/2008, RD New, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
         samenvatting:
           "Een model is pas bruikbaar als het in hetzelfde stelsel staat als de machine. Welke stelsels en hoogtereferenties per land gangbaar zijn, wat een lokale kalibratie doet en wat er gebeurt bij een verkeerde keuze.",
         secties: [
@@ -499,7 +623,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Lokale werfkalibratie",
             tekst: [
               "Op veel werven wordt niet rechtstreeks in het nationale stelsel gewerkt, maar met een lokale kalibratie (ook lokalisatie genoemd). Daarbij worden enkele gekende punten op de werf ingemeten en wordt een kleine verschuiving, rotatie en eventueel schaal berekend zodat de GNSS-metingen exact op die punten aansluiten.",
-              "Een kalibratie compenseert onnauwkeurigheden in oude plannen of in de omzetting tussen stelsels, maar ze geldt enkel binnen het gebied van de gebruikte punten. Buiten dat gebied kunnen afwijkingen snel oplopen. Het opzetten en beheren van de kalibratie op de machine blijft de verantwoordelijkheid van de aannemer of diens landmeter; wij zorgen dat het model in het afgesproken stelsel staat.",
+              "Een kalibratie compenseert onnauwkeurigheden in oude plannen of in de omzetting tussen stelsels, maar ze geldt enkel binnen het gebied van de gebruikte punten. Buiten dat gebied kunnen afwijkingen snel oplopen. Het opzetten en beheren van de kalibratie op de machine blijft de verantwoordelijkheid van de aannemer of diens meetploeg; wij zorgen dat het model in het afgesproken stelsel staat.",
             ],
           },
           {
@@ -518,6 +642,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Systèmes de coordonnées et références altimétriques",
+        metaTitel: "Systèmes de coordonnées et altimétrie par pays",
+        metaBeschrijving:
+          "Lambert 2008, Lambert-93, RD New, UTM : quel système et quelle référence altimétrique votre engin attend, le rôle d’une calibration et les erreurs à éviter.",
         samenvatting:
           "Un modèle n’est utilisable que s’il est dans le même système que la machine. Les systèmes et références d’altitude courants par pays, le rôle d’une calibration locale et ce qui se passe en cas de mauvais choix.",
         secties: [
@@ -548,7 +675,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Calibration locale du chantier",
             tekst: [
               "Sur de nombreux chantiers, on ne travaille pas directement dans le système national, mais avec une calibration locale (aussi appelée localisation). Quelques points connus sont mesurés sur place, puis une petite translation, une rotation et éventuellement un facteur d’échelle sont calculés pour que les mesures GNSS correspondent exactement à ces points.",
-              "Une calibration compense les imprécisions de plans anciens ou de la transformation entre systèmes, mais elle ne vaut qu’à l’intérieur de la zone couverte par les points utilisés. En dehors, les écarts peuvent augmenter rapidement. La mise en place et la gestion de la calibration sur la machine restent de la responsabilité de l’entreprise ou de son géomètre ; nous veillons à ce que le modèle soit dans le système convenu.",
+              "Une calibration compense les imprécisions de plans anciens ou de la transformation entre systèmes, mais elle ne vaut qu’à l’intérieur de la zone couverte par les points utilisés. En dehors, les écarts peuvent augmenter rapidement. La mise en place et la gestion de la calibration sur la machine restent de la responsabilité de l’entreprise ou de son équipe de mesure ; nous veillons à ce que le modèle soit dans le système convenu.",
             ],
           },
           {
@@ -567,6 +694,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "Coordinate reference systems and height datums",
+        metaTitel: "Coordinate systems and height datums by country",
+        metaBeschrijving:
+          "Lambert 2008, RD New, Lambert-93, UTM: which grid and height datum your machine expects, what a site calibration does and what goes wrong otherwise.",
         samenvatting:
           "A model is only usable when it is in the same system as the machine. The coordinate systems and height datums commonly used in each country, what a local site calibration does and what happens when the wrong system is chosen.",
         secties: [
@@ -597,7 +727,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Local site calibration",
             tekst: [
               "On many sites work is not done directly in the national grid but with a local site calibration (also called localisation). A few known control points on site are observed, and a small shift, rotation and possibly scale are computed so that the GNSS measurements fit those points exactly.",
-              "A calibration compensates for inaccuracies in older drawings or in transformations between systems, but it is only valid within the area enclosed by the points used. Outside that area, deviations can grow quickly. Setting up and maintaining the calibration on the machine remains the responsibility of the contractor or their surveyor; we make sure the model is in the agreed system.",
+              "A calibration compensates for inaccuracies in older drawings or in transformations between systems, but it is only valid within the area enclosed by the points used. Outside that area, deviations can grow quickly. Setting up and maintaining the calibration on the machine remains the responsibility of the contractor or their survey team; we make sure the model is in the agreed system.",
             ],
           },
           {
@@ -616,6 +746,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Koordinatenreferenzsysteme und Höhenbezug",
+        metaTitel: "Koordinatensysteme und Höhenbezug je Land",
+        metaBeschrijving:
+          "ETRS89/UTM, DHHN2016, Lambert 2008, RD New: welches System und welchen Höhenbezug Ihre Maschine erwartet und was eine Baustellenkalibrierung bewirkt.",
         samenvatting:
           "Ein Modell ist erst nutzbar, wenn es im selben System liegt wie die Maschine. Welche Koordinatensysteme und Höhenbezüge in den einzelnen Ländern üblich sind, was eine Baustellenkalibrierung bewirkt und was bei einer falschen Wahl passiert.",
         secties: [
@@ -646,7 +779,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Lokale Baustellenkalibrierung",
             tekst: [
               "Auf vielen Baustellen wird nicht direkt im nationalen System gearbeitet, sondern mit einer lokalen Baustellenkalibrierung (auch Lokalisierung genannt). Dabei werden einige bekannte Punkte auf der Baustelle eingemessen, und es werden eine kleine Verschiebung, eine Drehung und gegebenenfalls ein Maßstab berechnet, damit die GNSS-Messungen exakt zu diesen Punkten passen.",
-              "Eine Kalibrierung gleicht Ungenauigkeiten in älteren Plänen oder in der Transformation zwischen Systemen aus, gilt aber nur innerhalb des Bereichs der verwendeten Punkte. Außerhalb davon können Abweichungen schnell anwachsen. Einrichtung und Pflege der Kalibrierung auf der Maschine bleiben in der Verantwortung des Bauunternehmens oder seines Vermessers; wir sorgen dafür, dass das Modell im vereinbarten System vorliegt.",
+              "Eine Kalibrierung gleicht Ungenauigkeiten in älteren Plänen oder in der Transformation zwischen Systemen aus, gilt aber nur innerhalb des Bereichs der verwendeten Punkte. Außerhalb davon können Abweichungen schnell anwachsen. Einrichtung und Pflege der Kalibrierung auf der Maschine bleiben in der Verantwortung des Bauunternehmens oder seines Vermessungsteams; wir sorgen dafür, dass das Modell im vereinbarten System vorliegt.",
             ],
           },
           {
@@ -665,6 +798,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Sistemas de referencia de coordenadas y referencias altimétricas",
+        metaTitel: "Sistemas de coordenadas y altimetría por país",
+        metaBeschrijving:
+          "ETRS89/UTM, Lambert 2008, Lambert-93, RD New: qué sistema y qué referencia altimétrica espera su máquina y qué hace una calibración de obra.",
         samenvatting:
           "Un modelo solo es utilizable si está en el mismo sistema que la máquina. Qué sistemas y referencias altimétricas son habituales en cada país, qué hace una calibración de obra y qué ocurre cuando se elige el sistema equivocado.",
         secties: [
@@ -695,7 +831,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Calibración local de obra",
             tekst: [
               "En muchas obras no se trabaja directamente en el sistema nacional, sino con una calibración de obra local (también llamada localización). Se miden algunos puntos conocidos en la obra y se calculan una pequeña traslación, una rotación y, en su caso, un factor de escala para que las mediciones GNSS coincidan exactamente con esos puntos.",
-              "Una calibración compensa imprecisiones de planos antiguos o de la transformación entre sistemas, pero solo es válida dentro de la zona delimitada por los puntos utilizados. Fuera de ella, las desviaciones pueden crecer rápidamente. La configuración y el mantenimiento de la calibración en la máquina siguen siendo responsabilidad del contratista o de su topógrafo; nosotros nos aseguramos de que el modelo esté en el sistema acordado.",
+              "Una calibración compensa imprecisiones de planos antiguos o de la transformación entre sistemas, pero solo es válida dentro de la zona delimitada por los puntos utilizados. Fuera de ella, las desviaciones pueden crecer rápidamente. La configuración y el mantenimiento de la calibración en la máquina siguen siendo responsabilidad del contratista o de su equipo de topografía; nosotros nos aseguramos de que el modelo esté en el sistema acordado.",
             ],
           },
           {
@@ -719,9 +855,13 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "bestanden-per-merk",
     icoon: "FileStack",
+    verwant: ["/kennis/coordinatenstelsels", "/kennis/wat-aanleveren", "/3d-modellen"],
     i18n: {
       nl: {
         titel: "Bestanden per merk en systeem",
+        metaTitel: "Bestanden voor Trimble, Topcon, Leica en meer",
+        metaBeschrijving:
+          "Elke machinebesturing leest eigen bestanden. Hoe we werken met Trimble, Topcon, Leica en andere merken, welke uitwisselingsformaten werken en wat u nakijkt.",
         samenvatting:
           "Elk machinesturingssysteem leest zijn eigen bestanden. Hoe we met de verschillende merken omgaan, welke uitwisselingsformaten breed aanvaard zijn en waarom u het bestand altijd zelf op uw systeem controleert.",
         secties: [
@@ -731,6 +871,22 @@ export const KENNIS: KennisArtikel[] = [
               "Op Europese werven komen verschillende merken van machinesturing voor, waaronder Trimble, Topcon, Leica, Unicontrol en CHCNAV, en daarnaast systemen die af fabriek door machinebouwers als Komatsu en Caterpillar worden ingebouwd of ondersteund.",
               "Elk van die systemen gebruikt zijn eigen software en leest zijn eigen projectbestanden. Ook binnen één merk kunnen verschillende generaties of softwareversies andere eisen stellen aan de manier waarop een project moet worden aangeleverd: welke bestanden samen horen, hoe ze genoemd worden en waar ze op het opslagmedium moeten staan.",
               "Daarom vragen we bij elke opdracht welk systeem en welke softwareversie op de machine draaien. Zo wordt het model aangeleverd in de vorm die dat systeem verwacht.",
+            ],
+          },
+          {
+            kop: "Welk bestand voor welk systeem?",
+            tekst: [
+              "Voor de meest gebruikte systemen ziet de levering er doorgaans zo uit. Welke variant u precies nodig hebt, hangt af van de generatie en de softwareversie op de machine; daarom vragen we die altijd mee op.",
+            ],
+            lijst: [
+              "Trimble Earthworks: een .dsz-projectbestand.",
+              "Trimble GCS900: een .svd-oppervlak en .svl-lijnwerk, samen met het .cal-kalibratiebestand.",
+              "Trimble Access en Siteworks: een .ttm-oppervlak met het lijnwerk in DXF; voor Siteworks ook de punten.",
+              "Topcon (3D-MC, MC-Max, Pocket-3D): een .tp3-bestand en LandXML.",
+              "Leica (iCON site, MC1): LandXML en DXF.",
+              "Unicontrol: LandXML en DXF.",
+              "CHCNAV: LandXML en DXF, of een volledig werfproject.",
+              "Komatsu en Caterpillar: in het formaat van het onderliggende systeem, of LandXML en DXF.",
             ],
           },
           {
@@ -768,6 +924,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Fichiers par marque et par système",
+        metaTitel: "Fichiers pour Trimble, Topcon, Leica et autres",
+        metaBeschrijving:
+          "Chaque système de guidage lit ses propres fichiers. Comment nous travaillons avec Trimble, Topcon, Leica et d’autres marques, et ce que vous devez vérifier.",
         samenvatting:
           "Chaque système de guidage lit ses propres fichiers. Comment nous travaillons avec les différentes marques, quels formats d’échange sont largement acceptés et pourquoi vous contrôlez toujours le fichier sur votre propre système.",
         secties: [
@@ -777,6 +936,22 @@ export const KENNIS: KennisArtikel[] = [
               "Sur les chantiers européens, on trouve plusieurs marques de guidage d’engins, dont Trimble, Topcon, Leica, Unicontrol et CHCNAV, ainsi que des systèmes intégrés ou pris en charge d’usine par des constructeurs comme Komatsu et Caterpillar.",
               "Chacun de ces systèmes utilise son propre logiciel et lit ses propres fichiers de projet. Au sein d’une même marque, différentes générations ou versions logicielles peuvent aussi avoir leurs exigences quant à la façon de livrer un projet : quels fichiers vont ensemble, comment ils sont nommés et où ils doivent se trouver sur le support.",
               "C’est pourquoi nous demandons pour chaque commande quel système et quelle version logicielle tournent sur la machine. Le modèle est ainsi livré sous la forme attendue par ce système.",
+            ],
+          },
+          {
+            kop: "Quel fichier pour quel système ?",
+            tekst: [
+              "Pour les systèmes les plus courants, la livraison se présente généralement ainsi. La variante exacte dépend de la génération et de la version logicielle de la machine ; c’est pourquoi nous les demandons toujours.",
+            ],
+            lijst: [
+              "Trimble Earthworks : un fichier de projet .dsz.",
+              "Trimble GCS900 : une surface .svd et des lignes .svl, accompagnées du fichier de calibration .cal.",
+              "Trimble Access et Siteworks : une surface .ttm avec les lignes en DXF ; pour Siteworks, également les points.",
+              "Topcon (3D-MC, MC-Max, Pocket-3D) : un fichier .tp3 et LandXML.",
+              "Leica (iCON site, MC1) : LandXML et DXF.",
+              "Unicontrol : LandXML et DXF.",
+              "CHCNAV : LandXML et DXF, ou un projet de chantier complet.",
+              "Komatsu et Caterpillar : dans le format du système sous-jacent, ou LandXML et DXF.",
             ],
           },
           {
@@ -814,6 +989,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "Files by brand and system",
+        metaTitel: "Files for Trimble, Topcon, Leica and more",
+        metaBeschrijving:
+          "Every machine control system reads its own files. How we work with Trimble, Topcon, Leica and other brands, and why you check the file on your system.",
         samenvatting:
           "Every machine control system reads its own files. How we handle the different brands, which exchange formats are widely accepted and why you always check the file on your own system.",
         secties: [
@@ -823,6 +1001,22 @@ export const KENNIS: KennisArtikel[] = [
               "European sites use several machine control brands, including Trimble, Topcon, Leica, Unicontrol and CHCNAV, as well as systems fitted or supported from the factory by manufacturers such as Komatsu and Caterpillar.",
               "Each of these systems uses its own software and reads its own project files. Even within one brand, different generations or software versions can have their own requirements for how a project is delivered: which files belong together, how they are named and where they must be placed on the storage medium.",
               "That is why for every order we ask which system and which software version run on the machine. The model is then delivered in the form that system expects.",
+            ],
+          },
+          {
+            kop: "Which file for which system?",
+            tekst: [
+              "For the most common systems, delivery usually looks like this. The exact variant depends on the generation and software version on the machine, which is why we always ask for them.",
+            ],
+            lijst: [
+              "Trimble Earthworks: a .dsz project file.",
+              "Trimble GCS900: a .svd surface and .svl linework, together with the .cal calibration file.",
+              "Trimble Access and Siteworks: a .ttm surface with the linework in DXF; for Siteworks, the points as well.",
+              "Topcon (3D-MC, MC-Max, Pocket-3D): a .tp3 file and LandXML.",
+              "Leica (iCON site, MC1): LandXML and DXF.",
+              "Unicontrol: LandXML and DXF.",
+              "CHCNAV: LandXML and DXF, or a complete site project.",
+              "Komatsu and Caterpillar: in the format of the underlying system, or LandXML and DXF.",
             ],
           },
           {
@@ -860,6 +1054,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Dateien nach Marke und System",
+        metaTitel: "Dateien für Trimble, Topcon, Leica und mehr",
+        metaBeschrijving:
+          "Jede Maschinensteuerung liest eigene Dateien. Wie wir mit Trimble, Topcon, Leica und anderen Marken arbeiten und warum Sie die Datei selbst prüfen.",
         samenvatting:
           "Jedes Maschinensteuerungssystem liest seine eigenen Dateien. Wie wir mit den verschiedenen Marken umgehen, welche Austauschformate breit akzeptiert sind und warum Sie die Datei immer selbst auf Ihrem System prüfen.",
         secties: [
@@ -869,6 +1066,22 @@ export const KENNIS: KennisArtikel[] = [
               "Auf europäischen Baustellen sind verschiedene Marken von Maschinensteuerungen im Einsatz, darunter Trimble, Topcon, Leica, Unicontrol und CHCNAV, sowie Systeme, die von Maschinenherstellern wie Komatsu und Caterpillar ab Werk eingebaut oder unterstützt werden.",
               "Jedes dieser Systeme verwendet seine eigene Software und liest seine eigenen Projektdateien. Auch innerhalb einer Marke können verschiedene Generationen oder Softwareversionen eigene Anforderungen daran stellen, wie ein Projekt geliefert werden muss: welche Dateien zusammengehören, wie sie benannt sind und wo sie auf dem Speichermedium liegen müssen.",
               "Deshalb fragen wir bei jedem Auftrag nach, welches System und welche Softwareversion auf der Maschine laufen. So wird das Modell in der Form geliefert, die dieses System erwartet.",
+            ],
+          },
+          {
+            kop: "Welche Datei für welches System?",
+            tekst: [
+              "Für die gängigsten Systeme sieht die Lieferung in der Regel so aus. Welche Variante Sie genau benötigen, hängt von der Generation und der Softwareversion auf der Maschine ab; deshalb fragen wir beides immer nach.",
+            ],
+            lijst: [
+              "Trimble Earthworks: eine .dsz-Projektdatei.",
+              "Trimble GCS900: eine .svd-Oberfläche und .svl-Linien, zusammen mit der .cal-Kalibrierdatei.",
+              "Trimble Access und Siteworks: eine .ttm-Oberfläche mit den Linien im DXF-Format; für Siteworks auch die Punkte.",
+              "Topcon (3D-MC, MC-Max, Pocket-3D): eine .tp3-Datei und LandXML.",
+              "Leica (iCON site, MC1): LandXML und DXF.",
+              "Unicontrol: LandXML und DXF.",
+              "CHCNAV: LandXML und DXF oder ein vollständiges Baustellenprojekt.",
+              "Komatsu und Caterpillar: im Format des zugrunde liegenden Systems oder als LandXML und DXF.",
             ],
           },
           {
@@ -906,6 +1119,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Archivos por marca y sistema",
+        metaTitel: "Archivos para Trimble, Topcon, Leica y más",
+        metaBeschrijving:
+          "Cada sistema de control lee sus propios archivos. Cómo trabajamos con Trimble, Topcon, Leica y otras marcas, y por qué debe comprobar el archivo usted mismo.",
         samenvatting:
           "Cada sistema de control de maquinaria lee sus propios archivos. Cómo trabajamos con las distintas marcas, qué formatos de intercambio están ampliamente aceptados y por qué usted siempre debe comprobar el archivo en su propio sistema.",
         secties: [
@@ -915,6 +1131,22 @@ export const KENNIS: KennisArtikel[] = [
               "En las obras europeas se utilizan diversas marcas de control de maquinaria, entre ellas Trimble, Topcon, Leica, Unicontrol y CHCNAV, además de sistemas instalados o soportados de fábrica por fabricantes como Komatsu y Caterpillar.",
               "Cada uno de estos sistemas utiliza su propio software y lee sus propios archivos de proyecto. Incluso dentro de una misma marca, distintas generaciones o versiones de software pueden tener requisitos propios sobre cómo debe entregarse un proyecto: qué archivos van juntos, cómo se nombran y dónde deben ubicarse en el soporte de almacenamiento.",
               "Por eso, en cada encargo preguntamos qué sistema y qué versión de software funcionan en la máquina. Así el modelo se entrega en la forma que ese sistema espera.",
+            ],
+          },
+          {
+            kop: "¿Qué archivo para cada sistema?",
+            tekst: [
+              "Para los sistemas más habituales, la entrega suele ser así. La variante exacta depende de la generación y de la versión de software de la máquina; por eso siempre se las preguntamos.",
+            ],
+            lijst: [
+              "Trimble Earthworks: un archivo de proyecto .dsz.",
+              "Trimble GCS900: una superficie .svd y líneas .svl, junto con el archivo de calibración .cal.",
+              "Trimble Access y Siteworks: una superficie .ttm con las líneas en DXF; para Siteworks, también los puntos.",
+              "Topcon (3D-MC, MC-Max, Pocket-3D): un archivo .tp3 y LandXML.",
+              "Leica (iCON site, MC1): LandXML y DXF.",
+              "Unicontrol: LandXML y DXF.",
+              "CHCNAV: LandXML y DXF, o un proyecto de obra completo.",
+              "Komatsu y Caterpillar: en el formato del sistema subyacente, o LandXML y DXF.",
             ],
           },
           {
@@ -957,9 +1189,13 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "wat-aanleveren",
     icoon: "ClipboardCheck",
+    verwant: ["/kennis/van-pdf-naar-model", "/kennis/coordinatenstelsels", "/offerte"],
     i18n: {
       nl: {
         titel: "Wat moet u aanleveren?",
+        metaTitel: "Wat aanleveren voor een 3D-model?",
+        metaBeschrijving:
+          "Een goed 3D-model begint bij volledige plannen. Welke plannen, in welk formaat (DWG, DXF, LandXML of PDF) en welke gegevens vaak vergeten worden.",
         samenvatting:
           "Een goed model begint bij volledige plannen. Een overzicht van wat we nodig hebben, in welke vorm, en welke informatie vaak vergeten wordt.",
         secties: [
@@ -1008,6 +1244,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Que devez-vous fournir ?",
+        metaTitel: "Que fournir pour un modèle 3D ?",
+        metaBeschrijving:
+          "Un bon modèle 3D commence par des plans complets. Quels plans, dans quel format (DWG, DXF, LandXML ou PDF) et quelles informations sont souvent oubliées.",
         samenvatting:
           "Un bon modèle commence par des plans complets. Un aperçu de ce dont nous avons besoin, sous quelle forme, et des informations souvent oubliées.",
         secties: [
@@ -1056,6 +1295,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "What should you supply?",
+        metaTitel: "What to supply for a 3D model",
+        metaBeschrijving:
+          "A good 3D model starts with complete drawings. Which drawings, in which format (DWG, DXF, LandXML or PDF) and which information is often forgotten.",
         samenvatting:
           "A good model starts with complete drawings. An overview of what we need, in which form, and which information is often forgotten.",
         secties: [
@@ -1104,6 +1346,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Was sollten Sie liefern?",
+        metaTitel: "Was Sie für ein 3D-Modell liefern sollten",
+        metaBeschrijving:
+          "Ein gutes 3D-Modell beginnt mit vollständigen Plänen. Welche Pläne, in welchem Format (DWG, DXF, LandXML oder PDF) und welche Angaben oft fehlen.",
         samenvatting:
           "Ein gutes Modell beginnt mit vollständigen Plänen. Ein Überblick darüber, was wir benötigen, in welcher Form und welche Angaben häufig vergessen werden.",
         secties: [
@@ -1152,6 +1397,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "¿Qué debe facilitarnos?",
+        metaTitel: "Qué aportar para un modelo 3D",
+        metaBeschrijving:
+          "Un buen modelo 3D empieza con planos completos. Qué planos, en qué formato (DWG, DXF, LandXML o PDF) y qué información se olvida con frecuencia.",
         samenvatting:
           "Un buen modelo empieza con planos completos. Un resumen de lo que necesitamos, en qué forma y qué información se olvida con frecuencia.",
         secties: [
@@ -1205,10 +1453,14 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "controle-en-toleranties",
     icoon: "Ruler",
+    verwant: ["/kennis/coordinatenstelsels", "/kennis/lijnwerk-en-breeklijnen", "/voorwaarden"],
     beeld: "/3d/model-talud-helling.jpg",
     i18n: {
       nl: {
         titel: "Controle en toleranties",
+        metaTitel: "Controle en toleranties van een 3D-model",
+        metaBeschrijving:
+          "Hoe een 3D-model gecontroleerd wordt vóór levering, waarom u het op de werf nog eens nakijkt op een gekend punt en welke toleranties gangbaar zijn.",
         samenvatting:
           "Een model wordt gecontroleerd voordat het de deur uitgaat, en hoort nog eens gecontroleerd te worden op de werf. Hoe die controle verloopt en welke toleranties in de praktijk gangbaar zijn.",
         secties: [
@@ -1254,6 +1506,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Contrôle et tolérances",
+        metaTitel: "Contrôle et tolérances d’un modèle 3D",
+        metaBeschrijving:
+          "Comment un modèle 3D est contrôlé avant livraison, pourquoi le vérifier à nouveau sur un point connu du chantier et quelles tolérances sont courantes.",
         samenvatting:
           "Un modèle est contrôlé avant d’être livré, et doit l’être à nouveau sur le chantier. Comment se déroule ce contrôle et quelles tolérances sont courantes en pratique.",
         secties: [
@@ -1299,6 +1554,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "Checks and tolerances",
+        metaTitel: "3D model checks and tolerances",
+        metaBeschrijving:
+          "How a 3D model is checked before delivery, why you check it again on a known point on site, and which tolerances are common in practice.",
         samenvatting:
           "A model is checked before it is delivered and should be checked again on site. How that check is done and which tolerances are common in practice.",
         secties: [
@@ -1344,6 +1602,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Kontrolle und Toleranzen",
+        metaTitel: "Kontrolle und Toleranzen eines 3D-Modells",
+        metaBeschrijving:
+          "Wie ein 3D-Modell vor der Lieferung geprüft wird, warum Sie es auf der Baustelle an einem bekannten Punkt erneut prüfen und welche Toleranzen üblich sind.",
         samenvatting:
           "Ein Modell wird geprüft, bevor es ausgeliefert wird, und sollte auf der Baustelle erneut geprüft werden. Wie diese Kontrolle abläuft und welche Toleranzen in der Praxis üblich sind.",
         secties: [
@@ -1389,6 +1650,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Control y tolerancias",
+        metaTitel: "Control y tolerancias de un modelo 3D",
+        metaBeschrijving:
+          "Cómo se comprueba un modelo 3D antes de la entrega, por qué debe volver a comprobarse en un punto conocido de la obra y qué tolerancias son habituales.",
         samenvatting:
           "Un modelo se comprueba antes de entregarse y debe comprobarse de nuevo en obra. Cómo se realiza ese control y qué tolerancias son habituales en la práctica.",
         secties: [
@@ -1439,12 +1703,23 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "veelgestelde-vragen",
     icoon: "HelpCircle",
+    verwant: ["/tarieven", "/kennis/bestanden-per-merk", "/voorwaarden"],
     i18n: {
       nl: {
         titel: "Veelgestelde vragen",
+        metaTitel: "Veelgestelde vragen over 3D-modellen",
+        metaBeschrijving:
+          "Prijs, levertermijn, facturatie, meerdere systemen, planwijzigingen en levering: antwoorden op de vragen die het vaakst terugkomen over 3D-modellen.",
         samenvatting:
           "Antwoorden op de vragen die het vaakst terugkomen: levertermijnen, facturatie, meerdere systemen, aanpassingen, levering en verantwoordelijkheid.",
         secties: [
+          {
+            kop: "Wat kost een 3D-model voor machinebesturing?",
+            tekst: [
+              `U betaalt per uur modelleerwerk, exclusief btw: ${e("vroegtijdig", "nl")} per uur bij een aanvraag meer dan drie weken op voorhand, ${e("normaal", "nl")} per uur bij levering binnen één tot drie weken en ${e("last-minute", "nl")} per uur voor last-minute, binnen vijf werkdagen. Er geldt een minimum van ${MINIMUM_UREN} uur per opdracht.`,
+              "Levering voor extra systemen of merken is inbegrepen. De offerte vermeldt vooraf het geschatte aantal uren op basis van uw plannen.",
+            ],
+          },
           {
             kop: "Hoe snel kan een model geleverd worden?",
             tekst: [
@@ -1493,9 +1768,19 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Questions fréquentes",
+        metaTitel: "Questions fréquentes sur les modèles 3D",
+        metaBeschrijving:
+          "Prix, délais, facturation, plusieurs systèmes, modifications de plans et livraison : les réponses aux questions qui reviennent le plus souvent.",
         samenvatting:
           "Réponses aux questions qui reviennent le plus souvent : délais, facturation, plusieurs systèmes, modifications, livraison et responsabilité.",
         secties: [
+          {
+            kop: "Combien coûte un modèle 3D de guidage d’engins ?",
+            tekst: [
+              `Vous payez à l’heure de modélisation, hors TVA : ${e("vroegtijdig", "fr")} de l’heure pour une demande plus de trois semaines à l’avance, ${e("normaal", "fr")} de l’heure pour une livraison dans un délai d’une à trois semaines et ${e("last-minute", "fr")} de l’heure en urgence, dans les cinq jours ouvrables. Un minimum de ${MINIMUM_UREN} heure s’applique par commande.`,
+              "La livraison pour des systèmes ou marques supplémentaires est incluse. Le devis indique à l’avance le nombre d’heures estimé sur la base de vos plans.",
+            ],
+          },
           {
             kop: "En combien de temps un modèle peut-il être livré ?",
             tekst: [
@@ -1544,9 +1829,19 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "Frequently asked questions",
+        metaTitel: "Machine control 3D models: FAQ",
+        metaBeschrijving:
+          "Price, turnaround, billing, multiple systems, design changes and delivery: answers to the questions asked most often about machine control 3D models.",
         samenvatting:
           "Answers to the questions we hear most often: turnaround, billing, multiple systems, revisions, delivery and responsibility.",
         secties: [
+          {
+            kop: "What does a machine control 3D model cost?",
+            tekst: [
+              `You pay per hour of modelling, excluding VAT: ${e("vroegtijdig", "en")} per hour when you request more than three weeks ahead, ${e("normaal", "en")} per hour for delivery within one to three weeks and ${e("last-minute", "en")} per hour for last-minute work within five working days. A minimum of ${MINIMUM_UREN} hour applies per job.`,
+              "Delivery for extra systems or brands is included. The quote states the estimated number of hours up front, based on your drawings.",
+            ],
+          },
           {
             kop: "How quickly can a model be delivered?",
             tekst: [
@@ -1595,9 +1890,19 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Häufig gestellte Fragen",
+        metaTitel: "Häufige Fragen zu 3D-Modellen",
+        metaBeschrijving:
+          "Preis, Lieferfristen, Abrechnung, mehrere Systeme, Planänderungen und Lieferung: Antworten auf die Fragen, die am häufigsten gestellt werden.",
         samenvatting:
           "Antworten auf die Fragen, die am häufigsten gestellt werden: Lieferfristen, Abrechnung, mehrere Systeme, Änderungen, Lieferung und Verantwortung.",
         secties: [
+          {
+            kop: "Was kostet ein 3D-Modell für die Maschinensteuerung?",
+            tekst: [
+              `Sie zahlen pro Stunde Modellierung, zzgl. MwSt.: ${e("vroegtijdig", "de")} pro Stunde bei Anfrage mehr als drei Wochen im Voraus, ${e("normaal", "de")} pro Stunde bei Lieferung innerhalb von einer bis drei Wochen und ${e("last-minute", "de")} pro Stunde kurzfristig, innerhalb von fünf Werktagen. Es gilt ein Minimum von ${MINIMUM_UREN} Stunde pro Auftrag.`,
+              "Die Lieferung für weitere Systeme oder Marken ist inbegriffen. Das Angebot nennt vorab die geschätzte Stundenzahl auf Grundlage Ihrer Pläne.",
+            ],
+          },
           {
             kop: "Wie schnell kann ein Modell geliefert werden?",
             tekst: [
@@ -1646,9 +1951,19 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Preguntas frecuentes",
+        metaTitel: "Preguntas frecuentes sobre modelos 3D",
+        metaBeschrijving:
+          "Precio, plazos, facturación, varios sistemas, cambios de proyecto y entrega: respuestas a las preguntas que más se repiten sobre modelos 3D.",
         samenvatting:
           "Respuestas a las preguntas que más se repiten: plazos de entrega, facturación, varios sistemas, modificaciones, entrega y responsabilidad.",
         secties: [
+          {
+            kop: "¿Cuánto cuesta un modelo 3D para control de maquinaria?",
+            tekst: [
+              `Usted paga por hora de modelado, IVA no incluido: ${e("vroegtijdig", "es")} por hora si lo solicita con más de tres semanas de antelación, ${e("normaal", "es")} por hora para entregas en un plazo de una a tres semanas y ${e("last-minute", "es")} por hora en urgencia, en un plazo de cinco días laborables. Se aplica un mínimo de ${MINIMUM_UREN} hora por encargo.`,
+              "La entrega para sistemas o marcas adicionales está incluida. El presupuesto indica de antemano el número estimado de horas según sus planos.",
+            ],
+          },
           {
             kop: "¿Con qué rapidez se puede entregar un modelo?",
             tekst: [
@@ -1702,9 +2017,13 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "van-pdf-naar-model",
     icoon: "FileStack",
+    verwant: ["/kennis/wat-aanleveren", "/kennis/controle-en-toleranties", "/tarieven"],
     i18n: {
       nl: {
         titel: "Van PDF of papieren plan naar model",
+        metaTitel: "Van PDF of papieren plan naar 3D-model",
+        metaBeschrijving:
+          "Geen CAD-bestanden? Ook uit een PDF of papieren plan kan een 3D-model worden opgebouwd, met extra gegevens en controle. Zo werkt het en dit zijn de grenzen.",
         samenvatting:
           "Niet elk project komt met CAD-bestanden. Ook vanuit een PDF of een papieren plan kan een model worden opgebouwd, maar dat vraagt extra informatie en extra controle. Hoe dat werkt, waar de grenzen liggen en wat u zelf best nakijkt.",
         secties: [
@@ -1751,6 +2070,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       fr: {
         titel: "Du PDF ou du plan papier au modèle",
+        metaTitel: "Du PDF ou plan papier au modèle 3D",
+        metaBeschrijving:
+          "Pas de fichiers CAO ? Un modèle 3D peut être construit à partir d’un PDF ou d’un plan papier, avec plus d’informations et de contrôles. Méthode et limites.",
         samenvatting:
           "Tous les projets ne sont pas fournis en fichiers CAO. Un modèle peut aussi être construit à partir d’un PDF ou d’un plan papier, mais cela demande davantage d’informations et de contrôles. Comment cela fonctionne, où sont les limites et ce que vous avez intérêt à vérifier.",
         secties: [
@@ -1797,6 +2119,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       en: {
         titel: "From PDF or paper drawing to model",
+        metaTitel: "From PDF or paper drawing to 3D model",
+        metaBeschrijving:
+          "No CAD files? A 3D model can also be built from a PDF or a paper drawing, with extra information and extra checks. How it works and where the limits are.",
         samenvatting:
           "Not every project comes with CAD files. A model can also be built from a PDF or a paper drawing, but that takes extra information and extra checking. How it works, where the limits are and what you should check yourself.",
         secties: [
@@ -1843,6 +2168,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       de: {
         titel: "Vom PDF oder Papierplan zum Modell",
+        metaTitel: "Vom PDF oder Papierplan zum 3D-Modell",
+        metaBeschrijving:
+          "Keine CAD-Dateien? Auch aus einem PDF oder Papierplan lässt sich ein 3D-Modell aufbauen, mit zusätzlichen Angaben und Kontrollen. Ablauf und Grenzen.",
         samenvatting:
           "Nicht jedes Projekt wird mit CAD-Dateien geliefert. Auch aus einem PDF oder einem Papierplan lässt sich ein Modell aufbauen, das erfordert jedoch zusätzliche Informationen und zusätzliche Kontrolle. Wie das funktioniert, wo die Grenzen liegen und was Sie selbst am besten prüfen.",
         secties: [
@@ -1889,6 +2217,9 @@ export const KENNIS: KennisArtikel[] = [
       },
       es: {
         titel: "Del PDF o plano en papel al modelo",
+        metaTitel: "Del PDF o plano en papel al modelo 3D",
+        metaBeschrijving:
+          "¿Sin archivos CAD? También se puede construir un modelo 3D a partir de un PDF o un plano en papel, con más datos y controles. Cómo funciona y sus límites.",
         samenvatting:
           "No todos los proyectos llegan con archivos CAD. También se puede construir un modelo a partir de un PDF o de un plano en papel, pero eso requiere información y controles adicionales. Cómo funciona, dónde están los límites y qué conviene que compruebe usted mismo.",
         secties: [
@@ -1940,9 +2271,13 @@ export const KENNIS: KennisArtikel[] = [
   {
     slug: "grondverzet-en-volumes",
     icoon: "Layers",
+    verwant: ["/kennis/wat-is-een-3d-model", "/kennis/lijnwerk-en-breeklijnen", "/realisaties"],
     i18n: {
       nl: {
         titel: "Grondverzet en volumes",
+        metaTitel: "Grondverzet en volumes uit een 3D-model",
+        metaBeschrijving:
+          "Uitgraven, ophogen en grondbalans: wat een volumeberekening uit het ontwerpmodel zegt over uw grondverzet, en waarom die berekening indicatief blijft.",
         samenvatting:
           "Een ontwerpmodel stuurt niet alleen de machine, het helpt ook het grondverzet te begrijpen: waar wordt afgegraven, waar aangevuld en hoeveel. Wat zo’n volumeberekening zegt, en wat ze niet zegt.",
         secties: [
@@ -1971,13 +2306,16 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Indicatief, geen garantie",
             tekst: [
               "Een volume is nooit nauwkeuriger dan de oppervlakken waarop het berekend is. Een opmeting met weinig punten, een verouderde opmeting of een terrein dat sindsdien is veranderd, geeft een volume dat afwijkt van de werkelijkheid. Ook vegetatie, losse stockage of water op het ogenblik van de opmeting beïnvloeden het resultaat.",
-              "Volumes uit het model zijn daarom een nevenproduct van het ontwerpwerk en hebben een indicatieve waarde. Ze helpen bij het inschatten en plannen, maar zijn geen gegarandeerde hoeveelheden voor afrekening of meetstaat. Voor contractuele hoeveelheden blijven de opmeting door een landmeter en de afspraken in het bestek bepalend.",
+              "Volumes uit het model zijn daarom een nevenproduct van het ontwerpwerk en hebben een indicatieve waarde. Ze helpen bij het inschatten en plannen, maar zijn geen gegarandeerde hoeveelheden voor afrekening of meetstaat. Voor contractuele hoeveelheden blijven een opmeting op het terrein en de afspraken in het bestek bepalend.",
             ],
           },
         ],
       },
       fr: {
         titel: "Terrassements et volumes",
+        metaTitel: "Terrassements et volumes d’un modèle 3D",
+        metaBeschrijving:
+          "Déblais, remblais et équilibre des terres : ce qu’un calcul de volumes issu du modèle dit de vos terrassements, et pourquoi il reste indicatif.",
         samenvatting:
           "Un modèle de conception ne guide pas seulement la machine, il aide aussi à comprendre les terrassements : où l’on déblaie, où l’on remblaie et en quelle quantité. Ce que dit un calcul de volumes, et ce qu’il ne dit pas.",
         secties: [
@@ -2006,13 +2344,16 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Indicatif, pas une garantie",
             tekst: [
               "Un volume n’est jamais plus précis que les surfaces sur lesquelles il est calculé. Un levé avec peu de points, un levé ancien ou un terrain modifié depuis donne un volume qui s’écarte de la réalité. La végétation, des dépôts temporaires ou de l’eau au moment du levé influencent aussi le résultat.",
-              "Les volumes issus du modèle sont donc un sous-produit du travail de modélisation et ont une valeur indicative. Ils aident à estimer et à planifier, mais ne constituent pas des quantités garanties pour un décompte ou un métré. Pour les quantités contractuelles, le levé d’un géomètre et les clauses du cahier des charges restent déterminants.",
+              "Les volumes issus du modèle sont donc un sous-produit du travail de modélisation et ont une valeur indicative. Ils aident à estimer et à planifier, mais ne constituent pas des quantités garanties pour un décompte ou un métré. Pour les quantités contractuelles, un levé sur le terrain et les clauses du cahier des charges restent déterminants.",
             ],
           },
         ],
       },
       en: {
         titel: "Earthworks and volumes",
+        metaTitel: "Earthworks volumes from a 3D model",
+        metaBeschrijving:
+          "Cut, fill and earthworks balance: what a volume calculation from the design model tells you about your earthworks, and why it stays indicative.",
         samenvatting:
           "A design model does more than guide the machine: it also helps you understand the earthworks — where material is cut, where it is filled and how much. What such a volume calculation tells you, and what it does not.",
         secties: [
@@ -2041,13 +2382,16 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Indicative, not a guarantee",
             tekst: [
               "A volume is never more accurate than the surfaces it is calculated from. A survey with few points, an outdated survey or ground that has changed since gives a volume that differs from reality. Vegetation, temporary stockpiles or standing water at the time of the survey also affect the result.",
-              "Volumes from the model are therefore a by-product of the modelling work and are indicative. They help with estimating and planning, but they are not guaranteed quantities for payment or a bill of quantities. For contractual quantities, the surveyor’s measurements and the terms of the specification remain decisive.",
+              "Volumes from the model are therefore a by-product of the modelling work and are indicative. They help with estimating and planning, but they are not guaranteed quantities for payment or a bill of quantities. For contractual quantities, an on-site survey and the terms of the specification remain decisive.",
             ],
           },
         ],
       },
       de: {
         titel: "Erdbau und Massen",
+        metaTitel: "Erdbau und Massenberechnung im 3D-Modell",
+        metaBeschrijving:
+          "Abtrag, Auftrag und Massenausgleich: was eine Massenberechnung aus dem Planungsmodell über Ihren Erdbau aussagt und warum sie ein Richtwert bleibt.",
         samenvatting:
           "Ein Planungsmodell steuert nicht nur die Maschine, es hilft auch, den Erdbau zu verstehen: wo abgetragen, wo aufgefüllt wird und wie viel. Was eine solche Massenberechnung aussagt und was nicht.",
         secties: [
@@ -2076,13 +2420,16 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Richtwert, keine Garantie",
             tekst: [
               "Ein Volumen ist nie genauer als die Oberflächen, aus denen es berechnet wurde. Eine Aufnahme mit wenigen Punkten, eine veraltete Aufnahme oder ein seither verändertes Gelände ergibt ein Volumen, das von der Wirklichkeit abweicht. Auch Bewuchs, Zwischenlager oder Wasser zum Zeitpunkt der Aufnahme beeinflussen das Ergebnis.",
-              "Volumen aus dem Modell sind daher ein Nebenprodukt der Modellierung und haben Richtwertcharakter. Sie helfen beim Schätzen und Planen, sind aber keine garantierten Mengen für Abrechnung oder Aufmaß. Für vertragliche Mengen bleiben die Aufnahme durch einen Vermesser und die Vereinbarungen im Leistungsverzeichnis maßgebend.",
+              "Volumen aus dem Modell sind daher ein Nebenprodukt der Modellierung und haben Richtwertcharakter. Sie helfen beim Schätzen und Planen, sind aber keine garantierten Mengen für Abrechnung oder Aufmaß. Für vertragliche Mengen bleiben eine Aufnahme vor Ort und die Vereinbarungen im Leistungsverzeichnis maßgebend.",
             ],
           },
         ],
       },
       es: {
         titel: "Movimiento de tierras y volúmenes",
+        metaTitel: "Movimiento de tierras y volúmenes en 3D",
+        metaBeschrijving:
+          "Desmonte, terraplén y compensación de tierras: qué dice un cálculo de volúmenes del modelo de diseño sobre su obra y por qué sigue siendo orientativo.",
         samenvatting:
           "Un modelo de diseño no solo guía la máquina: también ayuda a entender el movimiento de tierras, es decir, dónde hay desmonte, dónde hay terraplén y cuánto. Qué dice un cálculo de volúmenes y qué no dice.",
         secties: [
@@ -2111,7 +2458,7 @@ export const KENNIS: KennisArtikel[] = [
             kop: "Orientativo, no una garantía",
             tekst: [
               "Un volumen nunca es más preciso que las superficies con las que se calcula. Un levantamiento con pocos puntos, un levantamiento antiguo o un terreno que ha cambiado desde entonces dan un volumen que se aparta de la realidad. La vegetación, los acopios temporales o el agua en el momento del levantamiento también influyen en el resultado.",
-              "Los volúmenes del modelo son, por tanto, un subproducto del trabajo de modelado y tienen un valor orientativo. Ayudan a estimar y planificar, pero no son cantidades garantizadas para certificaciones ni mediciones. Para las cantidades contractuales, siguen siendo determinantes el levantamiento de un topógrafo y lo establecido en el pliego de condiciones.",
+              "Los volúmenes del modelo son, por tanto, un subproducto del trabajo de modelado y tienen un valor orientativo. Ayudan a estimar y planificar, pero no son cantidades garantizadas para certificaciones ni mediciones. Para las cantidades contractuales, siguen siendo determinantes un levantamiento en el terreno y lo establecido en el pliego de condiciones.",
             ],
           },
         ],

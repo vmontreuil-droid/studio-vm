@@ -103,8 +103,10 @@ export function kiesRealisatie(cat?: Categorie): RealisatieKeuze {
 const eur = (c: keyof typeof UURTARIEF_CENT, l: "nl" | "fr" = "nl") =>
   euro(UURTARIEF_CENT[c], l);
 
-const HT_NL = "#machinesturing #3Dmodel #grondwerken #wegenbouw #landmeter";
-const HT_FR = "#guidagedengins #modèle3D #terrassement #voirie #géomètre";
+// Geen beschermde beroepstitel als hashtag (zie FUNCTIE in lib/bedrijf).
+// Posts zijn publiek en spreken als Studio VM: geen persoonsnaam.
+const HT_NL = "#machinesturing #3Dmodel #grondwerken #wegenbouw #topografie";
+const HT_FR = "#guidagedengins #modèle3D #terrassement #voirie #topographie";
 
 // ============================================================================
 // STORY-CASES — 1 per werkdag, korter en punchier dan feed-posts.
@@ -725,17 +727,17 @@ studio-vm.be/nl/3d-modellen`,
 
   // ---------- Positionering ----------
   {
-    id: "positie-landmeter-li",
+    id: "positie-topograaf-li",
     platform: "linkedin",
     post_kind: "persoonlijk",
     target_url: "/nl/3d-modellen",
     days: [4],
     category: "positie",
     build: () => ({
-      title: "Waarom een landmeter je 3D-modellen maakt",
-      body: `Een 3D-model voor machinesturing is landmeetkunde: coördinatenstelsels, hoogtereferenties, kalibraties, toleranties.
+      title: "Waarom een 3D-topograaf je 3D-modellen maakt",
+      body: `Een 3D-model voor machinesturing is topografie: coördinatenstelsels, hoogtereferenties, kalibraties, toleranties.
 
-Als landmeter werk ik dagelijks met die vragen. Daarom kijk ik bij elk model niet alleen of het oppervlak klopt, maar ook of het in het juiste stelsel staat, of de hoogtes aansluiten op de peilen van het plan en of de hellingen afwateren zoals bedoeld.
+Als 3D-topograaf werk ik dagelijks met die vragen. Daarom kijk ik bij elk model niet alleen of het oppervlak klopt, maar ook of het in het juiste stelsel staat, of de hoogtes aansluiten op de peilen van het plan en of de hellingen afwateren zoals bedoeld.
 
 Wat ik lever: een model dat je machine meteen kan inladen.
 Wat bij jou blijft: de werfkalibratie, de instellingen van de machine en de controle op de werf.

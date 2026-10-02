@@ -2,6 +2,10 @@ import type { Locale } from "./i18n/config";
 
 // Eén bron voor naam, adres, telefoon en identiteit (NAP). Footer, contact,
 // juridische pagina's en gestructureerde gegevens lezen allemaal hieruit.
+//
+// De site spreekt als "Studio VM". De naam van de houder staat publiek
+// enkel in de wettelijke identiteitsregel (footer, /voorwaarden, /privacy)
+// en als legalName in de gestructureerde gegevens.
 
 export const BEDRIJF = {
   naam: "Studio VM",
@@ -16,7 +20,6 @@ export const BEDRIJF = {
   email: "info@studio-vm.be",
   btw: "BE 0672.960.066",
   btwCompact: "BE0672960066",
-  linkedin: "https://www.linkedin.com/in/vincentmontreuil",
 } as const;
 
 export const LAND: Record<Locale, string> = {
@@ -35,14 +38,15 @@ export const PROVINCIE: Record<Locale, string> = {
   es: "Flandes Occidental",
 };
 
-// only change to landmeter/géomètre after Vincent confirms he may use that
-// title (landmeter-expert is protected)
+// Beroepstitel: enige bron voor site, mails en gestructureerde gegevens.
+// Nooit "landmeter", "géomètre", "Vermesser" of "land surveyor":
+// landmeter-expert is een beschermde titel.
 export const FUNCTIE: Record<Locale, string> = {
-  nl: "3D-modelleur voor machinesturing",
-  fr: "Modeleur 3D pour le guidage d'engins",
-  en: "3D modeller for machine control",
-  de: "3D-Modellierer für Maschinensteuerung",
-  es: "Modelador 3D para control de maquinaria",
+  nl: "3D-Topograaf",
+  fr: "Topographe 3D",
+  en: "3D Topographer",
+  de: "3D-Topograf",
+  es: "Topógrafo 3D",
 };
 
 const RECHTSVORM: Record<Locale, string> = {
@@ -62,7 +66,8 @@ const ONDERNEMINGSNUMMER: Record<Locale, string> = {
 };
 
 /**
- * Volledige identiteitsregel, bv. voor /over, /privacy en /voorwaarden:
+ * Volledige wettelijke identiteitsregel, enkel voor de footer, /privacy en
+ * /voorwaarden (de enige publieke plekken met de naam van de houder):
  * "Studio VM · Vincent Montreuil (eenmanszaak) · Nieuwpoortstraat 14-301,
  * 8570 Anzegem, België · +32 477 99 56 51 · info@studio-vm.be ·
  * ondernemingsnummer BE 0672.960.066"

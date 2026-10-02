@@ -1,4 +1,5 @@
 import { SITE } from "@/lib/seo";
+import { BEDRIJF, FUNCTIE, LAND } from "@/lib/bedrijf";
 import { MINIMUM_UREN, UURTARIEF_CENT, euro } from "@/lib/tarieven";
 
 // /llms.txt — korte, feitelijke samenvatting voor taalmodellen
@@ -15,7 +16,7 @@ function inhoud(): string {
   return [
     "# Studio VM",
     "",
-    "> Studio VM (Vincent Montreuil, Anzegem, België) maakt 3D-ontwerpmodellen voor GPS-machinesturing van graafmachines, graders en dozers: ontwerpoppervlak (TIN), lijnwerk en breeklijnen, hoogtelijnen en hellingscontrole, geleverd in het formaat van Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu en Caterpillar, in het juiste nationale coördinatenstelsel en de juiste hoogtereferentie, voor aannemers in heel Europa.",
+    `> Studio VM (${FUNCTIE.nl}, ${BEDRIJF.gemeente}, ${LAND.nl}) maakt 3D-ontwerpmodellen voor GPS-machinesturing van graafmachines, graders en dozers: ontwerpoppervlak (TIN), lijnwerk en breeklijnen, hoogtelijnen en hellingscontrole, geleverd in het formaat van Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu en Caterpillar, in het juiste nationale coördinatenstelsel en de juiste hoogtereferentie, voor aannemers in heel Europa.`,
     "",
     `Uurtarief excl. btw: ${prijs(UURTARIEF_CENT.vroegtijdig)} vroegtijdig (meer dan 3 weken op voorhand), ${prijs(UURTARIEF_CENT.normaal)} normaal (levering binnen 1 à 3 weken), ${prijs(UURTARIEF_CENT["last-minute"])} last-minute (binnen 5 werkdagen). Minimum ${MINIMUM_UREN} ${uren}. Extra machinesystemen zonder meerprijs.`,
     "",
@@ -26,7 +27,7 @@ function inhoud(): string {
     `- [Offerte aanvragen](${SITE}/nl/offerte)`,
     `- [Realisaties](${SITE}/nl/realisaties)`,
     `- [Kennisbank](${SITE}/nl/kennis)`,
-    `- [Over Vincent Montreuil](${SITE}/nl/over)`,
+    `- [Over Studio VM](${SITE}/nl/over)`,
     `- [English](${SITE}/en)`,
     `- [Français](${SITE}/fr)`,
     `- [Deutsch](${SITE}/de)`,
@@ -34,7 +35,7 @@ function inhoud(): string {
     "",
     "## Contact",
     "",
-    "info@studio-vm.be · +32 477 99 56 51 · Nieuwpoortstraat 14-301, 8570 Anzegem, België · BE 0672.960.066",
+    `${BEDRIJF.email} · ${BEDRIJF.telefoon} · ${BEDRIJF.straat}, ${BEDRIJF.postcode} ${BEDRIJF.gemeente}, ${LAND.nl} · ${BEDRIJF.btw}`,
     "",
   ].join("\n");
 }

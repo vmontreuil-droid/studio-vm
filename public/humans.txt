@@ -1,6 +1,6 @@
 /* TEAM */
-  Vincent Montreuil — 3D-modellen voor machinesturing
-  Studio VM · Anzegem, West-Vlaanderen, België
+  Studio VM — 3D-modellen voor machinesturing
+  Anzegem, West-Vlaanderen, België
   Contact: info [at] studio-vm.be
 
 /* SITE */

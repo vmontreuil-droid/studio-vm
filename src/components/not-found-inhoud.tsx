@@ -12,6 +12,7 @@ import {
 
 // De taal komt uit het adres (client-side), niet uit een cookie: met
 // cookies() in not-found werd de hele site dynamisch gerenderd.
+// global-not-found.tsx kent de taal al op de server en geeft ze mee.
 
 const copy: Record<
   Locale,
@@ -27,7 +28,7 @@ const copy: Record<
 > = {
   nl: {
     eyebrow: "404 · niet gevonden",
-    titlePrefix: "page",
+    titlePrefix: "pagina",
     titleSuffix: " bestaat niet.",
     intro:
       "Misschien hebt u een oude link gevolgd, of liep er iets mis bij het typen. Probeer een van deze:",
@@ -35,7 +36,7 @@ const copy: Record<
       { href: "/", label: "Home", desc: "Begin opnieuw" },
       { href: "/realisaties", label: "Realisaties", desc: "Bekijk gerealiseerde modellen" },
       { href: "/offerte", label: "Offerte aanvragen", desc: "Stuur uw plannen" },
-      { href: "/#contact", label: "Contact", desc: "Stuur me een bericht" },
+      { href: "/#contact", label: "Contact", desc: "Stuur ons een bericht" },
     ],
     home: "Naar home",
     searchHint: "of druk ⌘K om te zoeken",
@@ -50,7 +51,7 @@ const copy: Record<
       { href: "/", label: "Accueil", desc: "Recommencer" },
       { href: "/realisaties", label: "Réalisations", desc: "Voir les modèles réalisés" },
       { href: "/offerte", label: "Demander un devis", desc: "Envoyez vos plans" },
-      { href: "/#contact", label: "Contact", desc: "Envoyez-moi un message" },
+      { href: "/#contact", label: "Contact", desc: "Envoyez-nous un message" },
     ],
     home: "Vers l'accueil",
     searchHint: "ou appuyez ⌘K pour rechercher",
@@ -65,7 +66,7 @@ const copy: Record<
       { href: "/", label: "Home", desc: "Start over" },
       { href: "/realisaties", label: "Projects", desc: "See completed models" },
       { href: "/offerte", label: "Request a quote", desc: "Send your plans" },
-      { href: "/#contact", label: "Contact", desc: "Send me a message" },
+      { href: "/#contact", label: "Contact", desc: "Send us a message" },
     ],
     home: "To home",
     searchHint: "or press ⌘K to search",
@@ -80,7 +81,7 @@ const copy: Record<
       { href: "/", label: "Start", desc: "Von vorn beginnen" },
       { href: "/realisaties", label: "Referenzen", desc: "Umgesetzte Modelle ansehen" },
       { href: "/offerte", label: "Angebot anfordern", desc: "Senden Sie Ihre Pläne" },
-      { href: "/#contact", label: "Kontakt", desc: "Schreiben Sie mir eine Nachricht" },
+      { href: "/#contact", label: "Kontakt", desc: "Schreiben Sie uns eine Nachricht" },
     ],
     home: "Zur Startseite",
     searchHint: "oder drücken Sie ⌘K, um zu suchen",
@@ -95,16 +96,16 @@ const copy: Record<
       { href: "/", label: "Inicio", desc: "Volver a empezar" },
       { href: "/realisaties", label: "Proyectos", desc: "Ver modelos realizados" },
       { href: "/offerte", label: "Solicitar presupuesto", desc: "Envíe sus planos" },
-      { href: "/#contact", label: "Contacto", desc: "Envíeme un mensaje" },
+      { href: "/#contact", label: "Contacto", desc: "Envíenos un mensaje" },
     ],
     home: "Ir al inicio",
     searchHint: "o pulse ⌘K para buscar",
   },
 };
 
-export function NotFoundInhoud() {
+export function NotFoundInhoud({ locale: vast }: { locale?: Locale } = {}) {
   const seg = usePathname()?.split("/")[1];
-  const locale: Locale = isValidLocale(seg) ? seg : DEFAULT_LOCALE;
+  const locale: Locale = vast ?? (isValidLocale(seg) ? seg : DEFAULT_LOCALE);
   const m = copy[locale];
 
   return (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, FileUp, House, Layers, Route, Images, Euro, BookOpen, Mail } from "lucide-react";
+import { FileUp, House, Layers, Route, Images, Euro, BookOpen, Mail } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search";
 import { MobileMenu } from "@/components/mobile-menu";
@@ -55,21 +55,13 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <LangSwitcher current={locale} compact />
           </div>
           <SearchTrigger locale={locale} />
-          <ThemeToggle />
+          <ThemeToggle locale={locale} />
           <Link
             href={localePath(locale, '/offerte')}
             className="hidden items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 xl:inline-flex"
           >
             <FileUp className="h-3.5 w-3.5" strokeWidth={2} />
             {L.offerte}
-          </Link>
-          <Link
-            href="/admin"
-            aria-label="Admin"
-            title="Admin"
-            className="hidden h-8 w-8 items-center justify-center rounded-full border text-muted transition-colors hover:border-accent hover:text-accent sm:inline-flex"
-          >
-            <Lock className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
           <MobileMenu locale={locale} />
         </div>

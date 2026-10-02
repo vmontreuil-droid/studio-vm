@@ -1,7 +1,9 @@
 import { ImageResponse } from "next/og";
+import { BEDRIJF, FUNCTIE, PROVINCIE } from "@/lib/bedrijf";
 
 // Wortelkaart (interne routes + global-not-found). Zelfde ontwerp als
-// src/app/[locale]/opengraph-image.tsx, met de Nederlandse tekst.
+// src/app/[locale]/opengraph-image.tsx, met de Nederlandse tekst. Geen
+// persoonsnaam: de kaart spreekt als Studio VM ("vm." bovenaan).
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Studio VM — 3D-modellen voor machinesturing";
@@ -88,7 +90,7 @@ export default function OG() {
             fontSize: 26,
           }}
         >
-          <span>Vincent Montreuil · West-Vlaanderen · overal in Europa</span>
+          <span>{`${BEDRIJF.naam} · ${FUNCTIE.nl} · ${PROVINCIE.nl} · overal in Europa`}</span>
           <span style={{ color: "#f59e0b", fontFamily: "monospace" }}>
             studio-vm.be/nl
           </span>

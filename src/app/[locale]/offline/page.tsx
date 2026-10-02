@@ -11,9 +11,9 @@ const copy: Record<
   nl: {
     metaTitle: "Offline — Studio VM",
     eyebrow: "Geen verbinding",
-    title: "Lijkt erop dat je offline bent.",
+    title: "Het lijkt erop dat u offline bent.",
     intro:
-      "Geen paniek — je verloor enkel je internetverbinding. Probeer 't opnieuw zodra je terug online bent.",
+      "Geen paniek — u bent enkel uw internetverbinding kwijt. Probeer het opnieuw zodra u weer online bent.",
     button: "Probeer opnieuw",
   },
   fr: {
@@ -57,7 +57,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return { title: copy[locale].metaTitle };
+  return {
+    title: { absolute: copy[locale].metaTitle },
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function OfflinePage({

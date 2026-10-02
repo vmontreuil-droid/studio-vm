@@ -1,6 +1,6 @@
 // Persoonlijke outreach-mail naar aannemers (grond-, weg- en waterbouw).
 //
-// Ziet eruit als een echte één-op-één-mail van een landmeter — geen
+// Ziet eruit als een echte één-op-één-mail van een 3D-topograaf — geen
 // marketing-template, geen groot logo, lichte achtergrond. Pitch: 3D-
 // modellen voor machinesturing, klaar om in te laden, in het juiste
 // coördinatenstelsel, transparant uurtarief. Merken worden enkel genoemd
@@ -8,11 +8,16 @@
 //
 // Talen: nl / fr / en / de. Elke mail heeft een afmeldlink en een
 // wettelijke voet met de gegevens uit de bedrijfsinstellingen.
+//
+// Beroepstitel = FUNCTIE uit lib/bedrijf (3D-Topograaf), nooit een
+// beschermde titel (zie de uitleg bij FUNCTIE). De persoonlijke
+// ondertekening met naam mag blijven (één-op-één-mail).
 
 import type { OutreachConfig } from "@/lib/admin/outreach";
 import type { CompanySettings } from "@/lib/admin/settings";
 import { siteUrl } from "@/lib/supabase/config";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro } from "@/lib/tarieven";
+import { FUNCTIE } from "@/lib/bedrijf";
 import {
   heeftSturing,
   legeSignalen,
@@ -141,7 +146,7 @@ const T: Record<MailTaal, Tekst> = {
         : "3D-modellen voor uw machinesturing",
     greeting: "Goedendag,",
     intro:
-      "Ik ben Vincent Montreuil, landmeter. Onder de naam Studio VM maak ik 3D-ontwerpmodellen voor machinesturing: van uw plannen (PDF, DWG of profielen) naar een model dat uw graafmachine, grader of dozer meteen kan inladen.",
+      "Ik ben Vincent Montreuil, 3D-topograaf. Onder de naam Studio VM maak ik 3D-ontwerpmodellen voor machinesturing: van uw plannen (PDF, DWG of profielen) naar een model dat uw graafmachine, grader of dozer meteen kan inladen.",
     haak: {
       merken: (h, m) =>
         `Op ${h} zag ik dat u met ${lijst(m, "en")} werkt. Het model lever ik rechtstreeks in het formaat van ${m.length > 1 ? "die systemen" : "dat systeem"}.`,
@@ -171,7 +176,7 @@ const T: Record<MailTaal, Tekst> = {
     ],
     followupStop: "Geen interesse? Laat het me gerust weten, dan hoort u niets meer van mij.",
     signOff: "Met vriendelijke groeten,",
-    rol: "Landmeter",
+    rol: FUNCTIE.nl,
     waarom:
       "U ontvangt deze e-mail omdat uw bedrijf actief is in grond-, weg- of waterbouw. Liever geen e-mails meer? Afmelden met één klik:",
     afmelden: "afmelden",
@@ -184,7 +189,7 @@ const T: Record<MailTaal, Tekst> = {
         : "Modèles 3D pour votre guidage d'engins",
     greeting: "Bonjour,",
     intro:
-      "Je suis Vincent Montreuil, géomètre. Sous le nom Studio VM, je réalise des modèles 3D de conception pour le guidage d'engins : de vos plans (PDF, DWG ou profils) à un modèle que votre pelle, niveleuse ou bouteur peut charger directement.",
+      "Je suis Vincent Montreuil, topographe 3D. Sous le nom Studio VM, je réalise des modèles 3D de conception pour le guidage d'engins : de vos plans (PDF, DWG ou profils) à un modèle que votre pelle, niveleuse ou bouteur peut charger directement.",
     haak: {
       merken: (h, m) =>
         `Sur ${h}, j'ai vu que vous travaillez avec ${lijst(m, "et")}. Je livre le modèle directement au format de ${m.length > 1 ? "ces systèmes" : "ce système"}.`,
@@ -214,7 +219,7 @@ const T: Record<MailTaal, Tekst> = {
     ],
     followupStop: "Pas intéressé ? Dites-le-moi simplement, vous n'aurez plus de nouvelles de ma part.",
     signOff: "Bien cordialement,",
-    rol: "Géomètre",
+    rol: FUNCTIE.fr,
     waarom:
       "Vous recevez cet e-mail car votre entreprise est active en terrassement, voirie ou génie civil. Vous ne souhaitez plus recevoir d'e-mails ? Désinscription en un clic :",
     afmelden: "se désinscrire",
@@ -227,7 +232,7 @@ const T: Record<MailTaal, Tekst> = {
         : "3D models for your machine control",
     greeting: "Hello,",
     intro:
-      "I'm Vincent Montreuil, a land surveyor. Under the name Studio VM I build 3D design models for machine control: from your drawings (PDF, DWG or sections) to a model your excavator, grader or dozer can load straight away.",
+      "I'm Vincent Montreuil, a 3D topographer. Under the name Studio VM I build 3D design models for machine control: from your drawings (PDF, DWG or sections) to a model your excavator, grader or dozer can load straight away.",
     haak: {
       merken: (h, m) =>
         `I noticed on ${h} that you work with ${lijst(m, "and")}. I deliver the model directly in ${m.length > 1 ? "the formats of those systems" : "that system's format"}.`,
@@ -257,7 +262,7 @@ const T: Record<MailTaal, Tekst> = {
     ],
     followupStop: "Not interested? Just let me know and you won't hear from me again.",
     signOff: "Kind regards,",
-    rol: "Land surveyor",
+    rol: FUNCTIE.en,
     waarom:
       "You are receiving this email because your company works in earthworks, roads or civil engineering. Prefer not to hear from me? Unsubscribe in one click:",
     afmelden: "unsubscribe",
@@ -270,7 +275,7 @@ const T: Record<MailTaal, Tekst> = {
         : "3D-Modelle für Ihre Maschinensteuerung",
     greeting: "Guten Tag,",
     intro:
-      "mein Name ist Vincent Montreuil, ich bin Vermesser. Unter dem Namen Studio VM erstelle ich 3D-Planungsmodelle für Maschinensteuerungen: aus Ihren Plänen (PDF, DWG oder Profile) ein Modell, das Ihr Bagger, Grader oder Dozer direkt laden kann.",
+      "mein Name ist Vincent Montreuil, ich bin 3D-Topograf. Unter dem Namen Studio VM erstelle ich 3D-Planungsmodelle für Maschinensteuerungen: aus Ihren Plänen (PDF, DWG oder Profile) ein Modell, das Ihr Bagger, Grader oder Dozer direkt laden kann.",
     haak: {
       merken: (h, m) =>
         `Auf ${h} habe ich gesehen, dass Sie mit ${lijst(m, "und")} arbeiten. Ich liefere das Modell direkt im Format ${m.length > 1 ? "dieser Systeme" : "dieses Systems"}.`,
@@ -300,7 +305,7 @@ const T: Record<MailTaal, Tekst> = {
     ],
     followupStop: "Kein Interesse? Sagen Sie mir einfach Bescheid, dann hören Sie nichts mehr von mir.",
     signOff: "Mit freundlichen Grüßen",
-    rol: "Vermesser",
+    rol: FUNCTIE.de,
     waarom:
       "Sie erhalten diese E-Mail, weil Ihr Unternehmen im Erd-, Straßen- oder Tiefbau tätig ist. Keine E-Mails mehr erwünscht? Mit einem Klick abmelden:",
     afmelden: "abmelden",
