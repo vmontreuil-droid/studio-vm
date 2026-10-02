@@ -125,6 +125,13 @@ export const SEO_TAKEN: SeoTaak[] = [
     link: { label: "Facebook", href: "https://www.facebook.com/pages/?category=your_pages" },
   },
   {
+    id: "fb-automatisch",
+    titel: "Facebook automatisch laten publiceren (samen met Claude)",
+    uitleg: "Na de SEO-update: Meta-ontwikkelaarsapp aanmaken en de paginasleutel in Vercel zetten (±15 min, stap voor stap). Daarna publiceert de admin 2× per week een goedgekeurd bericht met foto op de Facebookpagina.",
+    vanaf: "2026-10-03",
+    link: { label: "Meta for Developers", href: "https://developers.facebook.com/apps" },
+  },
+  {
     id: "kbo",
     titel: "KBO via My Enterprise: website, e-mail en telefoon",
     uitleg: "Aanmelden met itsme; vul https://www.studio-vm.be, info@studio-vm.be en +32 477 99 56 51 in. Gidsen als companyweb, Trends en Gouden Gids nemen dat over.",
