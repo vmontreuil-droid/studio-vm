@@ -31,6 +31,7 @@ import {
   type ProjectStatus,
 } from "@/lib/projecten";
 import { UURTARIEF_CENT, MINIMUM_UREN } from "@/lib/tarieven";
+import { SeoOpvolging } from "@/components/admin/seo-opvolging";
 
 export const dynamic = "force-dynamic";
 
@@ -605,6 +606,8 @@ export default async function AdminDashboard() {
           )}
         </div>
       </div>
+
+      <SeoOpvolging />
 
       {/* Pijplijn */}
       <div className="mt-3 rounded-2xl bg-card p-6 shadow-sm">
