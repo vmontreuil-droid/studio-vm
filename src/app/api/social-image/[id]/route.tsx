@@ -3,12 +3,12 @@
 // URL: /api/social-image/{post_id} → 1200×630 PNG.
 //
 // Twee layouts afhankelijk van post-type:
-//   1. SCREENSHOT-layout (showcase/case posts) — 2-koloms: tekst links,
-//      live-screenshot van de portfolio-site rechts in een browser-mockup.
-//      Detectie via "site:domain.be" in notes-veld.
-//      Of een 3D-beeld via "kaart:/3d/….png" in notes (aannemers-posts).
-//   2. QUOTE-layout (tips, positionering, persoonlijk) — gradient + grote
-//      hero-quote + echte studio-vm logo.
+//   1. BEELD-layout (aannemers-posts) — 2-koloms: tekst links, een
+//      3D-beeld rechts in een browser-mockup. Detectie via
+//      "kaart:/3d/….png" in het notes-veld.
+//   2. QUOTE-layout (tips, positionering, persoonlijk, en elke post
+//      zonder bruikbaar beeld) — gradient + grote hero-quote + echte
+//      studio-vm logo.
 //
 // Geen authentication — image-routes worden door e-mailclients (Gmail,
 // Outlook) zonder cookies opgehaald. Inhoud is sowieso marketing.
@@ -51,26 +51,6 @@ async function getMontserratExtraBold(): Promise<ArrayBuffer | null> {
   }
 }
 
-// Screenshot via lokale files in public/social/portfolio/{slug}.png —
-// vooraf gegenereerd via `node scripts/screenshot-portfolio.mjs`. Geeft
-// betrouwbare images zonder externe API-afhankelijkheid (mShots geeft 403
-// sinds mei 2026). Domain → slug via mapping.
-const SCREENSHOT_SLUG: Record<string, string> = {
-  "celineinterieur.com": "celineinterieur",
-  "montreuil.be": "montreuil",
-  "allardphilippe.vercel.app": "allardphilippe",
-  "mari-lines.be": "mari-lines",
-  "barbotte.vercel.app": "barbotte",
-  "cottage-waregem.vercel.app": "cottage-waregem",
-  "favesan.be": "favesan",
-  "studio-vm.be": "studio-vm",
-};
-
-function screenshotPathFor(domain: string): string | null {
-  const slug = SCREENSHOT_SLUG[domain];
-  return slug ? `/social/portfolio/${slug}.png` : null;
-}
-
 // 3D-beelden (aannemers-posts): notes-marker "kaart:/3d/….png|jpg".
 // Satori kan geen WebP inlinen, daarom enkel PNG/JPG uit public/3d.
 const KAART_CACHE = new Map<string, string>();
@@ -83,30 +63,6 @@ async function getKaartDataUrl(rel: string): Promise<string | null> {
     const mime = /.png$/i.test(rel) ? "image/png" : "image/jpeg";
     const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
     KAART_CACHE.set(rel, dataUrl);
-    return dataUrl;
-  } catch {
-    return null;
-  }
-}
-
-// Cache screenshots als data-URLs zodat Satori ze betrouwbaar inlinet
-const SHOT_CACHE = new Map<string, string>();
-async function getScreenshotDataUrl(domain: string): Promise<string | null> {
-  const cached = SHOT_CACHE.get(domain);
-  if (cached) return cached;
-  const slug = SCREENSHOT_SLUG[domain];
-  if (!slug) return null;
-  try {
-    const p = path.join(
-      process.cwd(),
-      "public",
-      "social",
-      "portfolio",
-      `${slug}.png`,
-    );
-    const buf = await fs.readFile(p);
-    const dataUrl = `data:image/png;base64,${buf.toString("base64")}`;
-    SHOT_CACHE.set(domain, dataUrl);
     return dataUrl;
   } catch {
     return null;
@@ -200,7 +156,6 @@ export async function GET(
   let hero = "Studio VM — 3D-modellen voor machinesturing";
   let platform = "algemeen";
   let category = "story";
-  let featuredSite: string | null = null;
   let kaartBeeld: string | null = null;
   let postMarkedAsStory = false;
 
@@ -228,15 +183,9 @@ export async function GET(
         else if (tmpl.includes("service")) category = "service";
         else if (tmpl.includes("positie")) category = "positie";
 
-        // Featured-site uit notes — bv. "site:celine-interieur.be"
-        const siteMatch = post.notes?.match(/site:([a-z0-9.\-]+)/i)?.[1];
-        if (siteMatch) featuredSite = siteMatch;
         // 3D-beeld uit notes — bv. "kaart:/3d/relief-bouwput-licht.png"
         const kaartMatch = post.notes?.match(/kaart:(\/3d\/[a-z0-9\-/]+\.(?:png|jpe?g))/i)?.[1];
-        if (kaartMatch) {
-          kaartBeeld = kaartMatch;
-          featuredSite = "studio-vm.be/realisaties";
-        }
+        if (kaartMatch) kaartBeeld = kaartMatch;
         // format:story marker → default story-layout
         if (post.notes?.includes("format:story")) postMarkedAsStory = true;
       }
@@ -248,14 +197,11 @@ export async function GET(
   // Effectief story-modus = query OF post-marker
   const isStory = queryStory || postMarkedAsStory;
   const theme = THEMES[platform] ?? THEMES.algemeen!;
-  const useScreenshot = !!featuredSite && !isStory; // stories = tekst-eerst
   const montserratData = await getMontserratExtraBold();
-  const screenshotData = kaartBeeld
-    ? await getKaartDataUrl(kaartBeeld)
-    : featuredSite
-      ? await getScreenshotDataUrl(featuredSite)
-      : null;
-  void screenshotPathFor; // alias-only — niet rechtstreeks gebruikt
+  // Enkel een 3D-beeld uit public/3d. Geen (leesbaar) beeld → quote-layout.
+  const screenshotData = kaartBeeld ? await getKaartDataUrl(kaartBeeld) : null;
+  const featuredSite = screenshotData ? "studio-vm.be/realisaties" : null;
+  const useScreenshot = !!screenshotData && !isStory; // stories = tekst-eerst
 
   // Story-layout: vertikaal 1080×1920, ander render-pad onderaan
   if (isStory) {
@@ -493,7 +439,7 @@ export async function GET(
                   {featuredSite}
                 </div>
               </div>
-              {/* Screenshot — local file via data-URL voor betrouwbaarheid */}
+              {/* 3D-beeld — lokaal bestand via data-URL voor betrouwbaarheid */}
               {screenshotData ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

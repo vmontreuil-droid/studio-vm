@@ -77,7 +77,7 @@ export async function sendTestMail(
     return { ok: false, error: `Onbekende template '${id}'.` };
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://studio-vm.be";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.studio-vm.be";
   const unsub = `${baseUrl}/api/outreach/unsubscribe?t=voorbeeld-token`;
 
   try {
@@ -146,7 +146,7 @@ function buildSamplePreview(
           "Hierbij je persoonlijke offerte — het geschatte aantal uren, het uurtarief en de voorwaarden staan in je portaal.",
         ],
         ctaLabel: "Bekijk je voorstel",
-        ctaHref: "https://studio-vm.be/nl/portail",
+        ctaHref: "https://www.studio-vm.be/nl/portail",
         extraHtml: offerPreviewHtml({
           offerNo: "OFF2026-0042",
           greeting: "Jan Peeters",
@@ -171,7 +171,7 @@ function buildSamplePreview(
         title: "Bedankt voor je betaling 🎉",
         bodyLines: ["Je betaling is goed binnengekomen."],
         ctaLabel: "Open mijn portaal",
-        ctaHref: "https://studio-vm.be/nl/portail",
+        ctaHref: "https://www.studio-vm.be/nl/portail",
         extraHtml: invoicePaidPreviewHtml({
           number: "F2026-0017",
           description: "3D-model bouwput — 4 u",
@@ -194,7 +194,7 @@ function buildSamplePreview(
           "Maand 1 van je Care-abonnement is gratis.",
         ],
         ctaLabel: "Bekijk je portaal",
-        ctaHref: "https://studio-vm.be/nl/portail",
+        ctaHref: "https://www.studio-vm.be/nl/portail",
       }),
     };
   }
@@ -210,7 +210,7 @@ function buildSamplePreview(
           "Openstaand bedrag: € 180,00.",
         ],
         ctaLabel: "Betaal in je portaal",
-        ctaHref: "https://studio-vm.be/nl/portail",
+        ctaHref: "https://www.studio-vm.be/nl/portail",
       }),
     };
   }

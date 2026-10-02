@@ -1,55 +1,44 @@
 import type { MetadataRoute } from "next";
 import { KENNIS } from "@/lib/kennis";
 import { LOCALES } from "@/lib/i18n/config";
-import { SITE } from "@/lib/seo";
+import { canoniek, taalVarianten } from "@/lib/seo";
+import { PAGINA_BIJGEWERKT, kennisDatum } from "@/lib/bijgewerkt";
 
 // Elke pagina bestaat in alle talen; elke vermelding verwijst ook naar
-// haar anderstalige versies (hreflang), zodat zoekmachines ze koppelen.
-function varianten(pad: string) {
-  return {
-    languages: {
-      ...Object.fromEntries(LOCALES.map((l) => [l, `${SITE}/${l}${pad}`])),
-      "x-default": `${SITE}/nl${pad}`,
-    },
-  };
-}
+// haar anderstalige versies (hreflang, x-default = Engels), zodat
+// zoekmachines ze koppelen. lastmod komt uit lib/bijgewerkt: een vaste datum
+// die enkel verandert wanneer de inhoud echt wijzigt.
+
+const PADEN = [
+  "",
+  "/3d-modellen",
+  "/realisaties",
+  "/tarieven",
+  "/offerte",
+  "/kennis",
+  "/over",
+  "/privacy",
+  "/cookies",
+  "/voorwaarden",
+] as const satisfies readonly (keyof typeof PAGINA_BIJGEWERKT)[];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
-  const paths = [
-    "",
-    "/3d-modellen",
-    "/realisaties",
-    "/tarieven",
-    "/offerte",
-    "/kennis",
-    "/over",
-    "/privacy",
-    "/cookies",
-    "/voorwaarden",
-  ];
-  const belangrijk = new Set(["", "/offerte", "/3d-modellen", "/realisaties", "/tarieven"]);
-
-  const paginas = paths.flatMap((path) =>
+  const paginas = PADEN.flatMap((pad) =>
     LOCALES.map((locale) => ({
-      url: `${SITE}/${locale}${path}`,
-      lastModified: now,
-      changeFrequency: (belangrijk.has(path) ? "weekly" : "monthly") as "weekly" | "monthly",
-      priority: path === "" ? 1 : belangrijk.has(path) ? 0.9 : 0.5,
-      alternates: varianten(path),
+      url: canoniek(locale, pad),
+      lastModified: PAGINA_BIJGEWERKT[pad],
+      alternates: { languages: taalVarianten(pad) },
     })),
   );
 
-  const kennis = KENNIS.flatMap((a) =>
-    LOCALES.map((locale) => ({
-      url: `${SITE}/${locale}/kennis/${a.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-      alternates: varianten(`/kennis/${a.slug}`),
-    })),
-  );
+  const kennis = KENNIS.flatMap((a) => {
+    const pad = `/kennis/${a.slug}`;
+    return LOCALES.map((locale) => ({
+      url: canoniek(locale, pad),
+      lastModified: kennisDatum(a.slug).bijgewerkt,
+      alternates: { languages: taalVarianten(pad) },
+    }));
+  });
 
   return [...paginas, ...kennis];
 }

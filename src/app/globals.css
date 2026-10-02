@@ -392,7 +392,11 @@ body {
     transform: translate3d(-7%, -6%, 0) scale(1);
   }
 }
-/* Bewegende lichtschijn: veegt links→rechts en verandert van kleur */
+/* Bewegende lichtschijn: veegt links→rechts en verandert van kleur.
+   Alleen transform en opacity bewegen (compositor, geen herteken per frame):
+   de vervaging staat vast op de laag zelf, en de kleurwissel is een
+   overvloeiing tussen twee vooraf gekleurde lagen (amber = accent, violet)
+   in plaats van een geanimeerde kleurdraaiing via filter. */
 .hero-sweep {
   position: absolute;
   top: -25%;
@@ -402,26 +406,59 @@ body {
   border-radius: 9999px;
   filter: blur(55px);
   opacity: 0.6;
+  animation: hero-sweep 12s linear infinite;
+  will-change: transform;
+}
+.hero-sweep::before,
+.hero-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: hero-sweep-amber 12s ease-in-out infinite;
   background: radial-gradient(
     closest-side,
     color-mix(in oklab, var(--accent) 80%, transparent),
     transparent 76%
   );
-  animation: hero-sweep 12s linear infinite;
-  will-change: transform, filter;
+}
+.hero-sweep::after {
+  opacity: 0;
+  animation-name: hero-sweep-violet;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, #7c3aed 75%, transparent),
+    transparent 76%
+  );
+}
+/* amber aan de randen van de veeg, violet halverwege */
+@keyframes hero-sweep-amber {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes hero-sweep-violet {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 @keyframes hero-sweep {
   0% {
     transform: translateX(-36rem);
-    filter: blur(55px) hue-rotate(0deg);
   }
   50% {
     transform: translateX(55vw);
-    filter: blur(55px) hue-rotate(180deg);
   }
   100% {
     transform: translateX(120vw);
-    filter: blur(55px) hue-rotate(360deg);
   }
 }
 /* rechts → links */
@@ -429,18 +466,19 @@ body {
   opacity: 0.5;
   animation: hero-sweep-rev 15s linear infinite;
 }
+.hero-sweep-rev::before,
+.hero-sweep-rev::after {
+  animation-duration: 15s;
+}
 @keyframes hero-sweep-rev {
   0% {
     transform: translateX(120vw);
-    filter: blur(55px) hue-rotate(360deg);
   }
   50% {
     transform: translateX(40vw);
-    filter: blur(55px) hue-rotate(160deg);
   }
   100% {
     transform: translateX(-36rem);
-    filter: blur(55px) hue-rotate(0deg);
   }
 }
 /* boven → onder */
@@ -453,18 +491,19 @@ body {
   opacity: 0.42;
   animation: hero-sweep-down 17s linear infinite;
 }
+.hero-sweep-down::before,
+.hero-sweep-down::after {
+  animation-duration: 17s;
+}
 @keyframes hero-sweep-down {
   0% {
     transform: translateY(-30rem);
-    filter: blur(55px) hue-rotate(90deg);
   }
   50% {
     transform: translateY(40vh);
-    filter: blur(55px) hue-rotate(270deg);
   }
   100% {
     transform: translateY(135vh);
-    filter: blur(55px) hue-rotate(450deg);
   }
 }
 /* onder → boven */
@@ -478,18 +517,19 @@ body {
   opacity: 0.42;
   animation: hero-sweep-up 21s linear infinite;
 }
+.hero-sweep-up::before,
+.hero-sweep-up::after {
+  animation-duration: 21s;
+}
 @keyframes hero-sweep-up {
   0% {
     transform: translateY(30rem);
-    filter: blur(55px) hue-rotate(270deg);
   }
   50% {
     transform: translateY(-40vh);
-    filter: blur(55px) hue-rotate(90deg);
   }
   100% {
     transform: translateY(-135vh);
-    filter: blur(55px) hue-rotate(-90deg);
   }
 }
 .hero-grid {
@@ -534,7 +574,9 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-blob,
-  .hero-sweep {
+  .hero-sweep,
+  .hero-sweep::before,
+  .hero-sweep::after {
     animation: none !important;
   }
 }

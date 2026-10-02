@@ -45,7 +45,7 @@ export function bedrijfVoorMail(s: Pick<CompanySettings, "address" | "vat_number
     adres: s.address?.trim() || null,
     btw: s.vat_number?.trim() || null,
     email: s.email?.trim() || null,
-    website: (s.website || siteUrl || "https://studio-vm.be").replace(/\/$/, ""),
+    website: (s.website || siteUrl || "https://www.studio-vm.be").replace(/\/$/, ""),
   };
 }
 
@@ -58,7 +58,7 @@ export type OutreachMail = {
 
 type Haak = "merken" | "sturing" | "werk" | "algemeen";
 
-const BASE = () => (process.env.NEXT_PUBLIC_SITE_URL || siteUrl || "https://studio-vm.be").replace(/\/$/, "");
+const BASE = () => (process.env.NEXT_PUBLIC_SITE_URL || siteUrl || "https://www.studio-vm.be").replace(/\/$/, "");
 
 function prijs(cat: keyof typeof UURTARIEF_CENT, lang: MailTaal): string {
   return euro(UURTARIEF_CENT[cat], lang);

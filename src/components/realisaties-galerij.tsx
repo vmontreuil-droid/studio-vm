@@ -1,19 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
-import { REALISATIES, CATEGORIEEN, type Categorie } from "@/lib/realisaties";
+import { REALISATIES, CATEGORIEEN, BEELD_ALT, type Categorie, type Realisatie } from "@/lib/realisaties";
 import type { Locale } from "@/lib/i18n/config";
 
 const ALLE: Record<Locale, string> = { nl: "Alle", fr: "Tous", en: "All", de: "Alle", es: "Todos" };
+const geenAbonnement = () => () => {};
+
+// Alt-tekst met context, bv. "Aftakking — 3D-model voor machinesturing, wegenis".
+// Duits houdt de hoofdletter: zelfstandige naamwoorden blijven daar groot.
+function beeldAlt(r: Realisatie, locale: Locale): string {
+  const cat = CATEGORIEEN[r.cat][locale];
+  return `${r[locale].titel} — ${BEELD_ALT[locale]}, ${locale === "de" ? cat : cat.toLowerCase()}`;
+}
 
 export function RealisatiesGalerij({ locale }: { locale: Locale }) {
   const [filter, setFilter] = useState<Categorie | "alle">("alle");
   const [open, setOpen] = useState<number | null>(null);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Portaal naar document.body kan pas in de browser (server: false).
+  const mounted = useSyncExternalStore(geenAbonnement, () => true, () => false);
 
   const lijst = useMemo(() => REALISATIES.filter((r) => filter === "alle" || r.cat === filter), [filter]);
 
@@ -64,7 +72,7 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
             className="group flex flex-col overflow-hidden rounded-3xl border bg-card text-left transition-colors hover:border-accent"
           >
             <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
-              <Image src={r.licht} alt={r[locale].titel} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image src={r.licht} alt={beeldAlt(r, locale)} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
               <Image src={r.donker} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-donker object-cover transition-transform duration-700 group-hover:scale-105" />
               <span className="absolute right-3 top-3 rounded-full bg-black/50 p-2 text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-4 w-4" strokeWidth={2} />
@@ -102,7 +110,7 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
             </div>
             <div className="relative flex flex-1 items-center justify-center px-4 pb-6 sm:px-16" onClick={(e) => e.stopPropagation()}>
               <div className="relative h-full max-h-[78vh] w-full max-w-6xl 2xl:max-h-[82vh] 2xl:max-w-[110rem] overflow-hidden rounded-3xl border bg-card">
-                <Image src={huidig.licht} alt={huidig[locale].titel} fill sizes="100vw" className="alleen-licht object-contain" />
+                <Image src={huidig.licht} alt={beeldAlt(huidig, locale)} fill sizes="100vw" className="alleen-licht object-contain" />
                 <Image src={huidig.donker} alt="" fill sizes="100vw" className="alleen-donker object-contain" />
               </div>
               <button aria-label="←" onClick={vorige} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-background/80 p-3 hover:bg-card-hover sm:left-4">

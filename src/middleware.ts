@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { LOCALES, DEFAULT_LOCALE, isValidLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, isValidLocale } from "@/lib/i18n/config";
 
-const PUBLIC_FILE = /\.(.*)$/;
-const LOCALE_PATHS = LOCALES.map((l) => `/${l}`);
+// Bewust middleware.ts (edge) en geen proxy.ts: proxy draait verplicht op
+// Node in de functieregio; deze taalomleiding hoort aan de rand.
 
 function pickLocale(req: NextRequest): string {
   const cookie = req.cookies.get("locale")?.value;
@@ -13,50 +13,43 @@ function pickLocale(req: NextRequest): string {
     const tag = part.split(";")[0]?.trim().split("-")[0]?.toLowerCase();
     if (isValidLocale(tag)) return tag;
   }
-  return DEFAULT_LOCALE;
+  // Browser in een taal die we niet aanbieden (pl, it, sv, …) → Engels.
+  // Geen Accept-Language (meestal bots) → Nederlands.
+  return accept.trim() ? "en" : DEFAULT_LOCALE;
 }
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip Next internals + assets + metadata routes
+  // Metadata- en hulproutes zonder punt in het pad (paden mét punt en
+  // _next/, api/, admin, auth/ sluit de matcher hieronder al uit).
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/site/") ||
-    pathname.startsWith("/auth/") ||
-    pathname === "/security-txt" ||
-    pathname.startsWith("/.well-known/") ||
     pathname === "/icon" ||
     pathname === "/apple-icon" ||
     pathname === "/opengraph-image" ||
-    pathname === "/sitemap.xml" ||
-    pathname === "/robots.txt" ||
-    pathname === "/manifest.webmanifest" ||
-    pathname === "/studio-vm-logo.svg" ||
-    PUBLIC_FILE.test(pathname)
+    pathname === "/security-txt" ||
+    pathname.startsWith("/.well-known/") ||
+    pathname === "/studio-vm-logo.svg"
   ) {
     return NextResponse.next();
   }
 
-  // Already locale-prefixed → geef de locale door als request-header
-  // zodat de root-layout <html lang> correct kan zetten (niet cookie-gedreven).
-  const hasLocale = LOCALE_PATHS.some(
-    (lp) => pathname === lp || pathname.startsWith(`${lp}/`),
-  );
-  if (hasLocale) {
-    const seg = pathname.split("/")[1];
-    const headers = new Headers(req.headers);
-    if (isValidLocale(seg)) headers.set("x-locale", seg);
-    headers.set("x-pathname", pathname);
-    return NextResponse.next({ request: { headers } });
+  const seg = pathname.split("/")[1] ?? "";
+
+  // Al een taal in het adres → niets te doen.
+  if (isValidLocale(seg)) return NextResponse.next();
+
+  // /NL/tarieven → /nl/tarieven (blijvend).
+  const klein = seg.toLowerCase();
+  if (klein !== seg && isValidLocale(klein)) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/${klein}${pathname.slice(seg.length + 1)}`;
+    return NextResponse.redirect(url, 308);
   }
 
-  // No locale → redirect to /{locale}{path}. Deze redirect hangt af
-  // van de bezoeker (browsertaal + cookie); nooit gedeeld cachen,
-  // anders krijgt bv. een Franse bezoeker de NL-redirect van een
-  // eerdere bezoeker/bot te zien.
+  // Geen taal → /{taal}{pad}. Deze omleiding hangt af van de bezoeker
+  // (browsertaal + cookie); nooit gedeeld cachen, anders krijgt bv. een
+  // Franse bezoeker de NL-omleiding van een eerdere bezoeker of bot.
   const locale = pickLocale(req);
   const url = req.nextUrl.clone();
   url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
@@ -67,5 +60,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/|api/|admin|auth/|.*\\.).*)"],
 };

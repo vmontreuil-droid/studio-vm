@@ -1,13 +1,8 @@
 /* TEAM */
-  Developer & designer: Vincent Montreuil
-  Site: studio-vm.be
-  Locatie: West-Vlaanderen, België
+  Vincent Montreuil — 3D-modellen voor machinesturing
+  Studio VM · Anzegem, West-Vlaanderen, België
   Contact: info [at] studio-vm.be
 
 /* SITE */
-  Stack: Next.js 16, React 19, Tailwind v4, TypeScript, Vercel
-  Talen: NL, FR, EN
+  Talen: NL, FR, EN, DE, ES
   Standaarden: WCAG focus-states, prefers-reduced-motion, RFC 9116
-  Geen trackers, geen plugin-spaghetti, code blijft van de klant.
-
-  Gemaakt met aandacht — en koffie.

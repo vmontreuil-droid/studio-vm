@@ -612,7 +612,7 @@ De hellingskaart is een vaste controle vóór levering: een strook die verkeerd 
 
 Bekijk de vier weergaven: studio-vm.be/nl/realisaties`,
       hashtags: HT_NL,
-      beeld: "/3d/r/p-libramont-helling-licht.webp",
+      beeld: "/3d/r/p-platform-helling-licht.webp",
       kaart: "/3d/model-platform-helling.jpg",
     }),
   },

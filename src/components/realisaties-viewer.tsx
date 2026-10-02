@@ -13,12 +13,13 @@ const VOLGORDE: { w: Weergave; icoon: typeof Palette }[] = [
   { w: "draad", icoon: Triangle },
 ];
 
-function Beeld({ src, alt, actief }: { src: string; alt: string; actief: boolean }) {
+function Beeld({ src, alt, actief, voorrang }: { src: string; alt: string; actief: boolean; voorrang: boolean }) {
   return (
     <Image
       src={src}
       alt={alt}
       fill
+      fetchPriority={voorrang ? "high" : undefined}
       sizes="(max-width: 1024px) 100vw, 60vw"
       className={`object-cover transition-opacity duration-500 ${actief ? "opacity-100" : "opacity-0"}`}
     />
@@ -29,27 +30,33 @@ export function RealisatiesViewer({ locale }: { locale: Locale }) {
   return (
     <div className="space-y-16 2xl:space-y-24">
       {UITGELICHT.map((p, i) => (
-        <Project key={p.id} id={p.id} titel={p[locale].titel} tekst={p[locale].tekst} omgekeerd={i % 2 === 1} locale={locale} />
+        <Project key={p.id} id={p.id} titel={p[locale].titel} tekst={p[locale].tekst} omgekeerd={i % 2 === 1} eerste={i === 0} locale={locale} />
       ))}
     </div>
   );
 }
 
-function Project({ id, titel, tekst, omgekeerd, locale }: { id: string; titel: string; tekst: string; omgekeerd: boolean; locale: Locale }) {
+function Project({ id, titel, tekst, omgekeerd, eerste, locale }: { id: string; titel: string; tekst: string; omgekeerd: boolean; eerste: boolean; locale: Locale }) {
   const [w, setW] = useState<Weergave>("hoogte");
+  // Weergaven die al gemount mogen worden: de actieve plus wat de bezoeker al
+  // aanwees, aantikte of met de toetsenbord-focus bereikte.
+  const [geladen, setGeladen] = useState<Weergave[]>(["hoogte"]);
+  const laad = (v: Weergave) => setGeladen((g) => (g.includes(v) ? g : [...g, v]));
+  const zichtbaar = VOLGORDE.filter(({ w: v }) => v === w || geladen.includes(v));
   return (
     <div className={`grid items-center gap-8 lg:gap-12 2xl:gap-20 ${omgekeerd ? "lg:grid-cols-[1fr_1.5fr]" : "lg:grid-cols-[1.5fr_1fr]"}`}>
       <div className={omgekeerd ? "lg:order-2" : ""}>
         <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border bg-card shadow-xl shadow-black/5">
-          {/* Alle vier weergaven tegelijk geladen → wisselen zonder wachten; per thema licht/donker */}
-          {VOLGORDE.map(({ w: v }) => (
+          {/* Enkel de actieve weergave + wat al aangewezen werd; die blijven gemount,
+              dus terugwisselen gaat zonder wachten met een overvloeiing. Per thema licht/donker. */}
+          {zichtbaar.map(({ w: v }) => (
             <div key={v} className="alleen-licht absolute inset-0">
-              <Beeld src={`/3d/r/p-${id}-${v}-licht.webp`} alt={`${titel} — ${WEERGAVEN[v][locale]}`} actief={w === v} />
+              <Beeld src={`/3d/r/p-${id}-${v}-licht.webp`} alt={`${titel} — ${WEERGAVEN[v][locale]}`} actief={w === v} voorrang={eerste && w === v} />
             </div>
           ))}
-          {VOLGORDE.map(({ w: v }) => (
+          {zichtbaar.map(({ w: v }) => (
             <div key={v + "d"} className="alleen-donker absolute inset-0">
-              <Beeld src={`/3d/r/p-${id}-${v}-donker.webp`} alt="" actief={w === v} />
+              <Beeld src={`/3d/r/p-${id}-${v}-donker.webp`} alt="" actief={w === v} voorrang={eerste && w === v} />
             </div>
           ))}
           <span className="absolute left-4 top-4 rounded-full bg-black/55 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-white backdrop-blur">
@@ -62,7 +69,12 @@ function Project({ id, titel, tekst, omgekeerd, locale }: { id: string; titel: s
               key={v}
               role="tab"
               aria-selected={w === v}
-              onClick={() => setW(v)}
+              onPointerEnter={() => laad(v)}
+              onFocus={() => laad(v)}
+              onClick={() => {
+                laad(v);
+                setW(v);
+              }}
               className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors ${
                 w === v ? "border-foreground bg-foreground text-background" : "hover:bg-card-hover"
               }`}

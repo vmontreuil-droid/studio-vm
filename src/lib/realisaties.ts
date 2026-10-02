@@ -26,6 +26,15 @@ export const CATEGORIEEN: Record<Categorie, Record<Locale, string>> = {
   terrein: { nl: "Terreinmodellen", fr: "Modèles de terrain", en: "Terrain models", de: "Geländemodelle", es: "Modelos de terreno" },
 };
 
+// Vaste aanvulling voor alt-teksten: wat er op elk beeld te zien is.
+export const BEELD_ALT: Record<Locale, string> = {
+  nl: "3D-model voor machinesturing",
+  fr: "modèle 3D pour le guidage d'engins",
+  en: "3D model for machine control",
+  de: "3D-Modell für Maschinensteuerung",
+  es: "modelo 3D para control de maquinaria",
+};
+
 export const REALISATIES: Realisatie[] = [
   { id: "t029", ...r("t029"), cat: "wegenis",
     nl: { titel: "Aftakking", tekst: "Wegaansluiting met vloeiende bochten en verkanting." },
@@ -216,7 +225,7 @@ export const REALISATIES: Realisatie[] = [
     en: { titel: "Triangle network (TIN)", tekst: "The surface the machine guides on." },
     de: { titel: "Dreiecksnetz (TIN)", tekst: "Die Oberfläche, an der die Maschine steuert." },
     es: { titel: "Red de triángulos (TIN)", tekst: "La superficie sobre la que se guía la máquina." } },
-  { id: "lijnwerk", ...r("p-betrix-draad"), cat: "terrein",
+  { id: "lijnwerk", ...r("p-lijnwerk-draad"), cat: "terrein",
     nl: { titel: "Lijnwerk", tekst: "Breeklijnen en kanten als referentie voor de machinist." },
     fr: { titel: "Filaire", tekst: "Lignes de rupture et bords comme repères pour le conducteur." },
     en: { titel: "Linework", tekst: "Breaklines and edges as references for the operator." },
@@ -234,13 +243,13 @@ export const WEERGAVEN: Record<Weergave, Record<Locale, string>> = {
 };
 
 export const UITGELICHT: { id: string; nl: Tekst; fr: Tekst; en: Tekst; de: Tekst; es: Tekst }[] = [
-  { id: "libramont",
+  { id: "platform",
     nl: { titel: "Platform met funderingsstroken", tekst: "Een groot werkvlak met een raster van funderingsstroken, elk op zijn eigen niveau. De hellingskaart toont meteen of elke strook correct afwatert." },
     fr: { titel: "Plateforme avec semelles", tekst: "Une grande plateforme avec une trame de semelles, chacune à son propre niveau. La carte des pentes montre aussitôt si chaque semelle s'écoule correctement." },
     en: { titel: "Platform with strip foundations", tekst: "A large working platform with a grid of strip foundations, each at its own level. The slope map shows straight away whether every strip drains correctly." },
     de: { titel: "Planum mit Streifenfundamenten", tekst: "Ein großes Arbeitsplanum mit einem Raster von Streifenfundamenten, jedes auf seiner eigenen Höhe. Die Neigungskarte zeigt sofort, ob jeder Streifen korrekt entwässert." },
     es: { titel: "Plataforma con zapatas corridas", tekst: "Una gran plataforma de trabajo con una retícula de zapatas corridas, cada una a su propia cota. El mapa de pendientes muestra de inmediato si cada zapata desagua correctamente." } },
-  { id: "riga",
+  { id: "uitgraving",
     nl: { titel: "Uitgraving met taluds", tekst: "Een uitgraving met taluds rondom en een vlakke bodem. In het driehoeksnet ziet u hoe het oppervlak opgebouwd is waarop de machine stuurt." },
     fr: { titel: "Excavation talutée", tekst: "Une excavation avec talus périphériques et fond plat. Le réseau de triangles montre comment est construite la surface sur laquelle la machine se guide." },
     en: { titel: "Battered excavation", tekst: "An excavation with slopes all round and a level bottom. The triangle network shows how the surface the machine guides on is built." },

@@ -41,17 +41,72 @@ const nextConfig: NextConfig = {
   // een Server Action — de standaard 1 MB is veel te krap.
   experimental: {
     serverActions: { bodySizeLimit: "16mb" },
+    // src/app/global-not-found.tsx: echte 404 voor adressen buiten elke
+    // root-layout (/wp-login.php, /.env, …).
+    globalNotFound: true,
+  },
+  // Geoptimaliseerde beelden een week bewaren. Geen AVIF: dat verdubbelt
+  // het aantal beeldtransformaties.
+  images: {
+    minimumCacheTTL: 604800,
   },
   async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex" }];
+    const noindexNofollow = [
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
+    ];
     return [
       {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // Intern: nooit in zoekmachines.
+      { source: "/admin/:path*", headers: noindexNofollow },
+      { source: "/auth/:path*", headers: noindexNofollow },
+      { source: "/api/:path*", headers: noindex },
+      // Klant- en hulppagina's: wel ophaalbaar (robots.txt laat ze toe),
+      // zodat Google deze noindex ook echt ziet.
+      {
+        source:
+          "/:locale(nl|fr|en|de|es)/:p(portail|factuur|offline|support)/:rest*",
+        headers: noindex,
+      },
+      // 3D-beelden veranderen zelden; hernoemen bij elke wijziging.
+      {
+        source: "/3d/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
     ];
   },
-  // Oude pagina's uit de websitetijd → de passende 3D-pagina (blijvend).
   async redirects() {
+    // Dubbele hosts → de echte site. /api blijft bereikbaar, zodat crons
+    // en webhooks op die hosts blijven werken.
+    const hosts = ["studio-vm.vercel.app", "favesan.studio-vm.be"].map(
+      (host) => ({
+        source: "/:path((?!api/).*)",
+        has: [{ type: "host" as const, value: host }],
+        destination: "https://www.studio-vm.be/:path",
+        permanent: true,
+      }),
+    );
+
+    // Beelden die vroeger een plaats- of klantnaam droegen.
+    const beelden = [
+      ["libramont", "platform"],
+      ["riga", "uitgraving"],
+      ["betrix", "lijnwerk"],
+    ].map(([oud, nieuw]) => ({
+      source: `/3d/r/p-${oud}-:rest`,
+      destination: `/3d/r/p-${nieuw}-:rest`,
+      permanent: true,
+    }));
+
+    // Oude pagina's uit de websitetijd → de passende 3D-pagina (blijvend).
     const naar: [string, string][] = [
       ["pricing", "tarieven"],
       ["zelf-bouwen", "tarieven"],
@@ -79,12 +134,17 @@ const nextConfig: NextConfig = {
       ["changelog", "over"],
       ["status", "over"],
       ["preview/:pad*", ""],
+      ["contact", ""],
+      ["about", "over"],
+      ["logos", ""],
     ];
-    return naar.map(([oud, nieuw]) => ({
+    const paginas = naar.map(([oud, nieuw]) => ({
       source: `/:locale(nl|fr|en|de|es)/${oud}`,
       destination: `/:locale${nieuw ? `/${nieuw}` : ""}`,
       permanent: true,
     }));
+
+    return [...hosts, ...beelden, ...paginas];
   },
   async rewrites() {
     return [

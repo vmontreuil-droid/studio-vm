@@ -1,0 +1,29 @@
+name: IndexNow
+
+# Meldt alle sitemap-URL's bij IndexNow (Bing, Yandex, Seznam, Naver).
+# Automatisch na elke geslaagde productie-deploy (Vercel zet een GitHub
+# deployment_status), en met de hand te starten via Actions → IndexNow →
+# Run workflow (met optioneel "enkel tellen").
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Enkel tellen, niets versturen"
+        type: boolean
+        default: false
+
+jobs:
+  indexnow:
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: IndexNow melden
+        run: node scripts/indexnow.mjs ${{ inputs.dry_run && '--dry-run' || '' }}

@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/*/portail/dashboard", "/*/factuur/"],
+      // Portaal- en factuurpagina's bewust NIET geblokkeerd: Google moet
+      // ze kunnen ophalen om hun noindex (X-Robots-Tag) te zien.
+      disallow: ["/api/", "/admin"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };

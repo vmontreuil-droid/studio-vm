@@ -2,20 +2,34 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Studio VM — Websites en webshops",
+    name: "Studio VM — 3D-modellen voor machinesturing",
     short_name: "Studio VM",
     description:
-      "Vincent Montreuil — websites, webshops en admins voor lokale ondernemers in Vlaanderen.",
-    start_url: "/",
+      "3D-ontwerpmodellen voor GPS-machinesturing (Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar) in het juiste coördinatenstelsel, voor aannemers in heel Europa.",
+    lang: "nl",
+    start_url: "/nl",
+    scope: "/",
     display: "standalone",
     background_color: "#fafaf9",
     theme_color: "#b45309",
-    orientation: "portrait",
     icons: [
       {
-        src: "/icon",
-        sizes: "32x32",
+        src: "/icon-192.png",
+        sizes: "192x192",
         type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
       {
         src: "/apple-icon",
