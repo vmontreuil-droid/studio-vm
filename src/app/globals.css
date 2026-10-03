@@ -32,19 +32,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark waarden (gedeeld) — gelden voor system-dark én voor manuele override */
-@layer base {
-  :root.theme-dark,
-  :root[data-theme="dark"] {
-    --background: #0c0a09;
-    --foreground: #fafaf9;
-    --muted: #d6d3d1;
-    --muted-foreground: #a8a29e;
-    --accent: #f59e0b;
-    --border: #292524;
-    --card: #1c1917;
-    --card-hover: #292524;
-  }
+/* Dark waarden voor een manuele keuze én de standaard (theme-dark).
+   Bewust NIET in een @layer: ongelaagde regels winnen altijd van gelaagde,
+   dus binnen @layer base won de lichte :root hierboven en bleef alles licht. */
+:root.theme-dark,
+:root[data-theme="dark"] {
+  --background: #0c0a09;
+  --foreground: #fafaf9;
+  --muted: #d6d3d1;
+  --muted-foreground: #a8a29e;
+  --accent: #f59e0b;
+  --border: #292524;
+  --card: #1c1917;
+  --card-hover: #292524;
 }
 
 /* System preference: dark, tenzij user expliciet light gekozen heeft */
