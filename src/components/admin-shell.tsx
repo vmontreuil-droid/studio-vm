@@ -28,6 +28,7 @@ import {
   ExternalLink,
   Search,
   Settings,
+  ShieldCheck,
   FolderArchive,
   FileMinus,
   Package,
@@ -125,6 +126,7 @@ const groups: {
       { href: "/admin/rapporten", label: "Rapporten", icon: BarChart3 },
       { href: "/admin/documenten", label: "Documenten", icon: FolderArchive },
       { href: "/admin/instellingen", label: "Instellingen", icon: Settings },
+      { href: "/admin/beveiliging", label: "Beveiliging", icon: ShieldCheck },
     ],
   },
   {

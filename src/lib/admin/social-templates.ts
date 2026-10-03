@@ -80,8 +80,8 @@ const KAART_PER_CAT: Record<Categorie, string> = {
 
 const EMOJI_PER_CAT: Record<Categorie, string> = {
   wegenis: "🛣️",
-  grondwerk: "🚜",
-  bouwput: "🏗️",
+  grondwerk: "🏗️",
+  bouwput: "📐",
   terrein: "🗺️",
 };
 

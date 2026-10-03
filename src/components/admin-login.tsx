@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Lock, ArrowLeft, ArrowRight } from "lucide-react";
-import { LoginError } from "@/components/login-error";
+import { Lock, ArrowLeft, ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
+import { LoginError, TerugVeld } from "@/components/login-error";
+import { tweestapsStaat } from "@/lib/admin-beveiliging";
 
-export function AdminLogin() {
+export async function AdminLogin() {
+  const staat = await tweestapsStaat();
+  const metCode = staat.aan === true && !staat.noodrem;
   return (
     <div className="relative grid min-h-dvh lg:grid-cols-2">
       {/* === Linkerhelft — gebrande hero === */}
@@ -111,6 +114,41 @@ export function AdminLogin() {
                 </div>
               </div>
 
+              {metCode && (
+                <div>
+                  <label
+                    htmlFor="code"
+                    className="mb-1.5 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                    Code uit je app
+                  </label>
+                  <div className="relative">
+                    <KeyRound
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                      strokeWidth={1.75}
+                    />
+                    <input
+                      id="code"
+                      name="code"
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={12}
+                      placeholder="123 456"
+                      className="w-full rounded-xl border bg-background py-3 pl-10 pr-4 font-mono text-sm tracking-[0.3em] outline-none transition-colors focus:border-accent"
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+                    Telefoon niet bij de hand? Een herstelcode (xxxx-xxxx) werkt ook.
+                  </p>
+                </div>
+              )}
+
+              <TerugVeld />
               <LoginError />
 
               <button
@@ -126,7 +164,9 @@ export function AdminLogin() {
             </form>
 
             <p className="mt-6 text-center text-xs text-muted">
-              Beveiligde zone · enkel voor beheerders
+              {metCode
+                ? "Beveiligd met tweestapsverificatie"
+                : "Beveiligde zone · enkel voor beheerders"}
             </p>
           </div>
         </div>

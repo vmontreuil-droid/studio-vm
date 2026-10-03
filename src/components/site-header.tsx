@@ -5,6 +5,7 @@ import { SearchTrigger } from "@/components/search";
 import { MobileMenu } from "@/components/mobile-menu";
 import { NavLink } from "@/components/nav-link";
 import { Logo } from "@/components/logo";
+import { InfoBalk } from "@/components/info-balk";
 import { LangSwitcher } from "@/components/lang-switcher";
 import { getMessages } from "@/lib/i18n";
 import { localePath, type Locale } from "@/lib/i18n/config";
@@ -30,6 +31,8 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   ];
 
   return (
+    <>
+    <InfoBalk locale={locale} />
     <header className="sticky top-0 z-50 border-b bg-header backdrop-blur">
       <div className="wrap flex items-center justify-between gap-3 py-4">
         <Link
@@ -67,5 +70,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </div>
       </div>
     </header>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Lock, MapPin, Clock, Phone } from "lucide-react";
+import { Mail, MapPin, Clock, Phone } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Logo } from "@/components/logo";
 import { TaalLinks } from "@/components/taal-links";
@@ -225,18 +225,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <TaalLinks current={locale} />
             <div className="flex flex-wrap items-center gap-4 lg:justify-end">
               <p className="font-mono text-muted">{t.footer.built}</p>
-              {/* Geen prefetch en nofollow: /admin is afgeschermd en hoort
-                  niet in de index. */}
-              <Link
-                href="/admin"
-                prefetch={false}
-                rel="nofollow"
-                aria-label="Admin"
-                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono uppercase tracking-widest text-muted transition-colors hover:border-foreground hover:text-foreground"
-              >
-                <Lock className="h-3 w-3" strokeWidth={1.75} />
-                <span>Admin</span>
-              </Link>
+              {/* Geen publieke knop naar /admin: het beheer bereik je via het
+                  adres zelf, zodat de site er geen bezoekers naartoe leidt. */}
             </div>
           </div>
         </div>
