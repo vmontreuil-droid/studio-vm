@@ -65,6 +65,17 @@
   border-color: var(--border);
 }
 
+/* iOS Safari zoomt in op elk invoerveld met tekst < 16px en blijft daarna
+   ingezoomd (pagina lijkt verschoven). Op gsm daarom minstens 16px.
+   Ongelaagd, zodat het van Tailwind-utilities als text-sm wint. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 html {
   scroll-behavior: smooth;
   color-scheme: light dark;
