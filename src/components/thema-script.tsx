@@ -14,7 +14,8 @@ import { useLayoutEffect, useState, useSyncExternalStore } from "react";
 //   useLayoutEffect, nog altijd vóór de paint.
 
 const SCRIPT =
-  "(function(){try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.classList.add('theme-light');else if(t==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})()";
+  // Standaard donker; 'light' en 'auto' (systeem) zijn bewuste keuzes van de bezoeker.
+  "(function(){var c=document.documentElement.classList;try{var t=localStorage.getItem('theme');if(t==='light')c.add('theme-light');else if(t!=='auto')c.add('theme-dark');}catch(e){c.add('theme-dark');}})()";
 
 const geenAbonnement = () => () => {};
 
@@ -40,8 +41,10 @@ export function ThemaScript() {
     try {
       const t = localStorage.getItem("theme");
       if (t === "light") root.classList.add("theme-light");
-      else if (t === "dark") root.classList.add("theme-dark");
-    } catch {}
+      else if (t !== "auto") root.classList.add("theme-dark");
+    } catch {
+      root.classList.add("theme-dark");
+    }
   }, []);
 
   if (!metScript) return null;

@@ -33,24 +33,24 @@ export function ThemeToggle({ locale }: { locale?: Locale } = {}) {
   const seg = usePathname()?.split("/")[1];
   const taal: Locale = locale ?? (isValidLocale(seg) ? seg : DEFAULT_LOCALE);
   const tx = TXT[taal];
-  const [theme, setTheme] = useState<Theme>("auto");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "auto";
+      // Niets bewaard = standaard donker.
+      const saved = (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "dark";
       setTheme(saved);
     } catch {}
     setHydrated(true);
   }, []);
 
   const cycle = () => {
-    const next: Theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto";
+    const next: Theme = theme === "dark" ? "light" : theme === "light" ? "auto" : "dark";
     setTheme(next);
     applyTheme(next);
     try {
-      if (next === "auto") localStorage.removeItem(STORAGE_KEY);
-      else localStorage.setItem(STORAGE_KEY, next);
+      localStorage.setItem(STORAGE_KEY, next);
     } catch {}
   };
 
