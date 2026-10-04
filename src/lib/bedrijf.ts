@@ -42,7 +42,7 @@ export type SocialPlatform =
 
 export const SOCIAL: Record<SocialPlatform, string> = {
   facebook: "https://www.facebook.com/profile.php?id=61590220986288",
-  instagram: "",
+  instagram: "https://www.instagram.com/studiovm_be/",
   // Google-bedrijfsprofiel: de Maps-link (https://maps.google.com/?cid=…)
   google: "",
   youtube: "",
