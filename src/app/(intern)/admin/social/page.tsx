@@ -460,6 +460,7 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
               {bibliotheek.slice(0, 40).map((p) => (
                 <li key={p.id}>
                   <BerichtRegel
+                    verbonden={p.status === "gepubliceerd" ? undefined : verbonden}
                     post={p}
                     href={p.scheduled_for ? `/admin/social/wachtrij?week=${huidigeWeek(new Date(p.scheduled_for))}#b-${p.id.slice(0, 8)}` : undefined}
                   />
