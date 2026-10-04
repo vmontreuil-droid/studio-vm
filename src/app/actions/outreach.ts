@@ -167,8 +167,8 @@ export async function saveOutreachTargeting(fd: FormData): Promise<void> {
   const gekozen = fd.getAll("nace").map((v) => String(v));
   const extra = String(fd.get("nace_extra") ?? "");
   const prefixes = parseNaceList([...gekozen, ...extra.split(/[\s,;]+/)]);
-  const lands: ("be" | "fr" | "uk")[] = [];
-  for (const l of ["be", "fr", "uk"] as const) {
+  const lands: ("be" | "fr" | "uk" | "nl" | "de")[] = [];
+  for (const l of ["be", "fr", "uk", "nl", "de"] as const) {
     if (fd.get(`land_${l}`) != null) lands.push(l);
   }
   try {

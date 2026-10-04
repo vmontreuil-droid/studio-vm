@@ -171,6 +171,18 @@ with checks as (
       where conname = 'deurwaarders_arrondissement_check'
         and pg_get_constraintdef(oid) like '%land-nl%'
     )
+  union all select
+    '0054_prospects_nl_de.sql',
+    'prospects Nederland en Duitsland (Overture): nl_bedrijven, de_bedrijven + claimfuncties',
+    exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'nl_bedrijven'
+    )
+    and exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'de_bedrijven'
+    )
+    and exists(select 1 from pg_proc where proname = 'claim_de_for_scan')
 )
 select
   migration,

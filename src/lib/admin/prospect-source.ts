@@ -2,7 +2,8 @@
 // land zodat de prospects-pagina, de batch-finder en de API
 // allemaal vanuit dezelfde definitie werken.
 
-export type Land = "be" | "fr" | "uk";
+export type Land = "be" | "fr" | "uk" | "nl" | "de";
+export const LANDEN: Land[] = ["be", "fr", "uk", "nl", "de"];
 
 export type ProspectSource = {
   land: Land;
@@ -73,10 +74,42 @@ export const SOURCES: Record<Land, ProspectSource> = {
     postcodeExample: "bv. SW1 (London)",
     codeExample: "bv. 43120 (site preparation)",
   },
+  // NL en DE: Overture Maps Places (migratie 0054, scripts/overture-import.mjs).
+  // nace_main is afgeleid uit de Overture-categorie, in Belgische vorm.
+  nl: {
+    land: "nl",
+    flag: "🇳🇱",
+    label: "Nederland — Overture",
+    table: "nl_bedrijven",
+    idCol: "id",
+    codeCol: "nace_main",
+    codeLabel: "NACE (afgeleid)",
+    formCol: "legal_form",
+    statusCol: "status",
+    activeValue: "actief",
+    claimRpc: "claim_nl_for_scan",
+    postcodeExample: "bv. 35 (Utrecht)",
+    codeExample: "bv. 43120 (grondwerk)",
+  },
+  de: {
+    land: "de",
+    flag: "🇩🇪",
+    label: "Duitsland — Overture",
+    table: "de_bedrijven",
+    idCol: "id",
+    codeCol: "nace_main",
+    codeLabel: "NACE (afgeleid)",
+    formCol: "legal_form",
+    statusCol: "status",
+    activeValue: "actief",
+    claimRpc: "claim_de_for_scan",
+    postcodeExample: "bv. 52 (Aachen)",
+    codeExample: "bv. 43120 (Erdbau)",
+  },
 };
 
 export function sourceFromLand(raw?: string | null): ProspectSource {
   const k = (raw ?? "be").toLowerCase();
-  if (k === "fr" || k === "uk" || k === "be") return SOURCES[k];
+  if ((LANDEN as string[]).includes(k)) return SOURCES[k as Land];
   return SOURCES.be;
 }

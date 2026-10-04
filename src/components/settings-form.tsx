@@ -148,7 +148,7 @@ export function SettingsForm({
         <div className="block sm:col-span-2">
           <span className="text-xs font-medium text-muted">Landen actief</span>
           <div className="mt-2 flex flex-wrap gap-3">
-            {(["be", "fr", "uk"] as const).map((l) => (
+            {(["be", "fr", "uk", "nl", "de"] as const).map((l) => (
               <label
                 key={l}
                 className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"

@@ -14,7 +14,7 @@
 //   scan_stack  = JSON met de volledige Signalen (merken, taal, bron)
 //   signalen    = (optioneel, migratie 0048) dezelfde JSON als jsonb
 
-export type ProspectLand = "be" | "fr" | "uk";
+export type ProspectLand = "be" | "fr" | "uk" | "nl" | "de";
 export type MailTaal = "nl" | "fr" | "en" | "de";
 
 // ─────────────────────────────────────────────────────────────────────

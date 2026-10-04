@@ -149,10 +149,24 @@ export async function GET(req: NextRequest) {
 
   // NACE-controle (de doelgroep kan sinds de kwalificatie gewijzigd zijn).
   const prefixes = effectiveNace(cfg.nacePrefixes);
+  // Duitsland (UWG §7: ongevraagde mail ook naar bedrijven gevoelig): hoogstens
+  // DE_PER_DAG per dag, zodat een klacht nooit een golf wordt.
+  const DE_PER_DAG = 10;
+  let deVandaag = 0;
+  if (rows.some((r) => r.land === "de")) {
+    const { count } = await db
+      .from("prospect_outreach")
+      .select("prospect_id", { count: "exact", head: true })
+      .eq("land", "de")
+      .gte("mail_sent_at", todayStart.toISOString());
+    deVandaag = count ?? 0;
+  }
+
   // De NACE-code bepaalt ook de doelgroep (aannemer, ontwerper, landmeter) en dus de mail.
   const filtered: Array<OutreachRow & { nace: string | null }> = [];
   for (const r of rows) {
     if (filtered.length >= sendLimit) break;
+    if (r.land === "de" && deVandaag >= DE_PER_DAG) continue;
     const src = sourceFromLand(r.land);
     const { data: pr } = await db
       .from(src.table)
@@ -160,7 +174,10 @@ export async function GET(req: NextRequest) {
       .eq(src.idCol, r.prospect_id)
       .maybeSingle();
     const code = (pr as Record<string, string | null> | null)?.[src.codeCol];
-    if (naceMatches(code, prefixes)) filtered.push({ ...r, nace: code ?? null });
+    if (naceMatches(code, prefixes)) {
+      filtered.push({ ...r, nace: code ?? null });
+      if (r.land === "de") deVandaag++;
+    }
   }
 
   const bedrijf = bedrijfVoorMail(await getCompanySettings());

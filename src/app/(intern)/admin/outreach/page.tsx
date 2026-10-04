@@ -215,7 +215,7 @@ export default async function AdminOutreach({
 
   // Namen uit de bron-tabellen.
   const namen = new Map<string, string>();
-  for (const land of ["be", "fr", "uk"] as Land[]) {
+  for (const land of ["be", "fr", "uk", "nl", "de"] as Land[]) {
     const ids = rows.filter((r) => r.land === land).map((r) => r.prospect_id);
     if (ids.length === 0) continue;
     const src = sourceFromLand(land);
@@ -419,7 +419,7 @@ export default async function AdminOutreach({
           <div>
             <span className="text-xs font-medium text-muted">Landen</span>
             <div className="mt-1 flex flex-wrap gap-2">
-              {(["be", "fr", "uk"] as const).map((l) => (
+              {(["be", "fr", "uk", "nl", "de"] as const).map((l) => (
                 <label
                   key={l}
                   className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"

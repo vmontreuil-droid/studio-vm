@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { sourceFromLand, type Land } from "@/lib/admin/prospect-source";
+import { LANDEN, sourceFromLand, type Land } from "@/lib/admin/prospect-source";
 import { safeFetchText } from "@/lib/safe-fetch";
 import {
   adresPastBijSite,
@@ -100,7 +100,7 @@ export async function getOutreachConfig(): Promise<OutreachConfig> {
     if (!data) return DEFAULT_CONFIG;
     const r = data as Record<string, unknown>;
     const lands = ((r.outreach_lands as string[] | null) ?? ["be"]).filter(
-      (l): l is Land => l === "be" || l === "fr" || l === "uk",
+      (l): l is Land => (LANDEN as string[]).includes(l),
     );
     return {
       // Bij twijfel: gepauzeerd.
@@ -134,6 +134,8 @@ export function detectLang(
 ): MailTaal {
   if (land === "uk") return "en";
   if (land === "fr") return "fr";
+  if (land === "nl") return "nl";
+  if (land === "de") return "de";
   if (siteLang === "nl" || siteLang === "fr" || siteLang === "de") return siteLang;
   const pc = Number((postcode || "0").replace(/\D/g, "").slice(0, 4) || "0");
   if (pc >= 1000 && pc <= 1499) return "fr";
@@ -315,7 +317,8 @@ export async function qualifyProspect(
   const now = new Date().toISOString();
   // Randactiviteit (bv. 43.99) zonder enig signaal: niet mailen.
   const zonderSignaal = grade === "3D:AL" || grade === "3D:NS";
-  const randZonderSignaal = zonderSignaal && !!nace && !isKernNace(nace);
+  // Duitsland (UWG §7): nooit zonder bewijs op de eigen site dat het over ons werk gaat.
+  const randZonderSignaal = zonderSignaal && (land === "de" || (!!nace && !isKernNace(nace)));
   const klaar = !!mailTo && !randZonderSignaal;
 
   const row: Record<string, unknown> = {
@@ -414,9 +417,9 @@ export async function pickForPrescan(
   ];
 
   for (const g of groepen) {
-    // Enkel de KBO bevat e-mailadressen uit het register; Sirene en
-    // Companies House niet (en die tabellen zijn te groot om leeg te zoeken).
-    if (g.soort === "register" && land !== "be") continue;
+    // E-mailadressen uit de bron: de KBO, en voor NL/DE het (zakelijke) adres
+    // uit Overture. Sirene en Companies House hebben er geen.
+    if (g.soort === "register" && land !== "be" && land !== "nl" && land !== "de") continue;
     for (let page = 0; page < MAX_PAGES && out.length < limit; page++) {
       const { data } = await g.query(page * PAGE);
       const rows = (data as Ruw[] | null) ?? [];

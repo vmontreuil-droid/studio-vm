@@ -69,8 +69,8 @@ export async function saveCompanySettingsAction(
   // company_settings, andere kolommen).
   try {
     const naceRaw = (fd.get("outreach_nace_prefixes") as string | null) ?? "";
-    const lands: ("be" | "fr" | "uk")[] = [];
-    for (const l of ["be", "fr", "uk"] as const) {
+    const lands: ("be" | "fr" | "uk" | "nl" | "de")[] = [];
+    for (const l of ["be", "fr", "uk", "nl", "de"] as const) {
       if (fd.get(`outreach_land_${l}`) != null) lands.push(l);
     }
     const patch = {

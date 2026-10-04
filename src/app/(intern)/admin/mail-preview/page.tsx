@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import {
   getOutreachConfig,
   langVoorProspect,
+  naceVanProspect,
   signalenUitRij,
 } from "@/lib/admin/outreach";
 import { getCompanySettings } from "@/lib/admin/settings";
@@ -15,7 +16,7 @@ import {
   buildOutreachMail,
   buildOutreachSamples,
 } from "@/lib/admin/outreach-mail";
-import { GRADE_LABEL, isAannemerGrade } from "@/lib/admin/aannemers";
+import { GRADE_LABEL, doelgroepVoorNace, isAannemerGrade } from "@/lib/admin/aannemers";
 import { sourceFromLand, type Land } from "@/lib/admin/prospect-source";
 import { klantMailVoorbeelden } from "@/lib/klant-mails";
 import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
@@ -141,7 +142,13 @@ export default async function MailPreview({
       const lang = await langVoorProspect(land, rij.prospect_id, signalen);
       const variant = sp.v === "followup" ? "followup" : "first";
       const m = buildOutreachMail(
-        { land, website: rij.website, signalen, token: rij.scan_token ?? "voorbeeld-token" },
+        {
+          land,
+          website: rij.website,
+          signalen,
+          token: rij.scan_token ?? "voorbeeld-token",
+          doelgroep: doelgroepVoorNace(await naceVanProspect(land, rij.prospect_id), land),
+        },
         cfg,
         bedrijf,
         lang,
@@ -295,6 +302,8 @@ export default async function MailPreview({
                 <option value="be">BE</option>
                 <option value="fr">FR</option>
                 <option value="uk">UK</option>
+                <option value="nl">NL</option>
+                <option value="de">DE</option>
               </select>
               <input
                 name="pid"

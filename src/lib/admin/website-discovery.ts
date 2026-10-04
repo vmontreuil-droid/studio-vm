@@ -80,22 +80,26 @@ const GENERIEK = new Set([
   "invest",
 ]);
 
+// NL en DE: eigen domeinextensies; stopwoorden van BE (Nederlands) en een korte Duitse lijst.
+type DomeinLand = "be" | "fr" | "uk" | "nl" | "de";
+const STOP_WORDS_DE = new Set(["gmbh", "co", "kg", "ag", "ug", "mbh", "und", "bau", "bauunternehmen", "tiefbau", "erdbau", "ingenieurburo", "ingenieurbuero", "vermessung", "vermessungsburo", "deutschland", "germany"]);
+
 function stripAccents(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-function nameWords(name: string, land: "be" | "fr" | "uk"): string[] {
+function nameWords(name: string, land: DomeinLand): string[] {
   const lower = stripAccents(name).toLowerCase();
   const words = lower
     .replace(/[&'"`.,;:!?()/\\]+/g, " ")
     .split(/\s+/)
     .filter(Boolean);
   const stop =
-    land === "fr" ? STOP_WORDS_FR : land === "uk" ? STOP_WORDS_UK : STOP_WORDS_BE;
+    land === "fr" ? STOP_WORDS_FR : land === "uk" ? STOP_WORDS_UK : land === "de" ? STOP_WORDS_DE : STOP_WORDS_BE;
   return words.filter((w) => !stop.has(w));
 }
 
-export function slugifyName(name: string, land: "be" | "fr" | "uk"): string[] {
+export function slugifyName(name: string, land: DomeinLand): string[] {
   const filtered = nameWords(name, land);
   if (filtered.length === 0) return [];
 
@@ -111,7 +115,7 @@ export function slugifyName(name: string, land: "be" | "fr" | "uk"): string[] {
 
 export function candidateDomains(
   name: string,
-  land: "be" | "fr" | "uk",
+  land: DomeinLand,
 ): string[] {
   const slugs = slugifyName(name, land);
   const tlds =
@@ -119,7 +123,11 @@ export function candidateDomains(
       ? [".fr", ".com", ".eu"]
       : land === "uk"
         ? [".co.uk", ".com", ".uk"]
-        : [".be", ".com", ".eu"];
+        : land === "nl"
+          ? [".nl", ".com", ".eu"]
+          : land === "de"
+            ? [".de", ".com", ".eu"]
+            : [".be", ".com", ".eu"];
   const out: string[] = [];
   for (const s of slugs) {
     for (const t of tlds) out.push(`${s}${t}`);
@@ -161,7 +169,7 @@ export async function probeDomain(host: string): Promise<boolean> {
 export async function bevestigNaam(
   host: string,
   name: string,
-  land: "be" | "fr" | "uk",
+  land: DomeinLand,
 ): Promise<boolean> {
   const page = await safeFetchText(`https://${host}/`, {
     timeoutMs: 6000,
@@ -188,7 +196,7 @@ export async function bevestigNaam(
 // Probeert maximaal `maxTries` (default: alle kandidaten).
 export async function findWebsiteForName(
   name: string,
-  land: "be" | "fr" | "uk",
+  land: DomeinLand,
   maxTries = 10,
 ): Promise<string | null> {
   const candidates = candidateDomains(name, land).slice(0, maxTries);

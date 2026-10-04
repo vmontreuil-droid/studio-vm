@@ -189,7 +189,7 @@ export default async function AdminProspects({
           </p>
         </div>
         <div className="flex gap-1.5">
-          {(["be", "fr", "uk"] as const).map((l) => {
+          {(["be", "fr", "uk", "nl", "de"] as const).map((l) => {
             const s = SOURCES[l];
             const sel = source.land === l;
             return (
