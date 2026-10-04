@@ -305,7 +305,9 @@ function laadBron(pad: string, origin?: string): Promise<Bron | null> {
         // Deel van het modelkader dat echt model is: een smal wegtracé ~0,15, een bouwput ~0,6.
         dichtheid: n / Math.max(1, model.w * model.h),
         // Luchtfoto: (bijna) alles heeft kleur, er is geen viewer-achtergrond.
-        foto: n / (W * H) > 0.6,
+        // Ook de luchtfoto's uit het archief (/3d/a/…-luchtfoto.webp): de gedempte
+        // omgeving is deels donker en mag niet als viewerachtergrond wegvallen.
+        foto: n / (W * H) > 0.6 || /-luchtfoto\.(webp|jpe?g|png)$/i.test(pad),
         rand: [data[k0], data[k0 + 1], data[k0 + 2]],
       };
     } catch {

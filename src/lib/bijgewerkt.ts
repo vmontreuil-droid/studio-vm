@@ -23,7 +23,8 @@ export const PAGINA_BIJGEWERKT: Record<
 > = {
   "": VANDAAG,
   "/3d-modellen": VANDAAG,
-  "/realisaties": VANDAAG,
+  // 4/10: projecten in beeld (archief) met eigen pagina's.
+  "/realisaties": "2026-10-04",
   "/tarieven": VANDAAG,
   "/offerte": VANDAAG,
   "/kennis": VANDAAG,
@@ -36,6 +37,9 @@ export const PAGINA_BIJGEWERKT: Record<
 
 const EERSTE_REEKS = "2026-10-01T14:22:15+02:00";
 const TWEEDE_REEKS = "2026-10-01T19:45:18+02:00";
+
+/** Projectpagina's van het archief (/realisaties/<code>). */
+export const ARCHIEF_BIJGEWERKT = "2026-10-04";
 
 export const KENNIS_DATUM: Record<string, { gepubliceerd: string; bijgewerkt: string }> = {
   "wat-is-een-3d-model": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },

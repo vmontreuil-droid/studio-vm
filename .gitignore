@@ -45,3 +45,7 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Beeldarchief: koppeling code → bronbestand (projectnamen blijven lokaal)
+scripts/_*.json
+scripts/_luchtfoto/

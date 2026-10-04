@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { KENNIS } from "@/lib/kennis";
+import { ARCHIEF, archiefPad } from "@/lib/archief";
 import { LOCALES } from "@/lib/i18n/config";
 import { canoniek, taalVarianten } from "@/lib/seo";
-import { PAGINA_BIJGEWERKT, kennisDatum } from "@/lib/bijgewerkt";
+import { ARCHIEF_BIJGEWERKT, PAGINA_BIJGEWERKT, kennisDatum } from "@/lib/bijgewerkt";
 
 // Elke pagina bestaat in alle talen; elke vermelding verwijst ook naar
 // haar anderstalige versies (hreflang, x-default = Engels), zodat
@@ -40,5 +41,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
   });
 
-  return [...paginas, ...kennis];
+  const projecten = ARCHIEF.flatMap((p) => {
+    const pad = archiefPad(p.code);
+    return LOCALES.map((locale) => ({
+      url: canoniek(locale, pad),
+      lastModified: ARCHIEF_BIJGEWERKT,
+      alternates: { languages: taalVarianten(pad) },
+    }));
+  });
+
+  return [...paginas, ...kennis, ...projecten];
 }

@@ -15,6 +15,7 @@
 // video. De generator (social-generator.ts) plant er elke week vier in.
 
 import { CATEGORIEEN, REALISATIES, UITGELICHT, type Categorie, type Systeem } from "@/lib/realisaties";
+import { ARCHIEF, ARCHIEF_WEERGAVE, LUCHTFOTO_BRON, LUCHTFOTO_LABEL, archiefBeeld, archiefPad, archiefProject, metLuchtfoto } from "@/lib/archief";
 import { MINIMUM_UREN, UURTARIEF_CENT, euro, type Categorie as TariefCategorie } from "@/lib/tarieven";
 import { UTM_BRONNEN } from "@/lib/utm";
 
@@ -212,6 +213,9 @@ export type RealisatieKeuze = {
   fr: { titel: string; tekst: string; cat: string };
   /** Donkere render van het project (kan .webp zijn). */
   beeld: string;
+  /** Archiefproject: eigen pagina (zonder taal) en de andere weergaven als dia's. */
+  pad?: string;
+  dias?: Record<"nl" | "fr", Dia[]>;
 };
 
 export type TemplateCtx = { realisatie?: RealisatieKeuze };
@@ -277,13 +281,41 @@ const CAT_ZIN: Record<Categorie, { nl: string; fr: string }> = {
   },
 };
 
-/** Alle realisaties die de generator kan kiezen. */
-// Enkel echte projecten: "tin" en "lijnwerk" zijn algemene weergaven (die
-// komen al aan bod in de tips) en klinken als titel niet als een realisatie.
-const GEEN_PROJECT = new Set(["tin", "lijnwerk"]);
-export const REALISATIE_IDS: string[] = REALISATIES.map((r) => r.id).filter((id) => !GEEN_PROJECT.has(id));
+/**
+ * De realisaties die de generator kan kiezen: enkel de projecten in beeld
+ * (lib/archief). Vincent (4/10): "altijd een paar beelden van hetzelfde
+ * project, met luchtfoto en al" — dus altijd een carrousel, nooit één losse
+ * render. Meer projecten in het archief = minder herhaling.
+ */
+export const REALISATIE_IDS: string[] = ARCHIEF.map((p) => p.code);
+
+/** Een archiefproject als realisatie: omslag in 3D, de andere weergaven als dia's. */
+function archiefKeuze(code: string): RealisatieKeuze | undefined {
+  const p = archiefProject(code);
+  if (!p) return undefined;
+  const dias = (l: "nl" | "fr"): Dia[] =>
+    p.weergaven.slice(1).map((w) => ({
+      kop: ARCHIEF_WEERGAVE[w][l].naam,
+      tekst: metLuchtfoto(w)
+        ? `${ARCHIEF_WEERGAVE[w][l].uitleg} ${LUCHTFOTO_LABEL[l]} © ${LUCHTFOTO_BRON[p.luchtfoto]}.`
+        : ARCHIEF_WEERGAVE[w][l].uitleg,
+      beeld: archiefBeeld(p.code, w),
+    }));
+  return {
+    id: p.code,
+    cat: p.cat,
+    systemen: p.systemen,
+    nl: { titel: p.nl.titel, tekst: p.nl.tekst, cat: CATEGORIEEN[p.cat].nl },
+    fr: { titel: p.fr.titel, tekst: p.fr.tekst, cat: CATEGORIEEN[p.cat].fr },
+    beeld: archiefBeeld(p.code, p.weergaven[0] ?? "3d"),
+    pad: archiefPad(p.code),
+    dias: { nl: dias("nl"), fr: dias("fr") },
+  };
+}
 
 export function realisatieKeuze(id?: string, cat?: Categorie): RealisatieKeuze {
+  const a = id ? archiefKeuze(id) : undefined;
+  if (a) return a;
   const pool = cat ? REALISATIES.filter((r) => r.cat === cat) : REALISATIES;
   const r =
     (id ? REALISATIES.find((x) => x.id === id) : undefined) ??
@@ -781,7 +813,7 @@ ${r.nl.tekst}
 
 ${CAT_ZIN[r.cat].nl}
 
-Van plan naar een model dat de machine meteen kan inladen: ontwerpoppervlak, lijnwerk en hoogtelijnen, in het juiste coördinatenstelsel.`,
+Van plan naar een model dat de machine meteen kan inladen: ontwerpoppervlak, lijnwerk en hoogtelijnen, in het juiste coördinatenstelsel.${r.dias ? "\n\nBlader door de beelden: hetzelfde model op de luchtfoto, met hoogtelijnen en als driehoeksnet. Alle beelden staan op onze site." : ""}`,
           kort: `${r.nl.titel}: ${r.nl.tekst} Van plan naar een model dat de machine meteen kan inladen.`,
           tags: nl(SYSTEEM_TAG[r.systemen[0] ?? "Trimble"]),
         };
@@ -796,7 +828,7 @@ ${r.fr.tekst}
 
 ${CAT_ZIN[r.cat].fr}
 
-Du plan à un modèle que la machine charge directement : surface de projet, lignes et courbes de niveau, dans le bon système de coordonnées.`,
+Du plan à un modèle que la machine charge directement : surface de projet, lignes et courbes de niveau, dans le bon système de coordonnées.${r.dias ? "\n\nFaites défiler les images : le même modèle sur photo aérienne, en courbes de niveau et en réseau de triangles. Toutes les images sont sur notre site." : ""}`,
           kort: `${r.fr.titel} : ${r.fr.tekst} Du plan à un modèle que la machine charge directement.`,
           tags: fr(SYSTEEM_TAG[r.systemen[0] ?? "Trimble"]),
         };
@@ -818,6 +850,19 @@ Du plan à un modèle que la machine charge directement : surface de projet, lig
     doel: "/realisaties",
     kaart: "/3d/r/p-uitgraving-hoogte-donker.webp",
     beeld: () => "/3d/r/p-uitgraving-hoogte-donker.webp",
+    // Altijd een paar beelden van hetzelfde project (Vincent, 4/10).
+    dias: {
+      nl: [
+        { kop: "Hellingskaart", tekst: "Vlakke bodem, taluds op de juiste helling: in één oogopslag.", beeld: "/3d/r/p-uitgraving-helling-donker.webp" },
+        { kop: "Hoogtelijnen", tekst: "Hoe dichter de lijnen, hoe steiler het talud.", beeld: "/3d/r/p-uitgraving-hoogtelijn-donker.webp" },
+        { kop: "Driehoeksnet", tekst: "Het oppervlak waarop de machine stuurt, driehoek per driehoek.", beeld: "/3d/r/p-uitgraving-draad-donker.webp" },
+      ],
+      fr: [
+        { kop: "Carte des pentes", tekst: "Fond plat, talus à la bonne pente : d'un coup d'œil.", beeld: "/3d/r/p-uitgraving-helling-donker.webp" },
+        { kop: "Courbes de niveau", tekst: "Plus les courbes sont serrées, plus le talus est raide.", beeld: "/3d/r/p-uitgraving-hoogtelijn-donker.webp" },
+        { kop: "Réseau de triangles", tekst: "La surface sur laquelle l'engin se guide, triangle par triangle.", beeld: "/3d/r/p-uitgraving-draad-donker.webp" },
+      ],
+    },
     tekst: {
       nl: () => ({
         kop: UITGRAVING.nl.titel,

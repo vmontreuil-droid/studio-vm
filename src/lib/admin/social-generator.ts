@@ -494,7 +494,9 @@ function bouwRij(a: {
   const v = nieuweVersie();
   const kaart = kaartVan(a.t, a.ctx);
   const beeld = a.t.beeld?.(a.ctx);
-  const doel = `/${a.taal}${a.t.doel}`;
+  // Een archiefproject linkt naar zijn eigen pagina: wie klikt, ziet meer van hetzelfde.
+  const doel = `/${a.taal}${(a.t.realisatie && a.ctx.realisatie?.pad) || a.t.doel}`;
+  const dias = a.t.dias?.[a.taal] ?? (a.plaats === "feed" ? a.ctx.realisatie?.dias?.[a.taal] : undefined);
 
   let title: string;
   let body: string | null;
@@ -577,7 +579,7 @@ function bouwRij(a: {
       kaart,
       ...(beeld ? { beeld } : {}),
       ...(a.video ? { video: a.video.url } : {}),
-      ...(a.t.dias ? { dias: a.t.dias[a.taal] } : {}),
+      ...(dias ? { dias } : {}),
     }),
     kanalen,
     publicatie: {},

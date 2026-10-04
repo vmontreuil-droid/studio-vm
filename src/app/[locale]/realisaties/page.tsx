@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Images } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { JsonLd } from "@/components/json-ld";
 import { RealisatiesViewer } from "@/components/realisaties-viewer";
 import { RealisatiesGalerij } from "@/components/realisaties-galerij";
 import { CATEGORIEEN, REALISATIES } from "@/lib/realisaties";
+import { ARCHIEF, archiefBeeld, archiefPad } from "@/lib/archief";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { KRUIMEL, SITE, ogBeeld, paginaMeta } from "@/lib/seo";
 import { galerij, graph, kruimels, siteNodes } from "@/lib/schema";
@@ -29,6 +31,7 @@ const T: Record<
     galerijEyebrow: string;
     galerijTitel: string;
     galerijIntro: string;
+    archief: { eyebrow: string; titel: string; intro: string; beelden: (n: number) => string };
     cta: { eyebrow: string; titel: string; sub: string; knop: string };
   }
 > = {
@@ -39,7 +42,7 @@ const T: Record<
     },
     eyebrow: "Realisaties",
     titel: "3D-modellen die op de werf liggen",
-    intro: "Een greep uit gerealiseerde modellen voor machinesturing. Namen en locaties laten we uit discretie weg — de modellen spreken voor zich.",
+    intro: "Een greep uit gerealiseerde modellen voor machinesturing. Klant- en werfnamen laten we uit discretie weg — de modellen spreken voor zich.",
     systemen: "Elk van deze modellen leveren we voor Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu en Caterpillar, in het coördinatenstelsel en de hoogtereferentie van de werf.",
     uitgelichtEyebrow: "Uitgelicht",
     uitgelichtTitel: "Eén model, vier blikken",
@@ -47,6 +50,7 @@ const T: Record<
     galerijEyebrow: "Galerij",
     galerijTitel: "Van wegtracé tot bouwput",
     galerijIntro: "Filter op soort werk en klik op een model om het groot te bekijken.",
+    archief: { eyebrow: "Projecten in beeld", titel: "Elk project van alle kanten", intro: "Hetzelfde model in 3D, op de luchtfoto, met hoogtelijnen en als driehoeksnet. Klik een project open.", beelden: (n) => `${n} beelden` },
     cta: { eyebrow: "Uw project volgende?", titel: "Stuur uw plannen, ontvang een offerte op maat", sub: "Van bouwput tot wegtracé: elk project met GPS-gestuurde machines.", knop: "Offerte aanvragen" },
   },
   fr: {
@@ -56,7 +60,7 @@ const T: Record<
     },
     eyebrow: "Réalisations",
     titel: "Des modèles 3D qui tombent juste sur le chantier",
-    intro: "Une sélection de modèles réalisés pour le guidage d'engins. Par discrétion, nous n'indiquons ni noms ni lieux — les modèles parlent d'eux-mêmes.",
+    intro: "Une sélection de modèles réalisés pour le guidage d'engins. Par discrétion, nous ne citons ni clients ni chantiers — les modèles parlent d'eux-mêmes.",
     systemen: "Nous livrons chacun de ces modèles pour Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu et Caterpillar, dans le système de coordonnées et la référence altimétrique du chantier.",
     uitgelichtEyebrow: "À la une",
     uitgelichtTitel: "Un modèle, quatre regards",
@@ -64,6 +68,7 @@ const T: Record<
     galerijEyebrow: "Galerie",
     galerijTitel: "Du tracé routier à la fouille",
     galerijIntro: "Filtrez par type de travaux et cliquez sur un modèle pour l'agrandir.",
+    archief: { eyebrow: "Projets en images", titel: "Chaque projet sous tous les angles", intro: "Le même modèle en 3D, sur photo aérienne, en courbes de niveau et en réseau de triangles. Ouvrez un projet.", beelden: (n) => `${n} images` },
     cta: { eyebrow: "Votre projet ensuite ?", titel: "Envoyez vos plans, recevez un devis sur mesure", sub: "De la fouille au tracé routier : tout projet avec engins guidés par GPS.", knop: "Demander un devis" },
   },
   en: {
@@ -73,7 +78,7 @@ const T: Record<
     },
     eyebrow: "Projects",
     titel: "3D models that land on site",
-    intro: "A selection of completed machine control models. Out of discretion we leave out names and locations — the models speak for themselves.",
+    intro: "A selection of completed machine control models. Out of discretion we leave out client and site names — the models speak for themselves.",
     systemen: "We deliver each of these models for Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu and Caterpillar, in the coordinate system and height datum of the site.",
     uitgelichtEyebrow: "Featured",
     uitgelichtTitel: "One model, four views",
@@ -81,6 +86,7 @@ const T: Record<
     galerijEyebrow: "Gallery",
     galerijTitel: "From road alignment to excavation",
     galerijIntro: "Filter by type of work and click a model to view it large.",
+    archief: { eyebrow: "Projects in pictures", titel: "Every project from every angle", intro: "The same model in 3D, on the aerial photo, as contours and as a triangle network. Open a project.", beelden: (n) => `${n} images` },
     cta: { eyebrow: "Your project next?", titel: "Send your plans, get a tailored quote", sub: "From excavation to road alignment: any project with GPS-guided machines.", knop: "Request a quote" },
   },
   de: {
@@ -90,7 +96,7 @@ const T: Record<
     },
     eyebrow: "Referenzen",
     titel: "3D-Modelle, die auf der Baustelle sitzen",
-    intro: "Eine Auswahl realisierter Modelle für Maschinensteuerung. Namen und Orte lassen wir aus Diskretion weg — die Modelle sprechen für sich.",
+    intro: "Eine Auswahl realisierter Modelle für Maschinensteuerung. Kunden- und Baustellennamen lassen wir aus Diskretion weg — die Modelle sprechen für sich.",
     systemen: "Jedes dieser Modelle liefern wir für Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu und Caterpillar, im Koordinatensystem und Höhenbezug der Baustelle.",
     uitgelichtEyebrow: "Im Fokus",
     uitgelichtTitel: "Ein Modell, vier Ansichten",
@@ -98,6 +104,7 @@ const T: Record<
     galerijEyebrow: "Galerie",
     galerijTitel: "Von der Straßentrasse bis zur Baugrube",
     galerijIntro: "Filtern Sie nach Art der Arbeiten und klicken Sie auf ein Modell, um es groß anzuzeigen.",
+    archief: { eyebrow: "Projekte in Bildern", titel: "Jedes Projekt von allen Seiten", intro: "Dasselbe Modell in 3D, auf dem Luftbild, mit Höhenlinien und als Dreiecksnetz. Öffnen Sie ein Projekt.", beelden: (n) => `${n} Bilder` },
     cta: { eyebrow: "Ihr Projekt als Nächstes?", titel: "Senden Sie Ihre Pläne, erhalten Sie ein individuelles Angebot", sub: "Von der Baugrube bis zur Straßentrasse: jedes Projekt mit GPS-gesteuerten Maschinen.", knop: "Angebot anfordern" },
   },
   es: {
@@ -107,7 +114,7 @@ const T: Record<
     },
     eyebrow: "Proyectos realizados",
     titel: "Modelos 3D que encajan en la obra",
-    intro: "Una selección de modelos realizados para control de maquinaria. Por discreción omitimos nombres y ubicaciones — los modelos hablan por sí mismos.",
+    intro: "Una selección de modelos realizados para control de maquinaria. Por discreción omitimos los nombres de clientes y obras — los modelos hablan por sí mismos.",
     systemen: "Cada uno de estos modelos lo entregamos para Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu y Caterpillar, en el sistema de coordenadas y la referencia altimétrica de la obra.",
     uitgelichtEyebrow: "Destacado",
     uitgelichtTitel: "Un modelo, cuatro miradas",
@@ -115,6 +122,7 @@ const T: Record<
     galerijEyebrow: "Galería",
     galerijTitel: "Del trazado de carreteras a la excavación",
     galerijIntro: "Filtre por tipo de trabajo y haga clic en un modelo para verlo en grande.",
+    archief: { eyebrow: "Proyectos en imágenes", titel: "Cada proyecto desde todos los ángulos", intro: "El mismo modelo en 3D, sobre la foto aérea, con curvas de nivel y como red de triángulos. Abra un proyecto.", beelden: (n) => `${n} imágenes` },
     cta: { eyebrow: "¿Su proyecto es el siguiente?", titel: "Envíe sus planos y reciba un presupuesto a medida", sub: "De la excavación al trazado de carreteras: cualquier proyecto con máquinas guiadas por GPS.", knop: "Solicitar presupuesto" },
   },
 };
@@ -171,6 +179,47 @@ export default async function RealisatiesPage({ params }: { params: Promise<{ lo
               ))}
             </ul>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b" aria-labelledby="archief">
+        <div className="wrap py-20 2xl:py-24">
+          <div className="mb-10 max-w-3xl">
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
+              {t.archief.eyebrow} · {ARCHIEF.length}
+            </p>
+            <h2 id="archief" className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.archief.titel}</h2>
+            <p className="mt-5 text-lg leading-relaxed text-muted">{t.archief.intro}</p>
+          </div>
+          <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:gap-6">
+            {ARCHIEF.map((p) => (
+              <li key={p.code}>
+                <Link
+                  href={localePath(locale, archiefPad(p.code))}
+                  className="group flex h-full flex-col overflow-hidden rounded-3xl border bg-card transition-colors hover:border-accent"
+                >
+                  <span className="relative aspect-[16/10] w-full overflow-hidden bg-[#0c0a09]">
+                    <Image
+                      src={archiefBeeld(p.code, "3d")}
+                      alt={p[locale].titel}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
+                      <Images className="h-3.5 w-3.5" strokeWidth={2} />
+                      {t.archief.beelden(p.weergaven.length)}
+                    </span>
+                  </span>
+                  <span className="flex flex-1 flex-col p-5">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent">{CATEGORIEEN[p.cat][locale]}</span>
+                    <span className="mt-1.5 font-semibold tracking-tight group-hover:text-accent">{p[locale].titel}</span>
+                    <span className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted">{p[locale].tekst}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

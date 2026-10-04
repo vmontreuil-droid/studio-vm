@@ -10,7 +10,8 @@ import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { FUNCTIE } from "@/lib/bedrijf";
 import { KENNIS, kennisArtikel } from "@/lib/kennis";
 import { KOPBEELD } from "@/components/kennis-illustraties";
-import { REALISATIES } from "@/lib/realisaties";
+import { CATEGORIEEN, REALISATIES } from "@/lib/realisaties";
+import { ARCHIEF, archiefBeeld, archiefProject } from "@/lib/archief";
 import { UURTARIEF_CENT, euro } from "@/lib/tarieven";
 import type { Merkkaart } from "./merkkaart";
 
@@ -33,7 +34,8 @@ export type PaginaSleutel =
   | "over"
   | "kennis"
   | "offerte"
-  | `kennis/${string}`;
+  | `kennis/${string}`
+  | `realisaties/${string}`;
 
 const VASTE_SLEUTELS = ["home", "3d-modellen", "realisaties", "tarieven", "over", "kennis", "offerte"] as const;
 
@@ -147,6 +149,11 @@ export function paginaKaart(l: Locale, sleutel: PaginaSleutel): Merkkaart | null
     case "offerte":
       return { ...OFFERTE[l], beeld: "/3d/r/t013-donker.webp" };
   }
+  if (sleutel.startsWith("realisaties/")) {
+    const p = archiefProject(sleutel.slice("realisaties/".length));
+    if (!p) return null;
+    return { label: CATEGORIEEN[p.cat][l], kop: p[l].titel, sub: p.systemen.join(" · "), beeld: archiefBeeld(p.code, "3d") };
+  }
   const slug = sleutel.startsWith("kennis/") ? sleutel.slice("kennis/".length) : "";
   const a = slug ? kennisArtikel(slug) : null;
   if (!a) return null;
@@ -192,7 +199,11 @@ export function ogBeeld(l: Locale, sleutel: PaginaSleutel): { url: string; alt: 
 
 /** Alle paginabeelden, voor generateStaticParams van de route. */
 export function alleOgPaden(): { pad: string[] }[] {
-  const sleutels: PaginaSleutel[] = [...VASTE_SLEUTELS, ...KENNIS.map((a) => `kennis/${a.slug}` as const)];
+  const sleutels: PaginaSleutel[] = [
+    ...VASTE_SLEUTELS,
+    ...KENNIS.map((a) => `kennis/${a.slug}` as const),
+    ...ARCHIEF.map((p) => `realisaties/${p.code}` as const),
+  ];
   return LOCALES.flatMap((l) =>
     sleutels.map((s) => ({ pad: ogBeeldPad(l, s).replace(/^\/beeld\/og\//, "").split("/") })),
   );
