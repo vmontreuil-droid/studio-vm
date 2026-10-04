@@ -8,7 +8,7 @@ import { RealisatiesViewer } from "@/components/realisaties-viewer";
 import { RealisatiesGalerij } from "@/components/realisaties-galerij";
 import { CATEGORIEEN, REALISATIES } from "@/lib/realisaties";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { KRUIMEL, SITE, paginaMeta } from "@/lib/seo";
+import { KRUIMEL, SITE, ogBeeld, paginaMeta } from "@/lib/seo";
 import { galerij, graph, kruimels, siteNodes } from "@/lib/schema";
 import { kennisArtikel } from "@/lib/kennis";
 
@@ -122,7 +122,7 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return paginaMeta(locale, PAD, T[locale].meta);
+  return paginaMeta(locale, PAD, { ...T[locale].meta, ogBeeld: ogBeeld(locale, "realisaties") });
 }
 
 export default async function RealisatiesPage({ params }: { params: Promise<{ locale: string }> }) {

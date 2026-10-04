@@ -11,7 +11,8 @@ import { ILLUSTRATIES, KOPBEELD } from "@/components/kennis-illustraties";
 import { InhoudToc } from "@/components/inhoud-toc";
 import { Broodkruimel } from "@/components/broodkruimel";
 import { JsonLd } from "@/components/json-ld";
-import { KRUIMEL, SITE, canoniek, paginaMeta, type KruimelPad } from "@/lib/seo";
+import { DeelKnoppen } from "@/components/deel-knoppen";
+import { KRUIMEL, SITE, canoniek, ogBeeld, paginaMeta, type KruimelPad } from "@/lib/seo";
 import { siteNodes, kruimels, webPagina, artikel, faqPagina, graph } from "@/lib/schema";
 import { BEDRIJF, FUNCTIE } from "@/lib/bedrijf";
 import { kennisDatum, datumLabel } from "@/lib/bijgewerkt";
@@ -62,7 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     type: "article",
     publishedTime: d.gepubliceerd,
     modifiedTime: d.bijgewerkt,
-    ogBeeld: { url: `/${locale}/kennis/${slug}/opengraph-image`, alt: x.titel },
+    ogBeeld: ogBeeld(locale, `kennis/${slug}`),
   });
 }
 
@@ -166,6 +167,8 @@ export default async function ArtikelPage({ params }: { params: Promise<{ locale
                   </section>
                 ))}
               </div>
+              {/* Deelrij (deelknoppen: gewone links, zie components/deel-knoppen). */}
+              <DeelKnoppen locale={locale} url={canoniek(locale, pad)} tekst={x.titel} className="mt-14 border-t pt-6" />
               {a.verwant.length > 0 && (
                 <section aria-labelledby="lees-ook" className="mt-16">
                   <h2 id="lees-ook" className="text-xl font-semibold tracking-tight">

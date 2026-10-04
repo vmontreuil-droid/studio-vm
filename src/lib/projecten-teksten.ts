@@ -32,6 +32,23 @@ export function datumTekst(d: string, t: Taal): string {
   return x.toLocaleDateString(LOCALE[t], { day: "numeric", month: "long", year: "numeric" });
 }
 
+/**
+ * Bedrag met de btw-vermelding voor in een zin: "€ 302,50 incl. btw",
+ * "€ 250,00 (btw verlegd)", of enkel het bedrag ("geen": oude websitefactuur
+ * zonder btw-opsplitsing). `bedrag` is al geformatteerd.
+ */
+export function bedragMetBtw(t: Taal, bedrag: string, btw: "incl" | "verlegd" | "geen"): string {
+  if (btw === "geen") return bedrag;
+  const L: Record<Taal, { incl: string; verlegd: string }> = {
+    nl: { incl: `${bedrag} incl. btw`, verlegd: `${bedrag} (btw verlegd)` },
+    fr: { incl: `${bedrag} TVAC`, verlegd: `${bedrag} (autoliquidation de la TVA)` },
+    en: { incl: `${bedrag} incl. VAT`, verlegd: `${bedrag} (VAT reverse charge)` },
+    de: { incl: `${bedrag} inkl. MwSt.`, verlegd: `${bedrag} (Reverse-Charge, ohne MwSt.)` },
+    es: { incl: `${bedrag} IVA incluido`, verlegd: `${bedrag} (inversión del sujeto pasivo)` },
+  };
+  return L[t][btw];
+}
+
 /** Offertelijn voor het modelleerwerk. */
 export function modelLijn(
   t: Taal,
@@ -169,8 +186,10 @@ export const MAIL: Record<
     hallo: (naam: string | null) => string;
     offerteOnderwerp: (titel: string) => string;
     offerteL1: (x: string) => string;
-    offerteL2: (bedragIncl: string, geldig: string) => string;
+    /** `bedrag` = bedrag mét btw-vermelding (bedragMetBtw). */
+    offerteL2: (bedrag: string, geldig: string) => string;
     factuurOnderwerp: (nr: string) => string;
+    /** `bedrag` = bedrag mét btw-vermelding (bedragMetBtw). */
     factuurL1: (nr: string, x: string, bedrag: string) => string;
     factuurL2: (due: string) => string;
     leveringOnderwerp: (titel: string) => string;
@@ -188,9 +207,9 @@ export const MAIL: Record<
     hallo: (n) => (n ? `Beste ${n},` : "Beste,"),
     offerteOnderwerp: (x) => `Uw offerte voor ${x}`,
     offerteL1: (x) => `De offerte voor het 3D-model <strong>${x}</strong> staat klaar in uw klantenportaal.`,
-    offerteL2: (b, g) => `Totaal ${b} incl. btw, geldig tot ${g}. Aanvaarden of afwijzen kan met één klik — daarna start ik met modelleren.`,
+    offerteL2: (b, g) => `Totaal ${b}, geldig tot ${g}. Aanvaarden of afwijzen kan met één klik in uw portaal — daarna start ik met modelleren.`,
     factuurOnderwerp: (nr) => `Uw factuur ${nr} staat klaar`,
-    factuurL1: (nr, x, b) => `Factuur <strong>${nr}</strong> voor <strong>${x}</strong> (${b} incl. btw) staat klaar in uw portaal.`,
+    factuurL1: (nr, x, b) => `Factuur <strong>${nr}</strong> voor <strong>${x}</strong> (${b}) staat klaar in uw klantenportaal.`,
     factuurL2: (d) => `Betaalbaar tegen ${d}, online via Mollie of via overschrijving. Zodra de factuur betaald is, kunt u de modelbestanden downloaden.`,
     leveringOnderwerp: (x) => `Nieuwe modelbestanden voor ${x}`,
     leveringL1: (x, v) => `De modelbestanden (versie ${v}) voor <strong>${x}</strong> staan klaar in uw klantenportaal.`,
@@ -206,9 +225,9 @@ export const MAIL: Record<
     hallo: (n) => (n ? `Bonjour ${n},` : "Bonjour,"),
     offerteOnderwerp: (x) => `Votre devis pour ${x}`,
     offerteL1: (x) => `Le devis pour le modèle 3D <strong>${x}</strong> est disponible dans votre espace client.`,
-    offerteL2: (b, g) => `Total ${b} TVAC, valable jusqu'au ${g}. Accepter ou refuser se fait en un clic — ensuite je commence la modélisation.`,
+    offerteL2: (b, g) => `Total ${b}, valable jusqu'au ${g}. Accepter ou refuser se fait en un clic dans votre espace client — ensuite je commence la modélisation.`,
     factuurOnderwerp: (nr) => `Votre facture ${nr} est prête`,
-    factuurL1: (nr, x, b) => `La facture <strong>${nr}</strong> pour <strong>${x}</strong> (${b} TVAC) est disponible dans votre espace client.`,
+    factuurL1: (nr, x, b) => `La facture <strong>${nr}</strong> pour <strong>${x}</strong> (${b}) est disponible dans votre espace client.`,
     factuurL2: (d) => `Payable pour le ${d}, en ligne via Mollie ou par virement. Dès que la facture est payée, vous pouvez télécharger les fichiers du modèle.`,
     leveringOnderwerp: (x) => `Nouveaux fichiers du modèle pour ${x}`,
     leveringL1: (x, v) => `Les fichiers du modèle (version ${v}) pour <strong>${x}</strong> sont disponibles dans votre espace client.`,
@@ -224,9 +243,9 @@ export const MAIL: Record<
     hallo: (n) => (n ? `Dear ${n},` : "Hello,"),
     offerteOnderwerp: (x) => `Your quote for ${x}`,
     offerteL1: (x) => `The quote for the 3D model <strong>${x}</strong> is ready in your client portal.`,
-    offerteL2: (b, g) => `Total ${b} incl. VAT, valid until ${g}. Accept or decline with one click — then I start modelling.`,
+    offerteL2: (b, g) => `Total ${b}, valid until ${g}. You can accept or decline with one click in your portal — then I start modelling.`,
     factuurOnderwerp: (nr) => `Your invoice ${nr} is ready`,
-    factuurL1: (nr, x, b) => `Invoice <strong>${nr}</strong> for <strong>${x}</strong> (${b} incl. VAT) is ready in your portal.`,
+    factuurL1: (nr, x, b) => `Invoice <strong>${nr}</strong> for <strong>${x}</strong> (${b}) is ready in your client portal.`,
     factuurL2: (d) => `Payable by ${d}, online via Mollie or by bank transfer. As soon as the invoice is paid, you can download the model files.`,
     leveringOnderwerp: (x) => `New model files for ${x}`,
     leveringL1: (x, v) => `The model files (version ${v}) for <strong>${x}</strong> are ready in your client portal.`,
@@ -242,9 +261,9 @@ export const MAIL: Record<
     hallo: (n) => (n ? `Guten Tag ${n},` : "Guten Tag,"),
     offerteOnderwerp: (x) => `Ihr Angebot für ${x}`,
     offerteL1: (x) => `Das Angebot für das 3D-Modell <strong>${x}</strong> steht in Ihrem Kundenportal bereit.`,
-    offerteL2: (b, g) => `Gesamt ${b} inkl. MwSt., gültig bis ${g}. Annehmen oder ablehnen mit einem Klick — danach beginne ich mit der Modellierung.`,
+    offerteL2: (b, g) => `Gesamt ${b}, gültig bis ${g}. Annehmen oder ablehnen können Sie mit einem Klick in Ihrem Portal — danach beginne ich mit der Modellierung.`,
     factuurOnderwerp: (nr) => `Ihre Rechnung ${nr} ist bereit`,
-    factuurL1: (nr, x, b) => `Die Rechnung <strong>${nr}</strong> für <strong>${x}</strong> (${b} inkl. MwSt.) steht in Ihrem Portal bereit.`,
+    factuurL1: (nr, x, b) => `Die Rechnung <strong>${nr}</strong> für <strong>${x}</strong> (${b}) steht in Ihrem Kundenportal bereit.`,
     factuurL2: (d) => `Zahlbar bis ${d}, online über Mollie oder per Überweisung. Sobald die Rechnung bezahlt ist, können Sie die Modelldateien herunterladen.`,
     leveringOnderwerp: (x) => `Neue Modelldateien für ${x}`,
     leveringL1: (x, v) => `Die Modelldateien (Version ${v}) für <strong>${x}</strong> stehen in Ihrem Kundenportal bereit.`,
@@ -260,9 +279,9 @@ export const MAIL: Record<
     hallo: (n) => (n ? `Estimado/a ${n}:` : "Buenos días:"),
     offerteOnderwerp: (x) => `Su presupuesto para ${x}`,
     offerteL1: (x) => `El presupuesto para el modelo 3D <strong>${x}</strong> está disponible en su portal de cliente.`,
-    offerteL2: (b, g) => `Total ${b} IVA incluido, válido hasta el ${g}. Puede aceptarlo o rechazarlo con un clic — después empiezo con el modelado.`,
+    offerteL2: (b, g) => `Total ${b}, válido hasta el ${g}. Puede aceptarlo o rechazarlo con un clic en su portal — después empiezo con el modelado.`,
     factuurOnderwerp: (nr) => `Su factura ${nr} está lista`,
-    factuurL1: (nr, x, b) => `La factura <strong>${nr}</strong> para <strong>${x}</strong> (${b} IVA incluido) está disponible en su portal.`,
+    factuurL1: (nr, x, b) => `La factura <strong>${nr}</strong> para <strong>${x}</strong> (${b}) está disponible en su portal de cliente.`,
     factuurL2: (d) => `Pagadera antes del ${d}, en línea con Mollie o por transferencia bancaria. En cuanto se pague la factura, podrá descargar los archivos del modelo.`,
     leveringOnderwerp: (x) => `Nuevos archivos del modelo para ${x}`,
     leveringL1: (x, v) => `Los archivos del modelo (versión ${v}) para <strong>${x}</strong> están disponibles en su portal de cliente.`,

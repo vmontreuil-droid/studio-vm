@@ -16,6 +16,7 @@ import {
   Send,
   ExternalLink,
   Check,
+  Plus,
 } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
@@ -54,6 +55,16 @@ import {
 import { SubmitButton } from "@/components/submit-button";
 import { Uploader, BevestigKnop, OfferteFormulier } from "@/components/admin/project-cockpit";
 import { CategorieBadge, StatusBadge, Aftelling, Kaart, VELD } from "@/components/admin/project-ui";
+import {
+  afgeleid,
+  soortVan,
+  ticketRef,
+  toonOnderwerp,
+  type BerichtKern,
+  type TicketRij,
+  type TicketSoort,
+} from "@/lib/tickets";
+import { SOORT_LABEL } from "@/lib/tickets-teksten";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +89,21 @@ type Factuur = {
   issued_at: string;
   mollie_payment_id: string | null;
 };
-type Ticket = { id: string; subject: string; status: string; updated_at: string };
+type TicketUur = {
+  ticket_id: string;
+  uren: number;
+  invoice_id: string | null;
+  naar_project_op: string | null;
+};
+type UrenTotaal = { open: number; gefactureerd: number; bijProject: number };
+
+const SOORT_KLEUR: Record<TicketSoort, string> = {
+  vraag: "border-border text-muted",
+  revisie: "border-violet-300 bg-violet-200 text-violet-950",
+  machine: "border-teal-300 bg-teal-200 text-teal-950",
+  afspraak: "border-blue-300 bg-blue-200 text-blue-950",
+  intern: "border-dashed border-border text-muted",
+};
 
 const MELDING: Record<string, { ok: boolean; tekst: string }> = {
   aangemaakt: { ok: true, tekst: "Project aangemaakt — de klant heeft portaaltoegang." },
@@ -113,7 +138,7 @@ export default async function ProjectCockpit({
   const p = data as Project | null;
   if (!p) notFound();
 
-  const [levR, offR, facR, ticR, klant] = await Promise.all([
+  const [levR, offR, facR, ticR, urenR, klant] = await Promise.all([
     db.from("leveringen").select("*").eq("project_id", id).order("versie", { ascending: false }).order("systeem"),
     p.offer_id
       ? db.from("offers").select("id, offer_no, status, amount_cents, valid_until, vat_reverse, items, created_at").eq("id", p.offer_id).maybeSingle()
@@ -121,20 +146,55 @@ export default async function ProjectCockpit({
     p.invoice_id
       ? db.from("invoices").select("id, number, status, amount_cents, due_at, paid_at, issued_at, mollie_payment_id").eq("id", p.invoice_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    db
-      .from("tickets")
-      .select("id, subject, status, updated_at")
-      .ilike("client_email", p.client_email)
-      .ilike("subject", `%${p.titel.replace(/[%_]/g, " ").slice(0, 120)}%`)
-      .order("updated_at", { ascending: false })
-      .limit(20),
+    // Tickets via de projectkoppeling (migratie 0049): blijft kloppen na een nieuwe titel.
+    db.from("tickets").select("*").eq("project_id", id).order("updated_at", { ascending: false }).limit(50),
+    // Revisie-uren op dit project (tabel bestaat pas na 0049; fout = geen uren tonen).
+    db.from("ticket_uren").select("ticket_id, uren, invoice_id, naar_project_op").eq("project_id", id).limit(1000),
     klantGegevens(p.client_email, p.quote_id),
   ]);
   const leveringen = (levR.data as Levering[] | null) ?? [];
   const offerte = offR.data as Offerte | null;
   const factuur = facR.data as Factuur | null;
-  const tickets = (ticR.data as Ticket[] | null) ?? [];
   const betaald = factuur?.status === "betaald";
+
+  // Zonder 0049 (geen kolom project_id): zoals vroeger op klant + titel in het
+  // onderwerp, en 'aan zet' afgeleid uit het laatste bericht.
+  const ticketsViaProject = !ticR.error;
+  let tickets = (ticR.data as TicketRij[] | null) ?? [];
+  let berichten: BerichtKern[] = [];
+  if (!ticketsViaProject) {
+    const { data: oud } = await db
+      .from("tickets")
+      .select("*")
+      .ilike("client_email", p.client_email)
+      .ilike("subject", `%${p.titel.replace(/[%_]/g, " ").slice(0, 120)}%`)
+      .order("updated_at", { ascending: false })
+      .limit(20);
+    tickets = (oud as TicketRij[] | null) ?? [];
+    if (tickets.length > 0) {
+      const { data: m } = await db
+        .from("ticket_messages")
+        .select("ticket_id, sender, created_at")
+        .in(
+          "ticket_id",
+          tickets.map((t) => t.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      berichten = (m as BerichtKern[] | null) ?? [];
+    }
+  }
+  const urenPerTicket = new Map<string, UrenTotaal>();
+  const urenProject: UrenTotaal = { open: 0, gefactureerd: 0, bijProject: 0 };
+  const urenBekend = !urenR.error;
+  for (const u of (urenBekend ? (urenR.data as TicketUur[] | null) : null) ?? []) {
+    const n = Number(u.uren) || 0;
+    const tot = urenPerTicket.get(u.ticket_id) ?? { open: 0, gefactureerd: 0, bijProject: 0 };
+    const sleutel: keyof UrenTotaal = u.invoice_id ? "gefactureerd" : u.naar_project_op ? "bijProject" : "open";
+    tot[sleutel] += n;
+    urenProject[sleutel] += n;
+    urenPerTicket.set(u.ticket_id, tot);
+  }
 
   // Tijdelijke downloadlinks (1 uur) voor admin.
   const [planLinks, levLinks] = await Promise.all([
@@ -270,7 +330,7 @@ export default async function ProjectCockpit({
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           {/* Leveringen */}
           <Kaart
             titel={`Leveringen — modelbestanden${maxVersie ? ` (v${maxVersie})` : ""}`}
@@ -466,37 +526,76 @@ export default async function ProjectCockpit({
             titel="Revisies & vragen"
             icoon={MessageSquareWarning}
             actie={
-              <Link href="/admin/tickets?status=alle" className={KNOP}>
-                Alle tickets
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/admin/tickets/nieuw?project=${p.id}`} className={`${KNOP} inline-flex items-center gap-1`}>
+                  <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+                  Nieuw ticket
+                </Link>
+                <Link href={`/admin/tickets?project=${p.id}&weergave=alle`} className={KNOP}>
+                  Alle tickets
+                </Link>
+              </div>
             }
           >
             {tickets.length === 0 ? (
-              <p className="text-sm text-muted">Geen tickets van deze klant over dit project.</p>
+              <p className="text-sm text-muted">
+                {ticketsViaProject ? "Nog geen tickets gekoppeld aan dit project." : "Geen tickets van deze klant over dit project."}
+              </p>
             ) : (
               <ul className="divide-y rounded-xl border">
-                {tickets.map((t) => (
-                  <li key={t.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-                    <Link
-                      href={`/admin/klanten/${encodeURIComponent(p.client_email)}?tab=tickets`}
-                      className="min-w-0 flex-1 truncate hover:text-accent"
-                    >
-                      {t.subject}
-                    </Link>
-                    <span className="font-mono text-[10px] text-muted">
-                      {new Date(t.updated_at).toLocaleDateString("nl-BE", { timeZone: "Europe/Brussels" })}
-                    </span>
-                    <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent">
-                      {t.status.replace("_", " ")}
-                    </span>
-                  </li>
-                ))}
+                {tickets.map((t) => {
+                  const a = afgeleid(t, berichten);
+                  const soort = soortVan(t);
+                  const status = a.gesloten
+                    ? { label: "Gesloten", cls: "border text-muted" }
+                    : a.wachtOp === "studio"
+                      ? { label: "Aan mij", cls: "bg-accent text-background" }
+                      : { label: "Wacht op klant", cls: "bg-sky-200 text-sky-950" };
+                  const u = urenPerTicket.get(t.id);
+                  return (
+                    <li key={t.id}>
+                      <Link
+                        href={`/admin/tickets/${t.id}`}
+                        className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+                      >
+                        <span className="font-mono text-[11px] text-muted">{ticketRef(t)}</span>
+                        <span className={`min-w-[8rem] flex-1 truncate ${a.studioOngelezen ? "font-semibold" : ""}`}>
+                          {toonOnderwerp(t) || t.subject}
+                        </span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] ${SOORT_KLEUR[soort]}`}>{SOORT_LABEL[soort].nl}</span>
+                        <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium ${status.cls}`}>{status.label}</span>
+                        {u && (u.open > 0 || u.gefactureerd > 0 || u.bijProject > 0) && (
+                          <span className="basis-full font-mono text-[11px] text-muted">
+                            {[
+                              u.open > 0 ? `open ${uurTekst(u.open)}` : null,
+                              u.gefactureerd > 0 ? `gefactureerd ${uurTekst(u.gefactureerd)}` : null,
+                              u.bijProject > 0 ? `bij projecturen ${uurTekst(u.bijProject)}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
+            )}
+            {urenBekend && (urenProject.open > 0 || urenProject.gefactureerd > 0 || urenProject.bijProject > 0) && (
+              <p className="mt-3 font-mono text-xs text-muted">
+                Revisie-uren: open {uurTekst(urenProject.open)} · gefactureerd {uurTekst(urenProject.gefactureerd)}
+                {urenProject.bijProject > 0 && ` · bij projecturen ${uurTekst(urenProject.bijProject)}`}
+              </p>
+            )}
+            {!ticketsViaProject && (
+              <p className="mt-3 text-[11px] text-muted">
+                Basisstand (migratie 0049 nog niet gedraaid): gevonden op klant en projecttitel in het onderwerp.
+              </p>
             )}
           </Kaart>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Werf */}
           <Kaart titel="Werf" icoon={MapPin}>
             <p className="text-sm">{werfTekst(p.werf)}</p>

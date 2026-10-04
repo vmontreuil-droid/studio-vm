@@ -6,14 +6,18 @@ import { unsubVerify } from "@/lib/newsletter-token";
 export const dynamic = "force-dynamic";
 
 const MSG: Record<string, string> = {
-  nl: "Je bent uitgeschreven — je krijgt geen updates meer. Tot ziens!",
-  fr: "Vous êtes désinscrit — plus d'e-mails. À bientôt !",
-  en: "You're unsubscribed — no more updates. See you!",
+  nl: "U bent uitgeschreven — u ontvangt geen nieuwsbrief meer van Studio VM.",
+  fr: "Vous êtes désinscrit — vous ne recevrez plus la newsletter de Studio VM.",
+  en: "You have been unsubscribed — you will no longer receive the Studio VM newsletter.",
+  de: "Sie sind abgemeldet — Sie erhalten den Newsletter von Studio VM nicht mehr.",
+  es: "Se ha dado de baja: ya no recibirá el boletín de Studio VM.",
 };
 const BAD: Record<string, string> = {
   nl: "Deze uitschrijflink is ongeldig of verlopen.",
   fr: "Ce lien de désinscription est invalide ou expiré.",
   en: "This unsubscribe link is invalid or expired.",
+  de: "Dieser Abmeldelink ist ungültig oder abgelaufen.",
+  es: "Este enlace para darse de baja no es válido o ha caducado.",
 };
 
 function page(text: string) {

@@ -2,6 +2,31 @@
 // de site (Search Console, Bing, Bedrijfsprofiel…). Een taak verschijnt pas
 // vanaf de dag dat ze zinvol is; afgevinkt wordt bewaard in app_settings
 // onder de sleutel `seo_taak:<id>` (waarde = datum van afvinken).
+//
+// Gelabelde profiellinks komen uit profielLinks() in lib/utm.ts (zelfde
+// lijst als in /admin/webactiviteit), nooit met de hand getypt.
+
+import { BEDRIJF } from "@/lib/bedrijf";
+import { profielLinks, type ProfielCampagne, type UtmBron } from "@/lib/utm";
+
+const PROFIEL_LINKS = profielLinks();
+
+/** De vaste, gelabelde link voor één profiel (websiteveld, bio of knop). */
+function profielLink(bron: UtmBron, campagne?: ProfielCampagne): string {
+  const l = PROFIEL_LINKS.find(
+    (x) => x.bron === bron && (!campagne || new URL(x.url).searchParams.get("utm_campaign") === campagne),
+  );
+  return l?.url ?? "https://www.studio-vm.be";
+}
+
+const NIEUWE_KANALEN: Array<[UtmBron, string]> = [
+  ["youtube", "YouTube"],
+  ["tiktok", "TikTok"],
+  ["pinterest", "Pinterest"],
+  ["x", "X"],
+  ["threads", "Threads"],
+  ["bluesky", "Bluesky"],
+];
 
 export type SeoTaak = {
   id: string;
@@ -82,7 +107,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "gbp",
     titel: "Google Bedrijfsprofiel aanmaken",
-    uitleg: "Categorie Landmeter, servicegebied i.p.v. adres, diensten en beschrijving zoals voorgesteld.",
+    uitleg: `Hoofdcategorie: niet 'Landmeter' (beschermde titel); typ 'ingenieur' of 'topografie' en kies wat Google voorstelt. Servicegebied i.p.v. adres, diensten en beschrijving zoals voorgesteld. Website-link met UTM: ${profielLink("google")}.`,
     vanaf: "2026-10-03",
     link: { label: "Bedrijfsprofiel", href: "https://business.google.com" },
   },
@@ -124,12 +149,40 @@ export const SEO_TAKEN: SeoTaak[] = [
     vanaf: "2026-10-03",
     link: { label: "Facebook", href: "https://www.facebook.com/pages/?category=your_pages" },
   },
+  // ── Social media: eenmalige stappen; daarna plant en publiceert de site alles zelf ──
   {
-    id: "fb-automatisch",
-    titel: "Facebook automatisch laten publiceren (samen met Claude)",
-    uitleg: "Na de SEO-update: Meta-ontwikkelaarsapp aanmaken en de paginasleutel in Vercel zetten (±15 min, stap voor stap). Daarna publiceert de admin 2× per week een goedgekeurd bericht met foto op de Facebookpagina.",
+    id: "gbp-categorie",
+    titel: "Bedrijfsprofiel: hoofdcategorie en websitelink nakijken",
+    uitleg: `Het profiel is geverifieerd. Staat de hoofdcategorie op 'Landmeter', kies dan een andere (beschermde titel): typ 'ingenieur' of 'topografie' en neem wat Google voorstelt. Websiteveld: ${profielLink("google")} — met UTM, zodat klikken vanuit het profiel apart tellen in Webactiviteit.`,
     vanaf: "2026-10-03",
-    link: { label: "Meta for Developers", href: "https://developers.facebook.com/apps" },
+    link: { label: "Bedrijfsprofiel", href: "https://business.google.com" },
+  },
+  {
+    id: "fb-gebruikersnaam",
+    titel: "Facebook: gebruikersnaam studiovm, website en actieknop",
+    uitleg: `Pagina-instellingen → Gebruikersnaam: studiovm (een nieuwe pagina wordt soms even geweigerd; dan later opnieuw). Website: ${profielLink("facebook", "profiel")}. Actieknop 'Offerte aanvragen' naar ${profielLink("facebook", "knop")}.`,
+    vanaf: "2026-10-03",
+    link: { label: "Facebook", href: "https://www.facebook.com/pages/?category=your_pages" },
+  },
+  {
+    id: "instagram",
+    titel: "Instagram-bedrijfsaccount aanmaken en aan de Facebookpagina koppelen",
+    uitleg: `Naam Studio VM, gebruikersnaam studiovm.be (of studio.vm als die bezet is), profielfoto: het vm.-logo. Bio-link: ${profielLink("instagram", "bio")}. Koppelen aan de pagina Studio VM via het Accountcentrum. Geen persoonlijke naam of foto.`,
+    vanaf: "2026-10-03",
+    link: { label: "Instagram", href: "https://www.instagram.com/accounts/emailsignup/" },
+  },
+  {
+    id: "social-accounts",
+    titel: "Accounts aanmaken op YouTube, TikTok, Pinterest, X, Threads en Bluesky",
+    uitleg: `Overal de naam Studio VM, het vm.-logo en dezelfde korte bio (3D-modellen voor machinesturing). YouTube als merkkanaal, niet als persoonlijk kanaal. Geen LinkedIn. Link in profiel of bio — ${NIEUWE_KANALEN.map(([b, naam]) => `${naam}: ${profielLink(b)}`).join(" · ")}. Dezelfde lijst staat ook in Webactiviteit › Gelabelde links.`,
+    vanaf: "2026-10-03",
+  },
+  {
+    id: "buffer",
+    titel: "Buffer: kanalen koppelen en de API-sleutel in Vercel zetten",
+    uitleg: "Het gratis plan heeft 3 kanalen (10 berichten per kanaal in de wachtrij): koppel de Facebookpagina, Instagram en het Google Bedrijfsprofiel. YouTube, TikTok, Pinterest, X, Threads en Bluesky vragen een betaald Buffer-plan (prijs per kanaal per maand); koppel die pas na een bewuste keuze. Daarna Instellingen → API → sleutel aanmaken, in Vercel (Production) plakken als BUFFER_API_KEY en opnieuw deployen. Vanaf dan gaan goedgekeurde berichten vanzelf uit op hun tijdstip; enkel realisaties wachten op uw akkoord in de wekelijkse mail.",
+    vanaf: "2026-10-03",
+    link: { label: "Buffer", href: "https://publish.buffer.com" },
   },
   {
     id: "kbo",
@@ -148,7 +201,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "gidsen",
     titel: "Gratis vermeldingen in bedrijvengidsen",
-    uitleg: "Telkens exact: Studio VM (Vincent Montreuil) · Nieuwpoortstraat 14-301, 8570 Anzegem · +32 477 99 56 51 · info@studio-vm.be · https://www.studio-vm.be. Gidsen: Anzegem, goldenpages.be, cylex-belgie.be, infobel.com, europages.com, kompass.com.",
+    uitleg: `Telkens exact: ${BEDRIJF.naam} · ondernemingsnummer ${BEDRIJF.btw} · ${BEDRIJF.straat}, ${BEDRIJF.postcode} ${BEDRIJF.gemeente} · ${BEDRIJF.telefoon} · ${BEDRIJF.email} · https://www.studio-vm.be. Geen persoonsnaam in de vermelding; vraagt een gids een contactpersoon, vul dan ${BEDRIJF.naam} in. Gidsen: Anzegem, goldenpages.be, cylex-belgie.be, infobel.com, europages.com, kompass.com.`,
     vanaf: "2026-10-05",
   },
   {
@@ -174,8 +227,8 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "reviews",
     titel: "Eerste klanten om een Google-review vragen",
-    uitleg: "Pas zodra het Bedrijfsprofiel geverifieerd is. Echte reviews wegen zwaar voor lokale zoekresultaten.",
-    vanaf: "2026-10-10",
+    uitleg: "Het Bedrijfsprofiel is geverifieerd, dus dit kan nu. Bedrijfsprofiel → Vragen om reviews geeft de link om te sturen. Echte reviews wegen zwaar voor lokale zoekresultaten.",
+    vanaf: "2026-10-03",
   },
   {
     id: "gsc-prestaties",

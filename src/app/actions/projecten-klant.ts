@@ -5,12 +5,9 @@
 // current_email()); de tijdelijke downloadlinks maakt de service-role pas aan
 // na die controle — en voor modelbestanden pas als de factuur betaald is.
 
-import { revalidatePath } from "next/cache";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { sendMail } from "@/lib/monitor";
-import { getCompanySettings } from "@/lib/admin/settings";
 import type { Project } from "@/lib/projecten";
 import { isBetaald } from "@/lib/projecten-server";
 
@@ -63,36 +60,5 @@ export async function downloadPlan(projectId: string, pad: string): Promise<Down
   return s?.signedUrl ? { ok: true, url: s.signedUrl } : { ok: false, fout: "niet_gevonden" };
 }
 
-/** Revisie of vraag over een project → ticket (zichtbaar bij Tickets). */
-export async function vraagRevisie(formData: FormData): Promise<{ ok: boolean }> {
-  const email = await klantEmail();
-  if (!email) return { ok: false };
-  const projectId = String(formData.get("project") ?? "");
-  const tekst = String(formData.get("tekst") ?? "").trim().slice(0, 4000);
-  const project = await eigenProject(projectId);
-  if (!project || !tekst) return { ok: false };
-
-  const sb = await getSupabaseServer();
-  const { data: t } = await sb
-    .from("tickets")
-    .insert({ client_email: email, subject: `Revisie — ${project.titel}`.slice(0, 160) })
-    .select("id")
-    .single();
-  if (!t) return { ok: false };
-  await sb.from("ticket_messages").insert({ ticket_id: t.id, sender: "klant", body: tekst });
-
-  try {
-    const s = await getCompanySettings();
-    await sendMail(s.email || "info@studio-vm.be", {
-      subject: `Revisie gevraagd — ${project.titel}`,
-      replyTo: email,
-      html: `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6;color:#1c1917">
-<p><strong>${email}</strong> vraagt een revisie voor <strong>${project.titel.replace(/</g, "&lt;")}</strong>:</p>
-<p style="white-space:pre-wrap;border-left:3px solid #b45309;padding-left:12px">${tekst.replace(/</g, "&lt;")}</p></div>`,
-    });
-  } catch {
-    // mail mag de klant nooit blokkeren
-  }
-  revalidatePath("/[locale]/portail/dashboard", "layout");
-  return { ok: true };
-}
+// Revisies en vragen over een project lopen via Support (tickets):
+// maakTicket in src/app/actions/tickets-klant.ts.

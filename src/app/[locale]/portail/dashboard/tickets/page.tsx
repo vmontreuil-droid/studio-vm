@@ -1,342 +1,365 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Send, Plus, LifeBuoy } from "lucide-react";
+import { ChevronRight, Clock, FolderOpen, LifeBuoy, MessageSquare, Plus } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
-import { isValidLocale, type Locale } from "@/lib/i18n/config";
-import { openTicket, replyTicket } from "@/app/actions/portal-client";
+import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
+import { PORTAL_T } from "@/lib/portal-shared";
 import {
-  dt,
-  badge,
-  statusLabel,
-  PORTAL_T,
-  type Ticket,
-  type Msg,
-} from "@/lib/portal-shared";
+  afgeleid,
+  datumTijd,
+  isUuid,
+  soortVan,
+  ticketRef,
+  toonOnderwerp,
+  type BerichtKern,
+  type KlantStatus,
+  type TicketRij,
+} from "@/lib/tickets";
+import { KLANT_STATUS_LABEL, SOORT_LABEL } from "@/lib/tickets-teksten";
+import { isOntbrekend, ticketSchema } from "@/lib/tickets-server";
 
 export const dynamic = "force-dynamic";
+
+type Toon = "open" | "gesloten" | "alle";
+const TOON: Toon[] = ["open", "gesloten", "alle"];
 
 const L: Record<
   Locale,
   {
     intro: string;
-    none: string;
-    newTicket: string;
-    subject: string;
-    message: string;
-    bodyPh: string;
-    replyPh: string;
-    revisionNote: string;
-    send: string;
-    reply: string;
-    you: string;
+    nieuw: string;
+    filter: string;
+    toon: Record<Toon, string>;
+    leeg: string;
+    leegCta: string;
+    leegFilter: Record<Toon, string>;
+    toonAlle: string;
+    ongelezen: string;
+    u: string;
     studio: string;
-    stats: (open: number, closed: number, msgs: number) => string;
-    msgN: (n: number) => string;
+    laatste: string;
   }
 > = {
   nl: {
     intro:
-      "Een vraag over een model, een revisie na een planwijziging of een probleem op de machine? Open hier een ticket — ik antwoord op werkdagen binnen 24 u.",
-    none: "Nog geen tickets. Open er hieronder een.",
-    newTicket: "Nieuw ticket",
-    subject: "Onderwerp (bv. project of werf + korte omschrijving)",
-    message: "Bericht",
-    bodyPh:
-      "Beschrijf uw vraag of de gewenste wijziging. Vermeld het project, de machinesturing en — bij een revisie — welk plan gewijzigd is.",
-    replyPh: "Uw reactie…",
-    revisionNote:
-      "Revisies na een planwijziging worden per uur gefactureerd. U kunt ze ook rechtstreeks op de pagina van het project aanvragen.",
-    send: "Versturen",
-    reply: "Antwoorden",
-    you: "U",
+      "Een vraag over een model, een revisie na een planwijziging of een probleem met het model op de machine? Open een ticket — ik antwoord op werkdagen binnen 24 uur.",
+    nieuw: "Nieuw ticket",
+    filter: "Tickets filteren",
+    toon: { open: "Open", gesloten: "Gesloten", alle: "Alle" },
+    leeg: "U hebt nog geen tickets.",
+    leegCta: "Open uw eerste ticket",
+    leegFilter: { open: "Geen open tickets.", gesloten: "Geen gesloten tickets.", alle: "Geen tickets." },
+    toonAlle: "Alle tickets tonen",
+    ongelezen: "Nieuw antwoord",
+    u: "U",
     studio: "Studio VM",
-    stats: (o, c, m) =>
-      `${o} open · ${c} gesloten · ${m} ${m === 1 ? "bericht" : "berichten"}`,
-    msgN: (n) => `${n} ${n === 1 ? "bericht" : "berichten"}`,
+    laatste: "Laatste bericht",
   },
   fr: {
     intro:
-      "Une question sur un modèle, une révision après une modification de plan ou un problème sur la machine ? Ouvrez un ticket ici — je réponds sous 24 h les jours ouvrables.",
-    none: "Aucun ticket pour l'instant. Ouvrez-en un ci-dessous.",
-    newTicket: "Nouveau ticket",
-    subject: "Sujet (p. ex. projet ou chantier + brève description)",
-    message: "Message",
-    bodyPh:
-      "Décrivez votre question ou la modification souhaitée. Mentionnez le projet, le système de guidage et — pour une révision — le plan modifié.",
-    replyPh: "Votre réponse…",
-    revisionNote:
-      "Les révisions après une modification de plan sont facturées à l'heure. Vous pouvez aussi les demander directement sur la page du projet.",
-    send: "Envoyer",
-    reply: "Répondre",
-    you: "Vous",
+      "Une question sur un modèle, une révision après une modification de plan ou un problème avec le modèle sur la machine ? Ouvrez un ticket — je réponds sous 24 heures les jours ouvrables.",
+    nieuw: "Nouveau ticket",
+    filter: "Filtrer les tickets",
+    toon: { open: "Ouverts", gesloten: "Fermés", alle: "Tous" },
+    leeg: "Vous n'avez pas encore de ticket.",
+    leegCta: "Ouvrir votre premier ticket",
+    leegFilter: { open: "Aucun ticket ouvert.", gesloten: "Aucun ticket fermé.", alle: "Aucun ticket." },
+    toonAlle: "Afficher tous les tickets",
+    ongelezen: "Nouvelle réponse",
+    u: "Vous",
     studio: "Studio VM",
-    stats: (o, c, m) =>
-      `${o} ${o === 1 ? "ouvert" : "ouverts"} · ${c} ${c === 1 ? "fermé" : "fermés"} · ${m} ${m === 1 ? "message" : "messages"}`,
-    msgN: (n) => `${n} ${n === 1 ? "message" : "messages"}`,
+    laatste: "Dernier message",
   },
   en: {
     intro:
-      "A question about a model, a revision after a plan change or an issue on the machine? Open a ticket here — I reply within 24 hours on working days.",
-    none: "No tickets yet. Open one below.",
-    newTicket: "New ticket",
-    subject: "Subject (e.g. project or site + short description)",
-    message: "Message",
-    bodyPh:
-      "Describe your question or the change you need. Mention the project, the machine control system and — for a revision — which plan has changed.",
-    replyPh: "Your reply…",
-    revisionNote:
-      "Revisions after a plan change are billed by the hour. You can also request them directly on the project page.",
-    send: "Send",
-    reply: "Reply",
-    you: "You",
+      "A question about a model, a revision after a plan change or an issue with the model on the machine? Open a ticket — I reply within 24 hours on working days.",
+    nieuw: "New ticket",
+    filter: "Filter tickets",
+    toon: { open: "Open", gesloten: "Closed", alle: "All" },
+    leeg: "You do not have any tickets yet.",
+    leegCta: "Open your first ticket",
+    leegFilter: { open: "No open tickets.", gesloten: "No closed tickets.", alle: "No tickets." },
+    toonAlle: "Show all tickets",
+    ongelezen: "New reply",
+    u: "You",
     studio: "Studio VM",
-    stats: (o, c, m) =>
-      `${o} open · ${c} closed · ${m} ${m === 1 ? "message" : "messages"}`,
-    msgN: (n) => `${n} ${n === 1 ? "message" : "messages"}`,
+    laatste: "Last message",
   },
   de: {
     intro:
-      "Eine Frage zu einem Modell, eine Revision nach einer Planänderung oder ein Problem an der Maschine? Eröffnen Sie hier ein Ticket — ich antworte an Werktagen innerhalb von 24 Std.",
-    none: "Noch keine Tickets. Eröffnen Sie unten eines.",
-    newTicket: "Neues Ticket",
-    subject: "Betreff (z. B. Projekt oder Baustelle + kurze Beschreibung)",
-    message: "Nachricht",
-    bodyPh:
-      "Beschreiben Sie Ihre Frage oder die gewünschte Änderung. Nennen Sie das Projekt, die Maschinensteuerung und — bei einer Revision — den geänderten Plan.",
-    replyPh: "Ihre Antwort…",
-    revisionNote:
-      "Revisionen nach einer Planänderung werden nach Stunden abgerechnet. Sie können sie auch direkt auf der Projektseite anfragen.",
-    send: "Senden",
-    reply: "Antworten",
-    you: "Sie",
+      "Eine Frage zu einem Modell, eine Revision nach einer Planänderung oder ein Problem mit dem Modell auf der Maschine? Eröffnen Sie ein Ticket — ich antworte an Werktagen innerhalb von 24 Stunden.",
+    nieuw: "Neues Ticket",
+    filter: "Tickets filtern",
+    toon: { open: "Offen", gesloten: "Geschlossen", alle: "Alle" },
+    leeg: "Sie haben noch keine Tickets.",
+    leegCta: "Ihr erstes Ticket eröffnen",
+    leegFilter: { open: "Keine offenen Tickets.", gesloten: "Keine geschlossenen Tickets.", alle: "Keine Tickets." },
+    toonAlle: "Alle Tickets anzeigen",
+    ongelezen: "Neue Antwort",
+    u: "Sie",
     studio: "Studio VM",
-    stats: (o, c, m) =>
-      `${o} offen · ${c} geschlossen · ${m} ${m === 1 ? "Nachricht" : "Nachrichten"}`,
-    msgN: (n) => `${n} ${n === 1 ? "Nachricht" : "Nachrichten"}`,
+    laatste: "Letzte Nachricht",
   },
   es: {
     intro:
-      "¿Una pregunta sobre un modelo, una revisión tras un cambio de plano o un problema en la máquina? Abra un ticket aquí — respondo en menos de 24 h en días laborables.",
-    none: "Todavía no hay tickets. Abra uno a continuación.",
-    newTicket: "Nuevo ticket",
-    subject: "Asunto (p. ej., proyecto u obra + breve descripción)",
-    message: "Mensaje",
-    bodyPh:
-      "Describa su pregunta o el cambio que necesita. Indique el proyecto, el sistema de control de máquina y — en caso de revisión — qué plano ha cambiado.",
-    replyPh: "Su respuesta…",
-    revisionNote:
-      "Las revisiones tras un cambio de plano se facturan por horas. También puede solicitarlas directamente en la página del proyecto.",
-    send: "Enviar",
-    reply: "Responder",
-    you: "Usted",
+      "¿Una pregunta sobre un modelo, una revisión tras un cambio de plano o un problema con el modelo en la máquina? Abra un ticket — respondo en un plazo de 24 horas en días laborables.",
+    nieuw: "Nuevo ticket",
+    filter: "Filtrar tickets",
+    toon: { open: "Abiertos", gesloten: "Cerrados", alle: "Todos" },
+    leeg: "Todavía no tiene tickets.",
+    leegCta: "Abrir su primer ticket",
+    leegFilter: { open: "No hay tickets abiertos.", gesloten: "No hay tickets cerrados.", alle: "No hay tickets." },
+    toonAlle: "Mostrar todos los tickets",
+    ongelezen: "Nueva respuesta",
+    u: "Usted",
     studio: "Studio VM",
-    stats: (o, c, m) =>
-      `${o} ${o === 1 ? "abierto" : "abiertos"} · ${c} ${c === 1 ? "cerrado" : "cerrados"} · ${m} ${m === 1 ? "mensaje" : "mensajes"}`,
-    msgN: (n) => `${n} ${n === 1 ? "mensaje" : "mensajes"}`,
+    laatste: "Último mensaje",
   },
 };
 
-export default async function PortalTickets({
+const STATUS_KLEUR: Record<KlantStatus, string> = {
+  wacht_op_studio: "border-amber-400 bg-amber-200 text-amber-950",
+  antwoord_ontvangen: "border-emerald-500 bg-emerald-300 text-emerald-950",
+  gesloten: "border-border bg-card text-muted",
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  // De [locale]-layout zet het sjabloon '%s': het merk staat er dus één keer bij.
+  return { title: { absolute: `${PORTAL_T[locale].tickets} — Studio VM` } };
+}
+
+/** Basisstand (zonder 0049): het laatste bericht per ticket, in twee kleine vragen. */
+async function laatsteBerichten(
+  sb: Awaited<ReturnType<typeof getSupabaseServer>>,
+  ids: string[],
+): Promise<BerichtKern[]> {
+  const laatste = new Map<string, { id: string; ticket_id: string; sender: string; created_at: string }>();
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data } = await sb
+      .from("ticket_messages")
+      .select("id, ticket_id, sender, created_at")
+      .in("ticket_id", ids.slice(i, i + 100))
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    for (const m of (data as { id: string; ticket_id: string; sender: string; created_at: string }[] | null) ?? []) {
+      if (!laatste.has(m.ticket_id)) laatste.set(m.ticket_id, m);
+    }
+  }
+  const berichtIds = [...laatste.values()].map((m) => m.id);
+  const bodies = new Map<string, string>();
+  for (let i = 0; i < berichtIds.length; i += 100) {
+    const { data } = await sb
+      .from("ticket_messages")
+      .select("id, body")
+      .in("id", berichtIds.slice(i, i + 100));
+    for (const m of (data as { id: string; body: string }[] | null) ?? []) bodies.set(m.id, m.body);
+  }
+  return [...laatste.values()].map((m) => ({ ...m, body: bodies.get(m.id) ?? "" }));
+}
+
+export default async function SupportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ toon?: string | string[] }>;
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
   if (!supabaseConfigured) return null;
+  const sp = await searchParams;
+  const ruw = Array.isArray(sp.toon) ? sp.toon[0] : sp.toon;
+  const toon: Toon = TOON.includes(ruw as Toon) ? (ruw as Toon) : "open";
   const t = PORTAL_T[locale];
   const l = L[locale];
 
   const sb = await getSupabaseServer();
-  const [ticketsR, msgsR] = await Promise.all([
-    sb.from("tickets").select("*").order("updated_at", { ascending: false }),
-    sb
-      .from("ticket_messages")
-      .select("*")
-      .order("created_at", { ascending: true }),
-  ]);
-  const tickets = (ticketsR.data as Ticket[]) ?? [];
-  const msgs = (msgsR.data as Msg[]) ?? [];
-  const byTicket = new Map<string, Msg[]>();
-  for (const m of msgs) {
-    const arr = byTicket.get(m.ticket_id);
-    if (arr) arr.push(m);
-    else byTicket.set(m.ticket_id, [m]);
-  }
+  const schema = await ticketSchema();
 
-  // Counters voor UX
-  const openCnt = tickets.filter((tk) => tk.status !== "gesloten").length;
-  const closedCnt = tickets.length - openCnt;
-  const totalMsgs = msgs.length;
+  const basis = () => sb.from("tickets").select("*").order("updated_at", { ascending: false }).limit(200);
+  let res = schema.v2 ? await basis().neq("soort", "intern") : await basis();
+  if (res.error && schema.v2 && isOntbrekend(res.error)) res = await basis();
+  if (res.error) console.error("[tickets] lijst laden mislukt:", res.error.code, res.error.message);
+  const tickets = ((res.data as TicketRij[] | null) ?? []).filter((tk) => soortVan(tk) !== "intern");
+
+  const v2 = tickets.some((tk) => typeof tk.wacht_op === "string");
+  const ids = tickets.map((tk) => tk.id);
+  const projectIds = [...new Set(tickets.map((tk) => tk.project_id).filter(isUuid))];
+  const [berichten, projectRes] = await Promise.all([
+    v2 || ids.length === 0 ? Promise.resolve([] as BerichtKern[]) : laatsteBerichten(sb, ids),
+    projectIds.length > 0
+      ? sb.from("projecten").select("id, titel").in("id", projectIds)
+      : Promise.resolve({ data: [] as { id: string; titel: string }[] }),
+  ]);
+  const projectTitel = new Map(
+    ((projectRes.data as { id: string; titel: string }[] | null) ?? []).map((p) => [p.id, p.titel]),
+  );
+
+  const rijen = tickets.map((tk) => {
+    const a = afgeleid(tk, berichten);
+    return { tk, a, status: a.gesloten ? ("gesloten" as const) : a.wachtOp === "klant" ? ("antwoord_ontvangen" as const) : ("wacht_op_studio" as const) };
+  });
+  const aantal: Record<Toon, number> = {
+    open: rijen.filter((r) => !r.a.gesloten).length,
+    gesloten: rijen.filter((r) => r.a.gesloten).length,
+    alle: rijen.length,
+  };
+  const zichtbaar = rijen.filter((r) => (toon === "alle" ? true : toon === "gesloten" ? r.a.gesloten : !r.a.gesloten));
+  const nieuwHref = localePath(locale, "/portail/dashboard/tickets/nieuw");
+  const lijstHref = (x: Toon) => localePath(locale, `/portail/dashboard/tickets${x === "open" ? "" : `?toon=${x}`}`);
 
   return (
-    <>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent/15 text-accent">
+    // pb-20 op gsm: de laatste kaart schuift boven de zwevende knop uit.
+    <div className="space-y-6 pb-20 sm:pb-0">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/15 text-accent" aria-hidden>
             <LifeBuoy className="h-5 w-5" strokeWidth={2} />
           </span>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {t.tickets}
-            </h1>
-            {tickets.length > 0 && (
-              <p className="mt-0.5 font-mono text-xs text-muted">
-                {l.stats(openCnt, closedCnt, totalMsgs)}
-              </p>
-            )}
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t.tickets}</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">{l.intro}</p>
           </div>
         </div>
-      </div>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-        {l.intro}
-      </p>
-
-      <div className="mt-8 space-y-5">
-        {tickets.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card/30 p-8 text-center">
-            <MessageSquare
-              className="mx-auto h-8 w-8 text-muted"
-              strokeWidth={1.5}
-            />
-            <p className="mt-3 text-sm text-muted">{l.none}</p>
-          </div>
-        )}
-        {tickets.map((tk) => {
-          const items = byTicket.get(tk.id) ?? [];
-          const lastMsg = items[items.length - 1];
-          const isClosed = tk.status === "gesloten";
-          return (
-            <div
-              key={tk.id}
-              className="overflow-hidden rounded-2xl bg-card shadow-sm"
-            >
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-background/30 px-5 py-3.5">
-                <div className="flex min-w-0 items-center gap-3">
-                  <MessageSquare
-                    className="h-4 w-4 shrink-0 text-accent"
-                    strokeWidth={2}
-                  />
-                  <p className="truncate font-semibold tracking-tight">
-                    {tk.subject}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 font-mono text-[10px] text-muted">
-                  {lastMsg && (
-                    <>
-                      <span>{dt(lastMsg.created_at, locale)}</span>
-                      <span>·</span>
-                    </>
-                  )}
-                  <span>{l.msgN(items.length)}</span>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 uppercase tracking-widest ${badge(
-                      tk.status,
-                    )}`}
-                  >
-                    {statusLabel(tk.status, locale)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bericht-tijdlijn */}
-              <div className="space-y-2.5 px-5 py-4">
-                {items.map((m) => {
-                  const isStudio = m.sender === "studio";
-                  return (
-                    <div
-                      key={m.id}
-                      className={`flex gap-3 ${isStudio ? "flex-row" : "flex-row-reverse"}`}
-                    >
-                      <span
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                          isStudio
-                            ? "bg-accent/15 text-accent"
-                            : "bg-foreground/10 text-foreground"
-                        }`}
-                      >
-                        {isStudio ? "VM" : (l.you[0] ?? "U")}
-                      </span>
-                      <div
-                        className={`min-w-0 flex-1 rounded-xl px-4 py-2.5 text-sm ${
-                          isStudio
-                            ? "bg-accent/10"
-                            : "border bg-background"
-                        }`}
-                      >
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                          {isStudio ? l.studio : l.you} ·{" "}
-                          {dt(m.created_at, locale)}
-                        </p>
-                        <p className="mt-1 whitespace-pre-wrap leading-relaxed">
-                          {m.body}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Reply-form (groter, textarea) */}
-              {!isClosed && (
-                <form
-                  action={replyTicket}
-                  className="border-t border-border/60 bg-background/20 px-5 py-4"
-                >
-                  <input type="hidden" name="ticket_id" value={tk.id} />
-                  <textarea
-                    name="body"
-                    required
-                    rows={3}
-                    placeholder={l.replyPh}
-                    className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
-                  />
-                  <div className="mt-2 flex justify-end">
-                    <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
-                      <Send className="h-4 w-4" strokeWidth={2.5} />
-                      {l.reply}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Nieuw ticket */}
-        <form
-          action={openTicket}
-          className="rounded-2xl border border-dashed bg-card/50 p-5"
+        <Link
+          href={nieuwHref}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <p className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted">
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-            {l.newTicket}
-          </p>
-          <input
-            name="subject"
-            required
-            placeholder={l.subject}
-            aria-label={l.subject}
-            className="mb-2 w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
-          />
-          <textarea
-            name="body"
-            required
-            rows={4}
-            placeholder={l.bodyPh}
-            aria-label={l.message}
-            className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
-          />
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="max-w-md text-xs text-muted">{l.revisionNote}</p>
-            <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90">
-              <Send className="h-4 w-4" strokeWidth={2.5} />
-              {l.send}
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+          {l.nieuw}
+        </Link>
+      </header>
+
+      {tickets.length > 0 && (
+        <nav aria-label={l.filter} className="flex flex-wrap gap-2">
+          {TOON.map((x) => {
+            const actief = x === toon;
+            return (
+              <Link
+                key={x}
+                href={lijstHref(x)}
+                aria-current={actief ? "page" : undefined}
+                className={`inline-flex min-h-9 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  actief ? "border-foreground bg-foreground text-background" : "bg-card hover:border-accent"
+                }`}
+              >
+                {l.toon[x]}
+                <span className={`font-mono text-xs ${actief ? "opacity-80" : "text-muted"}`}>{aantal[x]}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
+      {tickets.length === 0 ? (
+        <div className="rounded-2xl border border-dashed bg-card/40 p-8 text-center sm:p-10">
+          <MessageSquare className="mx-auto h-8 w-8 text-muted" strokeWidth={1.5} aria-hidden />
+          <p className="mt-3 text-sm text-muted">{l.leeg}</p>
+          <Link
+            href={nieuwHref}
+            className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+            {l.leegCta}
+          </Link>
+        </div>
+      ) : zichtbaar.length === 0 ? (
+        <div className="rounded-2xl border border-dashed bg-card/40 p-8 text-center">
+          <p className="text-sm text-muted">{l.leegFilter[toon]}</p>
+          {toon !== "alle" && (
+            <Link
+              href={lijstHref("alle")}
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              {l.toonAlle}
+              <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </Link>
+          )}
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {zichtbaar.map(({ tk, a, status }) => {
+            const soort = soortVan(tk);
+            const titel = tk.project_id ? projectTitel.get(tk.project_id) : undefined;
+            const wie = a.laatsteAfzender === "studio" ? l.studio : a.laatsteAfzender === "klant" ? l.u : null;
+            return (
+              <li key={tk.id}>
+                <Link
+                  href={localePath(locale, `/portail/dashboard/tickets/${tk.id}`)}
+                  className={`group block rounded-2xl border bg-card p-4 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:p-5 ${
+                    a.klantOngelezen ? "border-emerald-500" : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted">
+                        {a.klantOngelezen && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2 py-0.5 font-sans font-semibold text-emerald-950">
+                            <span className="h-2 w-2 rounded-full bg-emerald-950" aria-hidden />
+                            {l.ongelezen}
+                          </span>
+                        )}
+                        <span>{ticketRef(tk)}</span>
+                      </p>
+                      <h2
+                        className={`mt-1 line-clamp-2 break-words text-base tracking-tight wrap-anywhere ${
+                          a.klantOngelezen ? "font-bold" : "font-semibold"
+                        }`}
+                      >
+                        {toonOnderwerp(tk)}
+                      </h2>
+                    </div>
+                    <ChevronRight
+                      className="mt-1 h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`rounded-full border px-2.5 py-0.5 font-medium ${STATUS_KLEUR[status]}`}>
+                      {KLANT_STATUS_LABEL[status][locale]}
+                    </span>
+                    <span className="rounded-full border px-2.5 py-0.5">{SOORT_LABEL[soort][locale]}</span>
+                    {titel && (
+                      <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-full border px-2.5 py-0.5 text-muted">
+                        <FolderOpen className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden />
+                        <span className="truncate">{titel}</span>
+                      </span>
+                    )}
+                    {a.laatsteOp && (
+                      <span className="inline-flex items-center gap-1 text-muted">
+                        <Clock className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden />
+                        <span className="sr-only">{l.laatste}: </span>
+                        <time dateTime={a.laatsteOp}>{datumTijd(a.laatsteOp, locale)}</time>
+                      </span>
+                    )}
+                  </div>
+
+                  {a.fragment && (
+                    <p className="mt-2 line-clamp-1 break-words text-sm text-muted wrap-anywhere">
+                      {wie && <span className="font-medium text-foreground/80">{wie}: </span>}
+                      {a.fragment}
+                    </p>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <Link
+        href={nieuwHref}
+        aria-label={l.nieuw}
+        className="fixed bottom-5 right-5 z-20 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:hidden"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+      </Link>
+    </div>
   );
 }

@@ -3,48 +3,58 @@ import { notFound } from "next/navigation";
 import { Boxes, FileText, Receipt, LifeBuoy, ArrowRight, FileUp, AlertCircle, MapPin } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { eur, dt } from "@/lib/portal-shared";
+import { eur, dt, nieuweAntwoorden } from "@/lib/portal-shared";
 import { STATUS_LABEL, statusKleur, werfTekst, type Project } from "@/lib/projecten";
+import { datumTijd, soortVan, ticketRef, toonOnderwerp, type TicketRij } from "@/lib/tickets";
+import { SOORT_LABEL } from "@/lib/tickets-teksten";
+import { ticketSchema } from "@/lib/tickets-server";
 
 export const dynamic = "force-dynamic";
 
 const T: Record<Locale, Record<string, string>> = {
   nl: {
     welkom: "Welkom in uw portaal", intro: "Volg hier uw 3D-modellen: van aanvraag tot download.",
-    actief: "Lopende projecten", offertes: "Open offertes", openstaand: "Openstaand bedrag", tickets: "Open tickets",
+    actief: "Lopende projecten", offertes: "Open offertes", openstaand: "Openstaand bedrag", tickets: "Support · open tickets",
     aandacht: "Vraagt uw aandacht", offerteWacht: "Offerte wacht op uw akkoord", factuurOpen: "Factuur te betalen",
+    nieuwAntwoord: "Nieuw antwoord op uw ticket",
     niets: "Alles is in orde — niets vraagt uw aandacht.", recent: "Recente projecten", alle: "Alle projecten",
     leeg: "Nog geen projecten.", nieuw: "Nieuwe aanvraag",
   },
   fr: {
     welkom: "Bienvenue dans votre espace", intro: "Suivez ici vos modèles 3D : de la demande au téléchargement.",
-    actief: "Projets en cours", offertes: "Devis ouverts", openstaand: "Montant dû", tickets: "Tickets ouverts",
+    actief: "Projets en cours", offertes: "Devis ouverts", openstaand: "Montant dû", tickets: "Support · tickets ouverts",
     aandacht: "Requiert votre attention", offerteWacht: "Devis en attente de votre accord", factuurOpen: "Facture à payer",
+    nieuwAntwoord: "Nouvelle réponse à votre ticket",
     niets: "Tout est en ordre — rien ne requiert votre attention.", recent: "Projets récents", alle: "Tous les projets",
     leeg: "Pas encore de projet.", nieuw: "Nouvelle demande",
   },
   en: {
     welkom: "Welcome to your portal", intro: "Follow your 3D models here: from request to download.",
-    actief: "Active projects", offertes: "Open quotes", openstaand: "Amount due", tickets: "Open tickets",
+    actief: "Active projects", offertes: "Open quotes", openstaand: "Amount due", tickets: "Support · open tickets",
     aandacht: "Needs your attention", offerteWacht: "Quote awaiting your approval", factuurOpen: "Invoice to pay",
+    nieuwAntwoord: "New reply to your ticket",
     niets: "All good — nothing needs your attention.", recent: "Recent projects", alle: "All projects",
     leeg: "No projects yet.", nieuw: "New request",
   },
   de: {
     welkom: "Willkommen in Ihrem Portal", intro: "Verfolgen Sie hier Ihre 3D-Modelle: von der Anfrage bis zum Download.",
-    actief: "Laufende Projekte", offertes: "Offene Angebote", openstaand: "Offener Betrag", tickets: "Offene Tickets",
+    actief: "Laufende Projekte", offertes: "Offene Angebote", openstaand: "Offener Betrag", tickets: "Support · offene Tickets",
     aandacht: "Erfordert Ihre Aufmerksamkeit", offerteWacht: "Angebot wartet auf Ihre Zustimmung", factuurOpen: "Rechnung zu bezahlen",
+    nieuwAntwoord: "Neue Antwort auf Ihr Ticket",
     niets: "Alles in Ordnung — nichts erfordert Ihre Aufmerksamkeit.", recent: "Aktuelle Projekte", alle: "Alle Projekte",
     leeg: "Noch keine Projekte.", nieuw: "Neue Anfrage",
   },
   es: {
     welkom: "Bienvenido a su portal", intro: "Siga aquí sus modelos 3D: desde la solicitud hasta la descarga.",
-    actief: "Proyectos en curso", offertes: "Presupuestos abiertos", openstaand: "Importe pendiente", tickets: "Tickets abiertos",
+    actief: "Proyectos en curso", offertes: "Presupuestos abiertos", openstaand: "Importe pendiente", tickets: "Soporte · tickets abiertos",
     aandacht: "Requiere su atención", offerteWacht: "Presupuesto pendiente de su aprobación", factuurOpen: "Factura por pagar",
+    nieuwAntwoord: "Nueva respuesta a su ticket",
     niets: "Todo en orden — nada requiere su atención.", recent: "Proyectos recientes", alle: "Todos los proyectos",
     leeg: "Todavía no hay proyectos.", nieuw: "Nueva solicitud",
   },
 };
+
+type OngelezenTicket = Pick<TicketRij, "id" | "nummer" | "subject" | "soort" | "laatste_bericht_op">;
 
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -52,11 +62,37 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const t = T[locale];
   const sb = await getSupabaseServer();
 
-  const [{ data: pr }, { data: of }, { data: inv }, { count: tickets }] = await Promise.all([
+  // Support (sessie van de klant, RLS). Met migratie 0049: open tickets zonder
+  // de interne site-meldingen, plus de tickets met een ongelezen antwoord van
+  // de studio. Zonder 0049 (of als een query faalt): de oude telling, niets ongelezen.
+  async function support(): Promise<{ open: number; ongelezen: number; nieuw: OngelezenTicket[] }> {
+    const head = { count: "exact" as const, head: true };
+    const oud = async () => (await sb.from("tickets").select("id", head).neq("status", "gesloten")).count ?? 0;
+    if (!(await ticketSchema()).v2) return { open: await oud(), ongelezen: 0, nieuw: [] };
+    const [o, n, l] = await Promise.all([
+      sb.from("tickets").select("id", head).neq("status", "gesloten").neq("soort", "intern"),
+      sb.from("tickets").select("id", head).eq("klant_ongelezen", true).neq("soort", "intern"),
+      sb
+        .from("tickets")
+        .select("id, nummer, subject, soort, laatste_bericht_op")
+        .eq("klant_ongelezen", true)
+        .neq("soort", "intern")
+        .order("laatste_bericht_op", { ascending: false })
+        .limit(5),
+    ]);
+    const nieuw = l.error ? [] : ((l.data as OngelezenTicket[] | null) ?? []);
+    return {
+      open: o.error ? await oud() : (o.count ?? 0),
+      ongelezen: n.error ? nieuw.length : (n.count ?? 0),
+      nieuw,
+    };
+  }
+
+  const [{ data: pr }, { data: of }, { data: inv }, sup] = await Promise.all([
     sb.from("projecten").select("*").order("created_at", { ascending: false }),
     sb.from("offers").select("id, title, amount_cents, offer_no").eq("status", "open").order("created_at", { ascending: false }),
     sb.from("invoices").select("id, number, amount_cents, due_at").eq("status", "open").order("issued_at", { ascending: false }),
-    sb.from("tickets").select("id", { count: "exact", head: true }).neq("status", "gesloten"),
+    support(),
   ]);
   const projecten = (pr as Project[] | null) ?? [];
   const offertes = (of as { id: string; title: string; amount_cents: number; offer_no: string | null }[] | null) ?? [];
@@ -64,11 +100,17 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const actief = projecten.filter((p) => !["afgesloten", "geannuleerd"].includes(p.status)).length;
   const openstaand = facturen.reduce((s, f) => s + (f.amount_cents ?? 0), 0);
 
-  const kaarten = [
+  const kaarten: { label: string; waarde: string; icoon: typeof Boxes; href: string; nieuw?: string }[] = [
     { label: t.actief, waarde: String(actief), icoon: Boxes, href: "/portail/dashboard/projecten" },
     { label: t.offertes, waarde: String(offertes.length), icoon: FileText, href: "/portail/dashboard/offertes" },
     { label: t.openstaand, waarde: eur(openstaand), icoon: Receipt, href: "/portail/dashboard/facturen" },
-    { label: t.tickets, waarde: String(tickets ?? 0), icoon: LifeBuoy, href: "/portail/dashboard/tickets" },
+    {
+      label: t.tickets,
+      waarde: String(sup.open),
+      icoon: LifeBuoy,
+      href: "/portail/dashboard/tickets",
+      nieuw: sup.ongelezen > 0 ? nieuweAntwoorden(sup.ongelezen, locale) : undefined,
+    },
   ];
 
   return (
@@ -85,11 +127,17 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kaarten.map(({ label, waarde, icoon: Icoon, href }) => (
+        {kaarten.map(({ label, waarde, icoon: Icoon, href, nieuw }) => (
           <Link key={label} href={localePath(locale, href)} className="rounded-2xl border bg-card p-5 transition-colors hover:border-accent">
             <Icoon className="h-5 w-5 text-accent" strokeWidth={1.5} />
             <p className="mt-4 text-2xl font-semibold tracking-tight">{waarde}</p>
             <p className="mt-1 text-sm text-muted">{label}</p>
+            {nieuw && (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-emerald-950">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-950" aria-hidden />
+                {nieuw}
+              </p>
+            )}
           </Link>
         ))}
       </div>
@@ -99,10 +147,39 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           <AlertCircle className="h-4 w-4 text-accent" strokeWidth={1.75} />
           {t.aandacht}
         </h2>
-        {offertes.length === 0 && facturen.length === 0 ? (
+        {sup.nieuw.length === 0 && offertes.length === 0 && facturen.length === 0 ? (
           <p className="text-sm text-muted">{t.niets}</p>
         ) : (
           <ul className="divide-y">
+            {sup.nieuw.map((tk) => (
+              <li key={tk.id}>
+                <Link
+                  href={localePath(locale, `/portail/dashboard/tickets/${tk.id}`)}
+                  className="flex items-center justify-between gap-3 rounded-lg py-3 text-sm hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium">
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                      {t.nieuwAntwoord}
+                      <span className="rounded-full border px-2 py-0.5 text-xs font-normal text-muted">
+                        {SOORT_LABEL[soortVan(tk)][locale]}
+                      </span>
+                    </span>
+                    <span className="mt-0.5 block truncate text-muted">
+                      {ticketRef(tk)} · {toonOnderwerp(tk)}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-muted">
+                    {tk.laatste_bericht_op && (
+                      <time dateTime={tk.laatste_bericht_op} className="hidden sm:inline">
+                        {datumTijd(tk.laatste_bericht_op, locale)}
+                      </time>
+                    )}
+                    <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                  </span>
+                </Link>
+              </li>
+            ))}
             {offertes.map((o) => (
               <li key={o.id}>
                 <Link href={localePath(locale, "/portail/dashboard/offertes")} className="flex items-center justify-between gap-3 py-3 text-sm hover:text-accent">

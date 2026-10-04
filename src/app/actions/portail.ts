@@ -7,18 +7,15 @@ import { supabaseConfigured } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
-import { portalEmailHtml } from "@/lib/email";
+import { loginMail } from "@/lib/klant-mails";
 
 export type AuthState = { ok: boolean; message: string };
 
+// Meldingen op het scherm. De mail zelf (onderwerp, tekst, knop) staat in
+// loginMail() in src/lib/klant-mails.ts.
 const M: Record<
   string,
   {
-    subject: string;
-    title: string;
-    intro: string;
-    cta: string;
-    note: string;
     ok: string;
     bad: string;
     fail: string;
@@ -27,13 +24,7 @@ const M: Record<
   }
 > = {
   nl: {
-    subject: "Uw login-link voor het klantenportaal van Studio VM",
-    title: "Inloggen op uw klantenportaal",
-    intro:
-      "Klik op de knop hieronder om veilig in te loggen op uw klantenportaal. Daar volgt u uw 3D-projecten op: van de plannen tot de modelbestanden per machinesturing. Een wachtwoord is niet nodig.",
-    cta: "Open mijn portaal",
-    note: "Deze link is persoonlijk en ongeveer 1 uur geldig. Niet aangevraagd? Dan mag u deze e-mail negeren.",
-    ok: "Kijk in uw mailbox — de login-link is onderweg.",
+    ok: "Kijk in uw mailbox — de inloglink is onderweg.",
     bad: "Dat e-mailadres lijkt niet te kloppen.",
     fail: "Versturen is mislukt. Probeer het opnieuw.",
     noaccess:
@@ -41,12 +32,6 @@ const M: Record<
     inactive: "Het portaal is nog niet geactiveerd in deze omgeving.",
   },
   fr: {
-    subject: "Votre lien de connexion au portail client Studio VM",
-    title: "Connectez-vous à votre portail client",
-    intro:
-      "Cliquez sur le bouton ci-dessous pour vous connecter en toute sécurité à votre portail client. Vous y suivez vos projets 3D : des plans jusqu'aux fichiers du modèle par système de guidage. Aucun mot de passe n'est nécessaire.",
-    cta: "Ouvrir mon portail",
-    note: "Ce lien est personnel et valable environ 1 heure. Vous ne l'avez pas demandé ? Vous pouvez ignorer cet e-mail.",
     ok: "Consultez votre boîte de réception — le lien de connexion est en route.",
     bad: "Cette adresse e-mail semble incorrecte.",
     fail: "L'envoi a échoué. Veuillez réessayer.",
@@ -55,12 +40,6 @@ const M: Record<
     inactive: "Le portail n'est pas encore activé dans cet environnement.",
   },
   en: {
-    subject: "Your login link for the Studio VM client portal",
-    title: "Log in to your client portal",
-    intro:
-      "Click the button below to log in securely to your client portal, where you follow your 3D projects: from the plans to the model files per machine control system. No password needed.",
-    cta: "Open my portal",
-    note: "This link is personal and valid for about 1 hour. Didn't request it? You can safely ignore this email.",
     ok: "Check your inbox — the login link is on its way.",
     bad: "That email address doesn't look right.",
     fail: "Sending failed. Please try again.",
@@ -69,12 +48,6 @@ const M: Record<
     inactive: "The portal is not yet activated in this environment.",
   },
   de: {
-    subject: "Ihr Anmeldelink für das Kundenportal von Studio VM",
-    title: "Melden Sie sich in Ihrem Kundenportal an",
-    intro:
-      "Klicken Sie auf die Schaltfläche unten, um sich sicher in Ihrem Kundenportal anzumelden. Dort verfolgen Sie Ihre 3D-Projekte: von den Plänen bis zu den Modelldateien pro Maschinensteuerung. Ein Passwort ist nicht nötig.",
-    cta: "Mein Portal öffnen",
-    note: "Dieser Link ist persönlich und etwa 1 Stunde gültig. Nicht angefordert? Dann können Sie diese E-Mail ignorieren.",
     ok: "Sehen Sie in Ihrem Posteingang nach — der Anmeldelink ist unterwegs.",
     bad: "Diese E-Mail-Adresse scheint nicht korrekt zu sein.",
     fail: "Der Versand ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -83,12 +56,6 @@ const M: Record<
     inactive: "Das Portal ist in dieser Umgebung noch nicht aktiviert.",
   },
   es: {
-    subject: "Su enlace de acceso al portal de clientes de Studio VM",
-    title: "Acceda a su portal de clientes",
-    intro:
-      "Haga clic en el botón de abajo para acceder de forma segura a su portal de clientes. Allí sigue sus proyectos 3D: desde los planos hasta los archivos del modelo para cada sistema de control de máquina. No necesita contraseña.",
-    cta: "Abrir mi portal",
-    note: "Este enlace es personal y válido durante aproximadamente 1 hora. ¿No lo ha solicitado? Puede ignorar este correo.",
     ok: "Revise su bandeja de entrada: el enlace de acceso está en camino.",
     bad: "Esa dirección de correo electrónico no parece correcta.",
     fail: "No se ha podido enviar. Inténtelo de nuevo.",
@@ -97,6 +64,9 @@ const M: Record<
     inactive: "El portal aún no está activado en este entorno.",
   },
 };
+
+// Enkel interne portaalpaden (anti open-redirect, ook geen //host).
+const PORTAAL_PAD = /^\/(nl|fr|en|de|es)\/portail(\/|$|\?)/;
 
 export async function sendMagicLink(
   formData: FormData,
@@ -118,7 +88,7 @@ export async function sendMagicLink(
   // Waar de klant na inloggen belandt. Enkel interne portaalpaden
   // (anti open-redirect); standaard de dashboardstart.
   const rawNext = String(formData.get("next") ?? "");
-  const nextPath = /^\/(nl|fr|en|de|es)\/portail(\/|$)/.test(rawNext)
+  const nextPath = PORTAAL_PAD.test(rawNext)
     ? rawNext
     : `/${locale}/portail/dashboard`;
 
@@ -151,28 +121,7 @@ export async function sendMagicLink(
       hashed,
     )}&type=magiclink&next=${encodeURIComponent(nextPath)}`;
 
-    const eyebrow =
-      (
-        {
-          nl: "Uw klantenportaal",
-          fr: "Votre portail client",
-          en: "Your client portal",
-          de: "Ihr Kundenportal",
-          es: "Su portal de clientes",
-        } as Record<string, string>
-      )[locale] ?? "Uw klantenportaal";
-    await sendMail(email, {
-      subject: t.subject,
-      html: portalEmailHtml({
-        locale,
-        eyebrow,
-        title: t.title,
-        bodyLines: [t.intro],
-        ctaLabel: t.cta,
-        ctaHref: link,
-        footnote: t.note,
-      }),
-    });
+    await sendMail(email, loginMail(locale, link));
 
     return { ok: true, message: t.ok };
   } catch {
@@ -183,11 +132,14 @@ export async function sendMagicLink(
 export async function confirmLogin(formData: FormData): Promise<void> {
   const tokenHash = String(formData.get("token_hash") ?? "");
   const rawType = String(formData.get("type") ?? "magiclink");
-  const rawNext = String(formData.get("next") ?? "/nl/portail/dashboard");
-  const next = rawNext.startsWith("/") ? rawNext : "/nl/portail/dashboard";
+  const rawNext = String(formData.get("next") ?? "");
+  // Enkel een portaalpad (niet "//andere-site.be"): anders het overzicht.
+  const next = PORTAAL_PAD.test(rawNext) ? rawNext : "/nl/portail/dashboard";
+  // Bij een fout terug naar de aanmeldpagina in de taal van de link.
+  const fout = `/${next.slice(1, 3)}/portail?fout=link`;
 
   if (!supabaseConfigured || !tokenHash) {
-    redirect("/nl/portail?fout=link");
+    redirect(fout);
   }
   let ok = false;
   try {
@@ -200,7 +152,7 @@ export async function confirmLogin(formData: FormData): Promise<void> {
   } catch {
     ok = false;
   }
-  redirect(ok ? next : "/nl/portail?fout=link");
+  redirect(ok ? next : fout);
 }
 
 export async function signOut(): Promise<void> {

@@ -10,14 +10,23 @@
 //   2. dienAanvraagIn(): bewaart de aanvraag (tabel quotes, source "3d-model",
 //      alle 3D-velden in snapshot), zoekt het werfadres op de kaart, stelt
 //      het coördinatenstelsel voor en stuurt de twee mails.
+//
+// Ingelogde klanten dienen een nieuw dossier in via het portaal met
+// dienPortaalAanvraagIn(): zelfde verwerking, maar het e-mailadres komt uit
+// de sessie (nooit uit het formulier) en de klantgegevens uit het account.
 // ─────────────────────────────────────────────────────────────────────────
 
+import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import { isEmail, sendMail } from "@/lib/monitor";
-import { siteUrl } from "@/lib/supabase/config";
+import { supabaseConfigured } from "@/lib/supabase/config";
 import { isLand, stelselVoor, type StelselVoorstel } from "@/lib/stelsel";
 import { ensurePortalUser } from "@/lib/portal-access";
 import { zoekWerf } from "@/lib/geocode";
+import { aanvraagProfiel, PROFIEL_META, PROFIEL_VELDEN, type ProfielVeld } from "@/lib/aanvraag-profiel";
+import { aanvraagOntvangenMail } from "@/lib/klant-mails";
+import { siteLink } from "@/lib/email";
 
 const BUCKET = "plannen";
 const MAX_BESTANDEN = 15;
@@ -74,21 +83,91 @@ function standaardLeverdatum(categorie: string): string | null {
   return d.toISOString().slice(0, 10);
 }
 
-export type AanvraagResultaat = { ok: true } | { ok: false; fout: "ongeldig" | "opslag" };
+export type AanvraagResultaat =
+  | { ok: true; projectId?: string }
+  | { ok: false; fout: "ongeldig" | "opslag" | "sessie" };
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/** Wie de aanvraag doet: uit het formulier (publiek) of uit sessie + account (portaal). */
+type Afzender = { bedrijf: string; naam: string; email: string; telefoon: string; btw: string };
+
+// Publieke aanvraag (/offerte): alle gegevens komen uit het formulier.
 export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
   if (s(fd, "website")) return { ok: true }; // honeypot: stil negeren
 
+  const r = await verwerkAanvraag(
+    fd,
+    {
+      bedrijf: s(fd, "bedrijf"),
+      naam: s(fd, "naam"),
+      email: s(fd, "email").toLowerCase(),
+      telefoon: s(fd, "telefoon"),
+      btw: s(fd, "btw"),
+    },
+    false,
+  );
+  return r.ok ? { ok: true } : r;
+}
+
+// Nieuw dossier vanuit het klantenportaal. Zonder sessie: weigeren. Het
+// e-mailadres komt uit de sessie; een meegestuurd "email"-veld wordt genegeerd.
+// Bedrijf, naam, telefoon en btw: staat het veld in het formulier (aanvullen
+// of "Wijzigen"), dan geldt wat de klant invulde — ook leeg, zo kan een
+// btw-nummer weg. Anders de accountgegevens. Wat nieuw of anders is, bewaren
+// we na het indienen op het account (de klant mag zijn eigen user_metadata
+// sowieso al schrijven; e-mail en rol horen daar niet bij).
+export async function dienPortaalAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
+  if (!supabaseConfigured) return { ok: false, fout: "sessie" };
+  const sb = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  const profiel = user ? await aanvraagProfiel(user) : null;
+  if (!user || !profiel) return { ok: false, fout: "sessie" };
+
+  const gegeven = (veld: ProfielVeld) => (fd.has(veld) ? s(fd, veld).slice(0, 200) : (profiel[veld] ?? ""));
+  const afzender: Afzender = {
+    email: profiel.email,
+    bedrijf: gegeven("bedrijf"),
+    naam: gegeven("naam"),
+    telefoon: gegeven("telefoon"),
+    btw: gegeven("btw"),
+  };
+  const r = await verwerkAanvraag(fd, afzender, true);
+  if (!r.ok) return r;
+
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const wijziging: Record<string, string> = {};
+  for (const veld of PROFIEL_VELDEN) {
+    const sleutel = PROFIEL_META[veld];
+    const huidig = typeof meta[sleutel] === "string" ? (meta[sleutel] as string).trim().slice(0, 200) : null;
+    const nieuw = afzender[veld];
+    if (nieuw === huidig) continue;
+    if (!nieuw && !fd.has(veld)) continue; // niet gevraagd en niets gekend
+    // Leeg bewaard = bewust leeg: geen terugval meer op oude aanvragen.
+    wijziging[sleutel] = nieuw;
+  }
+  if (Object.keys(wijziging).length) {
+    try {
+      await getSupabaseAdmin().auth.admin.updateUserById(user.id, {
+        user_metadata: { ...meta, ...wijziging },
+      });
+    } catch {
+      // Niet-kritisch: het dossier staat er al.
+    }
+  }
+
+  // Projectenlijst, teller in de zijbalk en overzicht meteen bijwerken.
+  revalidatePath("/[locale]/portail/dashboard", "layout");
+  return r;
+}
+
+async function verwerkAanvraag(fd: FormData, a: Afzender, portaal: boolean): Promise<AanvraagResultaat> {
   const locale = ["nl", "fr", "en", "de", "es"].includes(s(fd, "locale")) ? s(fd, "locale") : "nl";
   const v = {
-    bedrijf: s(fd, "bedrijf"),
-    naam: s(fd, "naam"),
-    email: s(fd, "email").toLowerCase(),
-    telefoon: s(fd, "telefoon"),
-    btw: s(fd, "btw"),
+    ...a,
     werfStraat: s(fd, "werf_straat"),
     werfPostcode: s(fd, "werf_postcode"),
     werfGemeente: s(fd, "werf_gemeente"),
@@ -165,6 +244,7 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
         werk: v.werk,
         leverdatum: v.leverdatum || null,
         bestanden,
+        ...(portaal ? { via: "portaal" } : {}),
       },
     })
     .select("id")
@@ -175,14 +255,17 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
   }
 
   // Portaaltoegang + project: de klant volgt zijn aanvraag meteen in het portaal.
-  await ensurePortalUser(v.email, {
-    name: v.naam,
-    phone: v.telefoon,
-    company: v.bedrijf,
-    vat_number: v.btw || null,
-  });
+  // Via het portaal bestaat het account al (de aanvulling gebeurt daar).
+  if (!portaal) {
+    await ensurePortalUser(v.email, {
+      name: v.naam,
+      phone: v.telefoon,
+      company: v.bedrijf,
+      vat_number: v.btw || null,
+    });
+  }
   const quoteId = (ins.data as { id?: string } | null)?.id ?? null;
-  const { error: projFout } = await db.from("projecten").insert({
+  const { data: projRij, error: projFout } = await db.from("projecten").insert({
     client_email: v.email,
     quote_id: quoteId,
     titel: `${v.werk || "3D-model"} — ${v.werfGemeente}`.slice(0, 140),
@@ -200,8 +283,9 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     plannen: bestanden,
     leverdatum: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v.leverdatum) ? v.leverdatum : standaardLeverdatum(v.categorie),
     opmerking: v.omschrijving || null,
-  });
+  }).select("id").maybeSingle();
   if (projFout) console.error("[offerte-3d] project aanmaken mislukt:", projFout.message);
+  const projectId = (projRij as { id?: string } | null)?.id;
 
   // Downloadlinks voor de plannen (7 dagen geldig) — voor de mail aan Vincent.
   const links: { naam: string; url: string }[] = [];
@@ -215,9 +299,9 @@ export async function dienAanvraagIn(fd: FormData): Promise<AanvraagResultaat> {
     `<tr><td style="padding:4px 16px 4px 0;color:#78716c;vertical-align:top">${k}</td><td>${w}</td></tr>`;
   await sendMail("info@studio-vm.be", {
     replyTo: v.email,
-    subject: `${v.categorie === "last-minute" ? "⚡ LAST-MINUTE · " : ""}3D-model aanvraag — ${v.bedrijf} (${v.werfGemeente}, ${v.werfLand})`,
+    subject: `${v.categorie === "last-minute" ? "⚡ LAST-MINUTE · " : ""}3D-model aanvraag${portaal ? " (portaal)" : ""} — ${v.bedrijf} (${v.werfGemeente}, ${v.werfLand})`,
     html: `<div style="font-family:system-ui,sans-serif;max-width:600px;color:#1c1917;line-height:1.6">
-<h2 style="margin:0 0 4px">Nieuwe aanvraag: 3D-model</h2>
+<h2 style="margin:0 0 4px">Nieuwe aanvraag: 3D-model${portaal ? " — via het klantenportaal" : ""}</h2>
 <p style="margin:0 0 16px;color:#78716c">${esc(v.bedrijf)} · ${esc(v.naam)} · <a href="mailto:${esc(v.email)}">${esc(v.email)}</a> · ${esc(v.telefoon)}</p>
 <table style="border-collapse:collapse;font-size:14px">
 ${rij("Werf", esc(werfAdres) + (kaart ? ` · <a href="${kaart}" style="color:#b45309">kaart</a>` : " · <em>adres niet gevonden op de kaart</em>"))}
@@ -233,103 +317,27 @@ ${v.btw ? rij("Btw", esc(v.btw)) : ""}
 ${v.omschrijving ? `<p style="margin-top:14px;white-space:pre-wrap">${esc(v.omschrijving)}</p>` : ""}
 <h3 style="margin:20px 0 6px;font-size:15px">Plannen (${links.length})</h3>
 ${links.length ? `<ul style="padding-left:18px;margin:0">${links.map((l) => `<li><a href="${l.url}" style="color:#b45309">${esc(l.naam)}</a></li>`).join("")}</ul><p style="color:#78716c;font-size:12px">Downloadlinks 7 dagen geldig — daarna via de admin.</p>` : `<p style="color:#78716c">Geen bestanden meegestuurd.</p>`}
-<p style="margin-top:18px"><a href="${siteUrl}/admin/aanvragen" style="color:#b45309">Open in admin →</a></p>
+<p style="margin-top:18px"><a href="${siteLink("/admin/aanvragen")}" style="color:#b45309">Open in admin →</a></p>
 </div>`,
   });
 
-  const B = {
-    nl: {
-      onderwerp: "We hebben uw plannen ontvangen — Studio VM",
-      hallo: `Beste ${esc(v.naam)},`,
-      tekst: "Bedankt voor uw aanvraag. Ik bekijk uw plannen en bezorg u zo snel mogelijk een offerte op maat, met prijs en leverdatum.",
-      samenvatting: "Wat ik ontving",
-      werf: "Werf",
-      stelsel: "Voorgesteld stelsel",
-      merk: "Machinesturing",
-      bestanden: "Bestanden",
-      portaal: "Volg uw project in uw klantenportaal: daar vindt u uw plannen, straks de offerte en de modelbestanden. U logt in met dit e-mailadres — u krijgt een inloglink, geen wachtwoord nodig.",
-      portaalKnop: "Naar mijn portaal",
-      vraag: "Klopt er iets niet, of wilt u nog plannen bijsturen? Antwoord gewoon op deze mail.",
-      groet: "Met vriendelijke groet,",
-    },
-    fr: {
-      onderwerp: "Nous avons bien reçu vos plans — Studio VM",
-      hallo: `Bonjour ${esc(v.naam)},`,
-      tekst: "Merci pour votre demande. J'examine vos plans et vous envoie au plus vite un devis sur mesure, avec prix et délai.",
-      samenvatting: "Ce que j'ai reçu",
-      werf: "Chantier",
-      stelsel: "Système proposé",
-      merk: "Guidage",
-      bestanden: "Fichiers",
-      portaal: "Suivez votre projet dans votre espace client : vous y trouverez vos plans, puis le devis et les fichiers du modèle. Connexion avec cette adresse e-mail — vous recevez un lien, pas de mot de passe.",
-      portaalKnop: "Vers mon espace",
-      vraag: "Une erreur, ou d'autres plans à envoyer ? Répondez simplement à ce mail.",
-      groet: "Bien cordialement,",
-    },
-    en: {
-      onderwerp: "We received your plans — Studio VM",
-      hallo: `Dear ${esc(v.naam)},`,
-      tekst: "Thank you for your request. I will review your plans and send you a tailored quote with price and delivery date as soon as possible.",
-      samenvatting: "What I received",
-      werf: "Site",
-      stelsel: "Proposed system",
-      merk: "Machine control",
-      bestanden: "Files",
-      portaal: "Follow your project in your client portal: you will find your plans there, and later the quote and the model files. Log in with this email address — you get a login link, no password needed.",
-      portaalKnop: "Go to my portal",
-      vraag: "Anything wrong, or more plans to add? Simply reply to this email.",
-      groet: "Kind regards,",
-    },
-    de: {
-      onderwerp: "Wir haben Ihre Pläne erhalten — Studio VM",
-      hallo: `Guten Tag ${esc(v.naam)},`,
-      tekst: "Vielen Dank für Ihre Anfrage. Ich prüfe Ihre Pläne und sende Ihnen so schnell wie möglich ein individuelles Angebot mit Preis und Liefertermin.",
-      samenvatting: "Was ich erhalten habe",
-      werf: "Baustelle",
-      stelsel: "Vorgeschlagenes System",
-      merk: "Maschinensteuerung",
-      bestanden: "Dateien",
-      portaal: "Verfolgen Sie Ihr Projekt in Ihrem Kundenportal: Dort finden Sie Ihre Pläne und demnächst das Angebot und die Modelldateien. Sie melden sich mit dieser E-Mail-Adresse an — Sie erhalten einen Anmeldelink, kein Passwort nötig.",
-      portaalKnop: "Zu meinem Portal",
-      vraag: "Stimmt etwas nicht, oder möchten Sie weitere Pläne nachreichen? Antworten Sie einfach auf diese E-Mail.",
-      groet: "Mit freundlichen Grüßen",
-    },
-    es: {
-      onderwerp: "Hemos recibido sus planos — Studio VM",
-      hallo: `Estimado/a ${esc(v.naam)}:`,
-      tekst: "Gracias por su solicitud. Revisaré sus planos y le enviaré lo antes posible un presupuesto a medida, con precio y fecha de entrega.",
-      samenvatting: "Lo que he recibido",
-      werf: "Obra",
-      stelsel: "Sistema propuesto",
-      merk: "Control de maquinaria",
-      bestanden: "Archivos",
-      portaal: "Siga su proyecto en su portal de cliente: allí encontrará sus planos y, más adelante, el presupuesto y los archivos del modelo. Acceda con esta dirección de correo electrónico — recibirá un enlace de acceso, sin necesidad de contraseña.",
-      portaalKnop: "Ir a mi portal",
-      vraag: "¿Hay algo incorrecto o desea enviar más planos? Basta con responder a este correo.",
-      groet: "Atentamente,",
-    },
-  }[locale as "nl" | "fr" | "en" | "de" | "es"];
+  // Bevestiging aan de klant: in de taal van het formulier, lichte huisstijl,
+  // knop rechtstreeks naar het nieuwe project in het portaal. "Ander merk"
+  // in de taal van de klant (in de databank staat het Nederlands).
+  const ANDER: Record<string, string> = { nl: "Ander merk", fr: "Autre marque", en: "Other brand", de: "Andere Marke", es: "Otra marca" };
+  const merkKlant = v.merken.map((m) => (m === "anders" ? v.merkAnders || ANDER[locale] : m)).join(", ");
+  await sendMail(
+    v.email,
+    aanvraagOntvangenMail(locale, {
+      naam: v.naam,
+      werfAdres,
+      stelsel: stelsel.stelsel,
+      hoogte: stelsel.hoogte,
+      merk: merkKlant,
+      aantalPlannen: bestanden.length,
+      projectId: projectId ?? null,
+    }),
+  );
 
-  await sendMail(v.email, {
-    replyTo: "info@studio-vm.be",
-    subject: B.onderwerp,
-    html: `<div style="font-family:system-ui,sans-serif;max-width:560px;color:#1c1917;line-height:1.6">
-<p style="font-size:28px;font-weight:700;margin:0 0 20px;letter-spacing:-1px">vm<span style="color:#b45309">.</span></p>
-<p>${B.hallo}</p>
-<p>${B.tekst}</p>
-<h3 style="margin:20px 0 6px;font-size:15px">${B.samenvatting}</h3>
-<table style="border-collapse:collapse;font-size:14px">
-${rij(B.werf, esc(werfAdres))}
-${rij(B.stelsel, `${esc(stelsel.stelsel)} · ${esc(stelsel.hoogte)}`)}
-${rij(B.merk, esc(merk))}
-${rij(B.bestanden, String(bestanden.length))}
-</table>
-<p style="margin-top:16px">${B.portaal}</p>
-<p><a href="${siteUrl}/${locale}/portail" style="display:inline-block;background:#1c1917;color:#fafaf9;padding:10px 20px;border-radius:999px;text-decoration:none;font-size:14px">${B.portaalKnop} →</a></p>
-<p style="margin-top:16px">${B.vraag}</p>
-<p>${B.groet}<br>Vincent Montreuil<br><span style="color:#78716c">Studio VM · +32 477 99 56 51 · studio-vm.be</span></p>
-</div>`,
-  });
-
-  return { ok: true };
+  return { ok: true, projectId };
 }

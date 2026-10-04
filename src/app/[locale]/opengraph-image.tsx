@@ -1,32 +1,19 @@
-import { ImageResponse } from "next/og";
 import { isValidLocale, DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/config";
+import { maakMerkkaart } from "@/lib/social/merkkaart";
+import { paginaKaart } from "@/lib/social/paginakaart";
 
+// Merkkaart van de startpagina (render + kop + prijs), als JPEG.
+// Pagina's verwijzen via paginaMeta() naar /beeld/og/…; dit adres blijft
+// voor schema.ts (LocalBusiness.image) en voor pagina's zonder eigen beeld.
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
 // Pagina's zetten hun eigen, vertaalde alt via paginaMeta().
-export const alt = "Studio VM — 3D";
+export const alt = "Studio VM — 3D-modellen voor machinesturing";
 
 // Eén kaart per taal, bij de build gemaakt.
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
-
-const tagline: Record<Locale, string> = {
-  nl: "3D-modellen voor machinesturing.",
-  fr: "Modèles 3D pour le guidage d'engins.",
-  en: "3D models for machine control.",
-  de: "3D-Modelle für Maschinensteuerung.",
-  es: "Modelos 3D para control de maquinaria.",
-};
-
-// Geen persoonsnaam op de kaart: de site spreekt als Studio VM.
-const sub: Record<Locale, string> = {
-  nl: "Studio VM · West-Vlaanderen · overal in Europa",
-  fr: "Studio VM · Flandre-Occidentale · partout en Europe",
-  en: "Studio VM · West Flanders · anywhere in Europe",
-  de: "Studio VM · Westflandern · überall in Europa",
-  es: "Studio VM · Flandes Occidental · en toda Europa",
-};
 
 export default async function OG({
   params,
@@ -35,95 +22,6 @@ export default async function OG({
 }) {
   const { locale } = await params;
   const l: Locale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          background: "#0c0a09",
-          display: "flex",
-          flexDirection: "column",
-          padding: "80px",
-          color: "#fafaf9",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: "60%",
-            height: "100%",
-            background:
-              "radial-gradient(circle at 70% 30%, rgba(245, 158, 11, 0.25), transparent 60%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.05), transparent 42%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 7,
-            background: "#f59e0b",
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            fontSize: 48,
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, "Cascadia Code", monospace',
-            fontWeight: 700,
-            letterSpacing: -2,
-          }}
-        >
-          <span>vm</span>
-          <span style={{ color: "#f59e0b" }}>.</span>
-        </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
-          <h1
-            style={{
-              fontSize: 84,
-              fontWeight: 700,
-              letterSpacing: -2,
-              lineHeight: 1.05,
-              margin: 0,
-              maxWidth: 940,
-            }}
-          >
-            {tagline[l]}
-          </h1>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            color: "#a8a29e",
-            fontSize: 26,
-          }}
-        >
-          <span>{sub[l]}</span>
-          <span style={{ color: "#f59e0b", fontFamily: "monospace" }}>
-            studio-vm.be/{l}
-          </span>
-        </div>
-      </div>
-    ),
-    size,
-  );
+  const beeld = await maakMerkkaart(paginaKaart(l, "home")!, "og");
+  return new Response(new Uint8Array(beeld.data), { headers: { "content-type": beeld.contentType } });
 }

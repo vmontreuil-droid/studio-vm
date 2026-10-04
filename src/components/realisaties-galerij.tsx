@@ -6,10 +6,51 @@ import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { REALISATIES, CATEGORIEEN, BEELD_ALT, type Categorie, type Realisatie } from "@/lib/realisaties";
 import type { Locale } from "@/lib/i18n/config";
+import { SITE_ADRES } from "@/lib/utm";
 import { SysteemChips } from "@/components/systeem-chips";
+import { DeelKnoppen } from "@/components/deel-knoppen";
 
 const ALLE: Record<Locale, string> = { nl: "Alle", fr: "Tous", en: "All", de: "Alle", es: "Todos" };
+
+// Tekst bij het delen van de hele galerij en schermlezerlabel van de deelrij
+// in het groot beeld.
+const DEEL: Record<Locale, { pagina: string; model: string }> = {
+  nl: { pagina: "Realisaties: 3D-modellen voor machinesturing", model: "Dit model delen" },
+  fr: { pagina: "Réalisations : modèles 3D pour le guidage d'engins", model: "Partager ce modèle" },
+  en: { pagina: "Projects: 3D models for machine control", model: "Share this model" },
+  de: { pagina: "Referenzen: 3D-Modelle für Maschinensteuerung", model: "Dieses Modell teilen" },
+  es: { pagina: "Proyectos: modelos 3D para control de maquinaria", model: "Compartir este modelo" },
+};
+
 const geenAbonnement = () => () => {};
+
+// Het groot beeld volgt het #anker van het adres (#t029): zo opent een
+// gedeelde link meteen dat model en klopt de adresbalk altijd met wat er
+// openstaat. Wisselen gaat met replaceState (geen extra stappen in de
+// geschiedenis) plus een eigen gebeurtenis, want replaceState meldt zelf niets.
+const ANKER_GEBEURTENIS = "svm-anker";
+function abonneerAnker(cb: () => void) {
+  window.addEventListener("hashchange", cb);
+  window.addEventListener("popstate", cb);
+  window.addEventListener(ANKER_GEBEURTENIS, cb);
+  return () => {
+    window.removeEventListener("hashchange", cb);
+    window.removeEventListener("popstate", cb);
+    window.removeEventListener(ANKER_GEBEURTENIS, cb);
+  };
+}
+function leesAnker(): string {
+  try {
+    return decodeURIComponent(window.location.hash.slice(1));
+  } catch {
+    return "";
+  }
+}
+function zetAnker(id: string | null) {
+  const { pathname, search } = window.location;
+  window.history.replaceState(window.history.state, "", `${pathname}${search}${id ? `#${encodeURIComponent(id)}` : ""}`);
+  window.dispatchEvent(new Event(ANKER_GEBEURTENIS));
+}
 
 // Alt-tekst met context, bv. "Aftakking — 3D-model voor machinesturing, wegenis".
 // Duits houdt de hoofdletter: zelfstandige naamwoorden blijven daar groot.
@@ -20,19 +61,29 @@ function beeldAlt(r: Realisatie, locale: Locale): string {
 
 export function RealisatiesGalerij({ locale }: { locale: Locale }) {
   const [filter, setFilter] = useState<Categorie | "alle">("alle");
-  const [open, setOpen] = useState<number | null>(null);
   // Portaal naar document.body kan pas in de browser (server: false).
   const mounted = useSyncExternalStore(geenAbonnement, () => true, () => false);
+  const anker = useSyncExternalStore(abonneerAnker, leesAnker, () => "");
 
   const lijst = useMemo(() => REALISATIES.filter((r) => filter === "alle" || r.cat === filter), [filter]);
+  // Een gedeeld model dat buiten de filter valt, bladert door alle modellen.
+  const blader = useMemo(() => (lijst.some((r) => r.id === anker) ? lijst : REALISATIES), [lijst, anker]);
+  const open = blader.findIndex((r) => r.id === anker);
+  const huidig = open < 0 ? null : blader[open];
 
-  const vorige = useCallback(() => setOpen((i) => (i === null ? i : (i - 1 + lijst.length) % lijst.length)), [lijst.length]);
-  const volgende = useCallback(() => setOpen((i) => (i === null ? i : (i + 1) % lijst.length)), [lijst.length]);
+  const sluit = useCallback(() => zetAnker(null), []);
+  const vorige = useCallback(() => {
+    if (open >= 0) zetAnker(blader[(open - 1 + blader.length) % blader.length].id);
+  }, [open, blader]);
+  const volgende = useCallback(() => {
+    if (open >= 0) zetAnker(blader[(open + 1) % blader.length].id);
+  }, [open, blader]);
 
+  const isOpen = huidig !== null;
   useEffect(() => {
-    if (open === null) return;
+    if (!isOpen) return;
     const toets = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(null);
+      if (e.key === "Escape") sluit();
       if (e.key === "ArrowLeft") vorige();
       if (e.key === "ArrowRight") volgende();
     };
@@ -43,34 +94,42 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", toets);
     };
-  }, [open, vorige, volgende]);
+  }, [isOpen, sluit, vorige, volgende]);
 
   const aantal = (c: Categorie) => REALISATIES.filter((r) => r.cat === c).length;
-  const huidig = open === null ? null : lijst[open];
+  // Canoniek adres (= canoniek() uit lib/seo, dat hier niet in de browserbundel hoort).
+  const paginaUrl = `${SITE_ADRES}/${locale}/realisaties`;
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        {(["alle", ...Object.keys(CATEGORIEEN)] as (Categorie | "alle")[]).map((c) => (
-          <button
-            key={c}
-            onClick={() => setFilter(c)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              filter === c ? "border-foreground bg-foreground text-background" : "hover:bg-card-hover"
-            }`}
-          >
-            {c === "alle" ? ALLE[locale] : CATEGORIEEN[c][locale]}
-            <span className="ml-2 font-mono text-xs opacity-60">{c === "alle" ? REALISATIES.length : aantal(c)}</span>
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+        <div className="flex flex-wrap gap-2">
+          {(["alle", ...Object.keys(CATEGORIEEN)] as (Categorie | "alle")[]).map((c) => (
+            <button
+              key={c}
+              onClick={() => setFilter(c)}
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                filter === c ? "border-foreground bg-foreground text-background" : "hover:bg-card-hover"
+              }`}
+            >
+              {c === "alle" ? ALLE[locale] : CATEGORIEEN[c][locale]}
+              <span className="ml-2 font-mono text-xs opacity-60">{c === "alle" ? REALISATIES.length : aantal(c)}</span>
+            </button>
+          ))}
+        </div>
+        {/* Op de gsm deelt men een model vanuit het groot beeld; hier zou de rij tussen filters en kaarten staan. */}
+        <div className="hidden sm:block">
+          <DeelKnoppen locale={locale} url={paginaUrl} tekst={DEEL[locale].pagina} />
+        </div>
       </div>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-6">
-        {lijst.map((r, i) => (
+        {lijst.map((r) => (
           <button
             key={r.id}
-            onClick={() => setOpen(i)}
-            className="group flex flex-col overflow-hidden rounded-3xl border bg-card text-left transition-colors hover:border-accent"
+            id={r.id}
+            onClick={() => zetAnker(r.id)}
+            className="group flex scroll-mt-28 flex-col overflow-hidden rounded-3xl border bg-card text-left transition-colors hover:border-accent"
           >
             <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
               <Image src={r.licht} alt={beeldAlt(r, locale)} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="alleen-licht object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -95,7 +154,7 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
             role="dialog"
             aria-modal="true"
             aria-label={huidig[locale].titel}
-            onClick={() => setOpen(null)}
+            onClick={sluit}
             className="fixed inset-0 z-[95] flex flex-col bg-background/95 backdrop-blur-md"
           >
             <div className="flex items-center justify-between gap-4 px-5 py-4">
@@ -109,8 +168,8 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-mono text-xs text-muted">{(open ?? 0) + 1} / {lijst.length}</span>
-                <button aria-label="×" onClick={() => setOpen(null)} className="rounded-full border p-2 hover:bg-card-hover">
+                <span className="whitespace-nowrap font-mono text-xs text-muted">{open + 1} / {blader.length}</span>
+                <button aria-label="×" onClick={sluit} className="rounded-full border p-2 hover:bg-card-hover">
                   <X className="h-5 w-5" strokeWidth={2} />
                 </button>
               </div>
@@ -127,7 +186,17 @@ export function RealisatiesGalerij({ locale }: { locale: Locale }) {
                 <ChevronRight className="h-5 w-5" strokeWidth={2} />
               </button>
             </div>
-            <p className="px-5 pb-5 text-center text-sm text-muted" onClick={(e) => e.stopPropagation()}>{huidig[locale].tekst}</p>
+            <div className="flex flex-col items-center gap-3 px-5 pb-5" onClick={(e) => e.stopPropagation()}>
+              <p className="text-center text-sm text-muted">{huidig[locale].tekst}</p>
+              <DeelKnoppen
+                key={huidig.id}
+                locale={locale}
+                url={`${paginaUrl}#${huidig.id}`}
+                tekst={`${huidig[locale].titel} — ${BEELD_ALT[locale]}`}
+                ariaLabel={DEEL[locale].model}
+                className="justify-center text-center"
+              />
+            </div>
           </div>,
           document.body,
         )}

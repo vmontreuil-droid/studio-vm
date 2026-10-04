@@ -7,6 +7,7 @@ import { runScan } from "@/app/actions/scan";
 import { snapshotOf, newToken } from "@/lib/monitor";
 import { MY_SITES, SITES_OWNER_EMAIL } from "@/lib/my-sites";
 import { FIND } from "@/lib/scan-findings";
+import { isOntbrekend } from "@/lib/tickets-server";
 
 type MonRow = { id: string; url: string };
 type Db = ReturnType<typeof getSupabaseAdmin>;
@@ -140,7 +141,7 @@ export async function siteIssueToTicket(formData: FormData): Promise<void> {
   if (!site || !key) return;
   const meta = FIND.nl[key];
   const label = meta?.title ?? key;
-  const subject = `[${site}] ${label}`;
+  const subject = `[${site}] ${label}`.slice(0, 200);
   const db = getSupabaseAdmin();
   const { data: dup } = await db
     .from("tickets")
@@ -148,13 +149,23 @@ export async function siteIssueToTicket(formData: FormData): Promise<void> {
     .eq("client_email", SITES_OWNER_EMAIL)
     .eq("subject", subject)
     .neq("status", "gesloten")
+    .limit(1)
     .maybeSingle();
   if (!dup) {
-    await db.from("tickets").insert({
+    const basis = {
       client_email: SITES_OWNER_EMAIL,
       subject,
       status: "open",
-    });
+    };
+    // Soort 'intern' (migratie 0049) houdt deze taak uit 'Aan mij' en de
+    // teller. Zonder 0049 bestaat de kolom niet: dan zonder soort (de lijst
+    // herkent ze dan aan info@studio-vm.be + '[site]' in het onderwerp).
+    const { error } = await db
+      .from("tickets")
+      .insert({ ...basis, soort: "intern" });
+    if (error && isOntbrekend(error)) {
+      await db.from("tickets").insert(basis);
+    }
   }
   revalidatePath("/admin/sites");
   revalidatePath("/admin/tickets");

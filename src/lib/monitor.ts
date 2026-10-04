@@ -140,17 +140,17 @@ const T: Record<
   }
 > = {
   nl: {
-    confirmSubject: "Bevestig je site-monitoring — Studio VM",
+    confirmSubject: "Bevestig uw site-monitoring — Studio VM",
     confirmBody: (url, link) =>
-      `Je vroeg om ${url} wekelijks te laten opvolgen. Bevestig met één klik en je krijgt enkel een mail wanneer er iets verandert (score zakt, certificaat verloopt, nieuwe kritieke punten).`,
+      `U vroeg om ${url} wekelijks te laten opvolgen. Bevestig met één klik en u krijgt enkel een mail wanneer er iets verandert (score zakt, certificaat verloopt, nieuwe kritieke punten).`,
     alertSubject: (h) => `Er veranderde iets aan ${h}`,
     alertIntro: (h) => `Bij de wekelijkse controle van ${h} viel dit op:`,
     alertView: "Bekijk de volledige historiek",
-    alertCta: "Laat dit door mij oplossen",
+    alertCta: "Neem contact op",
     alertUnsub: "Geen mails meer",
     welcomeSubject: (h) => `Monitoring actief voor ${h}`,
     welcomeBody: (h, link) =>
-      `Top — ${h} wordt nu wekelijks gecontroleerd. Je hoort enkel iets als er een echt probleem opduikt. Je historiek staat hier:`,
+      `${h} wordt nu wekelijks gecontroleerd. U hoort enkel iets als er een echt probleem opduikt. Uw historiek staat hier:`,
   },
   fr: {
     confirmSubject: "Confirmez le suivi de votre site — Studio VM",
@@ -159,7 +159,7 @@ const T: Record<
     alertSubject: (h) => `Quelque chose a changé sur ${h}`,
     alertIntro: (h) => `Lors du contrôle hebdomadaire de ${h}, ceci est ressorti :`,
     alertView: "Voir l'historique complet",
-    alertCta: "Faites-moi corriger ça",
+    alertCta: "Me contacter",
     alertUnsub: "Ne plus recevoir d'e-mails",
     welcomeSubject: (h) => `Suivi actif pour ${h}`,
     welcomeBody: (h, link) =>
@@ -172,7 +172,7 @@ const T: Record<
     alertSubject: (h) => `Something changed on ${h}`,
     alertIntro: (h) => `During the weekly check of ${h}, this stood out:`,
     alertView: "View the full history",
-    alertCta: "Have me fix this",
+    alertCta: "Get in touch",
     alertUnsub: "Stop emails",
     welcomeSubject: (h) => `Monitoring active for ${h}`,
     welcomeBody: (h, link) =>
@@ -185,7 +185,7 @@ const T: Record<
     alertSubject: (h) => `Bei ${h} hat sich etwas geändert`,
     alertIntro: (h) => `Bei der wöchentlichen Prüfung von ${h} ist Folgendes aufgefallen:`,
     alertView: "Vollständigen Verlauf ansehen",
-    alertCta: "Lassen Sie mich das beheben",
+    alertCta: "Kontakt aufnehmen",
     alertUnsub: "Keine E-Mails mehr",
     welcomeSubject: (h) => `Monitoring aktiv für ${h}`,
     welcomeBody: (h, link) =>
@@ -198,7 +198,7 @@ const T: Record<
     alertSubject: (h) => `Algo ha cambiado en ${h}`,
     alertIntro: (h) => `En la revisión semanal de ${h} se detectó lo siguiente:`,
     alertView: "Ver el historial completo",
-    alertCta: "Deje que lo solucione yo",
+    alertCta: "Contactar",
     alertUnsub: "No recibir más correos",
     welcomeSubject: (h) => `Monitorización activa para ${h}`,
     welcomeBody: (h, link) =>
@@ -210,7 +210,7 @@ function shell(body: string): string {
   return `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;color:#111;line-height:1.6">
 ${body}
 <hr style="border:none;border-top:1px solid #e5e5e5;margin:28px 0"/>
-<p style="font-size:12px;color:#888">Studio VM · webontwikkeling · West-Vlaanderen, België · <a href="${siteUrl}" style="color:#888">studio-vm.be</a></p>
+<p style="font-size:12px;color:#888">Studio VM · West-Vlaanderen, België · <a href="${siteUrl}" style="color:#888">studio-vm.be</a></p>
 </div>`;
 }
 
@@ -279,7 +279,14 @@ export function alertMail(
   };
 }
 
+// Afzender altijd met de naam "Studio VM": staat er in RESEND_FROM enkel
+// een adres, dan zetten we de naam ervoor ("Studio VM <noreply@…>").
+const afzender = /<[^>]+>/.test(resendFrom)
+  ? resendFrom
+  : `Studio VM <${resendFrom.trim()}>`;
+
 // Resend via REST — geen SDK-afhankelijkheid. Zonder key: stil overslaan.
+// Een platte-tekstversie maakt Resend zelf uit de HTML.
 export async function sendMail(to: string, mail: Mail): Promise<boolean> {
   if (!resendApiKey) return false;
   try {
@@ -290,7 +297,7 @@ export async function sendMail(to: string, mail: Mail): Promise<boolean> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: resendFrom,
+        from: afzender,
         to: [to],
         subject: mail.subject,
         html: mail.html,

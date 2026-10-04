@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 
 // Lichtgewicht client-side beacon: stuurt 1 ping per route-change naar
 // /api/track-pv. Werkt met sendBeacon (geen netwerk-overhead op de UX) en
-// faalt stil — nooit een bezoeker storen voor analytics.
+// faalt stil — nooit een bezoeker storen voor analytics. UTM-schema:
+// src/lib/utm.ts (utm_content = id van het bericht).
 export function PageViewTracker({ locale }: { locale?: string }) {
   const path = usePathname();
 
@@ -25,12 +26,14 @@ export function PageViewTracker({ locale }: { locale?: string }) {
     let utmSource: string | null = null;
     let utmMedium: string | null = null;
     let utmCampaign: string | null = null;
+    let utmContent: string | null = null;
     if (typeof window !== "undefined") {
       try {
         const sp = new URLSearchParams(window.location.search);
         utmSource = sp.get("utm_source");
         utmMedium = sp.get("utm_medium");
         utmCampaign = sp.get("utm_campaign");
+        utmContent = sp.get("utm_content");
       } catch {}
     }
 
@@ -42,6 +45,7 @@ export function PageViewTracker({ locale }: { locale?: string }) {
       utm_source: utmSource,
       utm_medium: utmMedium,
       utm_campaign: utmCampaign,
+      utm_content: utmContent,
     });
 
     try {

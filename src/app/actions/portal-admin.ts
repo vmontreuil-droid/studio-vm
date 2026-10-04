@@ -14,121 +14,53 @@ import {
   subscriptionCents,
 } from "@/lib/pricing";
 import { checkVies } from "@/lib/vies";
-import { portalEmailHtml, offerPreviewHtml } from "@/lib/email";
+import { mailDatum } from "@/lib/email";
+import {
+  abonnementMail,
+  documentMail,
+  factuurKlaarMail,
+  losseOfferteMail,
+  projectOfferteMail,
+  voortgangMail,
+  websiteMail,
+  type KlantMail,
+} from "@/lib/klant-mails";
+import { klantGegevens } from "@/lib/projecten-admin";
+import { esc } from "@/lib/tickets";
 import { offerIntroText } from "@/lib/offer-intro";
 import { randomBytes } from "crypto";
 import { runScan } from "@/app/actions/scan";
+import {
+  verwijderKlantMap,
+  verwijderTicketBestanden,
+} from "@/lib/tickets-bijlagen";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
 }
 
+// Taal van de klant: accountprofiel → laatste aanvraag → oude scan → nl
+// (zelfde regel als de projectmails).
 async function clientLocale(email: string): Promise<string> {
   try {
-    const { data } = await getSupabaseAdmin()
-      .from("scan_requests")
-      .select("locale")
-      .eq("email", email)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const loc = (data as { locale?: string } | null)?.locale;
-    return loc && ["nl", "fr", "en", "de", "es"].includes(loc) ? loc : "nl";
+    return (await klantGegevens(email)).taal;
   } catch {
     return "nl";
   }
 }
 
-const SUBJECT: Record<string, Record<string, string>> = {
-  offer: {
-    nl: "Er staat een offerte voor je klaar",
-    fr: "Un devis vous attend",
-    en: "A quote is waiting for you",
-  },
-  invoice: {
-    nl: "Nieuwe factuur in je portaal",
-    fr: "Nouvelle facture dans votre portail",
-    en: "New invoice in your portal",
-  },
-  subscription: {
-    nl: "Je abonnement is bijgewerkt",
-    fr: "Votre abonnement a été mis à jour",
-    en: "Your subscription was updated",
-  },
-  ticket: {
-    nl: "Antwoord op je ticket",
-    fr: "Réponse à votre ticket",
-    en: "Reply to your ticket",
-  },
-  site: {
-    nl: "Update over je website",
-    fr: "Mise à jour de votre site",
-    en: "Update on your website",
-  },
-  progress: {
-    nl: "Voortgang van je project",
-    fr: "Avancement de votre projet",
-    en: "Your project progress",
-  },
-  document: {
-    nl: "Nieuw document in je portaal",
-    fr: "Nouveau document dans votre portail",
-    en: "New document in your portal",
-  },
-};
-
-const CTA: Record<string, string> = {
-  nl: "Open je klantenportaal",
-  fr: "Ouvrir votre portail client",
-  en: "Open your client portal",
-};
-
+// Klantmail vanuit de klantfiche/offertes: gebouwd in src/lib/klant-mails.ts
+// (formeel, vijf talen, lichte huisstijl), in de taal van de klant. Faalt stil.
 async function notifyClient(
   email: string,
-  kind:
-    | "offer"
-    | "invoice"
-    | "subscription"
-    | "ticket"
-    | "site"
-    | "progress"
-    | "document",
-  bodyLines: string[],
-  extraHtml?: string,
-  targetPath?: string,
-) {
-  const locale = await clientLocale(email);
-  const subject = SUBJECT[kind][locale] ?? SUBJECT[kind].nl;
-  const portalBase = `${siteUrl}/${locale}/portail`;
-  const portalUrl = targetPath
-    ? `${portalBase}?next=${encodeURIComponent(
-        `/${locale}/portail/${targetPath}`,
-      )}`
-    : portalBase;
-  const eyebrow =
-    { nl: "Je klantenportaal", fr: "Votre portail client", en: "Your client portal" }[
-      locale
-    ] ?? "Je klantenportaal";
-  const signin =
-    {
-      nl: "Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.",
-      fr: "Connectez-vous avec votre e-mail — vous recevez un lien sécurisé, sans mot de passe.",
-      en: "Sign in with your email — you get a secure login link, no password needed.",
-    }[locale] ??
-    "Log in met je e-mailadres — je krijgt een veilige login-link, geen wachtwoord nodig.";
-  await sendMail(email, {
-    subject,
-    html: portalEmailHtml({
-      locale,
-      eyebrow,
-      title: subject,
-      bodyLines,
-      ctaLabel: CTA[locale] ?? CTA.nl,
-      ctaHref: portalUrl,
-      footnote: signin,
-      extraHtml,
-    }),
-  }).catch(() => {});
+  bouw: (taal: string) => KlantMail,
+): Promise<void> {
+  try {
+    const taal = await clientLocale(email);
+    await sendMail(email, bouw(taal)).catch(() => {});
+  } catch {
+    // Een mail mag de admin-actie nooit doen falen.
+  }
 }
 
 function cents(v: FormDataEntryValue | null): number {
@@ -303,36 +235,28 @@ export async function createOffer(formData: FormData): Promise<void> {
   });
   if (error) return;
   await ensurePortalUser(email);
-  const greet = clientName
-    ? `Beste ${clientName.split(/\s+/)[0]},`
-    : "Beste,";
   const includes = picked
     .filter((it) => it.cents >= 0 && it.kind !== "sub")
-    .map((it) => it.label.replace(/\s*\(inbegrepen\)\s*$/i, ""));
+    .map((it) => esc(it.label.replace(/\s*\(inbegrepen\)\s*$/i, "")));
   const subMonthly = sub ? subscriptionCents(sub.slug ?? "") : 0;
-  const preview = offerPreviewHtml({
-    offerNo,
-    amountExclCents: amount || 0,
-    vatReverse,
-    validUntil,
-    includes,
-    subLabel: sub
-      ? `${sub.name} — 1 jaar min., daarna jaarlijks stilzwijgend verlengd`
-      : null,
-    subMonthlyCents: subMonthly,
-    discountCents: lockin ? lockinDiscount : 0,
-    freeMonthsCents: lockin && subMonthly ? subMonthly * 2 : 0,
-  });
-  await notifyClient(
-    email,
-    "offer",
-    [
-      greet,
-      `Hierbij je persoonlijke voorstel voor <strong>${title}</strong>. Hieronder vind je alvast het overzicht — bekijk het rustig, je beslist zelf en op je eigen tempo.`,
-      `In je portaal zie je de volledige offerte met alle details. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
-    ],
-    preview,
-    "dashboard/offertes",
+  await notifyClient(email, (taal) =>
+    losseOfferteMail(taal, {
+      naam: clientName,
+      titel: title,
+      opnieuw: false,
+      kaart: {
+        offerNo,
+        amountExclCents: amount || 0,
+        vatReverse,
+        validUntil: mailDatum(validUntil, taal),
+        includes,
+        subLabel: sub ? esc(sub.name) : null,
+        subMonthlyCents: subMonthly,
+        discountCents: lockin ? lockinDiscount : 0,
+        lockin,
+        freeMonthsCents: lockin && subMonthly ? subMonthly * 2 : 0,
+      },
+    }),
   );
   revalidatePath("/admin/klanten", "layout");
   return;
@@ -355,13 +279,49 @@ export async function resendOffer(formData: FormData): Promise<void> {
     title: string;
     amount_cents: number | null;
     valid_until: string | null;
-    items: { label: string; cents: number; kind?: string }[] | null;
+    items: { label: string; desc?: string | null; cents: number; kind?: string }[] | null;
     vat_reverse: boolean | null;
     client_name: string | null;
   } | null;
   if (!o?.client_email) return;
   await ensurePortalUser(o.client_email);
   const its = Array.isArray(o.items) ? o.items : [];
+
+  // Offerte van een 3D-project? Dan exact dezelfde mail als vanuit de
+  // projectcockpit (uren × tarief, geen websitevoorwaarden), in de taal van
+  // het project.
+  const { data: prData } = await getSupabaseAdmin()
+    .from("projecten")
+    .select("id, quote_id")
+    .eq("offer_id", id)
+    .limit(1)
+    .maybeSingle();
+  const project = prData as { id: string; quote_id: string | null } | null;
+  if (project) {
+    const { taal } = await klantGegevens(o.client_email, project.quote_id);
+    await sendMail(
+      o.client_email,
+      projectOfferteMail(taal, {
+        naam: o.client_name,
+        titel: o.title,
+        offerNo: o.offer_no,
+        lijnen: its.map((it) => ({
+          label: it.label,
+          desc: it.desc ?? null,
+          cents: it.cents,
+          kind: it.kind ?? null,
+        })),
+        totaalExclCent: o.amount_cents ?? 0,
+        verlegd: !!o.vat_reverse,
+        geldigTot: o.valid_until ?? new Date().toISOString().slice(0, 10),
+      }),
+    ).catch(() => {});
+    revalidatePath("/admin/klanten", "layout");
+    revalidatePath("/admin/offertes");
+    return;
+  }
+
+  // Oude websiteofferte (archief).
   const subItem = its.find((it) => it.kind === "sub");
   const subTier = subItem
     ? subscriptionTiers().find((t) =>
@@ -372,36 +332,26 @@ export async function resendOffer(formData: FormData): Promise<void> {
     (s, it) => (it.cents < 0 ? s - it.cents : s),
     0,
   );
-  const preview = offerPreviewHtml({
-    offerNo: o.offer_no,
-    amountExclCents: o.amount_cents ?? 0,
-    vatReverse: !!o.vat_reverse,
-    validUntil: o.valid_until,
-    includes: its
-      .filter((it) => it.cents >= 0 && it.kind !== "sub")
-      .map((it) => it.label.replace(/\s*\(inbegrepen\)\s*$/i, "")),
-    subLabel: subTier
-      ? `${subTier.name} — 1 jaar min., daarna jaarlijks stilzwijgend verlengd`
-      : subItem
-        ? subItem.label
-        : null,
-    subMonthlyCents: subTier ? subTier.cents : 0,
-    discountCents: discCents,
-    freeMonthsCents: discCents > 0 && subTier ? subTier.cents * 2 : 0,
-  });
-  const greet = o.client_name
-    ? `Beste ${o.client_name.split(/\s+/)[0]},`
-    : "Beste,";
-  await notifyClient(
-    o.client_email,
-    "offer",
-    [
-      greet,
-      `Hierbij (opnieuw) je persoonlijke voorstel voor <strong>${o.title}</strong>. Hieronder het overzicht — bekijk het rustig, je beslist zelf en op je eigen tempo.`,
-      `In je portaal zie je de volledige offerte. Aanvaarden of afwijzen kan met één klik — geen verplichting, geen haast.`,
-    ],
-    preview,
-    "dashboard/offertes",
+  await notifyClient(o.client_email, (taal) =>
+    losseOfferteMail(taal, {
+      naam: o.client_name,
+      titel: o.title,
+      opnieuw: true,
+      kaart: {
+        offerNo: o.offer_no,
+        amountExclCents: o.amount_cents ?? 0,
+        vatReverse: !!o.vat_reverse,
+        validUntil: o.valid_until ? mailDatum(o.valid_until, taal) : null,
+        includes: its
+          .filter((it) => it.cents >= 0 && it.kind !== "sub")
+          .map((it) => esc(it.label.replace(/\s*\(inbegrepen\)\s*$/i, ""))),
+        subLabel: subTier ? esc(subTier.name) : subItem ? esc(subItem.label) : null,
+        subMonthlyCents: subTier ? subTier.cents : 0,
+        discountCents: discCents,
+        lockin: discCents > 0,
+        freeMonthsCents: discCents > 0 && subTier ? subTier.cents * 2 : 0,
+      },
+    }),
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/offertes");
@@ -490,17 +440,8 @@ export async function createOfferInvoice(
     .update({ invoiced_at: new Date().toISOString() })
     .eq("id", o.id);
   await ensurePortalUser(o.client_email);
-  await notifyClient(
-    o.client_email,
-    "invoice",
-    [
-      `Er staat een factuur voor je klaar: <strong>${invNo}</strong> — € ${(
-        invCents / 100
-      ).toFixed(2)}.`,
-      `Betaalbaar tegen ${dueAt}. Je vindt 'm in je portaal, met de keuze online via Mollie of via overschrijving.`,
-    ],
-    undefined,
-    "dashboard/facturen",
+  await notifyClient(o.client_email, (taal) =>
+    factuurKlaarMail(taal, { nummer: invNo, bedragCent: invCents, dueAt }),
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/facturen");
@@ -571,17 +512,8 @@ export async function createSlotInvoice(
   });
   if (error) return;
   await ensurePortalUser(o.client_email);
-  await notifyClient(
-    o.client_email,
-    "invoice",
-    [
-      `De slotfactuur staat voor je klaar: <strong>${invNo}</strong> — € ${(
-        slot / 100
-      ).toFixed(2)} (excl. btw).`,
-      `Betaalbaar tegen ${dueAt}. Je site gaat online zodra deze factuur betaald is. Je vindt 'm in je portaal — online via Mollie of via overschrijving.`,
-    ],
-    undefined,
-    "dashboard/facturen",
+  await notifyClient(o.client_email, (taal) =>
+    factuurKlaarMail(taal, { nummer: invNo, bedragCent: slot, dueAt }),
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/facturen");
@@ -653,19 +585,13 @@ export async function startSupportSubscription(
   });
   if (error) return;
   await ensurePortalUser(o.client_email);
-  await notifyClient(
-    o.client_email,
-    "subscription",
-    [
-      `Je site staat online en je <strong>${tier.name}</strong>-supportabonnement (€ ${(
-        tier.cents / 100
-      ).toFixed(2)}/maand) is gestart.`,
-      freeMonths > 0
-        ? `Je eerste ${freeMonths} maanden zijn gratis — daarna ontvang je maandelijks een factuur in je portaal.`
-        : `Je ontvangt maandelijks een factuur in je portaal.`,
-    ],
-    undefined,
-    "dashboard/abonnement",
+  await notifyClient(o.client_email, (taal) =>
+    abonnementMail(taal, {
+      plan: tier.name,
+      prijsCent: tier.cents,
+      gestart: true,
+      gratisMaanden: freeMonths,
+    }),
   );
   revalidatePath("/admin/klanten", "layout");
 }
@@ -706,12 +632,13 @@ export async function addInvoice(formData: FormData): Promise<void> {
   });
   if (error) return;
   await ensurePortalUser(email);
-  await notifyClient(email, "invoice", [
-    `Er staat een nieuwe factuur klaar: <strong>${number}</strong> — € ${(
-      amount / 100
-    ).toFixed(2)}.`,
-    "Je vindt 'm terug in je portaal.",
-  ]);
+  await notifyClient(email, (taal) =>
+    factuurKlaarMail(taal, {
+      nummer: number,
+      bedragCent: amount,
+      dueAt: /^\d{4}-\d{2}-\d{2}$/.test(dueAt) ? dueAt : null,
+    }),
+  );
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -767,11 +694,9 @@ export async function activateWebsiteClient(
   if (error) return;
 
   await ensurePortalUser(email);
-  await notifyClient(email, "subscription", [
-    `Je bent geactiveerd als klant van Studio VM met het abonnement <strong>${tier.name}</strong> — € ${(
-      tier.cents / 100
-    ).toFixed(2)} / maand. Je portaal staat klaar.`,
-  ]);
+  await notifyClient(email, (taal) =>
+    abonnementMail(taal, { plan: tier.name, prijsCent: tier.cents, status: "actief" }),
+  );
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -803,56 +728,15 @@ export async function setSubscription(formData: FormData): Promise<void> {
     : await db.from("subscriptions").insert(payload);
   if (error) return;
   await ensurePortalUser(email);
-  await notifyClient(email, "subscription", [
-    `Je abonnement is bijgewerkt: <strong>${plan}</strong> — € ${(
-      price / 100
-    ).toFixed(2)} / maand (${st}).`,
-  ]);
+  await notifyClient(email, (taal) =>
+    abonnementMail(taal, { plan, prijsCent: price, status: st }),
+  );
   revalidatePath("/admin/klanten", "layout");
   return;
 }
 
-export async function replyTicketStudio(
-  formData: FormData,
-): Promise<void> {
-  if (!(await guard())) return;
-  const ticketId = String(formData.get("ticket_id") ?? "");
-  const email = String(formData.get("client_email") ?? "")
-    .trim()
-    .toLowerCase();
-  const body = String(formData.get("body") ?? "").trim().slice(0, 8000);
-  if (!ticketId || !body || !email) return;
-
-  const db = getSupabaseAdmin();
-  const { error } = await db
-    .from("ticket_messages")
-    .insert({ ticket_id: ticketId, sender: "studio", body });
-  if (error) return;
-  await db
-    .from("tickets")
-    .update({ status: "in_behandeling", updated_at: new Date().toISOString() })
-    .eq("id", ticketId);
-  await notifyClient(email, "ticket", [
-    "Er is een antwoord op je ticket.",
-    body.replace(/</g, "&lt;").slice(0, 300),
-  ]);
-  revalidatePath("/admin/klanten", "layout");
-  return;
-}
-
-export async function setTicketStatus(
-  id: string,
-  status: "open" | "in_behandeling" | "gesloten",
-): Promise<void> {
-  if (!(await guard())) return;
-  const { error } = await getSupabaseAdmin()
-    .from("tickets")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) return;
-  revalidatePath("/admin/klanten", "layout");
-  return;
-}
+// Tickets beantwoorden en sluiten: zie src/app/actions/tickets-admin.ts
+// (/admin/tickets/<id>).
 
 export async function addSite(formData: FormData): Promise<void> {
   if (!(await guard())) return;
@@ -883,11 +767,7 @@ export async function addSite(formData: FormData): Promise<void> {
   });
   if (error) return;
   await ensurePortalUser(email);
-  await notifyClient(email, "site", [
-    `Je website <strong>${name}</strong> staat in je portaal${
-      url ? ` — ${url}` : ""
-    }.`,
-  ]);
+  await notifyClient(email, (taal) => websiteMail(taal, { naam: name, url }));
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -914,9 +794,9 @@ export async function setSiteStatus(
   if (error) return;
   const row = data as { client_email?: string; name?: string } | null;
   if (row?.client_email) {
-    await notifyClient(row.client_email, "site", [
-      `Status van je website <strong>${row.name ?? ""}</strong>: <strong>${status}</strong>.`,
-    ]);
+    await notifyClient(row.client_email, (taal) =>
+      websiteMail(taal, { naam: row.name ?? "", status }),
+    );
   }
   revalidatePath("/admin/klanten", "layout");
   return;
@@ -986,9 +866,7 @@ export async function setProgress(formData: FormData): Promise<void> {
     );
   if (error) return;
   await ensurePortalUser(email);
-  await notifyClient(email, "progress", [
-    `Je project staat nu op: <strong>${st}</strong>.`,
-  ]);
+  await notifyClient(email, (taal) => voortgangMail(taal, { stap: st }));
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -1032,9 +910,7 @@ export async function addDocument(formData: FormData): Promise<void> {
     .from("documents")
     .insert({ client_email: email, name, url, kind: kind || "document" });
   await ensurePortalUser(email);
-  await notifyClient(email, "document", [
-    `Er staat een nieuw document voor je klaar: <strong>${name}</strong>.`,
-  ]);
+  await notifyClient(email, (taal) => documentMail(taal, { naam: name }));
   revalidatePath("/admin/klanten", "layout");
   return;
 }
@@ -1084,6 +960,25 @@ export async function deleteClient(formData: FormData): Promise<void> {
   }
 
   const db = getSupabaseAdmin();
+  // Bestanden van de tickets in de privé-opslag (ticket-bijlagen): eerst
+  // opruimen, want daarna zijn de ticket-id's weg. De rijen (berichten,
+  // bijlagen, notities, uren) verdwijnen mee met de tickets (on delete
+  // cascade); revisiefacturen gaan weg via invoices.client_email hieronder.
+  try {
+    const { data: tks } = await db
+      .from("tickets")
+      .select("id")
+      .eq("client_email", email)
+      .limit(10000);
+    const ticketIds = ((tks as { id: string }[] | null) ?? []).map(
+      (t) => t.id,
+    );
+    await verwijderTicketBestanden(ticketIds);
+    await verwijderKlantMap(email);
+  } catch (e) {
+    // doorgaan: best effort
+    console.error("[klant verwijderen] ticketbestanden opruimen mislukt:", e);
+  }
   // Tabellen met client_email
   for (const table of [
     "offers",

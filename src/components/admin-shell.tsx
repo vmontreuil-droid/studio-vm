@@ -45,6 +45,7 @@ import {
   Layers,
   ChevronRight,
   CalendarDays,
+  MapPinned,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -85,6 +86,7 @@ const groups: {
     title: "Projecten",
     items: [
       { href: "/admin/projecten", label: "Projecten", icon: Layers, badge: "projectenActief" },
+      { href: "/admin/kaart", label: "Werfkaart", icon: MapPinned },
       { href: "/admin/planning", label: "Planning", icon: CalendarDays },
       { href: "/admin/aanvragen", label: "Aanvragen", icon: Inbox, badge: "nieuw" },
       { href: "/admin/tickets", label: "Tickets & revisies", icon: Headphones, badge: "ticketsOpen" },

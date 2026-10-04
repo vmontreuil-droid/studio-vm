@@ -6,7 +6,11 @@ import { mollieCreateSubscription } from "@/lib/mollie-sub";
 import { PUBLISH_BASE_MONTHLY_CENTS } from "@/lib/pricing";
 import { sendMail } from "@/lib/monitor";
 import { siteUrl } from "@/lib/supabase/config";
-import { portalEmailHtml, invoicePaidPreviewHtml } from "@/lib/email";
+import { portaalLink, siteLink } from "@/lib/email";
+import type { Locale } from "@/lib/i18n/config";
+import { factuurBedrag, factuurTaal } from "@/lib/factuur-klant";
+import { klantGegevens } from "@/lib/projecten-admin";
+import { betalingOntvangenMail, incassoMisluktMail } from "@/lib/klant-mails";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +40,8 @@ export async function POST(req: NextRequest) {
       const db = getSupabaseAdmin();
       const { data: invData } = await db
         .from("invoices")
-        .select(
-          "id, number, description, amount_cents, status, client_email, offer_id, paid_at",
-        )
+        // "*" i.p.v. een vaste lijst: vat_reverse bestaat pas na migratie 0049.
+        .select("*")
         .eq("id", invoiceId)
         .maybeSingle();
       const inv = invData as {
@@ -50,6 +53,8 @@ export async function POST(req: NextRequest) {
         client_email: string | null;
         offer_id: string | null;
         paid_at: string | null;
+        ticket_id?: string | null;
+        vat_reverse?: boolean | null;
       } | null;
       // Idempotent: enkel de eerste keer verwerken + mailen.
       const firstTime = !!inv && inv.status !== "betaald";
@@ -65,32 +70,14 @@ export async function POST(req: NextRequest) {
 
       if (firstTime && inv && inv.client_email) {
         try {
-          let reverse = false;
-          if (inv.offer_id) {
-            const { data: off } = await db
-              .from("offers")
-              .select("vat_reverse")
-              .eq("id", inv.offer_id)
-              .maybeSingle();
-            reverse = !!(off as { vat_reverse?: boolean } | null)
-              ?.vat_reverse;
-          }
-          let loc = "nl";
-          try {
-            const { data: sr } = await db
-              .from("scan_requests")
-              .select("locale")
-              .eq("email", inv.client_email)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            const sl = (sr as { locale?: string } | null)?.locale;
-            if (sl === "fr" || sl === "en") loc = sl;
-          } catch {}
+          // Bedrag en btw zoals de klant betaalde (zelfde regel als Mollie in
+          // het portaal), taal van het ticket/de klant — factuur-klant.ts.
+          const b = await factuurBedrag(inv);
+          const loc: Locale = await factuurTaal(inv, b?.quoteId ?? null);
 
-          let portalUrl = `${siteUrl}/${loc}/portail?next=${encodeURIComponent(
-            `/${loc}/portail/dashboard/facturen`,
-          )}`;
+          // Knop: meteen aangemeld in het portaal (magic link), anders de
+          // gewone portaallink via de aanmeldpagina.
+          let portalUrl = portaalLink(loc, "/facturen");
           try {
             const gen = await db.auth.admin.generateLink({
               type: "magiclink",
@@ -98,63 +85,30 @@ export async function POST(req: NextRequest) {
             });
             const hashed = gen.data?.properties?.hashed_token;
             if (!gen.error && hashed) {
-              portalUrl = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
-                hashed,
-              )}&type=magiclink&next=${encodeURIComponent(
-                `/${loc}/portail/dashboard/facturen`,
-              )}`;
+              portalUrl = siteLink(
+                `/auth/confirm?token_hash=${encodeURIComponent(
+                  hashed,
+                )}&type=magiclink&next=${encodeURIComponent(
+                  `/${loc}/portail/dashboard/facturen`,
+                )}`,
+              );
             }
           } catch {}
 
-          const subj = {
-            nl: `Betaling ontvangen — factuur ${inv.number}`,
-            fr: `Paiement reçu — facture ${inv.number}`,
-            en: `Payment received — invoice ${inv.number}`,
-          }[loc] as string;
-          const lines = {
-            nl: [
-              "Bedankt — je betaling is goed ontvangen ✓",
-              "Je factuur is volledig betaald. Hieronder vind je de bevestiging; in je portaal staat ze met de betaalstempel klaar.",
-            ],
-            fr: [
-              "Merci — votre paiement a bien été reçu ✓",
-              "Votre facture est entièrement payée. Vous trouverez la confirmation ci-dessous ; elle est disponible avec le cachet payé dans votre portail.",
-            ],
-            en: [
-              "Thank you — your payment was received ✓",
-              "Your invoice is fully paid. Below is the confirmation; it's available with the paid stamp in your portal.",
-            ],
-          }[loc] as string[];
-          const cta = {
-            nl: "Bekijk je factuur in het portaal",
-            fr: "Voir votre facture dans le portail",
-            en: "View your invoice in the portal",
-          }[loc] as string;
-
-          await sendMail(inv.client_email, {
-            subject: subj,
-            html: portalEmailHtml({
-              locale: loc,
-              eyebrow:
-                loc === "fr"
-                  ? "Paiement confirmé"
-                  : loc === "en"
-                    ? "Payment confirmed"
-                    : "Betaling bevestigd",
-              title: subj,
-              bodyLines: lines,
-              ctaLabel: cta,
-              ctaHref: portalUrl,
-              extraHtml: invoicePaidPreviewHtml({
-                number: inv.number,
-                description: inv.description,
-                amountExclCents: inv.amount_cents,
-                vatReverse: reverse,
-                paidAt,
-                locale: loc,
-              }),
+          await sendMail(
+            inv.client_email,
+            betalingOntvangenMail(loc, {
+              nummer: inv.number,
+              // Bevat klanttekst (projecttitel / ticketonderwerp): de bouwer escapet.
+              omschrijving: inv.description,
+              bedragExclCent: inv.amount_cents,
+              metBtw: b?.metBtw ?? false,
+              verlegd: b?.verlegd ?? false,
+              paidAt,
+              soort: b?.soort ?? "andere",
+              link: portalUrl,
             }),
-          }).catch(() => {});
+          ).catch(() => {});
         } catch {
           // Mail mag de webhook nooit doen falen.
         }
@@ -624,22 +578,9 @@ export async function POST(req: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", sub.id);
-        await sendMail(subEmail, {
-          subject: "Betaling mislukt — actie nodig binnen 10 dagen",
-          html: portalEmailHtml({
-            locale: "nl",
-            eyebrow: "Actie nodig",
-            title: "Je abonnementsbetaling is mislukt",
-            bodyLines: [
-              `De automatische incasso voor je <strong>${sub.plan}</strong>-abonnement is mislukt.`,
-              `Regel het vóór <strong>${grace}</strong> in je portaal. Blijft de betaling uit, dan wordt je website na die datum tijdelijk offline gehaald tot het abonnement weer in orde is.`,
-            ],
-            ctaLabel: "Regel het in je portaal",
-            ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
-              "/nl/portail/dashboard/facturen",
-            )}`,
-          }),
-        }).catch(() => {});
+        // Oud websiteabonnement: mail in de taal van de klant (archief).
+        const { taal } = await klantGegevens(subEmail);
+        await sendMail(subEmail, incassoMisluktMail(taal, { plan: sub.plan, grace })).catch(() => {});
       }
     } catch {
       return NextResponse.json({ ok: false }, { status: 500 });

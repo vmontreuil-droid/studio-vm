@@ -155,8 +155,23 @@ export type PortalCounts = {
   offers: number;
   invoices: number;
   tickets: number;
+  /** Tickets met een nog niet gelezen antwoord van de studio (migratie 0049; anders 0). */
+  ticketsOngelezen?: number;
   sites: number; // aantal actieve site-abonnementen (= sites toegelaten)
 };
+
+/** "1 nieuw antwoord" / "3 nieuwe antwoorden" — voor de groene teller en het overzicht. */
+export function nieuweAntwoorden(n: number, loc: Locale): string {
+  const een = n === 1;
+  const w: Record<Locale, string> = {
+    nl: een ? "nieuw antwoord" : "nieuwe antwoorden",
+    fr: een ? "nouvelle réponse" : "nouvelles réponses",
+    en: een ? "new reply" : "new replies",
+    de: een ? "neue Antwort" : "neue Antworten",
+    es: een ? "nueva respuesta" : "nuevas respuestas",
+  };
+  return `${n} ${w[loc]}`;
+}
 
 // Labels voor het klantenportaal (3D-modellen voor machinesturing).
 // scans / subscription / mywebsite / progress / checklist / domain zijn

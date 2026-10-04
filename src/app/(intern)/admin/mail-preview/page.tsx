@@ -17,39 +17,12 @@ import {
 } from "@/lib/admin/outreach-mail";
 import { GRADE_LABEL, isAannemerGrade } from "@/lib/admin/aannemers";
 import { sourceFromLand, type Land } from "@/lib/admin/prospect-source";
-import {
-  portalEmailHtml,
-  offerPreviewHtml,
-  invoicePaidPreviewHtml,
-} from "@/lib/email";
+import { klantMailVoorbeelden } from "@/lib/klant-mails";
+import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 
-const sampleOffer = {
-  offerNo: "OFF2026-0042",
-  greeting: "Jan Peeters",
-  amountExclCents: 30000,
-  vatReverse: false,
-  validUntil: "2026-10-30",
-  includes: [
-    "3D-model wegenis — 6 u × € 50 (normaal)",
-    "Levering voor Trimble én Topcon (zonder meerprijs)",
-    "Lambert 72 + TAW, controle van niveaus en hellingen",
-  ],
-};
-
-const sampleInvoicePaid = {
-  number: "F2026-0017",
-  description: "3D-model bouwput — 4 u",
-  amountExclCents: 20000,
-  vatReverse: false,
-  paidAt: "2026-09-19T14:32:00Z",
-  locale: "nl",
-};
-const sampleClientName = "Jan Peeters";
-const samplePortalHref = "https://studio-vm.be/nl/portail";
-
-type Categorie = "Outreach" | "Offerte" | "Factuur" | "Support";
+type Categorie = "Outreach" | "Klant" | "Support" | "Archief websites";
 
 type Preview = {
   id: string;
@@ -59,10 +32,14 @@ type Preview = {
   html: string;
   text?: string;
   from?: string;
+  replyTo?: string;
 };
 
+// Outreach-voorbeelden + ELKE klantmail, gebouwd door de echte bouwers uit
+// src/lib/klant-mails.ts in de gekozen taal (id = "<mail>.<taal>").
 function buildPreviews(
   outreach: ReturnType<typeof buildOutreachSamples>,
+  taal: Locale,
 ): Preview[] {
   const out: Preview[] = outreach.map((s) => ({
     id: s.id,
@@ -73,89 +50,16 @@ function buildPreviews(
     text: s.mail.text,
     from: s.mail.from,
   }));
-
-  // Offerte verstuurd (NL voorbeeld)
-  out.push({
-    id: "offer-sent-nl",
-    title: "Offerte verstuurd (NL)",
-    category: "Offerte",
-    subject: "Je offerte staat klaar — Studio VM",
-    html: portalEmailHtml({
-      locale: "nl",
-      eyebrow: "Je offerte",
-      title: `Hi ${sampleClientName},`,
-      bodyLines: [
-        "Hierbij je persoonlijke offerte — het geschatte aantal uren, het uurtarief en de voorwaarden staan in je portaal.",
-      ],
-      ctaLabel: "Bekijk je voorstel",
-      ctaHref: samplePortalHref,
-      extraHtml: offerPreviewHtml(sampleOffer),
-      footnote:
-        "Vragen of liever eerst telefonisch? Antwoord op deze mail.",
-    }),
-  });
-
-  // Factuur betaald (NL)
-  out.push({
-    id: "invoice-paid-nl",
-    title: "Factuur betaald — bevestiging (NL)",
-    category: "Factuur",
-    subject: `Factuur ${sampleInvoicePaid.number} is betaald — bedankt!`,
-    html: portalEmailHtml({
-      locale: "nl",
-      eyebrow: "Factuur betaald",
-      title: "Bedankt voor je betaling",
-      bodyLines: [
-        `Je betaling voor <strong>${sampleInvoicePaid.description}</strong> is goed binnengekomen.`,
-        "De modelbestanden en de factuur met 'BETAALD'-stempel staan in je portaal.",
-      ],
-      ctaLabel: "Open mijn portaal",
-      ctaHref: samplePortalHref,
-      extraHtml: invoicePaidPreviewHtml(sampleInvoicePaid),
-    }),
-  });
-
-  // Support — gratis maand
-  out.push({
-    id: "support-free-nl",
-    title: "Support — gratis maand-melding (NL)",
-    category: "Support",
-    subject: "Je supportmaand is gratis — Studio VM",
-    html: portalEmailHtml({
-      locale: "nl",
-      eyebrow: "Je supportabonnement",
-      title: "Maand 1: gratis",
-      bodyLines: [
-        "Maand 1 van je <strong>Care-abonnement</strong> is <strong>gratis</strong> — je hoeft niets te betalen.",
-        "Vanaf volgende maand ontvang je maandelijks een factuur in je portaal.",
-      ],
-      ctaLabel: "Bekijk je portaal",
-      ctaHref: samplePortalHref,
-    }),
-  });
-
-  // Aanmaning — eerste herinnering
-  out.push({
-    id: "reminder-1-nl",
-    title: "Aanmaning — eerste herinnering (NL)",
-    category: "Factuur",
-    subject: "Vriendelijke herinnering — factuur F2026-0017 · Studio VM",
-    html: portalEmailHtml({
-      locale: "nl",
-      eyebrow: "Vriendelijke herinnering",
-      title: "Mogen we je even herinneren?",
-      bodyLines: [
-        "Factuur <strong>F2026-0017</strong> is intussen vervallen. Wellicht over het hoofd gezien — geen probleem.",
-        "Openstaand bedrag: <strong>€ 242,00</strong>.",
-        "Je betaalt vlot en veilig via je klantenportaal — daar staat ook de volledige factuur.",
-      ],
-      ctaLabel: "Betaal in je portaal",
-      ctaHref: samplePortalHref,
-      footnote:
-        "Reeds betaald? Dan mag je deze herinnering als onbestaande beschouwen.",
-    }),
-  });
-
+  for (const v of klantMailVoorbeelden(taal)) {
+    out.push({
+      id: `${v.id}.${taal}`,
+      title: v.titel,
+      category: v.groep,
+      subject: v.mail.subject,
+      html: v.mail.html,
+      replyTo: v.mail.replyTo,
+    });
+  }
   return out;
 }
 
@@ -175,7 +79,7 @@ type EchteRij = {
 export default async function MailPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string; land?: string; pid?: string; v?: string }>;
+  searchParams: Promise<{ id?: string; land?: string; pid?: string; v?: string; taal?: string }>;
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const sp = await searchParams;
@@ -184,7 +88,10 @@ export default async function MailPreview({
     getCompanySettings(),
   ]);
   const bedrijf = bedrijfVoorMail(settings);
-  const previews = buildPreviews(buildOutreachSamples(cfg, bedrijf));
+  // Taal van de klantmails: ?taal=…, anders die van de gekozen mail-id.
+  const idTaal = /\.(nl|fr|en|de|es)$/.exec(sp.id ?? "")?.[1];
+  const taal: Locale = isValidLocale(sp.taal) ? sp.taal : isValidLocale(idTaal) ? idTaal : "nl";
+  const previews = buildPreviews(buildOutreachSamples(cfg, bedrijf), taal);
   const db = getSupabaseAdmin();
 
   // Echte prospects met de hoogste prioriteit — om de mail te zien zoals
@@ -271,10 +178,29 @@ export default async function MailPreview({
           <h1 className="text-2xl font-semibold tracking-tight">Mail-preview</h1>
           <p className="mt-0.5 max-w-3xl text-sm text-muted">
             De automatische mails van Studio VM in echte HTML-rendering. De
+            klantmails komen rechtstreeks uit de bouwers die ook versturen
+            (<code>src/lib/klant-mails.ts</code>), in de taal hiernaast. De
             outreach-mails gaan naar aannemers (3D-modellen voor
             machinesturing) in het Nederlands, Frans, Engels en Duits.
             Teksten: <code>src/lib/admin/outreach-mail.ts</code>.
           </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {LOCALES.map((l) => {
+              const basis = selected.id.replace(/\.(nl|fr|en|de|es)$/, "");
+              const heeftTaal = /\.(nl|fr|en|de|es)$/.test(selected.id);
+              return (
+                <Link
+                  key={l}
+                  href={`/admin/mail-preview?taal=${l}${isSample && heeftTaal ? `&id=${basis}.${l}` : ""}`}
+                  className={`rounded-full border px-3 py-1 font-mono text-xs uppercase ${
+                    l === taal ? "border-accent bg-accent/15 font-semibold text-accent" : "text-muted hover:bg-card-hover"
+                  }`}
+                >
+                  {l}
+                </Link>
+              );
+            })}
+          </div>
         </div>
         {cfg.paused ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-950">
@@ -291,11 +217,17 @@ export default async function MailPreview({
         {/* Lijst */}
         <aside className="space-y-3">
           <div className="rounded-2xl bg-card p-3 shadow-sm">
-            {(["Outreach", "Offerte", "Factuur", "Support"] as const).map(
+            {(["Klant", "Support", "Archief websites", "Outreach"] as const).map(
               (cat) => (
                 <div key={cat} className="mb-3 last:mb-0">
                   <p className="px-2 pb-1 font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
-                    {cat === "Outreach" ? "Outreach — aannemers (voorbeelden)" : cat}
+                    {cat === "Outreach"
+                      ? "Outreach — aannemers (voorbeelden)"
+                      : cat === "Klant"
+                        ? `Klantmails (${taal.toUpperCase()})`
+                        : cat === "Support"
+                          ? `Support — tickets (${taal.toUpperCase()})`
+                          : `Archief websites (${taal.toUpperCase()})`}
                   </p>
                   <ul className="space-y-1">
                     {previews
@@ -422,6 +354,14 @@ export default async function MailPreview({
                   Van
                 </p>
                 <p className="mt-1 font-mono text-sm">{selected.from}</p>
+              </>
+            )}
+            {selected.replyTo && (
+              <>
+                <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Antwoorden naar
+                </p>
+                <p className="mt-1 font-mono text-sm">{selected.replyTo}</p>
               </>
             )}
             {echt?.rij.mail_to && (

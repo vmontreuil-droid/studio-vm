@@ -79,6 +79,13 @@ type Inv = {
   offer_id: string | null;
   client_email: string | null;
   paid_at: string | null;
+  // Klantgegevens zoals op de factuur bewaard (migratie 0041).
+  client_name?: string | null;
+  client_address?: string | null;
+  client_vat?: string | null;
+  // Revisiefactuur bij een ticket + eigen btw-verlegging (migratie 0049).
+  ticket_id?: string | null;
+  vat_reverse?: boolean | null;
 };
 type OfferRef = {
   id: string;
@@ -157,7 +164,7 @@ const L: Record<
     inclVat: "Totaal incl. btw",
     due: "Te betalen tegen",
     paidNote: "Betaald — bedankt!",
-    whatYouGet: "Wat je krijgt",
+    whatYouGet: "Wat u krijgt",
     included: "inbegrepen",
     monthly: "per maand",
     discountLine: "Vastlegkorting (directe ondertekening) −7%",
@@ -165,36 +172,36 @@ const L: Record<
     freeMonthsLine: "Eerste 2 maanden support gratis",
     offerTotal: "Totaal offerte (incl. btw)",
     thisInvoice: "Deze voorschotfactuur — nu te betalen",
-    choosePay: "Hoe wil je dit voorschot betalen?",
+    choosePay: "Hoe wilt u dit voorschot betalen?",
     recommended: "Aanbevolen",
     mollieName: "Online via Mollie",
     mollieDesc:
-      "Direct & veilig (Bancontact, kaart…). Je betaling is meteen verwerkt en je project start zonder vertraging.",
+      "Direct & veilig (Bancontact, kaart…). Uw betaling is meteen verwerkt en uw project start zonder vertraging.",
     transferName: "Via overschrijving",
     noDiscount:
-      "Geen korting, geen gratis maanden. Trager: je project start pas zodra de overschrijving binnen is.",
+      "Geen korting, geen gratis maanden. Trager: uw project start pas zodra de overschrijving binnen is.",
     holder: "Begunstigde",
     ibanL: "IBAN",
     bicL: "BIC",
     commL: "Gestructureerde mededeling",
     amountL: "Bedrag (incl. btw)",
     promoInv:
-      "Je behield 7% korting + 2 maanden gratis support door tijdig te tekenen. Betaal dit voorschot om je project te starten.",
+      "U behield 7% korting + 2 maanden gratis support door tijdig te tekenen. Betaal dit voorschot om uw project te starten.",
     termsTitle: "Voorwaarden",
     terms:
-      "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via je beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
-    youSave: "Je bespaart",
+      "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via uw beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
+    youSave: "U bespaart",
     insteadOf: "i.p.v.",
     paid: "Betaald",
     paidOn: "Betaald op",
     pThisInvoice: "Deze factuur — nu te betalen",
-    pChoosePay: "Hoe wil je deze factuur betalen?",
+    pChoosePay: "Hoe wilt u deze factuur betalen?",
     pMollieDesc:
-      "Direct & veilig (Bancontact, kaart…). Je betaling is meteen verwerkt en je modelbestanden komen zonder vertraging vrij.",
+      "Direct & veilig (Bancontact, kaart…). Uw betaling is meteen verwerkt en uw modelbestanden komen zonder vertraging vrij.",
     pTransferDesc:
-      "Trager: je modelbestanden komen pas vrij zodra de overschrijving binnen is.",
+      "Trager: uw modelbestanden komen pas vrij zodra de overschrijving binnen is.",
     pTerms:
-      "Uurtarief excl. btw, op basis van de werkelijk gepresteerde uren (minimum 1 uur). Revisies na planwijzigingen worden aan hetzelfde uurtarief aangerekend. De modelbestanden worden in je klantenportaal vrijgegeven zodra deze factuur betaald is. Alle betalingen verlopen via je beveiligde klantenportaal. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
+      "Uurtarief excl. btw, op basis van de werkelijk gepresteerde uren (minimum 1 uur). Revisies na planwijzigingen worden aan hetzelfde uurtarief aangerekend. De modelbestanden worden in uw klantenportaal vrijgegeven zodra deze factuur betaald is. Alle betalingen verlopen via uw beveiligde klantenportaal. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
   },
   fr: {
     none: "Aucune facture.",
@@ -487,10 +494,25 @@ export default async function PortalInvoices({
         )}
         {invoices.map((i) => {
           const ref = i.offer_id ? offerMap.get(i.offer_id) : undefined;
+          // Revisiefacturen (ticket_id, of een eigen vat_reverse als het
+          // ticket intussen gewist is) zijn ook uurwerk: zelfde teksten
+          // als een projectfactuur, geen voorschot/abonnement.
           const isProject =
             projectFacturen.has(i.id) ||
-            (!!i.offer_id && projectOffertes.has(i.offer_id));
-          const reverse = !!ref?.vat_reverse;
+            (!!i.offer_id && projectOffertes.has(i.offer_id)) ||
+            !!i.ticket_id ||
+            typeof i.vat_reverse === "boolean";
+          // Eigen waarde van de factuur eerst; anders die van de offerte.
+          const reverse =
+            typeof i.vat_reverse === "boolean"
+              ? i.vat_reverse
+              : !!ref?.vat_reverse;
+          // Klantgegevens: die van de offerte, anders de eigen kolommen
+          // van de factuur (losse/revisiefacturen hebben geen offerte).
+          const kNaam =
+            !ref?.client_company && !ref?.client_name ? i.client_name : null;
+          const kAdres = ref?.client_address || i.client_address;
+          const kBtw = ref?.vat_number || i.client_vat;
           const amount = i.amount_cents;
           const vat = reverse ? 0 : Math.round(amount * 0.21);
           const incl = amount + vat;
@@ -591,8 +613,9 @@ export default async function PortalInvoices({
                 </div>
                 {(ref?.client_name ||
                   ref?.client_company ||
-                  ref?.client_address ||
-                  ref?.vat_number ||
+                  kNaam ||
+                  kAdres ||
+                  kBtw ||
                   i.client_email) && (
                   <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
                     <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -602,13 +625,10 @@ export default async function PortalInvoices({
                       <p className="font-medium">{ref.client_company}</p>
                     )}
                     {ref?.client_name && <p>{ref.client_name}</p>}
-                    {ref?.client_address && (
-                      <p className="text-muted">{ref.client_address}</p>
-                    )}
-                    {ref?.vat_number ? (
-                      <p className="font-mono text-xs text-muted">
-                        {ref.vat_number}
-                      </p>
+                    {kNaam && <p className="font-medium">{kNaam}</p>}
+                    {kAdres && <p className="text-muted">{kAdres}</p>}
+                    {kBtw ? (
+                      <p className="font-mono text-xs text-muted">{kBtw}</p>
                     ) : (
                       i.client_email && (
                         <p className="font-mono text-xs text-muted">

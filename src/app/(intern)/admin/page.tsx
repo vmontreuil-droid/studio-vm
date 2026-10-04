@@ -32,10 +32,189 @@ import {
 } from "@/lib/projecten";
 import { UURTARIEF_CENT, MINIMUM_UREN } from "@/lib/tarieven";
 import { SeoOpvolging } from "@/components/admin/seo-opvolging";
+import { isOntbrekend, ticketSchema, vergeetTicketSchema } from "@/lib/tickets-server";
+import {
+  afgeleid,
+  isUuid,
+  soortVan,
+  ticketRef,
+  toonOnderwerp,
+  wachtKort,
+  wachtUren,
+  type BerichtKern,
+  type TicketRij,
+  type TicketSoort,
+} from "@/lib/tickets";
 
 export const dynamic = "force-dynamic";
 
 const DAY = 86_400_000;
+
+// ---- Tickets (werkt met én zonder migratie 0049) ----
+
+type Db = ReturnType<typeof getSupabaseAdmin>;
+
+/** Open ticket waar de studio aan zet is. */
+type WachtTicket = {
+  id: string;
+  nummer: number | null;
+  client_email: string;
+  subject: string;
+  soort: TicketSoort;
+  laatsteOp: string;
+};
+
+/** Revisie-uren van één ticket die nog niet gefactureerd of bij het project gevoegd zijn. */
+type OpenRevisie = {
+  ticketId: string;
+  ref: string;
+  titel: string;
+  uren: number;
+  cent: number;
+  tarieven: number[];
+  sinds: string;
+};
+
+const TICKET_KOLOMMEN = "id,nummer,client_email,subject,soort,project_id,status,created_at,laatste_bericht_op,wacht_op";
+/** Zonder 0049: zoveel open tickets laden en de toestand afleiden uit het laatste bericht. */
+const BASIS_MAX = 200;
+
+const uurTekst = (u: number) => `${String(Math.round(u * 100) / 100).replace(".", ",")} u`;
+
+function blokken<T>(lijst: T[], n: number): T[][] {
+  const uit: T[][] = [];
+  for (let i = 0; i < lijst.length; i += n) uit.push(lijst.slice(i, i + n));
+  return uit;
+}
+
+function naarWacht(t: TicketRij, laatsteOp: string): WachtTicket {
+  return {
+    id: t.id,
+    nummer: t.nummer ?? null,
+    client_email: t.client_email,
+    subject: t.subject,
+    soort: soortVan(t),
+    laatsteOp,
+  };
+}
+
+/**
+ * Tickets waar de studio aan zet is, oudste eerst (max. 20) + het exacte aantal.
+ * Met 0049 rechtstreeks uit de databank; zonder 0049 de oude query (alle open
+ * tickets) en 'aan zet' afgeleid uit het laatste bericht.
+ */
+async function wachtendeTickets(db: Db): Promise<{ lijst: WachtTicket[]; aantal: number }> {
+  const schema = await ticketSchema();
+  if (schema.v2) {
+    const r = await db
+      .from("tickets")
+      .select(TICKET_KOLOMMEN, { count: "exact" })
+      .neq("status", "gesloten")
+      .eq("wacht_op", "studio")
+      .neq("soort", "intern")
+      .order("laatste_bericht_op", { ascending: true })
+      .order("created_at", { ascending: true })
+      .limit(20);
+    if (!r.error) {
+      const rijen = (r.data as unknown as TicketRij[] | null) ?? [];
+      return {
+        lijst: rijen.map((t) => naarWacht(t, afgeleid(t).laatsteOp)),
+        aantal: r.count ?? rijen.length,
+      };
+    }
+    if (isOntbrekend(r.error)) vergeetTicketSchema();
+    else console.error("[dashboard] wachtende tickets:", r.error.code, r.error.message);
+  }
+
+  // Basisstand (vóór migratie 0049).
+  const { data } = await db
+    .from("tickets")
+    .select("id, client_email, subject, status, created_at, updated_at")
+    .neq("status", "gesloten")
+    .order("created_at", { ascending: false })
+    .limit(BASIS_MAX);
+  const open = (data as TicketRij[] | null) ?? [];
+  const laatste = new Map<string, BerichtKern>();
+  const delen = await Promise.all(
+    blokken(
+      open.map((t) => t.id),
+      100,
+    ).map(async (blok) => {
+      const { data: m } = await db
+        .from("ticket_messages")
+        .select("ticket_id, sender, created_at")
+        .in("ticket_id", blok)
+        .order("created_at", { ascending: false })
+        .limit(2000);
+      return (m as BerichtKern[] | null) ?? [];
+    }),
+  );
+  for (const m of delen.flat()) if (m.ticket_id && !laatste.has(m.ticket_id)) laatste.set(m.ticket_id, m);
+  const wachtend = open
+    .map((t) => {
+      const m = laatste.get(t.id);
+      return { t, a: afgeleid(t, m ? [m] : null) };
+    })
+    .filter(({ t, a }) => !a.gesloten && a.wachtOp === "studio" && soortVan(t) !== "intern")
+    .sort((x, y) => Date.parse(x.a.laatsteOp) - Date.parse(y.a.laatsteOp));
+  return { lijst: wachtend.slice(0, 20).map(({ t, a }) => naarWacht(t, a.laatsteOp)), aantal: wachtend.length };
+}
+
+/** Revisie-uren die nog op een factuur wachten, per ticket (oudste eerst). [] zonder tabel ticket_uren. */
+async function openRevisieUren(db: Db): Promise<OpenRevisie[]> {
+  const schema = await ticketSchema();
+  if (!schema.uren) return [];
+  const { data, error } = await db
+    .from("ticket_uren")
+    .select("ticket_id, project_id, uren, tarief_cent, created_at")
+    .is("invoice_id", null)
+    .is("naar_project_op", null)
+    .order("created_at", { ascending: true })
+    .limit(1000);
+  if (error) {
+    if (isOntbrekend(error)) vergeetTicketSchema();
+    return [];
+  }
+  type U = { ticket_id: string; project_id: string | null; uren: number; tarief_cent: number; created_at: string };
+  const rijen = (data as U[] | null) ?? [];
+  if (rijen.length === 0) return [];
+
+  const perTicket = new Map<string, U[]>();
+  for (const u of rijen) perTicket.set(u.ticket_id, [...(perTicket.get(u.ticket_id) ?? []), u]);
+  const ticketIds = [...perTicket.keys()];
+
+  type T = { id: string; nummer?: number | null; subject: string; project_id?: string | null };
+  const tickets = new Map<string, T>();
+  for (const blok of blokken(ticketIds, 100)) {
+    const { data: td } = await db.from("tickets").select("id, nummer, subject, project_id").in("id", blok).limit(blok.length);
+    for (const t of (td as T[] | null) ?? []) tickets.set(t.id, t);
+  }
+  const projectIds = new Set<string>();
+  for (const id of ticketIds) {
+    const pid = tickets.get(id)?.project_id ?? perTicket.get(id)?.find((u) => isUuid(u.project_id))?.project_id;
+    if (isUuid(pid)) projectIds.add(pid);
+  }
+  const titels = new Map<string, string>();
+  for (const blok of blokken([...projectIds], 100)) {
+    const { data: pd } = await db.from("projecten").select("id, titel").in("id", blok).limit(blok.length);
+    for (const p of (pd as { id: string; titel: string | null }[] | null) ?? []) if (p.titel) titels.set(p.id, p.titel);
+  }
+
+  return ticketIds.map((id) => {
+    const us = perTicket.get(id) ?? [];
+    const t = tickets.get(id);
+    const pid = t?.project_id ?? us.find((u) => isUuid(u.project_id))?.project_id ?? null;
+    return {
+      ticketId: id,
+      ref: ticketRef({ id, nummer: t?.nummer }),
+      titel: (pid && titels.get(pid)) || (t ? toonOnderwerp(t) || t.subject : "ticket"),
+      uren: us.reduce((s, u) => s + (Number(u.uren) || 0), 0),
+      cent: us.reduce((s, u) => s + Math.round((Number(u.uren) || 0) * (Number(u.tarief_cent) || 0)), 0),
+      tarieven: [...new Set(us.map((u) => Number(u.tarief_cent) || 0))],
+      sinds: us[0]?.created_at ?? "",
+    };
+  });
+}
 
 function weekBuckets<T>(rows: T[], at: (r: T) => string) {
   const monday = new Date();
@@ -93,7 +272,8 @@ export default async function AdminDashboard() {
     { data: purR },
     { data: cnR },
     { data: bankR },
-    { data: tkR },
+    wachtend,
+    openRevisies,
   ] = await Promise.all([
     db
       .from("projecten")
@@ -127,12 +307,8 @@ export default async function AdminDashboard() {
       .from("bank_transactions")
       .select("amount_cents, status, booked_at")
       .limit(2000),
-    db
-      .from("tickets")
-      .select("id, client_email, subject, status, created_at")
-      .neq("status", "gesloten")
-      .order("created_at", { ascending: false })
-      .limit(50),
+    wachtendeTickets(db),
+    openRevisieUren(db),
   ]);
 
   type Off = {
@@ -160,18 +336,11 @@ export default async function AdminDashboard() {
     is_read: boolean;
     created_at: string;
   };
-  type Ticket = {
-    id: string;
-    client_email: string;
-    subject: string | null;
-    status: string;
-    created_at: string;
-  };
   const projecten = (prR as Project[] | null) ?? [];
   const offers = (offR as Off[] | null) ?? [];
   const invoices = (invR as Inv[] | null) ?? [];
   const forms = (formR as Form[] | null) ?? [];
-  const tickets = (tkR as Ticket[] | null) ?? [];
+  const ticketsAanMij = wachtend.aantal;
 
   const eur = (c: number) =>
     `€ ${(c / 100).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -211,7 +380,7 @@ export default async function AdminDashboard() {
 
   // Wat er vandaag te doen is, in volgorde van dringendheid.
   type Taak = { kleur: string; tekst: string; sub: string; href: string };
-  const taken: Taak[] = [
+  const projectTaken: Taak[] = [
     ...metDeadline
       .filter((d) => d.n !== null && d.n < 0)
       .map(({ p, n }) => ({
@@ -250,13 +419,44 @@ export default async function AdminDashboard() {
         sub: `geleverd · ${urenVan(p)} u × ${eur(tarief(p))}`,
         href: `/admin/projecten/${p.id}`,
       })),
-    ...tickets.slice(0, 5).map((t) => ({
-      kleur: "bg-violet-500",
-      tekst: `Ticket: ${t.subject || "zonder onderwerp"}`,
-      sub: `${t.client_email} · ${t.status}`,
-      href: "/admin/tickets",
-    })),
-  ].slice(0, 10);
+  ];
+  // Tickets waar de studio aan zet is, oudste eerst.
+  const ticketTaken: Taak[] = wachtend.lijst.map((t) => {
+    const uren = wachtUren(t.laatsteOp, now);
+    return {
+      kleur: uren > 24 ? "bg-red-500" : "bg-violet-500",
+      tekst:
+        t.soort === "revisie"
+          ? `Revisie: ${toonOnderwerp(t) || t.subject || "zonder onderwerp"}`
+          : `Ticket: ${t.subject || "zonder onderwerp"}`,
+      sub: `${ticketRef(t)} · ${t.client_email} · wacht ${wachtKort(uren)}`,
+      href: `/admin/tickets/${t.id}`,
+    };
+  });
+  // Geboekte revisie-uren die nog niet gefactureerd (of bij het project gevoegd) zijn.
+  const revisieTaken: Taak[] = openRevisies.map((r) => ({
+    kleur: "bg-emerald-500",
+    tekst: `Revisie factureren: ${r.titel}`,
+    sub:
+      r.tarieven.length === 1
+        ? `${uurTekst(r.uren)} × ${eur(r.tarieven[0])} = ${eur(r.cent)} · ${r.ref}`
+        : `${uurTekst(r.uren)} · ${eur(r.cent)} · ${r.ref}`,
+    href: `/admin/tickets/${r.ticketId}`,
+  }));
+  // Max. 10 taken; 3 tickets en 2 revisiefacturen krijgen altijd een plaats
+  // (als ze er zijn), de projecttaken vullen de rest aan.
+  const MAX_TAKEN = 10;
+  const vastTickets = ticketTaken.slice(0, 3);
+  const vastRevisies = revisieTaken.slice(0, 2);
+  let ruimte = MAX_TAKEN - vastTickets.length - vastRevisies.length;
+  const projectDeel = projectTaken.slice(0, ruimte);
+  ruimte -= projectDeel.length;
+  const extraTickets = ticketTaken.slice(3, 3 + ruimte);
+  ruimte -= extraTickets.length;
+  const extraRevisies = revisieTaken.slice(2, 2 + ruimte);
+  const taken: Taak[] = [...projectDeel, ...vastTickets, ...extraTickets, ...vastRevisies, ...extraRevisies];
+  const takenTotaal =
+    projectTaken.length + Math.max(ticketTaken.length, wachtend.aantal) + revisieTaken.length;
 
   // Pijplijn per status.
   const perStatus = STAPPEN.map((s) => ({
@@ -437,7 +637,12 @@ export default async function AdminDashboard() {
       href: "/admin/rapporten",
       sub: vatBalance >= 0 ? `${yr} — te betalen` : `${yr} — terug`,
     },
-    { k: "Open tickets", v: String(tickets.length), href: "/admin/tickets", sub: "vragen en revisies" },
+    {
+      k: "Tickets — aan mij",
+      v: String(ticketsAanMij),
+      href: "/admin/tickets",
+      sub: ticketsAanMij === 1 ? "wacht op uw antwoord" : "wachten op uw antwoord",
+    },
     { k: "Bank af te punten", v: String(bankOpen), href: "/admin/bank", sub: "open transacties" },
   ];
 
@@ -537,10 +742,12 @@ export default async function AdminDashboard() {
 
       {/* Te doen + deadlines */}
       <div className="mt-3 grid gap-3 lg:grid-cols-5">
-        <div className="rounded-2xl bg-card p-6 shadow-sm lg:col-span-3">
-          <div className="flex items-center justify-between">
+        <div className="min-w-0 rounded-2xl bg-card p-6 shadow-sm lg:col-span-3">
+          <div className="flex items-center justify-between gap-3">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Te doen</p>
-            <span className="font-mono text-[10px] text-muted">{taken.length} actie{taken.length === 1 ? "" : "s"}</span>
+            <span className="font-mono text-[10px] text-muted">
+              {takenTotaal > taken.length ? `${taken.length} van ${takenTotaal} acties` : `${taken.length} actie${taken.length === 1 ? "" : "s"}`}
+            </span>
           </div>
           {taken.length === 0 ? (
             <p className="mt-6 flex items-center gap-2 text-sm text-muted">
@@ -568,7 +775,7 @@ export default async function AdminDashboard() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-card p-6 shadow-sm lg:col-span-2">
+        <div className="min-w-0 rounded-2xl bg-card p-6 shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Leverplanning</p>
             <Link href="/admin/projecten" className="text-xs text-muted hover:text-foreground">
@@ -776,9 +983,9 @@ export default async function AdminDashboard() {
             </span>
           )}
         </h2>
-        {tickets.length > 0 && (
+        {ticketsAanMij > 0 && (
           <Link href="/admin/tickets" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground">
-            <Headphones className="h-3.5 w-3.5" /> {tickets.length} open ticket{tickets.length === 1 ? "" : "s"}
+            <Headphones className="h-3.5 w-3.5" /> {ticketsAanMij} ticket{ticketsAanMij === 1 ? "" : "s"} aan mij
           </Link>
         )}
       </div>

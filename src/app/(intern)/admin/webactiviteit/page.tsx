@@ -17,8 +17,25 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { TrendChart } from "@/components/trend-chart";
 import { Donut, BarList, ChartCard } from "@/components/charts";
+import { utmContentOntbreekt } from "@/lib/utm";
+import { kanaal, type PvHerkomst } from "./bronnen";
+import { CampagnesKaart, HerkomstKaart } from "./herkomst";
 
 export const dynamic = "force-dynamic";
+
+// utm_content bestaat pas na migratie 0050: eerst mét proberen, bij een
+// ontbrekende kolom opnieuw zonder (de pagina werkt dan gewoon verder).
+const PV_KOLOMMEN = "created_at, path, locale, referrer, country, ua_family, visitor_hash, utm_source, utm_medium, utm_campaign";
+
+async function metOfZonderContent<T>(
+  vraag: (kolommen: string) => PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>,
+): Promise<{ rijen: T[]; metInhoud: boolean }> {
+  const met = await vraag(`${PV_KOLOMMEN}, utm_content`);
+  if (!met.error) return { rijen: (met.data as T[] | null) ?? [], metInhoud: true };
+  if (!utmContentOntbreekt(met.error)) return { rijen: [], metInhoud: false };
+  const zonder = await vraag(PV_KOLOMMEN);
+  return { rijen: (zonder.data as T[] | null) ?? [], metInhoud: false };
+}
 
 // 2-letter landcode → vlag-emoji. "??" → globe.
 function vlag(cc: string): string {
@@ -48,14 +65,10 @@ const TAAL_KLEUR: Record<string, { label: string; kleur: string }> = {
   es: { label: "Español", kleur: "#eab308" },
 };
 
-type Pv = {
-  created_at: string;
-  path: string;
+type Pv = PvHerkomst & {
   locale?: string | null;
-  referrer?: string | null;
   country?: string | null;
   ua_family?: string | null;
-  visitor_hash?: string | null;
 };
 
 export default async function WebActiviteit({
@@ -75,18 +88,18 @@ export default async function WebActiviteit({
   const vijfMin = new Date(nuMs - 5 * 60_000);
 
   const [pvR, pvLiveR, pvRecentR, quotesR, offersR] = await Promise.all([
-    db
-      .from("page_views")
-      .select("created_at, path, locale, referrer, country, ua_family, visitor_hash")
-      .gte("created_at", sinds.toISOString())
-      .order("created_at", { ascending: false })
-      .limit(20000),
+    metOfZonderContent<Pv>((kolommen) =>
+      db
+        .from("page_views")
+        .select(kolommen)
+        .gte("created_at", sinds.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(20000),
+    ),
     db.from("page_views").select("visitor_hash").gte("created_at", vijfMin.toISOString()),
-    db
-      .from("page_views")
-      .select("created_at, path, locale, referrer, country, ua_family")
-      .order("created_at", { ascending: false })
-      .limit(25),
+    metOfZonderContent<Pv>((kolommen) =>
+      db.from("page_views").select(kolommen).order("created_at", { ascending: false }).limit(25),
+    ),
     db
       .from("quotes")
       .select("id, created_at, name, email, company, source, snapshot")
@@ -100,9 +113,9 @@ export default async function WebActiviteit({
       .limit(1000),
   ]);
 
-  const pv = (pvR.data as Pv[] | null) ?? [];
+  const pv = pvR.rijen;
   const live = new Set(((pvLiveR.data as { visitor_hash: string }[] | null) ?? []).map((r) => r.visitor_hash)).size;
-  const recent = (pvRecentR.data as Pv[] | null) ?? [];
+  const recent = pvRecentR.rijen;
   type Q = { id: string; created_at: string; name: string; email: string; company: string | null; source: string | null; snapshot: { werk?: string; categorie?: string; werf?: { gemeente?: string; land?: string } } | null };
   const quotes = (quotesR.data as Q[] | null) ?? [];
   const aanvragen3d = quotes.filter((q) => q.source === "3d-model");
@@ -174,15 +187,6 @@ export default async function WebActiviteit({
       .map(([label, value]) => ({ label, value }));
   };
   const topPaginas = teller((r) => zonderTaal(r.path), 12);
-  const topVerwijzers = teller((r) => {
-    if (!r.referrer) return "(direct)";
-    try {
-      const h = new URL(r.referrer).hostname.replace(/^www\./, "");
-      return h.includes("studio-vm") ? null : h || "(direct)";
-    } catch {
-      return "(onbekend)";
-    }
-  }, 8);
   const topLanden = teller((r) => (r.country ?? "??").toUpperCase(), 8).map((x) => ({
     label: `${vlag(x.label)} ${x.label}`,
     value: x.value,
@@ -299,10 +303,12 @@ export default async function WebActiviteit({
         </ChartCard>
       </div>
 
+      <div className="mt-3">
+        <CampagnesKaart rijen={pv} metInhoud={pvR.metInhoud} periode={periode} />
+      </div>
+
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <ChartCard title="Verwijzers">
-          {topVerwijzers.length ? <BarList items={topVerwijzers} color="#a855f7" /> : <p className="text-sm text-muted">Nog geen bezoek.</p>}
-        </ChartCard>
+        <HerkomstKaart rijen={pv} />
         <ChartCard title="Landen">
           {topLanden.length ? <BarList items={topLanden} color="#16a34a" /> : <p className="text-sm text-muted">Nog geen bezoek.</p>}
         </ChartCard>
@@ -351,14 +357,9 @@ export default async function WebActiviteit({
           <ul className="mt-4 divide-y divide-border">
             {recent.length === 0 && <li className="py-4 text-sm text-muted">Nog geen bezoek.</li>}
             {recent.slice(0, 12).map((r, i) => {
-              let bron = "direct";
-              if (r.referrer) {
-                try {
-                  bron = new URL(r.referrer).hostname.replace(/^www\./, "");
-                } catch {
-                  bron = "onbekend";
-                }
-              }
+              // Platform (UTM of samengevoegde verwijzer) plus de campagne als die er is.
+              const k = kanaal(r);
+              const bron = `${k === null ? "studio-vm.be" : k.replace(/^\((.*)\)$/, "$1")}${r.utm_campaign ? ` · ${r.utm_campaign}` : ""}`;
               return (
                 <li key={i} className="flex items-center gap-3 py-2.5 text-sm">
                   <Link2 className="h-3.5 w-3.5 shrink-0 text-muted" />

@@ -6,7 +6,7 @@ import { CtaBanner } from "@/components/cta-banner";
 import { JsonLd } from "@/components/json-ld";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { KRUIMEL, paginaMeta } from "@/lib/seo";
+import { KRUIMEL, ogBeeld, paginaMeta } from "@/lib/seo";
 import { ID, graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
 import { BEDRIJF, FUNCTIE } from "@/lib/bedrijf";
 
@@ -158,7 +158,7 @@ const ICONEN = [MessageSquare, Crosshair, Clock, ShieldCheck];
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return paginaMeta(locale, PAD, T[locale].meta);
+  return paginaMeta(locale, PAD, { ...T[locale].meta, ogBeeld: ogBeeld(locale, "over") });
 }
 
 export default async function OverPage({ params }: { params: Promise<{ locale: string }> }) {
