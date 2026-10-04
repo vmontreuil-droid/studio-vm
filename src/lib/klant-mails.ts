@@ -31,6 +31,7 @@ import { esc, soortVan, tekstNaarHtml, ticketRef, toonOnderwerp } from "@/lib/ti
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 import { CATEGORIE_LABEL } from "@/lib/projecten";
 import { BANK, structuredComm } from "@/lib/bank";
+import { verwijlinterest, type Verwijlinterest } from "@/lib/facturatie/rente";
 
 export type { Taal };
 
@@ -653,10 +654,76 @@ const BETAAL_HERINNERING: Record<
 };
 
 /** Betalingsherinnering (1 = op de vervaldag, 2 = +7 dagen, 3 = +14 dagen, laatste). */
+const HERINNERING_RENTE: Record<
+  Taal,
+  {
+    lopend: (pct: string) => string;
+    bedrag: (interest: string, dagen: number, pct: string) => string;
+    forfait: string;
+    zonderPct: string;
+  }
+> = {
+  nl: {
+    lopend: (pct) => `Sinds de vervaldag loopt van rechtswege verwijlinterest aan de wettelijke rentevoet voor handelstransacties: <strong>${pct} % per jaar</strong>.`,
+    bedrag: (x, d, pct) => `Op vandaag bedraagt de verwijlinterest <strong>${x}</strong> (${d} dagen aan ${pct} % per jaar).`,
+    forfait: "Daarnaast is een forfaitaire vergoeding van € 40 verschuldigd (wet van 2 augustus 2002).",
+    zonderPct: "Sinds de vervaldag loopt van rechtswege verwijlinterest aan de wettelijke rentevoet voor handelstransacties, en is een forfaitaire vergoeding van € 40 verschuldigd (wet van 2 augustus 2002).",
+  },
+  fr: {
+    lopend: (pct) => `Depuis l'échéance, des intérêts de retard courent de plein droit au taux légal pour les transactions commerciales : <strong>${pct} % par an</strong>.`,
+    bedrag: (x, d, pct) => `À ce jour, les intérêts de retard s'élèvent à <strong>${x}</strong> (${d} jours à ${pct} % par an).`,
+    forfait: "S'y ajoute une indemnité forfaitaire de 40 € (loi du 2 août 2002).",
+    zonderPct: "Depuis l'échéance, des intérêts de retard courent de plein droit au taux légal pour les transactions commerciales, et une indemnité forfaitaire de 40 € est due (loi du 2 août 2002).",
+  },
+  en: {
+    lopend: (pct) => `Since the due date, late-payment interest has been accruing by law at the statutory rate for commercial transactions: <strong>${pct}% per year</strong>.`,
+    bedrag: (x, d, pct) => `As of today, the late-payment interest amounts to <strong>${x}</strong> (${d} days at ${pct}% per year).`,
+    forfait: "In addition, a fixed compensation of € 40 is due (Belgian Act of 2 August 2002).",
+    zonderPct: "Since the due date, late-payment interest has been accruing by law at the statutory rate for commercial transactions, and a fixed compensation of € 40 is due (Belgian Act of 2 August 2002).",
+  },
+  de: {
+    lopend: (pct) => `Seit dem Fälligkeitsdatum laufen von Rechts wegen Verzugszinsen zum gesetzlichen Zinssatz für Handelsgeschäfte: <strong>${pct} % pro Jahr</strong>.`,
+    bedrag: (x, d, pct) => `Bis heute betragen die Verzugszinsen <strong>${x}</strong> (${d} Tage zu ${pct} % pro Jahr).`,
+    forfait: "Hinzu kommt eine Pauschalentschädigung von 40 € (belgisches Gesetz vom 2. August 2002).",
+    zonderPct: "Seit dem Fälligkeitsdatum laufen von Rechts wegen Verzugszinsen zum gesetzlichen Zinssatz für Handelsgeschäfte, und eine Pauschalentschädigung von 40 € ist geschuldet (belgisches Gesetz vom 2. August 2002).",
+  },
+  es: {
+    lopend: (pct) => `Desde la fecha de vencimiento se devengan de pleno derecho intereses de demora al tipo legal para operaciones comerciales: <strong>${pct} % anual</strong>.`,
+    bedrag: (x, d, pct) => `A día de hoy, los intereses de demora ascienden a <strong>${x}</strong> (${d} días al ${pct} % anual).`,
+    forfait: "Además, se adeuda una indemnización fija de 40 € (ley belga de 2 de agosto de 2002).",
+    zonderPct: "Desde la fecha de vencimiento se devengan de pleno derecho intereses de demora al tipo legal para operaciones comerciales, y se adeuda una indemnización fija de 40 € (ley belga de 2 de agosto de 2002).",
+  },
+};
+
+function procent(pct: number, taal: Taal): string {
+  return pct.toLocaleString(taal === "en" ? "en-GB" : `${taal}-BE`, { maximumFractionDigits: 2 });
+}
+
+/**
+ * Zinnen over verwijlinterest in een betaalherinnering. undefined = niets
+ * vermelden; null = rentevoet van dit semester onbekend (algemene zin zonder
+ * cijfer). Niveau 1 noemt het percentage, niveau 2 en 3 ook het bedrag.
+ */
+function renteRegels(taal: Taal, niveau: Niveau, rente: Verwijlinterest | null | undefined): string[] {
+  if (rente === undefined) return [];
+  const R = HERINNERING_RENTE[taal];
+  if (rente === null) return [R.zonderPct];
+  const pct = procent(rente.pctNu, taal);
+  if (niveau === 1) return [R.lopend(pct)];
+  return [`${R.bedrag(mailBedrag(rente.interestCent, taal), rente.dagen, pct)} ${R.forfait}`];
+}
+
 export function betaalHerinneringMail(
   taalIn: string,
   niveau: Niveau,
-  a: { nummer: string; bedragCent: number; btw: "incl" | "verlegd" | "geen"; dueAt: string },
+  a: {
+    nummer: string;
+    bedragCent: number;
+    btw: "incl" | "verlegd" | "geen";
+    dueAt: string;
+    /** Verwijlinterest tot vandaag; null = rentevoet onbekend; weglaten = niet vermelden. */
+    rente?: Verwijlinterest | null;
+  },
 ): KlantMail {
   const taal = taalVan(taalIn);
   const T = BETAAL_HERINNERING[taal];
@@ -667,6 +734,7 @@ export function betaalHerinneringMail(
     regels: [
       T.lijn[niveau](esc(nr), mailDatum(a.dueAt, taal)),
       T.bedrag(bedragMetBtw(taal, mailBedrag(a.bedragCent, taal), a.btw)),
+      ...renteRegels(taal, niveau, a.rente),
       T.betaal,
     ],
     extraHtml: overschrijving(taal, nr, a.bedragCent),
@@ -1495,7 +1563,7 @@ export function klantMailVoorbeelden(taalIn: string): VoorbeeldMail[] {
       id: `herinnering-${n}`,
       titel: `Betalingsherinnering ${n}`,
       groep: "Klant" as const,
-      mail: betaalHerinneringMail(taal, n, { nummer: "FAC-2026-021", bedragCent: 36300, btw: "incl", dueAt: iso(-7 * n) }),
+      mail: betaalHerinneringMail(taal, n, { nummer: "FAC-2026-021", bedragCent: 36300, btw: "incl", dueAt: iso(-7 * n), rente: verwijlinterest(36300, iso(-7 * n), iso(0)) }),
     })),
     {
       id: "betaald",

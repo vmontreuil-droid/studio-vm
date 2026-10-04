@@ -94,8 +94,11 @@ export const PROGRESS_STEPS = [
   "nazorg",
 ] as const;
 
+// Belgische notatie: € 1.234,56.
 export const eur = (c: number | null | undefined) =>
-  c == null ? "—" : `€ ${(c / 100).toFixed(2)}`;
+  c == null
+    ? "—"
+    : `€ ${(c / 100).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const dt = (s: string, loc: Locale) =>
   new Date(s).toLocaleDateString(

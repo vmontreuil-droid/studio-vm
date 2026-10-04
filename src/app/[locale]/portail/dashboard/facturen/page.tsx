@@ -5,6 +5,7 @@ import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { payInvoice } from "@/app/actions/portal-client";
 import { BANK, structuredComm } from "@/lib/bank";
 import { btwLabel, btwVermelding, regimeVan } from "@/lib/facturatie/btw";
+import { FactuurVoorwaarden } from "@/components/factuur-voorwaarden";
 import { SubmitButton } from "@/components/submit-button";
 import { PrintButton } from "@/components/print-button";
 import {
@@ -38,6 +39,8 @@ import {
   PORTAL_T,
 } from "@/lib/portal-shared";
 import { subscriptionTiers } from "@/lib/pricing";
+import { FACTUUR_AFDRUK_CSS } from "@/lib/facturatie/afdruk";
+import { BEDRIJF } from "@/lib/bedrijf";
 
 function lineIcon(label: string): LucideIcon {
   const s = label.toLowerCase();
@@ -140,8 +143,6 @@ const L: Record<
     commL: string;
     amountL: string;
     promoInv: string;
-    termsTitle: string;
-    terms: string;
     youSave: string;
     insteadOf: string;
     paid: string;
@@ -151,7 +152,6 @@ const L: Record<
     pChoosePay: string;
     pMollieDesc: string;
     pTransferDesc: string;
-    pTerms: string;
   }
 > = {
   nl: {
@@ -191,9 +191,6 @@ const L: Record<
     amountL: "Bedrag (incl. btw)",
     promoInv:
       "U behield 7% korting + 2 maanden gratis support door tijdig te tekenen. Betaal dit voorschot om uw project te starten.",
-    termsTitle: "Voorwaarden",
-    terms:
-      "Betaling: 30% voorschot om te starten, de resterende 70% vóór de site live gaat. Alle betalingen verlopen uitsluitend via uw beveiligde klantenportaal — geen uitzonderingen. Het onderhoudsabonnement heeft een minimumlooptijd van 1 jaar en wordt, zonder schriftelijke opzegging minstens 1 maand vóór het einde van de jaarperiode, telkens stilzwijgend met één jaar verlengd. Domein & e-mail (overname/verlenging) zijn ten laste van de klant en worden, afhankelijk van het geval, op de slotfactuur verrekend. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
     youSave: "U bespaart",
     insteadOf: "i.p.v.",
     paid: "Betaald",
@@ -204,8 +201,6 @@ const L: Record<
       "Direct & veilig (Bancontact, kaart…). Uw betaling is meteen verwerkt en uw modelbestanden komen zonder vertraging vrij.",
     pTransferDesc:
       "Trager: uw modelbestanden komen pas vrij zodra de overschrijving binnen is.",
-    pTerms:
-      "Uurtarief excl. btw, op basis van de werkelijk gepresteerde uren (minimum 1 uur). Revisies na planwijzigingen worden aan hetzelfde uurtarief aangerekend. De modelbestanden worden in uw klantenportaal vrijgegeven zodra deze factuur betaald is. Alle betalingen verlopen via uw beveiligde klantenportaal. Volledige voorwaarden: studio-vm.be/nl/voorwaarden.",
   },
   fr: {
     none: "Aucune facture.",
@@ -244,9 +239,6 @@ const L: Record<
     amountL: "Montant (TVAC)",
     promoInv:
       "Vous avez conservé 7% de remise + 2 mois de support offerts en signant à temps. Payez cet acompte pour démarrer votre projet.",
-    termsTitle: "Conditions",
-    terms:
-      "Paiement : acompte de 30% pour démarrer, les 70% restants avant la mise en ligne. Tous les paiements se font exclusivement via votre portail client sécurisé — sans exception. L'abonnement de maintenance a une durée minimale d'1 an et est, sauf résiliation écrite au moins 1 mois avant la fin de la période annuelle, reconduit tacitement pour un an à chaque fois. Domaine & e-mail (reprise/renouvellement) sont à charge du client et, selon le cas, décomptés sur la facture finale. Conditions complètes : studio-vm.be/fr/voorwaarden.",
     youSave: "Vous économisez",
     insteadOf: "au lieu de",
     paid: "Payée",
@@ -257,8 +249,6 @@ const L: Record<
       "Direct & sécurisé (Bancontact, carte…). Paiement traité immédiatement, vos fichiers du modèle sont débloqués sans délai.",
     pTransferDesc:
       "Plus lent : vos fichiers du modèle sont débloqués une fois le virement reçu.",
-    pTerms:
-      "Tarif horaire HTVA, sur base des heures réellement prestées (minimum 1 heure). Les révisions suite à une modification des plans sont facturées au même tarif horaire. Les fichiers du modèle sont débloqués dans votre espace client dès que cette facture est payée. Tous les paiements se font via votre espace client sécurisé. Conditions complètes : studio-vm.be/fr/voorwaarden.",
   },
   en: {
     none: "No invoices.",
@@ -297,9 +287,6 @@ const L: Record<
     amountL: "Amount (incl. VAT)",
     promoInv:
       "You kept 7% off + 2 months of support free by signing in time. Pay this deposit to start your project.",
-    termsTitle: "Terms",
-    terms:
-      "Payment: 30% deposit to start, the remaining 70% before the site goes live. All payments go exclusively through your secure client portal — no exceptions. The maintenance subscription has a minimum term of 1 year and, unless cancelled in writing at least 1 month before the end of the yearly term, renews tacitly for one year each time. Domain & email (transfer/renewal) are borne by the client and, depending on the case, settled on the final invoice. Full terms: studio-vm.be/en/voorwaarden.",
     youSave: "You save",
     insteadOf: "instead of",
     paid: "Paid",
@@ -310,8 +297,6 @@ const L: Record<
       "Instant & secure (Bancontact, card…). Payment is processed immediately and your model files are released without delay.",
     pTransferDesc:
       "Slower: your model files are released once the transfer arrives.",
-    pTerms:
-      "Hourly rate excl. VAT, based on the hours actually worked (1 hour minimum). Revisions after plan changes are charged at the same hourly rate. The model files are released in your client portal as soon as this invoice is paid. All payments go through your secure client portal. Full terms: studio-vm.be/en/voorwaarden.",
   },
   de: {
     none: "Keine Rechnungen.",
@@ -350,9 +335,6 @@ const L: Record<
     amountL: "Betrag (inkl. MwSt.)",
     promoInv:
       "Durch rechtzeitige Unterzeichnung haben Sie 7 % Rabatt + 2 Monate kostenlosen Support behalten. Bezahlen Sie diese Anzahlung, um Ihr Projekt zu starten.",
-    termsTitle: "Bedingungen",
-    terms:
-      "Zahlung: 30 % Anzahlung zum Start, die restlichen 70 % bevor die Website live geht. Alle Zahlungen erfolgen ausschließlich über Ihr gesichertes Kundenportal — ohne Ausnahme. Das Wartungsabonnement hat eine Mindestlaufzeit von 1 Jahr und verlängert sich, sofern es nicht mindestens 1 Monat vor Ende des Jahreszeitraums schriftlich gekündigt wird, jeweils stillschweigend um ein Jahr. Domain & E-Mail (Übernahme/Verlängerung) gehen zu Lasten des Kunden und werden je nach Fall mit der Schlussrechnung verrechnet. Vollständige Bedingungen: studio-vm.be/de/voorwaarden.",
     youSave: "Sie sparen",
     insteadOf: "statt",
     paid: "Bezahlt",
@@ -363,8 +345,6 @@ const L: Record<
       "Sofort & sicher (Bancontact, Karte…). Ihre Zahlung wird umgehend verarbeitet und Ihre Modelldateien werden ohne Verzögerung freigegeben.",
     pTransferDesc:
       "Langsamer: Ihre Modelldateien werden erst freigegeben, wenn die Überweisung eingegangen ist.",
-    pTerms:
-      "Stundensatz exkl. MwSt., auf Basis der tatsächlich geleisteten Stunden (mindestens 1 Stunde). Revisionen nach Planänderungen werden zum gleichen Stundensatz berechnet. Die Modelldateien werden in Ihrem Kundenportal freigegeben, sobald diese Rechnung bezahlt ist. Alle Zahlungen erfolgen über Ihr gesichertes Kundenportal. Vollständige Bedingungen: studio-vm.be/de/voorwaarden.",
   },
   es: {
     none: "No hay facturas.",
@@ -403,9 +383,6 @@ const L: Record<
     amountL: "Importe (IVA incluido)",
     promoInv:
       "Ha conservado el 7 % de descuento + 2 meses de soporte gratis al firmar a tiempo. Pague este anticipo para iniciar su proyecto.",
-    termsTitle: "Condiciones",
-    terms:
-      "Pago: anticipo del 30 % para empezar y el 70 % restante antes de que el sitio se publique. Todos los pagos se realizan exclusivamente a través de su portal de cliente seguro — sin excepciones. La suscripción de mantenimiento tiene una duración mínima de 1 año y, salvo cancelación por escrito al menos 1 mes antes del final del periodo anual, se renueva tácitamente por un año cada vez. El dominio y el correo electrónico (traslado/renovación) corren a cargo del cliente y, según el caso, se liquidan en la factura final. Condiciones completas: studio-vm.be/es/voorwaarden.",
     youSave: "Ahorra",
     insteadOf: "en lugar de",
     paid: "Pagada",
@@ -416,23 +393,9 @@ const L: Record<
       "Inmediato y seguro (Bancontact, tarjeta…). Su pago se procesa al instante y sus archivos del modelo se liberan sin demora.",
     pTransferDesc:
       "Más lento: sus archivos del modelo se liberan cuando se recibe la transferencia.",
-    pTerms:
-      "Tarifa por hora, IVA no incluido, según las horas realmente trabajadas (mínimo 1 hora). Las revisiones por cambios en los planos se facturan a la misma tarifa por hora. Los archivos del modelo se liberan en su portal de cliente en cuanto se paga esta factura. Todos los pagos se realizan a través de su portal de cliente seguro. Condiciones completas: studio-vm.be/es/voorwaarden.",
   },
 };
 
-const PRINT_CSS = `@page { margin: 18mm 14mm; }
-@media print {
-  html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-  html, body { background: #fff !important; }
-  body * { visibility: hidden !important; }
-  #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 0 !important; }
-  .no-print { display: none !important; }
-  .doc { border: none !important; box-shadow: none !important; }
-  .doc + .doc { break-before: page; page-break-before: always; }
-}`;
 
 export default async function PortalInvoices({
   params,
@@ -487,7 +450,7 @@ export default async function PortalInvoices({
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: FACTUUR_AFDRUK_CSS }} />
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
         {t.invoices}
       </h1>
@@ -615,7 +578,11 @@ export default async function PortalInvoices({
                   <p className="font-medium">
                     Studio VM — Vincent Montreuil
                   </p>
-                  <p className="text-muted">studio-vm.be</p>
+                  <p className="text-muted">
+                    {BEDRIJF.straat}, {BEDRIJF.postcode} {BEDRIJF.gemeente}
+                  </p>
+                  <p className="font-mono text-xs text-muted">BTW {BEDRIJF.btw}</p>
+                  <p className="font-mono text-xs text-muted">IBAN {BANK.iban}</p>
                 </div>
                 {(ref?.client_name ||
                   ref?.client_company ||
@@ -795,6 +762,12 @@ export default async function PortalInvoices({
                     </strong>
                   </p>
                 )}
+                {!paid && (
+                  <p className="mt-1 text-xs text-muted">
+                    IBAN <span className="font-mono text-foreground">{BANK.iban}</span> · {l.commL}{" "}
+                    <strong className="font-mono text-foreground">{structuredComm(i.number, i.ogm)}</strong>
+                  </p>
+                )}
                 {paid && (
                   <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
                     <span className="inline-flex -rotate-3 items-center gap-2 rounded-lg border-2 border-green-600 px-4 py-2 text-base font-extrabold uppercase tracking-widest text-green-600">
@@ -812,19 +785,12 @@ export default async function PortalInvoices({
                 )}
               </div>
 
-              {/* Voorwaarden — print mee met de factuur */}
-              <div className="mt-6 rounded-xl border bg-background p-5 text-sm shadow-sm">
-                <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-                  {l.termsTitle}
-                </p>
-                <p className="text-xs leading-relaxed text-muted">
-                  {isProject ? l.pTerms : l.terms}
-                </p>
-              </div>
+              {/* Voorwaarden — print mee met de factuur, op hetzelfde blad */}
+              <FactuurVoorwaarden taal={locale} soort={isProject ? "uurwerk" : "website"} />
 
               {/* Betaalkeuze — Mollie vs overschrijving */}
               {!paid && (
-                <div className="mt-12 border-t pt-10">
+                <div className="no-print mt-12 border-t pt-10">
                   {oDiscount > 0 && (
                     <div className="-mx-1 mb-5 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white">
                       ⚡ {l.promoInv}

@@ -5,6 +5,7 @@ import { sendMail } from "@/lib/monitor";
 import { getCompanySettings } from "@/lib/admin/settings";
 import { factuurBedrag, factuurTaal, type KlantFactuur } from "@/lib/factuur-klant";
 import { betaalHerinneringMail } from "@/lib/klant-mails";
+import { verwijlinterest } from "@/lib/facturatie/rente";
 import type { Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
@@ -76,13 +77,20 @@ export async function GET(req: NextRequest) {
       taal = await factuurTaal(i, b?.quoteId ?? null);
       talen.set(sleutel, taal);
     }
+    // Verwijlinterest (wet 2 augustus 2002) tot vandaag, Belgische datum.
+    // null = rentevoet van dit semester nog niet in de tabel: de mail noemt
+    // dan geen percentage.
+    const bedragCent = b?.totaalCent ?? i.amount_cents;
+    const vandaag = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Brussels" });
+    const rente = overdueDays >= 1 ? verwijlinterest(bedragCent, dueISO, vandaag) : undefined;
     const ok = await sendMail(
       i.client_email,
       betaalHerinneringMail(taal, target as 1 | 2 | 3, {
         nummer: i.number,
-        bedragCent: b?.totaalCent ?? i.amount_cents,
+        bedragCent,
         btw: !b || !b.metBtw ? "geen" : b.verlegd ? "verlegd" : "incl",
         dueAt: dueISO,
+        rente,
       }),
     );
     if (!ok) continue;

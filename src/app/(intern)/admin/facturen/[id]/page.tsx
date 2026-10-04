@@ -6,8 +6,11 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setInvoiceStatus } from "@/app/actions/portal-admin";
 import { PrintButton } from "@/components/print-button";
-import { structuredComm } from "@/lib/bank";
+import { BANK, structuredComm } from "@/lib/bank";
 import { btwVermelding, regimeVan } from "@/lib/facturatie/btw";
+import { FactuurVoorwaarden } from "@/components/factuur-voorwaarden";
+import { FACTUUR_AFDRUK_CSS } from "@/lib/facturatie/afdruk";
+import { BEDRIJF } from "@/lib/bedrijf";
 
 export const dynamic = "force-dynamic";
 
@@ -61,17 +64,6 @@ const d = (s: string | null) =>
       })
     : "—";
 
-const PRINT_CSS = `@page { margin: 18mm 14mm; }
-@media print {
-  html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-  html, body { background: #fff !important; }
-  body * { visibility: hidden !important; }
-  #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 0 !important; }
-  .no-print { display: none !important; }
-  .doc { border: none !important; box-shadow: none !important; }
-}`;
 
 export default async function AdminInvoiceDoc({
   params,
@@ -149,7 +141,7 @@ export default async function AdminInvoiceDoc({
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: FACTUUR_AFDRUK_CSS }} />
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/facturen"
@@ -226,7 +218,11 @@ export default async function AdminInvoiceDoc({
                 Van
               </p>
               <p className="font-medium">Studio VM — Vincent Montreuil</p>
-              <p className="text-muted">studio-vm.be</p>
+              <p className="text-muted">
+                {BEDRIJF.straat}, {BEDRIJF.postcode} {BEDRIJF.gemeente}
+              </p>
+              <p className="font-mono text-xs text-muted">BTW {BEDRIJF.btw}</p>
+              <p className="font-mono text-xs text-muted">IBAN {BANK.iban}</p>
             </div>
             <div className="rounded-xl border bg-background p-4 text-sm shadow-sm">
               <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -418,35 +414,7 @@ export default async function AdminInvoiceDoc({
             )}
           </div>
 
-          <div className="mt-6 rounded-xl border bg-background p-5 text-sm shadow-sm">
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Voorwaarden
-            </p>
-            {isProject ? (
-              <p className="text-xs leading-relaxed text-muted">
-                Uurtarief excl. btw, op basis van de werkelijk gepresteerde
-                uren (minimum 1 uur). Revisies na planwijzigingen worden aan
-                hetzelfde uurtarief aangerekend. De modelbestanden worden in
-                het klantenportaal vrijgegeven zodra deze factuur betaald is.
-                Alle betalingen verlopen via het beveiligde klantenportaal.
-                Volledige voorwaarden: studio-vm.be/nl/voorwaarden.
-              </p>
-            ) : (
-              <p className="text-xs leading-relaxed text-muted">
-                Betaling: 30% voorschot om te starten, de resterende 70%
-                vóór de site live gaat. Alle betalingen verlopen
-                uitsluitend via het beveiligde klantenportaal — geen
-                uitzonderingen. Het onderhoudsabonnement heeft een
-                minimumlooptijd van 1 jaar en wordt, zonder schriftelijke
-                opzegging minstens 1 maand vóór het einde van de
-                jaarperiode, telkens stilzwijgend met één jaar verlengd.
-                Domein &amp; e-mail (overname/verlenging) zijn ten laste
-                van de klant en worden, afhankelijk van het geval, op de
-                slotfactuur verrekend. Volledige voorwaarden:
-                studio-vm.be/nl/voorwaarden.
-              </p>
-            )}
-          </div>
+          <FactuurVoorwaarden taal="nl" soort={isProject ? "uurwerk" : "website"} />
         </article>
       </div>
     </>

@@ -5,6 +5,8 @@ import { getCompanySettings } from "@/lib/admin/settings";
 import { PrintButton } from "@/components/print-button";
 import { BANK, structuredComm } from "@/lib/bank";
 import { btwLabel, btwVermelding, regimeVan } from "@/lib/facturatie/btw";
+import { FactuurVoorwaarden } from "@/components/factuur-voorwaarden";
+import { FACTUUR_AFDRUK_CSS } from "@/lib/facturatie/afdruk";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -24,6 +26,8 @@ type Inv = {
   vat_reverse?: boolean | null;
   btw_regime?: string | null;
   ogm?: string | null;
+  id?: string;
+  ticket_id?: string | null;
 };
 
 const eur = (c: number) =>
@@ -33,17 +37,6 @@ const eur = (c: number) =>
     maximumFractionDigits: 2,
   });
 
-const PRINT_CSS = `@page { margin: 18mm 14mm; }
-@media print {
-  html { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-  html, body { background: #fff !important; }
-  body * { visibility: hidden !important; }
-  #print-area, #print-area * { visibility: visible !important; }
-  #print-area { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; padding: 0 !important; }
-  .no-print { display: none !important; }
-  .doc { border: none !important; box-shadow: none !important; }
-}`;
 
 const L = {
   nl: {
@@ -152,6 +145,13 @@ export default async function PublicInvoice({
   if (!i) notFound();
 
   const settings = await getCompanySettings();
+  // 3D-werk (project of revisie bij een ticket) → uurwerkvoorwaarden; anders
+  // een oude websitefactuur. Zelfde regel als in het beheer en het portaal.
+  let uurwerk = !!i.ticket_id || typeof i.vat_reverse === "boolean";
+  if (!uurwerk && i.id) {
+    const { data: pr } = await getSupabaseAdmin().from("projecten").select("id").eq("invoice_id", i.id).limit(1);
+    uurwerk = !!pr?.length;
+  }
   const regime = regimeVan(i);
   const vat = regime === "binnenland" ? Math.round(i.amount_cents * 0.21) : 0;
   const incl = i.amount_cents + vat;
@@ -169,7 +169,7 @@ export default async function PublicInvoice({
 
   return (
     <main>
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: FACTUUR_AFDRUK_CSS }} />
 
       <div className="no-print border-b">
         <div className="mx-auto flex max-w-3xl items-center justify-end px-6 py-4">
@@ -304,6 +304,8 @@ export default async function PublicInvoice({
               </dl>
             </div>
           )}
+
+          <FactuurVoorwaarden taal={locale} soort={uurwerk ? "uurwerk" : "website"} />
 
           {/* Paid stamp */}
           {i.status === "betaald" && (
