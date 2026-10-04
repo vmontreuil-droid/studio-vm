@@ -8,6 +8,7 @@ import { betaalHerinneringMail } from "@/lib/klant-mails";
 import { verwijlinterest } from "@/lib/facturatie/rente";
 import { logBewijs } from "@/lib/invordering/bewijslog";
 import { zetDossiersKlaar } from "@/lib/invordering/klaarzetten";
+import { haalRevolutOp } from "@/lib/revolut";
 import type { Locale } from "@/lib/i18n/config";
 import { betaalLink, zorgVoorToken } from "@/lib/facturatie/online-betalen";
 
@@ -42,6 +43,10 @@ export async function GET(req: NextRequest) {
   ) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+
+  // Eerst de betalingen van Revolut ophalen: wie gisteren betaalde, krijgt
+  // vandaag geen herinnering (stil overgeslagen zolang niet gekoppeld).
+  const revolut = await haalRevolutOp().catch(() => null);
 
   const db = getSupabaseAdmin();
   const s = await getCompanySettings();
@@ -140,5 +145,5 @@ export async function GET(req: NextRequest) {
     console.error("[invordering] klaarzetten mislukt:", e);
   }
 
-  return NextResponse.json({ ok: true, sent, overdueFlagged, invordering });
+  return NextResponse.json({ ok: true, revolut, sent, overdueFlagged, invordering });
 }

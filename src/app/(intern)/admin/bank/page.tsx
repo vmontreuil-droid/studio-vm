@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { BankImporter } from "@/components/bank-importer";
+import { RevolutKoppeling } from "@/components/admin/revolut-koppeling";
 import {
   matchTransaction,
   setTransactionStatus,
@@ -23,8 +24,13 @@ type Tx = {
   status: string;
 };
 
-export default async function AdminBank() {
+export default async function AdminBank({
+  searchParams,
+}: {
+  searchParams: Promise<{ revolut?: string; nieuw?: string; gekoppeld?: string }>;
+}) {
   if (!adminConfigured || !(await requireAdmin())) return null;
+  const zoek = await searchParams;
   const db = getSupabaseAdmin();
 
   const [{ data: txData }, { data: invData }] = await Promise.all([
@@ -105,6 +111,10 @@ export default async function AdminBank() {
       </div>
 
       <div className="mt-6">
+        <RevolutKoppeling melding={zoek.revolut} nieuw={zoek.nieuw} gekoppeld={zoek.gekoppeld} />
+      </div>
+
+      <div className="mt-3">
         <BankImporter />
       </div>
 
