@@ -70,7 +70,7 @@ export default async function Wachtrij({ searchParams }: { searchParams: Promise
 
   // Welke vaste plaatsen nog leeg zijn en nog niet voorbij.
   const ma = maandagVan(week);
-  const bezet = new Set(posts.map((p) => p.notes?.match(new RegExp(`slot:${week}-(\\w+)`))?.[1]).filter(Boolean));
+  const bezet = new Set(posts.map((p) => p.notes?.match(new RegExp(`slot:${week}-([\\w-]+)`))?.[1]).filter(Boolean));
   const open = WEEK_SLOTS.filter((s) => {
     const d = plusDagenDatum(ma, s.dagNaMaandag);
     return !bezet.has(s.id) && brusselsNaarUtc(d.jaar, d.maand, d.dag, s.uur).getTime() > nu.getTime() + 30 * 60_000;
@@ -86,9 +86,7 @@ export default async function Wachtrij({ searchParams }: { searchParams: Promise
     perDag.set(k, [...(perDag.get(k) ?? []), p]);
   }
   const w = parseWeek(week)!;
-  const thema = (WEEK_SLOTS.filter((s) => s.plaats === "feed") as Array<(typeof WEEK_SLOTS)[number]>)
-    .map((s) => POST_TYPE_LABEL[soortVoorFeed(w.week, s.feed ?? 0)])
-    .join(", ");
+  const thema = [...new Set(WEEK_SLOTS.filter((s) => s.plaats === "feed").map((s) => POST_TYPE_LABEL[soortVoorFeed(w.week, s.feed ?? 0)]))].join(", ");
   const wachtend = posts.filter((p) => p.status === "concept" && p.goedkeuring_nodig).length;
 
   return (
@@ -144,7 +142,7 @@ export default async function Wachtrij({ searchParams }: { searchParams: Promise
           )}
         </div>
         <ul className="mt-3 grid gap-1 text-[13px] text-muted sm:grid-cols-2">
-          {WEEK_SLOTS.map((s) => (
+          {WEEK_SLOTS.filter((s) => s.plaats !== "story").map((s) => (
             <li key={s.id} className="flex items-center gap-2">
               <CalendarClock className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
               <span className={bezet.has(s.id) ? "text-foreground" : ""}>{s.label}</span>

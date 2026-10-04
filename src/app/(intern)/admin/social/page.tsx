@@ -202,7 +202,7 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
             Contentmachine
           </p>
           <ul className="mt-3 space-y-1.5 text-[13px]">
-            {WEEK_SLOTS.map((s) => (
+            {WEEK_SLOTS.filter((s) => s.plaats !== "story").map((s) => (
               <li key={s.id} className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted" strokeWidth={2} />
                 {s.label}
@@ -210,9 +210,8 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
             ))}
           </ul>
           <p className="mt-3 text-xs text-muted">
-            Gepland op maandag 07:00 (zomer 08:00). Drie berichten per week op alle feeds (maandag realisatie, woensdag
-            tip of kennis, vrijdag uitdaging, aanbod of tip), Nederlands en Frans om de beurt, plus een Google-bericht en
-            een story.
+            Gepland op maandag 07:00 (zomer 08:00). Elke dag om 12:00 een bericht op alle feeds, met dezelfde boodschap
+            als story; Nederlands en Frans om de beurt. Dinsdag en vrijdag ook een Google-bericht.
           </p>
           <div className="mt-4 border-t border-border pt-4">
             <AutoSchakelaar aan={stand.allesAutomatisch} terug={terug} />
