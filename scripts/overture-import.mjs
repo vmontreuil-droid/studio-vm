@@ -90,7 +90,7 @@ const schoneSite = (u) => {
 };
 const schoneMail = (m) => (typeof m === "string" && /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(m.trim()) ? m.trim().toLowerCase() : null);
 
-for (const land of ["nl", "de"]) {
+for (const land of (process.env.LANDEN || "nl,de").split(",")) {
   const rijen = (await db.runAndReadAll(`SELECT * FROM d WHERE land = '${land}' AND nace IS NOT NULL`)).getRowObjectsJson();
   const tabel = `${land}_bedrijven`;
   let klaar = 0;
@@ -115,9 +115,16 @@ for (const land of ["nl", "de"]) {
         updated_at: new Date().toISOString(),
       }))
       .filter((r) => r.website && r.name);
-    const { error } = await sb.from(tabel).upsert(deel, { onConflict: "id" });
-    if (error) {
-      console.error(`${tabel}: FOUT bij rij ${i}:`, error.message);
+    // Tot vier pogingen: een haperende verbinding mag de import niet halverwege stoppen.
+    let fout = null;
+    for (let poging = 1; poging <= 4; poging++) {
+      const { error } = await sb.from(tabel).upsert(deel, { onConflict: "id" });
+      fout = error;
+      if (!error) break;
+      await new Promise((z) => setTimeout(z, 2000 * poging));
+    }
+    if (fout) {
+      console.error(`${tabel}: FOUT bij rij ${i}:`, fout.message);
       process.exit(1);
     }
     klaar += deel.length;

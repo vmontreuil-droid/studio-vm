@@ -146,5 +146,8 @@ $$;
 -- policies, dus anon/authenticated zien er sowieso niets van.
 revoke all on function public.claim_nl_for_scan(integer, text, text, text, text, boolean) from public;
 revoke all on function public.claim_de_for_scan(integer, text, text, text, text, boolean) from public;
+-- Supabase geeft nieuwe functies standaard ook aan anon/authenticated: expliciet intrekken.
+revoke execute on function public.claim_nl_for_scan(integer, text, text, text, text, boolean) from anon, authenticated;
+revoke execute on function public.claim_de_for_scan(integer, text, text, text, text, boolean) from anon, authenticated;
 grant execute on function public.claim_nl_for_scan(integer, text, text, text, text, boolean) to service_role;
 grant execute on function public.claim_de_for_scan(integer, text, text, text, text, boolean) to service_role;
