@@ -248,12 +248,12 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <TaalLinks current={locale} />
             <div className="flex flex-wrap items-center gap-4 lg:justify-end">
               <p className="font-mono text-muted">{t.footer.built}</p>
-              {/* Klein en onopvallend linkje naar het beheer (Vincent, 4/10). Gewone <a>:
-                  geen prefetch van /admin; robots.txt sluit /admin al uit. De aanmelding
+              {/* Klein en onopvallend linkje naar het beheer (Vincent, 4/10). Zonder
+                  prefetch van /admin; robots.txt sluit /admin al uit. De aanmelding
                   zelf blijft beschermd (wachtwoord, tweestaps, blokkering na 5 fouten). */}
-              <a href="/admin" rel="nofollow" className="font-mono text-muted opacity-60 transition-opacity hover:opacity-100">
+              <Link href="/admin" prefetch={false} rel="nofollow" className="font-mono text-muted opacity-60 transition-opacity hover:opacity-100">
                 {BEHEER[locale]}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
