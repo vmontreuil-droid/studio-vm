@@ -646,14 +646,14 @@ Et avant de commencer : toujours contrôler sur un point connu, en plan et en al
         body: `Steeds meer aannemers werken over de grens. Elk land heeft zijn eigen coördinatenstelsel en hoogtereferentie, en de machine moet exact hetzelfde gebruiken als het model.
 
 De stelsels die we het vaakst tegenkomen:
-• België: Lambert 72 of 2008, hoogte TAW/DNG
+• België: Lambert 72, hoogte TAW/DNG
 • Nederland: RD New, hoogte NAP
 • Frankrijk: Lambert-93 of CC42–CC50, hoogte NGF-IGN69
 • Duitsland: ETRS89 / UTM 32 of 33, hoogte DHHN2016
 • Luxemburg: LUREF, hoogte NG95
 
 Staat het stelsel niet op het plan? Dan stellen we er één voor op basis van de ligging van de werf, en vragen we uw bevestiging vóór we beginnen.`,
-        kort: "Werf over de grens? België: Lambert 72/2008 en TAW. Nederland: RD en NAP. Frankrijk: Lambert-93 en IGN69. Machine en model moeten hetzelfde stelsel gebruiken.",
+        kort: "Werf over de grens? België: Lambert 72 en TAW. Nederland: RD en NAP. Frankrijk: Lambert-93 en IGN69. Machine en model moeten hetzelfde stelsel gebruiken.",
         tags: nl("#GNSS"),
       }),
       fr: () => ({
@@ -661,28 +661,28 @@ Staat het stelsel niet op het plan? Dan stellen we er één voor op basis van de
         body: `De plus en plus d'entreprises travaillent au-delà des frontières. Chaque pays a son système de coordonnées et sa référence altimétrique, et la machine doit utiliser exactement les mêmes que le modèle.
 
 Les systèmes que nous rencontrons le plus souvent :
-• Belgique : Lambert 72 ou 2008, altitudes DNG/TAW
+• Belgique : Lambert 72, altitudes DNG/TAW
 • France : Lambert-93 ou CC42–CC50, altitudes NGF-IGN69
 • Luxembourg : LUREF, altitudes NG95
 • Pays-Bas : RD New, altitudes NAP
 • Allemagne : ETRS89 / UTM 32 ou 33, altitudes DHHN2016
 
 Le système ne figure pas sur le plan ? Nous en proposons un selon la position du chantier et demandons votre confirmation avant de commencer.`,
-        kort: "Chantier à l'étranger ? Belgique : Lambert 72/2008 et DNG. France : Lambert-93 et IGN69. Luxembourg : LUREF et NG95. Machine et modèle doivent utiliser le même système.",
+        kort: "Chantier à l'étranger ? Belgique : Lambert 72 et DNG. France : Lambert-93 et IGN69. Luxembourg : LUREF et NG95. Machine et modèle doivent utiliser le même système.",
         tags: fr("#GNSS"),
       }),
     },
     dias: {
       nl: [
         { kop: "Werf over de grens?", tekst: "Elk land zijn stelsel en zijn hoogtereferentie." },
-        { kop: "België", tekst: "Lambert 72 of 2008, hoogte TAW/DNG." },
+        { kop: "België", tekst: "Lambert 72, hoogte TAW/DNG." },
         { kop: "Nederland", tekst: "RD New, hoogte NAP." },
         { kop: "Frankrijk", tekst: "Lambert-93 of CC42–CC50, hoogte NGF-IGN69." },
         { kop: "Duitsland en Luxemburg", tekst: "ETRS89 / UTM 32 of 33 en DHHN2016; LUREF en NG95." },
       ],
       fr: [
         { kop: "Un chantier à l'étranger ?", tekst: "Chaque pays a son système et sa référence altimétrique." },
-        { kop: "Belgique", tekst: "Lambert 72 ou 2008, altitudes DNG/TAW." },
+        { kop: "Belgique", tekst: "Lambert 72, altitudes DNG/TAW." },
         { kop: "France", tekst: "Lambert-93 ou CC42–CC50, altitudes NGF-IGN69." },
         { kop: "Luxembourg", tekst: "LUREF, altitudes NG95." },
         { kop: "Pays-Bas et Allemagne", tekst: "RD New et NAP ; ETRS89 / UTM 32 ou 33 et DHHN2016." },
