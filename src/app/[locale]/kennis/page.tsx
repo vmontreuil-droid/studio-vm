@@ -7,7 +7,7 @@ import { KENNIS_ICONEN as ICONEN } from "@/lib/kennis-iconen";
 import { KOPBEELD } from "@/components/kennis-illustraties";
 import { KENNIS } from "@/lib/kennis";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { KRUIMEL, canoniek, paginaMeta } from "@/lib/seo";
+import { KRUIMEL, canoniek, ogBeeld, paginaMeta } from "@/lib/seo";
 import { siteNodes, kruimels, webPagina, itemLijst, graph } from "@/lib/schema";
 import { Broodkruimel } from "@/components/broodkruimel";
 import { JsonLd } from "@/components/json-ld";
@@ -53,7 +53,7 @@ const T: Record<Locale, { meta: { title: string; description: string }; eyebrow:
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return paginaMeta(locale, "/kennis", T[locale].meta);
+  return paginaMeta(locale, "/kennis", { ...T[locale].meta, ogBeeld: ogBeeld(locale, "kennis") });
 }
 
 export default async function KennisPage({ params }: { params: Promise<{ locale: string }> }) {

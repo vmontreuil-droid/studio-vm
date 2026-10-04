@@ -29,7 +29,8 @@ export const PAGINA_BIJGEWERKT: Record<
   "/kennis": VANDAAG,
   "/over": VANDAAG,
   "/voorwaarden": VANDAAG,
-  "/privacy": VANDAAG,
+  // 3/10: bezoekstatistieken met UTM, herkomst van aanvragen, sociale media.
+  "/privacy": "2026-10-03",
   "/cookies": VANDAAG,
 };
 

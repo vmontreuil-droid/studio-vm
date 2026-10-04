@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { SITE, canoniek, HOME_LABEL } from "./seo";
-import { BEDRIJF } from "./bedrijf";
+import { BEDRIJF, socialProfielen } from "./bedrijf";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro } from "./tarieven";
 import { LANDEN } from "./stelsel";
 import { getMessages } from "./i18n";
@@ -206,6 +206,8 @@ const isHome = (pad: string) => pad === "" || pad === "/";
 export function siteNodes(l: Locale, opts?: { metDienst?: boolean }): Node[] {
   const m = getMessages(l);
   const logo = `${SITE}/logo-square-light.png`;
+  // Profielen op sociale media en het Google-bedrijfsprofiel (lib/bedrijf).
+  const sameAs = socialProfielen().map((p) => p.url);
 
   const bedrijf: Node = {
     "@type": "LocalBusiness",
@@ -246,6 +248,7 @@ export function siteNodes(l: Locale, opts?: { metDienst?: boolean }): Node[] {
     ],
     knowsAbout: [...KNOWS[l], ...MERKEN],
     knowsLanguage: TALEN,
+    ...(sameAs.length ? { sameAs } : {}),
     ...(opts?.metDienst ? { hasOfferCatalog: { "@id": ID.tarieven } } : {}),
   };
 

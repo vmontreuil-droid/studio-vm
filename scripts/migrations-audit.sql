@@ -89,6 +89,7 @@ with checks as (
       where table_schema = 'public' and table_name = 'invoices'
         and column_name = 'client_name'
     )
+
   union all select
     '0049_tickets_compleet.sql',
     'tickets compleet: soort/project/volgnummer/ongelezen + bijlagen, notities, revisie-uren, invoices.ticket_id/vat_reverse',
@@ -107,6 +108,31 @@ with checks as (
         and column_name = 'vat_reverse'
     )
 
+  union all select
+    '0050_social_automatisch.sql',
+    'social automatisch: post_type/taal/goedkeuring/media/kanalen/publicatie/link_post/slot op social_posts, goedkeur_tokens, page_views.utm_content, bucket social-media',
+    exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'social_posts'
+        and column_name = 'post_type'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'social_posts'
+        and column_name = 'slot'
+    )
+    and exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'goedkeur_tokens'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'page_views'
+        and column_name = 'utm_content'
+    )
+    and exists(
+      select 1 from storage.buckets where id = 'social-media'
+    )
   union all select
     '0051_facturatie_waterdicht.sql',
     'facturatie: doorlopende nummers per jaar (documentnummers + triggers), gestructureerde mededeling, btw-regime',

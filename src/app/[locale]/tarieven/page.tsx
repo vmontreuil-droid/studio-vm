@@ -5,7 +5,7 @@ import { Clock, Zap, CalendarCheck, Check, ShieldAlert, FileUp, ArrowRight } fro
 import { JsonLd } from "@/components/json-ld";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
-import { KRUIMEL, paginaMeta } from "@/lib/seo";
+import { KRUIMEL, ogBeeld, paginaMeta } from "@/lib/seo";
 import { ID, dienstNodes, graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
 import { kennisArtikel } from "@/lib/kennis";
 
@@ -238,7 +238,7 @@ const T: Record<
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return paginaMeta(locale, PAD, meta(locale));
+  return paginaMeta(locale, PAD, { ...meta(locale), ogBeeld: ogBeeld(locale, "tarieven") });
 }
 
 // Verder lezen onder de offerteknop: twee kennisartikels en de voorwaarden.

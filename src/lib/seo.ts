@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LOCALES, type Locale } from "./i18n/config";
+import { ogBeeld as merkOgBeeld, type PaginaSleutel } from "./social/paginakaart";
 
 // Het eindadres van de site: studio-vm.be stuurt door naar www, dus
 // canonieke en hreflang-adressen wijzen rechtstreeks naar www.
@@ -139,11 +140,20 @@ export const KRUIMEL: Record<KruimelPad, Record<Locale, string>> = {
   },
 };
 
+/**
+ * Deelbeeld (og:image) van een pagina: JPEG 1200×630 met een echte render,
+ * op /beeld/og/… met ?v=<inhoudshash>. Zie src/lib/social/paginakaart.ts.
+ */
+export function ogBeeld(locale: Locale, pagina: PaginaSleutel): { url: string; alt: string } {
+  return merkOgBeeld(locale, pagina);
+}
+
 export type PaginaMetaOpties = {
   /** De VOLLEDIGE titel zoals hij getoond wordt, inclusief " | Studio VM". */
   title: string;
   description: string;
   type?: "website" | "article";
+  /** Eigen deelbeeld (1200×630); zonder: de merkkaart van de startpagina. */
   ogBeeld?: { url: string; alt: string };
   robots?: Metadata["robots"];
   publishedTime?: string;
@@ -161,6 +171,7 @@ export type PaginaMetaOpties = {
  * zelf aan uit openGraph.
  */
 export function paginaMeta(locale: Locale, pad: string, o: PaginaMetaOpties): Metadata {
+  const beeld = o.ogBeeld ?? ogBeeld(locale, "home");
   const basis = {
     url: canoniek(locale, pad),
     title: o.title,
@@ -170,10 +181,12 @@ export function paginaMeta(locale: Locale, pad: string, o: PaginaMetaOpties): Me
     alternateLocale: LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALE[l]),
     images: [
       {
-        url: o.ogBeeld?.url ?? `/${locale}/opengraph-image`,
+        url: beeld.url,
         width: 1200,
         height: 630,
-        alt: o.ogBeeld?.alt ?? OG_ALT[locale],
+        alt: beeld.alt,
+        // Merkkaarten zijn JPEG; oudere opengraph-image-adressen ook.
+        type: "image/jpeg",
       },
     ],
   };

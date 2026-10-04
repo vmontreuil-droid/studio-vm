@@ -7,7 +7,7 @@ import { CtaBanner } from "@/components/cta-banner";
 import { JsonLd } from "@/components/json-ld";
 import { getMessages } from "@/lib/i18n";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { KRUIMEL, paginaMeta } from "@/lib/seo";
+import { KRUIMEL, ogBeeld, paginaMeta } from "@/lib/seo";
 import { ID, dienstNodes, graph, kruimels, siteNodes, webPagina } from "@/lib/schema";
 import { BEELD_ALT } from "@/lib/realisaties";
 import { kennisArtikel } from "@/lib/kennis";
@@ -370,7 +370,7 @@ function kennisTitel(slug: string, l: Locale): string {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  return paginaMeta(locale, PAD, T[locale].meta);
+  return paginaMeta(locale, PAD, { ...T[locale].meta, ogBeeld: ogBeeld(locale, "3d-modellen") });
 }
 
 export default async function ModellenPage({ params }: { params: Promise<{ locale: string }> }) {

@@ -5,11 +5,11 @@ import { Logo } from "@/components/logo";
 import { TaalLinks } from "@/components/taal-links";
 import { getMessages } from "@/lib/i18n";
 import { localePath, type Locale } from "@/lib/i18n/config";
-import { BEDRIJF, LAND, identiteitsregel } from "@/lib/bedrijf";
+import { BEDRIJF, LAND, identiteitsregel, socialProfielen } from "@/lib/bedrijf";
+import { MerkIcoon } from "@/components/merk-iconen";
 
-// Geen LinkedIn-icoon: BEDRIJF.linkedin is een persoonlijk profiel en de site
-// spreekt enkel als Studio VM (naam alleen in de wettelijke identiteitsregel).
-// Terugzetten zodra er een Studio VM-bedrijfspagina is.
+// Iconen naar de profielen van Studio VM: elk ingevuld profiel uit SOCIAL
+// (lib/bedrijf), kaal adres zonder UTM, rel="me" voor de profielverificatie.
 
 const FL: Record<
   Locale,
@@ -26,6 +26,8 @@ const FL: Record<
     over: string;
     voorwaarden: string;
     bereikbaar: string;
+    /** "Studio VM op Facebook" */
+    op: string;
   }
 > = {
   nl: {
@@ -41,6 +43,7 @@ const FL: Record<
     over: "Over",
     voorwaarden: "Algemene voorwaarden",
     bereikbaar: "Altijd bereikbaar",
+    op: "op",
   },
   fr: {
     dienst: "Modèles 3D",
@@ -55,6 +58,7 @@ const FL: Record<
     over: "À propos",
     voorwaarden: "Conditions générales",
     bereikbaar: "Toujours joignable",
+    op: "sur",
   },
   en: {
     dienst: "3D models",
@@ -69,6 +73,7 @@ const FL: Record<
     over: "About",
     voorwaarden: "Terms & conditions",
     bereikbaar: "Always reachable",
+    op: "on",
   },
   de: {
     dienst: "3D-Modelle",
@@ -83,6 +88,7 @@ const FL: Record<
     over: "Über uns",
     voorwaarden: "Allgemeine Geschäftsbedingungen",
     bereikbaar: "Jederzeit erreichbar",
+    op: "auf",
   },
   es: {
     dienst: "Modelos 3D",
@@ -97,6 +103,7 @@ const FL: Record<
     over: "Acerca de",
     voorwaarden: "Condiciones generales",
     bereikbaar: "Siempre disponible",
+    op: "en",
   },
 };
 
@@ -187,14 +194,28 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                 <span>{fl.bereikbaar}</span>
               </p>
             </div>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href={`mailto:${BEDRIJF.email}`}
                 aria-label="E-mail"
-                className="rounded-full border p-2 text-muted transition-colors hover:text-foreground"
+                title="E-mail"
+                className="rounded-full border p-2 text-muted transition-colors hover:border-muted-foreground! hover:text-foreground"
               >
                 <Mail className="h-4 w-4" strokeWidth={1.5} />
               </a>
+              {socialProfielen().map((p) => (
+                <a
+                  key={p.platform}
+                  href={p.url}
+                  target="_blank"
+                  rel="me noopener"
+                  aria-label={`${BEDRIJF.naam} ${fl.op} ${p.naam}`}
+                  title={p.naam}
+                  className="rounded-full border p-2 text-muted transition-colors hover:border-muted-foreground! hover:text-foreground"
+                >
+                  <MerkIcoon merk={p.platform} />
+                </a>
+              ))}
             </div>
           </div>
 

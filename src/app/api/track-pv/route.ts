@@ -2,14 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
+import { schoneUtm, utmContentOntbreekt } from "@/lib/utm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Privacy-light bezoekers-tracker — accepteert anonieme page-view-pings van
-// een client-component (PageViewTracker). Geen cookies, geen IP-opslag —
-// alleen een dagelijks-geroteerde sha256-hash van ip+ua zodat we per dag
-// 'unieke bezoekers' kunnen tellen zonder iemand te kunnen identificeren.
+// Zout van de dagcode. Uit een geheime omgevingsvariabele, zodat wie de
+// broncode en de tabel heeft een dagcode niet kan narekenen uit een
+// IP-adres. Zonder variabele de vroegere vaste waarde (zelfde dagcodes als
+// voorheen). Wissel het zout niet midden op een dag: dan telt één bezoeker
+// die dag dubbel.
+const DAGCODE_ZOUT = process.env.PV_HASH_SALT || "svm-pv-2026";
+
+// Wissen na de bewaartermijn gebeurt hier bewust niet (publieke route): zie
+// /api/cron/bezoek-opruimen.
+
+// Kolom page_views.utm_content komt met migratie 0050. Tot die gedraaid is,
+// faalt een insert met utm_content; dan bewaren we de rij zonder en proberen
+// we het pas na KOLOM_HERTEST opnieuw (geen deploy nodig na de migratie).
+const KOLOM_HERTEST = 10 * 60_000;
+let utmContentOntbreektSinds = 0;
+
+// Privacy-light bezoekers-tracker — accepteert page-view-pings van een
+// client-component (PageViewTracker). Geen cookies, geen IP-opslag — alleen
+// een dagcode (sha256 van ip+ua+dag+zout, ingekort) zodat we per dag 'unieke
+// bezoekers' kunnen tellen. UTM-schema: src/lib/utm.ts.
 export async function POST(req: NextRequest) {
   if (!adminConfigured) return NextResponse.json({ ok: true });
   // Lokale ontwikkeling niet meetellen: de dev-server schrijft anders in de
@@ -32,6 +49,7 @@ export async function POST(req: NextRequest) {
           utm_source?: string | null;
           utm_medium?: string | null;
           utm_campaign?: string | null;
+          utm_content?: string | null;
         }
       | null;
     if (!body) return NextResponse.json({ ok: true });
@@ -76,28 +94,41 @@ export async function POST(req: NextRequest) {
     const day = new Date().toISOString().slice(0, 10);
     const visitorHash = crypto
       .createHash("sha256")
-      .update(`${ip}|${ua}|${day}|svm-pv-2026`)
+      .update(`${ip}|${ua}|${day}|${DAGCODE_ZOUT}`)
       .digest("hex")
       .slice(0, 16);
 
-    // UTM-velden — lichte sanitatie
-    const cleanUtm = (v: unknown) => {
-      if (!v) return null;
-      const s = String(v).slice(0, 80).replace(/[^a-zA-Z0-9_\-\.]/g, "");
-      return s || null;
-    };
-
-    await getSupabaseAdmin().from("page_views").insert({
+    const db = getSupabaseAdmin();
+    const rij = {
       path,
       locale,
       referrer,
       visitor_hash: visitorHash,
       ua_family: uaFamily,
       country,
-      utm_source: cleanUtm(body.utm_source),
-      utm_medium: cleanUtm(body.utm_medium),
-      utm_campaign: cleanUtm(body.utm_campaign),
-    });
+      utm_source: schoneUtm(body.utm_source),
+      utm_medium: schoneUtm(body.utm_medium),
+      utm_campaign: schoneUtm(body.utm_campaign),
+    };
+    // utm_content (bericht-id) enkel meesturen als er een is én de kolom
+    // bestaat; anders zou elke ping de ontbrekende kolom raken.
+    const utmContent = schoneUtm(body.utm_content, { kleineLetters: false });
+    const probeerContent =
+      !!utmContent && Date.now() - utmContentOntbreektSinds > KOLOM_HERTEST;
+
+    if (probeerContent) {
+      const { error } = await db
+        .from("page_views")
+        .insert({ ...rij, utm_content: utmContent });
+      if (utmContentOntbreekt(error)) {
+        utmContentOntbreektSinds = Date.now();
+        await db.from("page_views").insert(rij);
+      } else if (!error) {
+        utmContentOntbreektSinds = 0;
+      }
+    } else {
+      await db.from("page_views").insert(rij);
+    }
 
     return NextResponse.json({ ok: true });
   } catch {

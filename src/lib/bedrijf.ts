@@ -22,6 +22,56 @@ export const BEDRIJF = {
   btwCompact: "BE0672960066",
 } as const;
 
+// Profielen van Studio VM op sociale media en platformen, in de volgorde van
+// de footer. Een lege tekst = (nog) geen profiel: de footer en sameAs in de
+// gestructureerde gegevens slaan het dan over. De privacyverklaring noemt
+// de platformen in vaste tekst ("heeft, of opent binnenkort, …") en
+// verwijst voor de bestaande profielen naar de footer.
+// Altijd het kale profieladres, zonder UTM (rel="me" en sameAs moeten exact
+// naar het profiel wijzen). Geen LinkedIn: Studio VM is er niet.
+export type SocialPlatform =
+  | "facebook"
+  | "instagram"
+  | "google"
+  | "youtube"
+  | "tiktok"
+  | "pinterest"
+  | "x"
+  | "threads"
+  | "bluesky";
+
+export const SOCIAL: Record<SocialPlatform, string> = {
+  facebook: "https://www.facebook.com/profile.php?id=61590220986288",
+  instagram: "",
+  // Google-bedrijfsprofiel: de Maps-link (https://maps.google.com/?cid=…)
+  google: "",
+  youtube: "",
+  tiktok: "",
+  pinterest: "",
+  x: "",
+  threads: "",
+  bluesky: "",
+};
+
+export const SOCIAL_NAAM: Record<SocialPlatform, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+  google: "Google",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  pinterest: "Pinterest",
+  x: "X",
+  threads: "Threads",
+  bluesky: "Bluesky",
+};
+
+/** De ingevulde profielen, in footervolgorde. */
+export function socialProfielen(): { platform: SocialPlatform; naam: string; url: string }[] {
+  return (Object.keys(SOCIAL) as SocialPlatform[])
+    .filter((p) => SOCIAL[p].trim() !== "")
+    .map((p) => ({ platform: p, naam: SOCIAL_NAAM[p], url: SOCIAL[p].trim() }));
+}
+
 export const LAND: Record<Locale, string> = {
   nl: "België",
   fr: "Belgique",

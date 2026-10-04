@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["dub1"],
+  "regions": [
+    "dub1"
+  ],
   "crons": [
     {
       "path": "/api/cron/ping",
@@ -40,11 +42,19 @@
     },
     {
       "path": "/api/cron/social-generate",
-      "schedule": "0 7 * * 1-5"
+      "schedule": "0 6 * * 1"
     },
     {
       "path": "/api/cron/tickets",
       "schedule": "30 6 * * 1-5"
+    },
+    {
+      "path": "/api/cron/social-publish",
+      "schedule": "5,35 * * * *"
+    },
+    {
+      "path": "/api/cron/bezoek-opruimen",
+      "schedule": "15 3 1 * *"
     }
   ]
 }
