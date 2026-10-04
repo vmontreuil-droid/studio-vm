@@ -46,6 +46,7 @@ import {
 } from "@/lib/tickets-server";
 import { kopieerNaarPlannen, maakUploadPlekken, registreerBijlagen, studioMap } from "@/lib/tickets-bijlagen";
 import { mailKlantAntwoord, mailKlantGesloten, mailKlantRevisieFactuur } from "@/lib/tickets-mail";
+import { logBewijs } from "@/lib/invordering/bewijslog";
 
 const CATEGORIEEN: Categorie[] = ["vroegtijdig", "normaal", "last-minute"];
 const SNELLE_UREN = [0.25, 0.5, 1];
@@ -557,6 +558,13 @@ export async function factureerRevisie(fd: FormData): Promise<void> {
     verlegd,
     uren: aangerekend,
     dueAt,
+  });
+  await logBewijs({
+    soort: "factuur_verstuurd",
+    invoice_id: factuurId,
+    project_id: p?.id ?? null,
+    client_email: email,
+    details: { verstuurd, aan: email, revisie: true, ticket: t.nummer ?? t.id },
   });
   revalidatePath("/admin/facturen");
   if (p) revalidatePath(`/admin/projecten/${p.id}`);

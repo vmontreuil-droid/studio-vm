@@ -46,6 +46,7 @@ import {
   ChevronRight,
   CalendarDays,
   MapPinned,
+  Gavel,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -60,6 +61,7 @@ export type AdminCounts = {
   ticketsOpen: number;
   formNieuw: number;
   projectenActief: number;
+  invorderingKlaar: number;
 };
 
 // Billit-stijl: gegroepeerde navigatie i.p.v. één lange lijst, zoals een
@@ -99,6 +101,7 @@ const groups: {
       { href: "/admin/offertes", label: "Offertes", icon: FileText, badge: "offertesOpen" },
       { href: "/admin/facturen", label: "Facturen", icon: Receipt, badge: "facturenOpen" },
       { href: "/admin/creditnotas", label: "Creditnota's", icon: FileMinus },
+      { href: "/admin/invordering", label: "Invordering", icon: Gavel, badge: "invorderingKlaar" },
       { href: "/admin/klanten", label: "Klanten", icon: Users, badge: "klanten" },
       { href: "/admin/producten", label: "Diensten & tarieven", icon: Package },
     ],

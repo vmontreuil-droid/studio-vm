@@ -10,6 +10,8 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Project } from "@/lib/projecten";
 import { isBetaald } from "@/lib/projecten-server";
+import { headers } from "next/headers";
+import { herkomst, logBewijs } from "@/lib/invordering/bewijslog";
 
 const LINK_GELDIG = 60 * 10; // 10 minuten
 
@@ -46,7 +48,15 @@ export async function downloadLevering(leveringId: string): Promise<DownloadResu
   const { data: s } = await getSupabaseAdmin()
     .storage.from("modellen")
     .createSignedUrl(lev.pad, LINK_GELDIG, { download: lev.naam });
-  return s?.signedUrl ? { ok: true, url: s.signedUrl } : { ok: false, fout: "niet_gevonden" };
+  if (!s?.signedUrl) return { ok: false, fout: "niet_gevonden" };
+  const wie = herkomst(await headers());
+  await logBewijs({
+    soort: "levering_gedownload",
+    project_id: project.id,
+    client_email: project.client_email,
+    details: { bestand: lev.naam, levering_id: leveringId, ip: wie.ip, browser: wie.browser },
+  });
+  return { ok: true, url: s.signedUrl };
 }
 
 export async function downloadPlan(projectId: string, pad: string): Promise<DownloadResultaat> {

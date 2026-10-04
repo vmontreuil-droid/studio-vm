@@ -31,6 +31,7 @@ import {
 } from "@/lib/projecten-teksten";
 import { authGebruiker, klantGegevens } from "@/lib/projecten-admin";
 import { zoekWerf } from "@/lib/geocode";
+import { logBewijs } from "@/lib/invordering/bewijslog";
 
 const MODEL_MAX = 200 * 1024 * 1024; // 200 MB per modelbestand
 const PLAN_MAX = 50 * 1024 * 1024; // 50 MB per plan (limiet bucket 'plannen')
@@ -579,18 +580,24 @@ export async function maakFactuur(fd: FormData): Promise<void> {
   if (offerte?.id) await db.from("offers").update({ invoiced_at: new Date().toISOString() }).eq("id", offerte.id);
 
   await ensurePortalUser(p.client_email);
-  const verstuurd = await mailKlant(
-    p.client_email,
-    projectFactuurMail(taal, {
-      naam: k.naam,
-      nummer,
-      titel: p.titel,
-      bedragExclCent: bedrag,
-      verlegd: besluit.nulTarief,
-      dueAt,
-      projectId: p.id,
-    }),
-  );
+  const factuurMail = projectFactuurMail(taal, {
+    naam: k.naam,
+    nummer,
+    titel: p.titel,
+    bedragExclCent: bedrag,
+    verlegd: besluit.nulTarief,
+    dueAt,
+    projectId: p.id,
+  });
+  const verstuurd = await mailKlant(p.client_email, factuurMail);
+  await logBewijs({
+    soort: "factuur_verstuurd",
+    invoice_id: opgeslagen.doc.id,
+    offer_id: offerte?.id ?? null,
+    project_id: p.id,
+    client_email: p.client_email,
+    details: { verstuurd, aan: p.client_email, onderwerp: factuurMail.subject, html: factuurMail.html },
+  });
   herlaad(id);
   revalidatePath("/admin/facturen");
   redirect(`/admin/projecten/${id}?melding=factuur${verstuurd ? "" : "&mail=0"}`);

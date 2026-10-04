@@ -41,6 +41,7 @@ export default async function AdminLayout({
     ticketsR,
     formR,
     projectenR,
+    invorderingR,
   ] = await Promise.all([
     db.from("quotes").select("id", head).eq("status", "nieuw"),
     db.from("monitors").select("id", head).eq("active", true),
@@ -64,6 +65,8 @@ export default async function AdminLayout({
       .from("projecten")
       .select("id", head)
       .in("status", ["aanvraag", "offerte", "akkoord", "productie"]),
+    // Dossiers die op Studio VM wachten (migratie 0052; zonder: fout → 0).
+    db.from("invorderingen").select("id", head).eq("status", "klaar"),
   ]);
   // Zonder migratie 0049 bestaan wacht_op/soort niet (een HEAD-telling geeft
   // dan een fout zonder code): terug naar de oude telling van alle open tickets.
@@ -111,6 +114,7 @@ export default async function AdminLayout({
     ticketsOpen,
     formNieuw: formR.count ?? 0,
     projectenActief: projectenR.count ?? 0,
+    invorderingKlaar: invorderingR.error ? 0 : (invorderingR.count ?? 0),
   };
 
   return <AdminShell counts={counts}>{children}</AdminShell>;

@@ -122,6 +122,21 @@ with checks as (
     and exists(
       select 1 from pg_trigger where tgname = 'invoices_nummer'
     )
+  union all select
+    '0052_invordering.sql',
+    'invordering: bewijslog, deurwaarders per arrondissement, invorderingsdossiers',
+    exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'bewijslog'
+    )
+    and exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'deurwaarders'
+    )
+    and exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'invorderingen'
+    )
 )
 select
   migration,

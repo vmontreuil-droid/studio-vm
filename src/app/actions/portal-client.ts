@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { headers } from "next/headers";
 import {
   supabaseConfigured,
   mollieConfigured,
@@ -25,6 +26,7 @@ import {
 import { mailStudio } from "@/lib/tickets-mail";
 import { factuurBedrag } from "@/lib/factuur-klant";
 import { factuurKlaarMail } from "@/lib/klant-mails";
+import { herkomst, logBewijs } from "@/lib/invordering/bewijslog";
 
 // Fallback wanneer company_settings.email leeg is.
 const STUDIO_INBOX_FALLBACK = "vmontreuil@outlook.be";
@@ -92,6 +94,15 @@ export async function decideOffer(
     .eq("id", id)
     .eq("client_email", email);
   if (error) return;
+  // Bewijs van de beslissing (tijdstip, IP, browser) voor een eventueel
+  // invorderingsdossier.
+  const wie = herkomst(await headers());
+  await logBewijs({
+    soort: "offerte_beslist",
+    offer_id: id,
+    client_email: email,
+    details: { beslissing: decision, ip: wie.ip, browser: wie.browser },
+  });
   await notifyStudio(`Offerte ${decision} — ${email}`, [
     `<strong>${email}</strong> heeft een offerte <strong>${decision}</strong>.`,
     `Offerte-id: ${id}`,

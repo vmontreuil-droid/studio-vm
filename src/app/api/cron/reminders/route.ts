@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { monitorConfigured, cronSecret } from "@/lib/supabase/config";
-import { sendMail } from "@/lib/monitor";
+import { verstuurMail } from "@/lib/monitor";
 import { getCompanySettings } from "@/lib/admin/settings";
 import { factuurBedrag, factuurTaal, type KlantFactuur } from "@/lib/factuur-klant";
 import { betaalHerinneringMail } from "@/lib/klant-mails";
 import { verwijlinterest } from "@/lib/facturatie/rente";
+import { logBewijs } from "@/lib/invordering/bewijslog";
+import { zetDossiersKlaar } from "@/lib/invordering/klaarzetten";
 import type { Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +20,16 @@ type Inv = KlantFactuur & {
   issued_at: string;
   due_at: string | null;
   reminder_level: number | null;
+  client_vat?: string | null;
 };
 
 const DAY = 86_400_000;
 
-// Escalatie: 0 dagen over → 1e herinnering, +7 → 2e herinnering,
-// +14 → laatste herinnering (factuur op 'vervallen').
+// Escalatie: de dag na de vervaldag → 1e herinnering, 7 dagen over → 2e,
+// 14 dagen over → laatste herinnering (factuur op 'vervallen'). Nog eens 14
+// dagen later zonder betaling: dossier klaar voor de deurwaarder
+// (zetDossiersKlaar; Studio VM verstuurt het zelf vanuit het beheer).
+// Elke herinnering komt met haar volledige tekst in de bewijslog.
 // Mail: betaalHerinneringMail() in de taal van de klant, met het bedrag dat
 // hij echt betaalt (project-/revisiefactuur: incl. btw of btw verlegd).
 export async function GET(req: NextRequest) {
@@ -61,7 +67,7 @@ export async function GET(req: NextRequest) {
     const overdueDays = Math.floor(
       (now - new Date(dueISO).getTime()) / DAY,
     );
-    if (overdueDays < 0) continue;
+    if (overdueDays < 1) continue;
 
     const target =
       overdueDays >= 14 ? 3 : overdueDays >= 7 ? 2 : 1;
@@ -78,22 +84,37 @@ export async function GET(req: NextRequest) {
       talen.set(sleutel, taal);
     }
     // Verwijlinterest (wet 2 augustus 2002) tot vandaag, Belgische datum.
-    // null = rentevoet van dit semester nog niet in de tabel: de mail noemt
-    // dan geen percentage.
+    // Enkel tussen ondernemingen (btw-nummer op de factuur): voor een
+    // particulier geldt die wet niet. null = rentevoet van dit semester nog
+    // niet in de tabel: de mail noemt dan geen percentage.
     const bedragCent = b?.totaalCent ?? i.amount_cents;
     const vandaag = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Brussels" });
-    const rente = overdueDays >= 1 ? verwijlinterest(bedragCent, dueISO, vandaag) : undefined;
-    const ok = await sendMail(
-      i.client_email,
-      betaalHerinneringMail(taal, target as 1 | 2 | 3, {
-        nummer: i.number,
-        bedragCent,
-        btw: !b || !b.metBtw ? "geen" : b.verlegd ? "verlegd" : "incl",
-        dueAt: dueISO,
-        rente,
-      }),
-    );
+    const rente = i.client_vat ? verwijlinterest(bedragCent, dueISO, vandaag) : undefined;
+    const mail = betaalHerinneringMail(taal, target as 1 | 2 | 3, {
+      nummer: i.number,
+      bedragCent,
+      btw: !b || !b.metBtw ? "geen" : b.verlegd ? "verlegd" : "incl",
+      dueAt: dueISO,
+      rente,
+    });
+    const { ok, id: resendId } = await verstuurMail(i.client_email, mail);
     if (!ok) continue;
+    await logBewijs({
+      soort: "herinnering_verstuurd",
+      invoice_id: i.id,
+      project_id: b?.projectId ?? null,
+      client_email: i.client_email,
+      details: {
+        niveau: target,
+        aan: i.client_email,
+        onderwerp: mail.subject,
+        html: mail.html,
+        resend_id: resendId,
+        bedrag_cent: bedragCent,
+        vervaldag: dueISO,
+        rente: rente ?? null,
+      },
+    });
 
     const patch: Record<string, unknown> = {
       reminder_level: target,
@@ -107,5 +128,13 @@ export async function GET(req: NextRequest) {
     sent++;
   }
 
-  return NextResponse.json({ ok: true, sent, overdueFlagged });
+  // Dossiers voor de deurwaarder (stil overgeslagen zonder migratie 0052).
+  let invordering: Awaited<ReturnType<typeof zetDossiersKlaar>> | null = null;
+  try {
+    invordering = await zetDossiersKlaar(now);
+  } catch (e) {
+    console.error("[invordering] klaarzetten mislukt:", e);
+  }
+
+  return NextResponse.json({ ok: true, sent, overdueFlagged, invordering });
 }

@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setInvoiceStatus } from "@/app/actions/portal-admin";
+import { maakDossier } from "@/app/actions/invordering";
 import { PrintButton } from "@/components/print-button";
 import { BANK, structuredComm } from "@/lib/bank";
 import { btwVermelding, regimeVan } from "@/lib/facturatie/btw";
@@ -173,6 +174,16 @@ export default async function AdminInvoiceDoc({
             <form action={setInvoiceStatus.bind(null, i.id, "vervallen")}>
               <button className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
                 Markeer vervallen
+              </button>
+            </form>
+          )}
+          {/* Normaal zet de herinneringen-cron dit 14 dagen na de laatste
+              herinnering klaar; hier kan het meteen (er vertrekt nog niets). */}
+          {i.status === "vervallen" && (
+            <form action={maakDossier}>
+              <input type="hidden" name="invoice_id" value={i.id} />
+              <button className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-card-hover">
+                Dossier voor deurwaarder
               </button>
             </form>
           )}

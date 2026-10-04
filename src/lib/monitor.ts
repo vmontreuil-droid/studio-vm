@@ -125,6 +125,9 @@ const ALERTS: Record<
 
 type Mail = { subject: string; html: string; replyTo?: string };
 
+/** Bijlage voor Resend: inhoud als base64. */
+export type MailBijlage = { filename: string; content: string };
+
 const T: Record<
   Locale,
   {
@@ -288,7 +291,19 @@ const afzender = /<[^>]+>/.test(resendFrom)
 // Resend via REST — geen SDK-afhankelijkheid. Zonder key: stil overslaan.
 // Een platte-tekstversie maakt Resend zelf uit de HTML.
 export async function sendMail(to: string, mail: Mail): Promise<boolean> {
-  if (!resendApiKey) return false;
+  return (await verstuurMail(to, mail)).ok;
+}
+
+/**
+ * Zelfde als sendMail, met kopie (cc), bijlagen en het id dat Resend aan de
+ * mail gaf (bewijs van verzending, terug te vinden in Resend).
+ */
+export async function verstuurMail(
+  to: string,
+  mail: Mail,
+  extra: { cc?: string[]; bijlagen?: MailBijlage[] } = {},
+): Promise<{ ok: boolean; id: string | null }> {
+  if (!resendApiKey) return { ok: false, id: null };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -302,15 +317,19 @@ export async function sendMail(to: string, mail: Mail): Promise<boolean> {
         subject: mail.subject,
         html: mail.html,
         ...(mail.replyTo ? { reply_to: mail.replyTo } : {}),
+        ...(extra.cc?.length ? { cc: extra.cc } : {}),
+        ...(extra.bijlagen?.length ? { attachments: extra.bijlagen } : {}),
       }),
     });
     if (!r.ok) {
       const detail = await r.text().catch(() => "");
       console.error("[resend] verzenden mislukt:", r.status, detail);
+      return { ok: false, id: null };
     }
-    return r.ok;
+    const j = (await r.json().catch(() => null)) as { id?: string } | null;
+    return { ok: true, id: j?.id ?? null };
   } catch (e) {
     console.error("[resend] netwerk-error:", e);
-    return false;
+    return { ok: false, id: null };
   }
 }
