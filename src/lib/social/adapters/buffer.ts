@@ -27,7 +27,7 @@
 //     bereikbaar blijft tot het bericht uit is (daarom de bevroren kopie in
 //     de bucket social-media).
 //   - Service-namen: facebook, instagram, googlebusiness, youtube, tiktok,
-//     pinterest, twitter (= X), threads, bluesky. LinkedIn en de rest
+//     pinterest, twitter (= X), threads, bluesky, linkedin. De rest
 //     gebruiken we niet.
 //   - We sturen met mode "shareNow": de publisher roept dit pas op het
 //     geplande tijdstip aan, dus niets blijft in de Buffer-wachtrij hangen
@@ -61,10 +61,11 @@ export function bufferOrganisatieVast(): string | null {
   return (process.env.BUFFER_ORGANIZATION_ID ?? "").trim() || null;
 }
 
-/** Buffer-service → ons kanaal. Wat hier ontbreekt (linkedin, mastodon, …) gebruiken we niet. */
+/** Buffer-service → ons kanaal. Wat hier ontbreekt (mastodon, …) gebruiken we niet. */
 export const BUFFER_SERVICE: Record<string, Kanaal> = {
   facebook: "facebook",
   instagram: "instagram",
+  linkedin: "linkedin",
   googlebusiness: "google",
   youtube: "youtube",
   tiktok: "tiktok",
@@ -310,8 +311,7 @@ export async function bufferTest(o: BufferOpties = {}): Promise<Verbindingstest>
   for (const ruw of k.data.channels ?? []) {
     const om = zetKanaalOm(ruw);
     if (om) kanalen.push(om);
-    // LinkedIn gebruiken we nergens, ook niet als het in Buffer verbonden is.
-    else if (ruw.service !== "linkedin") ongebruikt.push({ service: ruw.service, naam: ruw.displayName || ruw.name });
+    else ongebruikt.push({ service: ruw.service, naam: ruw.displayName || ruw.name });
   }
   return {
     ok: true,
@@ -409,6 +409,10 @@ export function bufferInvoer(b: PublicatieBericht, k: PublicatieKanaal): Record<
         type: b.soort === "story" ? "story" : b.soort === "reel" ? "reel" : "post",
         shouldShareToFeed: b.soort !== "story",
       };
+      break;
+    case "linkedin":
+      // Link als eerste reactie (hoogstens 1.250 tekens); de tekst zelf blijft zonder URL.
+      if (b.eersteReactie) metadata.linkedin = { firstComment: b.eersteReactie.slice(0, 1250) };
       break;
     case "google":
       metadata.google = {

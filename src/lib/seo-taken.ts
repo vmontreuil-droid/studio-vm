@@ -131,7 +131,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "gbp-afwerken",
     titel: "Bedrijfsprofiel afwerken",
-    uitleg: "De 9 Services, een eerste Post (foto 10-tracé-op-luchtfoto) en de Afspraken-link naar /nl/offerte. Geen LinkedIn bij Profielen (staat er een, verwijder die).",
+    uitleg: "De 9 Services, een eerste Post (foto 10-tracé-op-luchtfoto) en de Afspraken-link naar /nl/offerte. LinkedIn bij Profielen mag, maar enkel de bedrijfspagina Studio VM (nooit het persoonlijke profiel).",
     vanaf: "2026-10-02",
     link: { label: "Bedrijfsprofiel", href: "https://business.google.com" },
   },
@@ -145,7 +145,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "facebook-oud",
     titel: "Oude Facebookpagina 'Studio-vm' ombouwen of verwijderen",
-    uitleg: "Nieuwe cover en bio staan erop. Nog: naam 'Studio VM' (zonder streepje), straat en huisnummer verbergen (enkel Anzegem), talen Duits en Spaans toevoegen, LinkedIn-link verwijderen.",
+    uitleg: "Nieuwe cover en bio staan erop. Nog: naam 'Studio VM' (zonder streepje), straat en huisnummer verbergen (enkel Anzegem), talen Duits en Spaans toevoegen; een LinkedIn-link enkel naar de bedrijfspagina Studio VM.",
     vanaf: "2026-10-03",
     link: { label: "Facebook", href: "https://www.facebook.com/pages/?category=your_pages" },
   },
@@ -174,7 +174,7 @@ export const SEO_TAKEN: SeoTaak[] = [
   {
     id: "social-accounts",
     titel: "Accounts aanmaken op YouTube, TikTok, Pinterest, X, Threads en Bluesky",
-    uitleg: `Overal de naam Studio VM, het vm.-logo en dezelfde korte bio (3D-modellen voor machinesturing). YouTube als merkkanaal, niet als persoonlijk kanaal. Geen LinkedIn. Link in profiel of bio — ${NIEUWE_KANALEN.map(([b, naam]) => `${naam}: ${profielLink(b)}`).join(" · ")}. Dezelfde lijst staat ook in Webactiviteit › Gelabelde links.`,
+    uitleg: `Overal de naam Studio VM, het vm.-logo en dezelfde korte bio (3D-modellen voor machinesturing). YouTube als merkkanaal, niet als persoonlijk kanaal. LinkedIn als bedrijfspagina Studio VM, nooit het persoonlijke profiel. Link in profiel of bio — ${NIEUWE_KANALEN.map(([b, naam]) => `${naam}: ${profielLink(b)}`).join(" · ")}. Dezelfde lijst staat ook in Webactiviteit › Gelabelde links.`,
     vanaf: "2026-10-03",
   },
   {

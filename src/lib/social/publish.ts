@@ -72,6 +72,8 @@ export type PublicatieBericht = {
   link: { url: string; titel: string; beschrijving: string; beeld: string } | null;
   /** Bestemming van een pin of de knop van een Google-bericht (met UTM). */
   doelLink: string | null;
+  /** LinkedIn: eerste reactie met de link naar de pagina (met UTM). */
+  eersteReactie?: string | null;
 };
 
 export type PublicatieKanaal = { id: string; dienst: Kanaal; naam: string; bord?: string | null };
@@ -170,6 +172,8 @@ export type KanaalRegel = {
 export const KANAAL_REGELS: Record<Kanaal, KanaalRegel> = {
   facebook: { beeld: "portrait", tekst: "volledig", maxTekens: 5000, maxBeelden: 10, video: "kan", story: true, uitleg: "Staand beeld · volledige tekst · ook story en reel" },
   instagram: { beeld: "portrait", tekst: "volledig", maxTekens: 2196, maxBeelden: 10, video: "kan", story: true, uitleg: "Staand beeld · volledige tekst · ook story en reel" },
+  // LinkedIn: de link naar de pagina gaat als eerste reactie (een link in het bericht drukt het bereik).
+  linkedin: { beeld: "portrait", tekst: "volledig", maxTekens: 3000, maxBeelden: 9, video: "kan", story: false, uitleg: "Staand beeld + dia's · volledige tekst · link als eerste reactie" },
   google: { beeld: "gbp", tekst: "volledig", maxTekens: 1500, maxBeelden: 1, video: "nee", story: false, uitleg: "Beeld 1200×900 · tekst zonder hashtags · knop Meer info" },
   youtube: { beeld: null, tekst: "volledig", maxTekens: 5000, maxBeelden: 0, video: "nodig", story: false, uitleg: "Enkel berichten met een video (Short)" },
   tiktok: { beeld: null, tekst: "volledig", maxTekens: 2200, maxBeelden: 0, video: "nodig", story: false, uitleg: "Enkel berichten met een video" },
@@ -196,7 +200,7 @@ export type KanalenStand = {
   bijgewerkt: string | null;
   organisatie: { id: string; naam: string; maxKanalen: number | null } | null;
   kanalen: SocialKanaal[];
-  /** Verbonden in Buffer, maar niet gebruikt (Mastodon, …). LinkedIn staat hier nooit. */
+  /** Verbonden in Buffer, maar niet gebruikt (Mastodon, …). */
   ongebruikt: Array<{ service: string; naam: string }>;
 };
 
@@ -584,6 +588,10 @@ export function planBericht(p: PostRij, kanalen: SocialKanaal[], c: PlanContext)
           ? { url: socialUtmLink(p, "facebook"), titel: p.title, beschrijving: knip(kort, 200), beeld: c.beeldUrl("og") }
           : null,
         doelLink: dienst === "pinterest" || dienst === "google" ? socialUtmLink(p, dienst) : null,
+        eersteReactie:
+          dienst === "linkedin" && soort === "bericht"
+            ? `${p.taal === "fr" ? "Toutes les images et plus d'infos :" : "Alle beelden en meer uitleg:"} ${socialUtmLink(p, "linkedin")}`
+            : null,
       };
       const beeldTekst = metVideo
         ? soort === "reel"
@@ -1159,7 +1167,7 @@ export async function voerPublisherUit(o: RunOpties = {}): Promise<RunVerslag> {
       continue;
     }
 
-    // Harde tekstcontrole: nooit een link, MV3D, Convertor, beschermde titel, LinkedIn of persoonsnaam.
+    // Harde tekstcontrole: nooit een link, MV3D, Convertor, beschermde titel of persoonsnaam.
     const hard = tekstProblemen(rij).filter((x) => x.startsWith("bevat"));
     if (hard.length) {
       const reden = `tekstcontrole: ${hard.join(", ")}`;

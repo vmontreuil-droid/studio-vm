@@ -43,6 +43,7 @@ export const GOEDKEURING_VERPLICHT: readonly PostType[] = ["realisatie"];
 export type Kanaal =
   | "facebook"
   | "instagram"
+  | "linkedin"
   | "google"
   | "youtube"
   | "tiktok"
@@ -50,12 +51,12 @@ export type Kanaal =
   | "x"
   | "threads"
   | "bluesky";
-export const KANALEN: Kanaal[] = ["facebook", "instagram", "google", "youtube", "tiktok", "pinterest", "x", "threads", "bluesky"];
+export const KANALEN: Kanaal[] = ["facebook", "instagram", "linkedin", "google", "youtube", "tiktok", "pinterest", "x", "threads", "bluesky"];
 export function isKanaal(v: unknown): v is Kanaal {
   return typeof v === "string" && (KANALEN as string[]).includes(v);
 }
 
-/** Labels, ook voor oude rijen (algemeen, linkedin) die leesbaar moeten blijven. */
+/** Labels, ook voor oude rijen ("algemeen") die leesbaar moeten blijven. */
 export const KANAAL_LABEL: Record<string, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
@@ -67,12 +68,12 @@ export const KANAAL_LABEL: Record<string, string> = {
   threads: "Threads",
   bluesky: "Bluesky",
   algemeen: "Algemeen",
-  linkedin: "LinkedIn (oud)",
+  linkedin: "LinkedIn",
 };
 
 /** Welke kanalen een bericht standaard krijgt, per soort plaats. */
 export const STANDAARD_KANALEN: Record<"feed" | "google" | "story" | "reel", Kanaal[]> = {
-  feed: ["facebook", "instagram", "threads", "bluesky", "x", "pinterest"],
+  feed: ["facebook", "instagram", "linkedin", "threads", "bluesky", "x", "pinterest"],
   google: ["google"],
   story: ["instagram", "facebook"],
   reel: ["instagram", "facebook", "youtube", "tiktok"],
@@ -160,7 +161,6 @@ const VERBODEN: Array<[RegExp, string]> = [
   [/vermessungsingenieur/i, "Vermessungsingenieur (beschermde titel)"],
   [/\bmv3d\b/i, "MV3D"],
   [/convertor/i, "Convertor"],
-  [/linked\s?in/i, "LinkedIn"],
   [/vincent|montreuil/i, "een persoonsnaam"],
 ];
 const LINK = /(https?:\/\/|www\.|wa\.me|\b[a-z0-9-]+\.(?:be|com|nl|fr|eu|lu|net|org|io|de)\b)/i;

@@ -31,6 +31,7 @@ const SITE = SITE_ADRES;
 export const UTM_BRONNEN = [
   "facebook",
   "instagram",
+  "linkedin",
   "google",
   "youtube",
   "tiktok",
@@ -62,6 +63,7 @@ export type Utm = {
 export const UTM_BRON_NAAM: Record<UtmBron, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
+  linkedin: "LinkedIn",
   google: "Google",
   youtube: "YouTube",
   tiktok: "TikTok",
@@ -136,6 +138,7 @@ export function profielLinks(): { bron: UtmBron; waar: string; url: string }[] {
     l("facebook", "Websiteveld van de pagina", start, "profiel"),
     l("facebook", "Actieknop (Offerte aanvragen)", offerte, "knop"),
     l("instagram", "Link in bio", offerte, "bio"),
+    l("linkedin", "Website op de bedrijfspagina", start, "profiel"),
     l("google", "Website in het bedrijfsprofiel", start, "profiel", "gbp"),
     l("youtube", "Link op het kanaal", start, "profiel"),
     l("tiktok", "Link in bio", offerte, "bio"),

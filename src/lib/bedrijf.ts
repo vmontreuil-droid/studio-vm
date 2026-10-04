@@ -28,10 +28,12 @@ export const BEDRIJF = {
 // de platformen in vaste tekst ("heeft, of opent binnenkort, …") en
 // verwijst voor de bestaande profielen naar de footer.
 // Altijd het kale profieladres, zonder UTM (rel="me" en sameAs moeten exact
-// naar het profiel wijzen). Geen LinkedIn: Studio VM is er niet.
+// naar het profiel wijzen). LinkedIn: enkel een bedrijfspagina Studio VM,
+// nooit het persoonlijke profiel (draagt naam en foto).
 export type SocialPlatform =
   | "facebook"
   | "instagram"
+  | "linkedin"
   | "google"
   | "youtube"
   | "tiktok"
@@ -43,6 +45,7 @@ export type SocialPlatform =
 export const SOCIAL: Record<SocialPlatform, string> = {
   facebook: "https://www.facebook.com/profile.php?id=61590220986288",
   instagram: "https://www.instagram.com/studio_vm.be/",
+  linkedin: "",
   // Google-bedrijfsprofiel: de Maps-link (https://maps.google.com/?cid=…)
   google: "",
   youtube: "",
@@ -56,6 +59,7 @@ export const SOCIAL: Record<SocialPlatform, string> = {
 export const SOCIAL_NAAM: Record<SocialPlatform, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
+  linkedin: "LinkedIn",
   google: "Google",
   youtube: "YouTube",
   tiktok: "TikTok",

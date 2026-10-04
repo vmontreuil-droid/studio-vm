@@ -30,8 +30,8 @@ export const PAGINA_BIJGEWERKT: Record<
   "/kennis": VANDAAG,
   "/over": VANDAAG,
   "/voorwaarden": VANDAAG,
-  // 3/10: bezoekstatistieken met UTM, herkomst van aanvragen, sociale media.
-  "/privacy": "2026-10-03",
+  // 4/10: LinkedIn bij de sociale media (3/10: UTM, herkomst, sociale media).
+  "/privacy": "2026-10-04",
   "/cookies": VANDAAG,
 };
 
