@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Download, Lock, Loader2, Send, Check } from "lucide-react";
-import { downloadLevering, downloadPlan, vraagRevisie } from "@/app/actions/projecten-klant";
+import { useState } from "react";
+import { Download, Lock, Loader2 } from "lucide-react";
+import { downloadLevering, downloadPlan } from "@/app/actions/projecten-klant";
 import type { Locale } from "@/lib/i18n/config";
 
 const T = {
-  nl: { slot: "Beschikbaar na betaling", fout: "Downloaden lukte niet. Probeer opnieuw.", niet_betaald: "Beschikbaar zodra de factuur betaald is.", plaatsh: "Wat moet er aangepast worden? Gaat het om een planwijziging?", verstuur: "Revisie aanvragen", ok: "Uw vraag is verstuurd. U vindt ze terug bij Tickets." },
-  fr: { slot: "Disponible après paiement", fout: "Le téléchargement a échoué. Réessayez.", niet_betaald: "Disponible dès que la facture est payée.", plaatsh: "Que faut-il adapter ? S'agit-il d'une modification des plans ?", verstuur: "Demander une révision", ok: "Votre demande est envoyée. Vous la retrouvez sous Tickets." },
-  en: { slot: "Available after payment", fout: "Download failed. Please try again.", niet_betaald: "Available once the invoice is paid.", plaatsh: "What needs to change? Is it a change to the plans?", verstuur: "Request a revision", ok: "Your request has been sent. You'll find it under Tickets." },
-  de: { slot: "Verfügbar nach Zahlung", fout: "Der Download ist fehlgeschlagen. Bitte versuchen Sie es erneut.", niet_betaald: "Verfügbar, sobald die Rechnung bezahlt ist.", plaatsh: "Was muss angepasst werden? Handelt es sich um eine Planänderung?", verstuur: "Revision anfordern", ok: "Ihre Anfrage wurde gesendet. Sie finden sie unter Tickets." },
-  es: { slot: "Disponible tras el pago", fout: "La descarga ha fallado. Inténtelo de nuevo.", niet_betaald: "Disponible en cuanto se pague la factura.", plaatsh: "¿Qué hay que modificar? ¿Se trata de un cambio en los planos?", verstuur: "Solicitar una revisión", ok: "Su solicitud ha sido enviada. La encontrará en Tickets." },
+  nl: { slot: "Beschikbaar na betaling", fout: "Downloaden lukte niet. Probeer opnieuw.", niet_betaald: "Beschikbaar zodra de factuur betaald is." },
+  fr: { slot: "Disponible après paiement", fout: "Le téléchargement a échoué. Réessayez.", niet_betaald: "Disponible dès que la facture est payée." },
+  en: { slot: "Available after payment", fout: "Download failed. Please try again.", niet_betaald: "Available once the invoice is paid." },
+  de: { slot: "Verfügbar nach Zahlung", fout: "Der Download ist fehlgeschlagen. Bitte versuchen Sie es erneut.", niet_betaald: "Verfügbar, sobald die Rechnung bezahlt ist." },
+  es: { slot: "Disponible tras el pago", fout: "La descarga ha fallado. Inténtelo de nuevo.", niet_betaald: "Disponible en cuanto se pague la factura." },
 };
 
 function useDownload(locale: Locale) {
@@ -81,43 +81,3 @@ export function PlanKnop({ projectId, pad, naam, grootte, locale }: { projectId:
   );
 }
 
-export function RevisieFormulier({ projectId, locale }: { projectId: string; locale: Locale }) {
-  const t = T[locale];
-  const [ok, setOk] = useState(false);
-  const [bezig, start] = useTransition();
-  if (ok)
-    return (
-      <p className="flex items-start gap-2 rounded-xl border border-accent/30 bg-accent/5 p-4 text-sm">
-        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
-        {t.ok}
-      </p>
-    );
-  return (
-    <form
-      action={(fd) =>
-        start(async () => {
-          const r = await vraagRevisie(fd);
-          if (r.ok) setOk(true);
-        })
-      }
-      className="space-y-3"
-    >
-      <input type="hidden" name="project" value={projectId} />
-      <textarea
-        name="tekst"
-        required
-        rows={4}
-        placeholder={t.plaatsh}
-        className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
-      />
-      <button
-        type="submit"
-        disabled={bezig}
-        className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-60"
-      >
-        {bezig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" strokeWidth={2} />}
-        {t.verstuur}
-      </button>
-    </form>
-  );
-}

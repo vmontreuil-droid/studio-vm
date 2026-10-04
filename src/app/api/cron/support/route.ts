@@ -1,8 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { monitorConfigured, cronSecret, siteUrl } from "@/lib/supabase/config";
+import { monitorConfigured, cronSecret } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
-import { portalEmailHtml } from "@/lib/email";
+import { klantGegevens } from "@/lib/projecten-admin";
+import {
+  supportFactuurMail,
+  supportGratisMaandMail,
+  websiteOfflineMail,
+} from "@/lib/klant-mails";
+import type { Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,6 +28,19 @@ type Sub = {
 
 const STUDIO = "info@studio-vm.be";
 
+// Archief websites: oude supportabonnementen. Mails in de taal van de klant
+// (accountprofiel → laatste aanvraag), per run gecachet.
+const talen = new Map<string, Locale>();
+async function taalVan(email: string): Promise<Locale> {
+  const k = email.trim().toLowerCase();
+  let t = talen.get(k);
+  if (!t) {
+    t = (await klantGegevens(k)).taal;
+    talen.set(k, t);
+  }
+  return t;
+}
+
 function monthsElapsed(startISO: string, now: Date): number {
   const s = new Date(startISO);
   let m =
@@ -30,13 +49,6 @@ function monthsElapsed(startISO: string, now: Date): number {
   if (now.getDate() < s.getDate()) m -= 1;
   return Math.max(0, m);
 }
-
-const eur = (c: number) =>
-  "€ " +
-  (c / 100).toLocaleString("nl-BE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 export async function GET(req: NextRequest) {
   if (
@@ -73,24 +85,10 @@ export async function GET(req: NextRequest) {
     for (let c = last + 1; c <= cycleNow; c++) {
       if (c <= free) {
         // Gratis maand — enkel melding, geen factuur.
-        await sendMail(s.client_email, {
-          subject: `Gratis supportmaand ${c}/${free} — Studio VM`,
-          html: portalEmailHtml({
-            locale: "nl",
-            eyebrow: "Je supportabonnement",
-            title: `Maand ${c}: gratis 🎁`,
-            bodyLines: [
-              `Maand ${c} van je <strong>${s.plan}</strong>-supportabonnement is <strong>gratis</strong> — je hoeft niets te betalen.`,
-              free - c > 0
-                ? `Nog ${free - c} gratis maand(en) te gaan; daarna ontvang je maandelijks een factuur.`
-                : `Vanaf volgende maand ontvang je maandelijks een factuur in je portaal.`,
-            ],
-            ctaLabel: "Bekijk je portaal",
-            ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
-              "/nl/portail/dashboard/abonnement",
-            )}`,
-          }),
-        }).catch(() => {});
+        await sendMail(
+          s.client_email,
+          supportGratisMaandMail(await taalVan(s.client_email), { plan: s.plan, maand: c, gratis: free }),
+        ).catch(() => {});
         freeNotices++;
       } else {
         // Betalende maand → factuur.
@@ -121,25 +119,16 @@ export async function GET(req: NextRequest) {
         });
         if (!error) {
           invoiced++;
-          const incl = Math.round(s.price_cents * 1.21);
-          await sendMail(s.client_email, {
-            subject: `Supportfactuur ${invNo} — Studio VM`,
-            html: portalEmailHtml({
-              locale: "nl",
-              eyebrow: "Je supportabonnement",
-              title: `Factuur ${invNo} staat klaar`,
-              bodyLines: [
-                `Je maandelijkse <strong>${s.plan}</strong>-supportfactuur (${period}) staat in je portaal: ${eur(
-                  s.price_cents,
-                )} excl. btw — ${eur(incl)} incl. btw.`,
-                `Betaalbaar tegen ${dueAt}. Je betaalt online via Mollie of via overschrijving in je portaal.`,
-              ],
-              ctaLabel: "Bekijk je factuur",
-              ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
-                "/nl/portail/dashboard/facturen",
-              )}`,
+          await sendMail(
+            s.client_email,
+            supportFactuurMail(await taalVan(s.client_email), {
+              plan: s.plan,
+              nummer: invNo,
+              periodeIso: today,
+              exclCent: s.price_cents,
+              dueAt,
             }),
-          }).catch(() => {});
+          ).catch(() => {});
         }
       }
       last = c;
@@ -170,22 +159,10 @@ export async function GET(req: NextRequest) {
       .update({ status: "gestopt", updated_at: new Date().toISOString() })
       .eq("id", s.id);
     offlined++;
-    await sendMail(s.client_email, {
-      subject: "Je website is tijdelijk offline — abonnement onbetaald",
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: "Actie nodig",
-        title: "Je website staat tijdelijk offline",
-        bodyLines: [
-          `De betaling van je <strong>${s.plan}</strong>-abonnement is na de hersteltermijn nog niet in orde, daarom is je website tijdelijk offline gehaald.`,
-          `Zodra de betaling in orde is, gaat je site automatisch terug online. Regel het in je portaal of neem contact op.`,
-        ],
-        ctaLabel: "Regel het in je portaal",
-        ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
-          "/nl/portail/dashboard/facturen",
-        )}`,
-      }),
-    }).catch(() => {});
+    await sendMail(
+      s.client_email,
+      websiteOfflineMail(await taalVan(s.client_email), { plan: s.plan }),
+    ).catch(() => {});
     await sendMail(STUDIO, {
       subject: `⚠ Abonnement onbetaald → offline — ${s.client_email}`,
       html: `<div style="font:14px/1.6 system-ui,sans-serif;color:#111"><p><strong>${s.client_email}</strong> — abonnement <strong>${s.plan}</strong> na grace nog onbetaald. Status op 'gestopt'. <strong>Builder-sites zijn automatisch offline.</strong> Maatwerk: zet de site manueel offline indien nodig.</p></div>`,

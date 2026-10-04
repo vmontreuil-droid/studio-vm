@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import {
   supabaseConfigured,
   mollieConfigured,
@@ -10,10 +11,19 @@ import {
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/monitor";
-import { portalEmailHtml } from "@/lib/email";
 import { createMolliePayment } from "@/lib/mollie";
 import { subscriptionTiers } from "@/lib/pricing";
 import { getCompanySettings } from "@/lib/admin/settings";
+import { MAX_TICKETS_PER_UUR } from "@/lib/tickets";
+import { AFSPRAAK_T } from "@/lib/tickets-teksten";
+import {
+  herlaadTicket,
+  maakTicketRij,
+  telTicketsLaatsteUur,
+} from "@/lib/tickets-server";
+import { mailStudio } from "@/lib/tickets-mail";
+import { factuurBedrag } from "@/lib/factuur-klant";
+import { factuurKlaarMail } from "@/lib/klant-mails";
 
 // Fallback wanneer company_settings.email leeg is.
 const STUDIO_INBOX_FALLBACK = "vmontreuil@outlook.be";
@@ -177,58 +187,17 @@ export async function decideOffer(
           .from("offers")
           .update({ invoiced_at: new Date().toISOString() })
           .eq("id", o.id);
-        const amount = `€ ${(invCents / 100).toFixed(2)}`;
-        const im = {
-          nl: {
-            subject: `Je factuur ${invNo} staat klaar`,
-            l1: `Bedankt voor je akkoord op <strong>${o.title}</strong>.`,
-            l2: `Factuur <strong>${invNo}</strong> (${amount}) staat klaar in je portaal, betaalbaar tegen ${dueAt}. Je kiest er zelf hoe je betaalt: online via Mollie of via overschrijving.`,
-            eyebrow: "Je klantenportaal",
-            cta: "Bekijk je factuur in het portaal",
-          },
-          fr: {
-            subject: `Votre facture ${invNo} est prête`,
-            l1: `Merci pour votre accord sur <strong>${o.title}</strong>.`,
-            l2: `La facture <strong>${invNo}</strong> (${amount}) est disponible dans votre portail, payable pour le ${dueAt}. Vous choisissez le mode de paiement : en ligne via Mollie ou par virement.`,
-            eyebrow: "Votre portail client",
-            cta: "Voir votre facture dans le portail",
-          },
-          en: {
-            subject: `Your invoice ${invNo} is ready`,
-            l1: `Thanks for approving <strong>${o.title}</strong>.`,
-            l2: `Invoice <strong>${invNo}</strong> (${amount}) is ready in your portal, payable by ${dueAt}. You choose how to pay: online via Mollie or by bank transfer.`,
-            eyebrow: "Your client portal",
-            cta: "View your invoice in the portal",
-          },
-          de: {
-            subject: `Ihre Rechnung ${invNo} ist bereit`,
-            l1: `Vielen Dank für Ihre Zustimmung zu <strong>${o.title}</strong>.`,
-            l2: `Die Rechnung <strong>${invNo}</strong> (${amount}) steht in Ihrem Portal bereit, zahlbar bis ${dueAt}. Sie wählen selbst, wie Sie bezahlen: online über Mollie oder per Überweisung.`,
-            eyebrow: "Ihr Kundenportal",
-            cta: "Rechnung im Portal ansehen",
-          },
-          es: {
-            subject: `Su factura ${invNo} está lista`,
-            l1: `Gracias por su aprobación de <strong>${o.title}</strong>.`,
-            l2: `La factura <strong>${invNo}</strong> (${amount}) está disponible en su portal, pagadera antes del ${dueAt}. Usted elige cómo pagar: en línea a través de Mollie o por transferencia bancaria.`,
-            eyebrow: "Su portal de cliente",
-            cta: "Ver su factura en el portal",
-          },
-        }[dloc];
-        const facturenUrl = `${siteUrl}/${dloc}/portail?next=${encodeURIComponent(
-          `/${dloc}/portail/dashboard/facturen`,
-        )}`;
-        await sendMail(email, {
-          subject: im.subject,
-          html: portalEmailHtml({
-            locale: dloc,
-            eyebrow: im.eyebrow,
-            title: im.subject,
-            bodyLines: [im.l1, im.l2],
-            ctaLabel: im.cta,
-            ctaHref: facturenUrl,
+        // Oude websiteofferte (geen 3D-project): factuur in de taal van het
+        // portaal, formeel, lichte huisstijl (factuurKlaarMail).
+        await sendMail(
+          email,
+          factuurKlaarMail(dloc, {
+            nummer: invNo,
+            bedragCent: invCents,
+            dueAt,
+            akkoordOp: o.title,
           }),
-        }).catch(() => {});
+        ).catch(() => {});
       }
     }
   }
@@ -237,40 +206,15 @@ export async function decideOffer(
   return;
 }
 
-export async function openTicket(
-  formData: FormData,
-): Promise<void> {
-  const email = await authedEmail();
-  if (!email) return;
-  const subject = String(formData.get("subject") ?? "").trim().slice(0, 160);
-  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
-  if (!subject || !body) return;
-
-  const sb = await getSupabaseServer();
-  const { data, error } = await sb
-    .from("tickets")
-    .insert({ client_email: email, subject })
-    .select("id")
-    .single();
-  if (error || !data) return;
-  await sb
-    .from("ticket_messages")
-    .insert({ ticket_id: data.id, sender: "klant", body });
-
-  await notifyStudio(`Nieuw ticket — ${email}`, [
-    `<strong>${email}</strong> opende een ticket: <strong>${subject}</strong>`,
-    body.replace(/</g, "&lt;"),
-  ]);
-  revalidatePath("/[locale]/portail/dashboard", "page");
-  return;
-}
-
-// Afspraak-aanvraag: maakt een ticket aan met '[Afspraak]'-prefix
-// in het onderwerp en een nette body met de gekozen voorkeuren.
-// Vincent krijgt de notificatie via notifyStudio (= company_settings
-// .email). Klant ziet de aanvraag terug bij Berichten/Tickets.
+// Afspraak-aanvraag → Support-ticket van soort 'afspraak', in de taal van
+// de klant (onderwerp en tekst met de labels van AFSPRAAK_T[taal]; de
+// gekozen waarden zijn al de vertaalde knoppen van de afspraakpagina).
+// Aanmaken gebeurt door de server (service-role, maakTicketRij), nooit met
+// de sessie van de klant. Studio VM krijgt de melding na het antwoord
+// (after). Zonder migratie 0049 bewaart maakTicketRij het als
+// '[Afspraak] …' (basisstand).
 // Bij succes: redirect naar dezelfde pagina met ?sent=1 zodat de
-// page een groene bevestiging kan tonen.
+// page een groene bevestiging kan tonen; bij een fout ?error=1.
 export async function requestAppointment(
   formData: FormData,
 ): Promise<void> {
@@ -281,69 +225,48 @@ export async function requestAppointment(
     rawLoc === "fr" || rawLoc === "en" || rawLoc === "de" || rawLoc === "es"
       ? rawLoc
       : "nl";
-  const kind = String(formData.get("kind") ?? "").trim() || "videocall";
-  const when = String(formData.get("when") ?? "").trim() || "deze week";
-  const slot = String(formData.get("slot") ?? "").trim() || "doorlopend";
+  const fout = `/${dloc}/portail/dashboard/afspraak?error=1`;
+  const kort = (veld: string) =>
+    String(formData.get(veld) ?? "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 60) || "—";
+  const kind = kort("kind");
+  const when = kort("when");
+  const slot = kort("slot");
   const message = String(formData.get("message") ?? "").trim().slice(0, 2000);
 
-  const subject = `[Afspraak] ${kind} · ${when} · ${slot}`.slice(0, 160);
+  // Tegen spam: zelfde limiet als gewone tickets.
+  if ((await telTicketsLaatsteUur(email)) >= MAX_TICKETS_PER_UUR) redirect(fout);
+
+  const A = AFSPRAAK_T[dloc];
+  const subject = `${kind} · ${when} · ${slot}`;
   const body =
-    `Type: ${kind}\n` +
-    `Periode: ${when}\n` +
-    `Tijdsvoorkeur: ${slot}\n\n` +
-    (message ? `Bericht:\n${message}` : "Geen extra bericht.");
+    `${A.type}: ${kind}\n` +
+    `${A.periode}: ${when}\n` +
+    `${A.voorkeur}: ${slot}\n\n` +
+    (message ? `${A.bericht}:\n${message}` : A.geenBericht);
 
-  const sb = await getSupabaseServer();
-  const { data, error } = await sb
-    .from("tickets")
-    .insert({ client_email: email, subject })
-    .select("id")
-    .single();
-  if (error || !data) {
-    redirect(`/${dloc}/portail/dashboard/afspraak?error=1`);
+  const r = await maakTicketRij({
+    email,
+    subject,
+    body,
+    soort: "afspraak",
+    afzender: "klant",
+    locale: dloc,
+  });
+  if (!r.ok) redirect(fout);
+
+  // Dubbel verstuurd (dubbelklik, terugknop)? Dan geen tweede melding.
+  if (!r.dubbel) {
+    const ticket = r.ticket;
+    after(async () => {
+      // mailStudio maakt alle tekst van de klant zelf onschadelijk (esc).
+      await mailStudio(ticket, "nieuw", { body });
+    });
   }
-  await sb
-    .from("ticket_messages")
-    .insert({ ticket_id: data.id, sender: "klant", body });
-
-  await notifyStudio(`Afspraak-aanvraag — ${email}`, [
-    `<strong>${email}</strong> vraagt een ${kind} aan.`,
-    `Periode: ${when} · Tijdsvoorkeur: ${slot}`,
-    message
-      ? `Bericht:<br>${message.replace(/</g, "&lt;").replace(/\n/g, "<br>")}`
-      : "Geen extra bericht.",
-  ]);
-  revalidatePath("/[locale]/portail/dashboard", "page");
+  herlaadTicket();
   redirect(`/${dloc}/portail/dashboard/afspraak?sent=1`);
-}
-
-export async function replyTicket(
-  formData: FormData,
-): Promise<void> {
-  const email = await authedEmail();
-  if (!email) return;
-  const ticketId = String(formData.get("ticket_id") ?? "");
-  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
-  if (!ticketId || !body) return;
-
-  const sb = await getSupabaseServer();
-  const { error } = await sb
-    .from("ticket_messages")
-    .insert({ ticket_id: ticketId, sender: "klant", body });
-  if (error) return;
-  // Heropen het ticket zodat het bij jou bovenaan komt.
-  await getSupabaseAdmin()
-    .from("tickets")
-    .update({ status: "in_behandeling", updated_at: new Date().toISOString() })
-    .eq("id", ticketId)
-    .eq("client_email", email);
-
-  await notifyStudio(`Ticket-reactie — ${email}`, [
-    `<strong>${email}</strong> reageerde op ticket ${ticketId}:`,
-    body.replace(/</g, "&lt;"),
-  ]);
-  revalidatePath("/[locale]/portail/dashboard", "page");
-  return;
 }
 
 export async function setNewsletter(on: boolean): Promise<void> {
@@ -371,6 +294,39 @@ export async function setNewsletter(on: boolean): Promise<void> {
   return;
 }
 
+type BetaalFactuur = {
+  id: string;
+  number: string;
+  amount_cents: number;
+  status: string;
+  offer_id?: string | null;
+  // Vanaf migratie 0049 (revisiefacturen):
+  ticket_id?: string | null;
+  vat_reverse?: boolean | null;
+};
+
+// Welk bedrag Mollie aanrekent (in cent), of null bij een databankfout.
+//
+// Waarom: bij facturen van een 3D-project en bij revisiefacturen (ticket)
+// is invoices.amount_cents het bedrag EXCL. btw (gewerkte uren × uurtarief).
+// Het portaal toont als te betalen bedrag via Mollie het bedrag INCL. 21 %
+// btw (0 % bij btw-verlegging), maar Mollie kreeg tot nu het bedrag excl.
+// btw door: de klant betaalde 21 % te weinig. Voor die facturen tellen we
+// de btw er hier bij, met dezelfde afronding als het portaal. Btw-verlegging:
+// eerst de eigen waarde van de factuur (revisiefacturen), anders die van de
+// gekoppelde offerte. Oude websitefacturen (offerte/abonnement, zonder
+// project of ticket) blijven bewust ongemoeid: daar rekent Mollie, zoals
+// altijd, amount_cents aan.
+// Welke facturen 'uurwerk' zijn, volgt dezelfde regel als de facturenpagina
+// van het portaal: ticket_id, een eigen vat_reverse (revisiefactuur waarvan
+// het ticket intussen gewist is: ticket_id werd dan null), of een project
+// dat rechtstreeks of via zijn offerte aan de factuur hangt.
+// De regel zelf staat in src/lib/factuur-klant.ts (ook gebruikt door de
+// betalingsherinneringen en de bevestiging na betaling).
+async function mollieBedrag(inv: BetaalFactuur): Promise<number | null> {
+  return (await factuurBedrag(inv))?.totaalCent ?? null;
+}
+
 export async function payInvoice(id: string): Promise<void> {
   const email = await authedEmail();
   const facturen = `${siteUrl}/nl/portail/dashboard/facturen`;
@@ -379,18 +335,21 @@ export async function payInvoice(id: string): Promise<void> {
   const sb = await getSupabaseServer();
   const { data } = await sb
     .from("invoices")
-    .select("id, number, amount_cents, status")
+    // "*" i.p.v. een vaste lijst: ticket_id en vat_reverse bestaan pas na
+    // migratie 0049; een ontbrekende kolom mag het betalen niet breken.
+    .select("*")
     .eq("id", id)
     .maybeSingle();
-  const inv = data as
-    | { id: string; number: string; amount_cents: number; status: string }
-    | null;
+  const inv = data as BetaalFactuur | null;
   if (!inv || inv.status === "betaald" || inv.amount_cents <= 0) {
     redirect(facturen);
   }
 
+  const amountCents = await mollieBedrag(inv!);
+  if (amountCents == null || amountCents <= 0) redirect(facturen);
+
   const pay = await createMolliePayment({
-    amountCents: inv!.amount_cents,
+    amountCents: amountCents!,
     description: `Factuur ${inv!.number} — Studio VM`,
     redirectUrl: facturen,
     webhookUrl: `${siteUrl}/api/mollie/webhook`,

@@ -1,18 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { monitorConfigured, cronSecret, siteUrl } from "@/lib/supabase/config";
+import { monitorConfigured, cronSecret } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
-import { portalEmailHtml } from "@/lib/email";
 import { getCompanySettings } from "@/lib/admin/settings";
+import { factuurBedrag, factuurTaal, type KlantFactuur } from "@/lib/factuur-klant";
+import { betaalHerinneringMail } from "@/lib/klant-mails";
+import type { Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-type Inv = {
-  id: string;
+type Inv = KlantFactuur & {
   client_email: string;
   number: string;
-  amount_cents: number;
   status: string;
   issued_at: string;
   due_at: string | null;
@@ -21,39 +21,10 @@ type Inv = {
 
 const DAY = 86_400_000;
 
-const eur = (c: number) =>
-  "€ " +
-  (c / 100).toLocaleString("nl-BE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-// Escalatie: 0 dagen over → 1e herinnering, +7 → 2e aanmaning,
-// +14 → laatste aanmaning (factuur op 'vervallen').
-const LEVELS: Record<
-  number,
-  { eyebrow: string; title: string; line: (n: string) => string }
-> = {
-  1: {
-    eyebrow: "Vriendelijke herinnering",
-    title: "Mogen we je even herinneren?",
-    line: (n) =>
-      `Factuur <strong>${n}</strong> is intussen vervallen. Wellicht over het hoofd gezien — geen probleem.`,
-  },
-  2: {
-    eyebrow: "Tweede herinnering",
-    title: "Factuur nog steeds open",
-    line: (n) =>
-      `Factuur <strong>${n}</strong> staat al meer dan een week open. Gelieve ze zo snel mogelijk te voldoen.`,
-  },
-  3: {
-    eyebrow: "Laatste aanmaning",
-    title: "Laatste aanmaning",
-    line: (n) =>
-      `Factuur <strong>${n}</strong> is meer dan twee weken vervallen. Dit is de laatste herinnering vóór verdere stappen.`,
-  },
-};
-
+// Escalatie: 0 dagen over → 1e herinnering, +7 → 2e herinnering,
+// +14 → laatste herinnering (factuur op 'vervallen').
+// Mail: betaalHerinneringMail() in de taal van de klant, met het bedrag dat
+// hij echt betaalt (project-/revisiefactuur: incl. btw of btw verlegd).
 export async function GET(req: NextRequest) {
   if (
     !monitorConfigured ||
@@ -71,11 +42,12 @@ export async function GET(req: NextRequest) {
 
   const { data } = await db
     .from("invoices")
-    .select(
-      "id, client_email, number, amount_cents, status, issued_at, due_at, reminder_level",
-    )
+    // "*": ticket_id en vat_reverse bestaan pas na migratie 0049.
+    .select("*")
     .eq("status", "open")
     .limit(500);
+
+  const talen = new Map<string, Locale>();
 
   for (const i of (data as Inv[]) ?? []) {
     const dueISO =
@@ -95,28 +67,24 @@ export async function GET(req: NextRequest) {
     const current = i.reminder_level ?? 0;
     if (target <= current) continue;
 
-    const L = LEVELS[target];
-    const ok = await sendMail(i.client_email, {
-      subject: `${L.eyebrow} — factuur ${i.number} · ${s.company_name}`,
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: L.eyebrow,
-        title: L.title,
-        bodyLines: [
-          L.line(i.number),
-          `Openstaand bedrag: <strong>${eur(i.amount_cents)}</strong>.`,
-          `Je betaalt vlot en veilig via je klantenportaal — daar staat ook de volledige factuur.`,
-        ],
-        ctaLabel: "Betaal in je portaal",
-        ctaHref: `${siteUrl}/nl/portail?next=${encodeURIComponent(
-          "/nl/portail/dashboard/facturen",
-        )}`,
-        footnote:
-          target === 3
-            ? "Reeds betaald? Dan mag je deze mail negeren — onze excuses voor het ongemak."
-            : "Reeds betaald? Dan mag je deze herinnering als onbestaande beschouwen.",
+    // Bedrag zoals de klant het betaalt; bij een databankfout het bedrag
+    // van de factuur zelf, zonder btw-vermelding.
+    const b = await factuurBedrag(i);
+    const sleutel = `${i.client_email}|${i.ticket_id ?? ""}|${b?.quoteId ?? ""}`;
+    let taal = talen.get(sleutel);
+    if (!taal) {
+      taal = await factuurTaal(i, b?.quoteId ?? null);
+      talen.set(sleutel, taal);
+    }
+    const ok = await sendMail(
+      i.client_email,
+      betaalHerinneringMail(taal, target as 1 | 2 | 3, {
+        nummer: i.number,
+        bedragCent: b?.totaalCent ?? i.amount_cents,
+        btw: !b || !b.metBtw ? "geen" : b.verlegd ? "verlegd" : "incl",
+        dueAt: dueISO,
       }),
-    });
+    );
     if (!ok) continue;
 
     const patch: Record<string, unknown> = {

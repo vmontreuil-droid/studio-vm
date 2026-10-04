@@ -51,16 +51,28 @@ export default async function AdminLayout({
       .eq("status", "open")
       .or(`valid_until.is.null,valid_until.gte.${new Date().toISOString().slice(0, 10)}`),
     db.from("invoices").select("id", head).eq("status", "open"),
-    db.from("tickets").select("id", head).neq("status", "gesloten"),
+    // Tickets-badge: enkel tickets waar de studio aan zet is (migratie 0049),
+    // zonder interne site-meldingen.
+    db
+      .from("tickets")
+      .select("id", head)
+      .neq("status", "gesloten")
+      .eq("wacht_op", "studio")
+      .neq("soort", "intern"),
     db.from("form_submissions").select("id", head).eq("is_read", false),
     db
       .from("projecten")
       .select("id", head)
       .in("status", ["aanvraag", "offerte", "akkoord", "productie"]),
   ]);
+  // Zonder migratie 0049 bestaan wacht_op/soort niet (een HEAD-telling geeft
+  // dan een fout zonder code): terug naar de oude telling van alle open tickets.
+  const ticketsOudR = ticketsR.error
+    ? db.from("tickets").select("id", head).neq("status", "gesloten")
+    : null;
   // "Klanten"-badge = dezelfde bronnen als de klantenlijst (zonder
   // scan-leads uit de websitetijd), zodat het cijfer overeenkomt.
-  const [prEmR, subEmR, quoteEmR, offerEmR, invEmR] = await Promise.all([
+  const [prEmR, subEmR, quoteEmR, offerEmR, invEmR, ticketsOud] = await Promise.all([
     db.from("projecten").select("client_email").limit(5000),
     db.from("subscriptions").select("client_email").limit(5000),
     db
@@ -70,7 +82,9 @@ export default async function AdminLayout({
       .limit(5000),
     db.from("offers").select("client_email").limit(5000),
     db.from("invoices").select("client_email").limit(5000),
+    ticketsOudR,
   ]);
+  const ticketsOpen = ticketsOud ? (ticketsOud.count ?? 0) : (ticketsR.count ?? 0);
   const klantSet = new Set<string>();
   const add = (v: string | null | undefined) => {
     const k = v?.toLowerCase().trim();
@@ -94,7 +108,7 @@ export default async function AdminLayout({
     klanten,
     offertesOpen: offertesR.count ?? 0,
     facturenOpen: facturenR.count ?? 0,
-    ticketsOpen: ticketsR.count ?? 0,
+    ticketsOpen,
     formNieuw: formR.count ?? 0,
     projectenActief: projectenR.count ?? 0,
   };

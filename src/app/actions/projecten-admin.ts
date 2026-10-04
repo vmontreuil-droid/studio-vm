@@ -13,22 +13,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { siteUrl } from "@/lib/supabase/config";
 import { isEmail, sendMail } from "@/lib/monitor";
-import { portalEmailHtml } from "@/lib/email";
+import { leveringMail, projectFactuurMail, projectOfferteMail, type KlantMail } from "@/lib/klant-mails";
 import { ensurePortalUser } from "@/lib/portal-access";
 import { checkVies } from "@/lib/vies";
 import { isLand, stelselVoor } from "@/lib/stelsel";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
 import { STAPPEN, type Project, type ProjectStatus } from "@/lib/projecten";
 import {
-  MAIL,
   isTaal,
   modelLijn,
   systemenLijn,
   KORTING_LABEL,
   factuurOmschrijving,
-  datumTekst,
   type Taal,
 } from "@/lib/projecten-teksten";
 import { authGebruiker, klantGegevens, volgendNummer } from "@/lib/projecten-admin";
@@ -41,7 +38,6 @@ const CATEGORIEEN: Categorie[] = ["vroegtijdig", "normaal", "last-minute"];
 const ALLE_STATUSSEN: ProjectStatus[] = [...STAPPEN, "geannuleerd"];
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
-const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 function uren(v: string): number | null {
   if (!v) return null;
@@ -81,31 +77,10 @@ async function bijwerken(id: string, velden: Record<string, unknown>) {
     .eq("id", id);
 }
 
-/** Mail naar de klant in zijn taal, met een knop naar het project. Faalt stil. */
-async function mailKlant(
-  email: string,
-  taal: Taal,
-  projectId: string,
-  onderwerp: string,
-  regels: string[],
-): Promise<boolean> {
-  const M = MAIL[taal];
-  const doel = `/${taal}/portail/dashboard/projecten/${projectId}`;
-  const href = `${siteUrl}/${taal}/portail?next=${encodeURIComponent(doel)}`;
-  const ok = await sendMail(email, {
-    subject: onderwerp,
-    replyTo: "info@studio-vm.be",
-    html: portalEmailHtml({
-      locale: taal,
-      eyebrow: M.eyebrow,
-      title: esc(onderwerp),
-      bodyLines: regels,
-      ctaLabel: M.cta,
-      ctaHref: href,
-      footnote: M.footnote,
-    }),
-  }).catch(() => false);
-  if (!ok) console.info(`[projecten] mail niet verstuurd (geen RESEND_API_KEY?) → ${email}: ${onderwerp}`);
+/** Klantmail versturen (gebouwd in src/lib/klant-mails.ts). Faalt stil. */
+async function mailKlant(email: string, m: KlantMail): Promise<boolean> {
+  const ok = await sendMail(email, m).catch(() => false);
+  if (!ok) console.info(`[projecten] mail niet verstuurd (geen RESEND_API_KEY?) → ${email}: ${m.subject}`);
   return ok;
 }
 
@@ -428,16 +403,11 @@ export async function verwittigKlant(fd: FormData): Promise<void> {
     betaald = (f as { status?: string } | null)?.status === "betaald";
   }
   const k = await klantGegevens(p.client_email, p.quote_id);
-  const M = MAIL[k.taal];
-  const x = esc(p.titel);
   await ensurePortalUser(p.client_email);
-  const verstuurd = await mailKlant(p.client_email, k.taal, p.id, M.leveringOnderwerp(p.titel), [
-    M.hallo(k.naam ? esc(k.naam.split(/\s+/)[0]) : null),
-    M.leveringL1(x, versie),
-    M.leveringSystemen(esc(systemen.join(", "))),
-    betaald ? M.leveringBetaald : M.leveringOnbetaald,
-    M.leveringControle,
-  ]);
+  const verstuurd = await mailKlant(
+    p.client_email,
+    leveringMail(k.taal, { naam: k.naam, titel: p.titel, versie, systemen, betaald, projectId: p.id }),
+  );
   if (["aanvraag", "offerte", "akkoord", "productie"].includes(p.status)) {
     await bijwerken(id, { status: "geleverd" });
   }
@@ -526,13 +496,18 @@ export async function maakOfferte(fd: FormData): Promise<void> {
   });
 
   await ensurePortalUser(p.client_email);
-  const M = MAIL[taal];
-  const incl = totaal + (vatReverse ? 0 : Math.round(totaal * 0.21));
-  const verstuurd = await mailKlant(p.client_email, taal, p.id, M.offerteOnderwerp(titel), [
-    M.hallo(naam ? esc(naam.split(/\s+/)[0]) : null),
-    M.offerteL1(esc(titel)),
-    M.offerteL2(euro(incl, taal), datumTekst(validUntil, taal)),
-  ]);
+  const verstuurd = await mailKlant(
+    p.client_email,
+    projectOfferteMail(taal, {
+      naam: naam || k.naam,
+      titel,
+      offerNo,
+      lijnen,
+      totaalExclCent: totaal,
+      verlegd: vatReverse,
+      geldigTot: validUntil,
+    }),
+  );
   herlaad(id);
   revalidatePath("/admin/offertes");
   redirect(`/admin/projecten/${id}?melding=offerte${verstuurd ? "" : "&mail=0"}`);
@@ -620,13 +595,18 @@ export async function maakFactuur(fd: FormData): Promise<void> {
   if (offerte?.id) await db.from("offers").update({ invoiced_at: new Date().toISOString() }).eq("id", offerte.id);
 
   await ensurePortalUser(p.client_email);
-  const M = MAIL[taal];
-  const incl = bedrag + (offerte?.vat_reverse ? 0 : Math.round(bedrag * 0.21));
-  const verstuurd = await mailKlant(p.client_email, taal, p.id, M.factuurOnderwerp(nummer), [
-    M.hallo(k.naam ? esc(k.naam.split(/\s+/)[0]) : null),
-    M.factuurL1(nummer, esc(p.titel), euro(incl, taal)),
-    M.factuurL2(datumTekst(dueAt, taal)),
-  ]);
+  const verstuurd = await mailKlant(
+    p.client_email,
+    projectFactuurMail(taal, {
+      naam: k.naam,
+      nummer,
+      titel: p.titel,
+      bedragExclCent: bedrag,
+      verlegd: !!offerte?.vat_reverse,
+      dueAt,
+      projectId: p.id,
+    }),
+  );
   herlaad(id);
   revalidatePath("/admin/facturen");
   redirect(`/admin/projecten/${id}?melding=factuur${verstuurd ? "" : "&mail=0"}`);

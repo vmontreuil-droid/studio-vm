@@ -20,6 +20,13 @@ type Inv = {
   due_at: string | null;
   paid_at: string | null;
   offer_id: string | null;
+  // Klantgegevens zoals op de factuur bewaard (migratie 0041).
+  client_name?: string | null;
+  client_address?: string | null;
+  client_vat?: string | null;
+  // Revisiefactuur bij een ticket + eigen btw-verlegging (migratie 0049).
+  ticket_id?: string | null;
+  vat_reverse?: boolean | null;
 };
 type OfferRef = {
   client_name: string | null;
@@ -87,7 +94,29 @@ export default async function AdminInvoiceDoc({
       .maybeSingle();
     ref = (o as OfferRef) ?? null;
   }
-  const reverse = !!ref?.vat_reverse;
+  // Eigen waarde van de factuur eerst; anders (null of kolom nog niet
+  // aanwezig) die van de offerte, zoals voorheen.
+  const reverse =
+    typeof i.vat_reverse === "boolean" ? i.vat_reverse : !!ref?.vat_reverse;
+  // Klantgegevens: die van de offerte, anders de eigen kolommen van de
+  // factuur (losse/revisiefacturen hebben geen offerte).
+  const kNaam =
+    !ref?.client_company && !ref?.client_name ? i.client_name : null;
+  const kAdres = ref?.client_address || i.client_address;
+  const kBtw = ref?.vat_number || i.client_vat;
+  // Uurwerk (3D-project, of revisiefactuur bij een ticket): voorwaarden
+  // aan uurtarief i.p.v. die van een websiteproject — zelfde regel als
+  // in het klantenportaal.
+  let isProject = !!i.ticket_id || typeof i.vat_reverse === "boolean";
+  if (!isProject) {
+    const [{ data: viaFactuur }, { data: viaOfferte }] = await Promise.all([
+      db.from("projecten").select("id").eq("invoice_id", i.id).limit(1),
+      i.offer_id
+        ? db.from("projecten").select("id").eq("offer_id", i.offer_id).limit(1)
+        : Promise.resolve({ data: [] }),
+    ]);
+    isProject = (viaFactuur?.length ?? 0) > 0 || (viaOfferte?.length ?? 0) > 0;
+  }
   const amount = i.amount_cents;
   const vat = reverse ? 0 : Math.round(amount * 0.21);
   const incl = amount + vat;
@@ -198,13 +227,10 @@ export default async function AdminInvoiceDoc({
                 <p className="font-medium">{ref.client_company}</p>
               )}
               {ref?.client_name && <p>{ref.client_name}</p>}
-              {ref?.client_address && (
-                <p className="text-muted">{ref.client_address}</p>
-              )}
-              {ref?.vat_number ? (
-                <p className="font-mono text-xs text-muted">
-                  {ref.vat_number}
-                </p>
+              {kNaam && <p className="font-medium">{kNaam}</p>}
+              {kAdres && <p className="text-muted">{kAdres}</p>}
+              {kBtw ? (
+                <p className="font-mono text-xs text-muted">{kBtw}</p>
               ) : (
                 i.client_email && (
                   <p className="font-mono text-xs text-muted">
@@ -372,19 +398,30 @@ export default async function AdminInvoiceDoc({
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
               Voorwaarden
             </p>
-            <p className="text-xs leading-relaxed text-muted">
-              Betaling: 30% voorschot om te starten, de resterende 70%
-              vóór de site live gaat. Alle betalingen verlopen
-              uitsluitend via het beveiligde klantenportaal — geen
-              uitzonderingen. Het onderhoudsabonnement heeft een
-              minimumlooptijd van 1 jaar en wordt, zonder schriftelijke
-              opzegging minstens 1 maand vóór het einde van de
-              jaarperiode, telkens stilzwijgend met één jaar verlengd.
-              Domein &amp; e-mail (overname/verlenging) zijn ten laste
-              van de klant en worden, afhankelijk van het geval, op de
-              slotfactuur verrekend. Volledige voorwaarden:
-              studio-vm.be/nl/voorwaarden.
-            </p>
+            {isProject ? (
+              <p className="text-xs leading-relaxed text-muted">
+                Uurtarief excl. btw, op basis van de werkelijk gepresteerde
+                uren (minimum 1 uur). Revisies na planwijzigingen worden aan
+                hetzelfde uurtarief aangerekend. De modelbestanden worden in
+                het klantenportaal vrijgegeven zodra deze factuur betaald is.
+                Alle betalingen verlopen via het beveiligde klantenportaal.
+                Volledige voorwaarden: studio-vm.be/nl/voorwaarden.
+              </p>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted">
+                Betaling: 30% voorschot om te starten, de resterende 70%
+                vóór de site live gaat. Alle betalingen verlopen
+                uitsluitend via het beveiligde klantenportaal — geen
+                uitzonderingen. Het onderhoudsabonnement heeft een
+                minimumlooptijd van 1 jaar en wordt, zonder schriftelijke
+                opzegging minstens 1 maand vóór het einde van de
+                jaarperiode, telkens stilzwijgend met één jaar verlengd.
+                Domein &amp; e-mail (overname/verlenging) zijn ten laste
+                van de klant en worden, afhankelijk van het geval, op de
+                slotfactuur verrekend. Volledige voorwaarden:
+                studio-vm.be/nl/voorwaarden.
+              </p>
+            )}
           </div>
         </article>
       </div>

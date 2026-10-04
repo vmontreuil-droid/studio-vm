@@ -1,8 +1,19 @@
 import Link from "next/link";
-import { ArrowLeft, Mail, BarChart3, ExternalLink } from "lucide-react";
+import { ArrowLeft, Mail, BarChart3, ExternalLink, Plus } from "lucide-react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import {
+  afgeleid,
+  datumTijd,
+  soortVan,
+  ticketRef,
+  toonOnderwerp,
+  type BerichtKern,
+  type TicketRij,
+  type TicketSoort,
+} from "@/lib/tickets";
+import { SOORT_LABEL } from "@/lib/tickets-teksten";
 import {
   offerCatalog,
   OFFER_INCLUDED,
@@ -18,8 +29,6 @@ import {
   addInvoice,
   setInvoiceStatus,
   setSubscription,
-  replyTicketStudio,
-  setTicketStatus,
   addSite,
   setSiteStatus,
   setProgress,
@@ -60,6 +69,18 @@ const TABS = [
   { k: "tickets", l: "Tickets" },
 ] as const;
 
+// Zelfde kleuren als de ticketlijst (/admin/tickets).
+const SOORT_KLEUR: Record<TicketSoort, string> = {
+  vraag: "border-border text-muted",
+  revisie: "border-violet-300 bg-violet-200 text-violet-950",
+  machine: "border-teal-300 bg-teal-200 text-teal-950",
+  afspraak: "border-blue-300 bg-blue-200 text-blue-950",
+  intern: "border-dashed border-border text-muted",
+};
+
+/** Zoveel tickets van één klant tonen (nieuwste activiteit eerst). */
+const TICKETS_MAX = 200;
+
 export default async function AdminKlantDetail({
   params,
   searchParams,
@@ -93,7 +114,6 @@ export default async function AdminKlantDetail({
     invoicesR,
     subsR,
     ticketsR,
-    msgsR,
     sitesR,
     progressR,
     checklistR,
@@ -118,11 +138,8 @@ export default async function AdminKlantDetail({
       .from("tickets")
       .select("*")
       .eq("client_email", email)
-      .order("updated_at", { ascending: false }),
-    db
-      .from("ticket_messages")
-      .select("*")
-      .order("created_at", { ascending: true }),
+      .order("updated_at", { ascending: false })
+      .limit(TICKETS_MAX),
     db
       .from("sites")
       .select("*")
@@ -167,20 +184,14 @@ export default async function AdminKlantDetail({
     amount_cents: number;
     status: string;
     issued_at: string;
+    // Btw-verlegging per losse factuur (revisiefactuur), vanaf migratie 0049.
+    vat_reverse?: boolean | null;
   };
   type Sub = {
     id: string;
     plan: string;
     price_cents: number;
     status: string;
-  };
-  type Ticket = { id: string; subject: string; status: string };
-  type Msg = {
-    id: string;
-    ticket_id: string;
-    sender: string;
-    body: string;
-    created_at: string;
   };
   type SiteRow = {
     id: string;
@@ -197,8 +208,38 @@ export default async function AdminKlantDetail({
   const offers = (offersR.data as Offer[]) ?? [];
   const invoices = (invoicesR.data as Invoice[]) ?? [];
   const subs = (subsR.data as Sub[]) ?? [];
-  const tickets = (ticketsR.data as Ticket[]) ?? [];
+  const tickets = (ticketsR.data as TicketRij[] | null) ?? [];
   const sites = (sitesR.data as SiteRow[]) ?? [];
+
+  // Toestand per ticket. Met migratie 0049 staat alles op de ticketrij
+  // (wacht_op, laatste_bericht_op, ongelezen); zonder enkel het laatste
+  // bericht van DEZE tickets ophalen — nooit alle berichten van alle klanten.
+  const laatsteMsg = new Map<string, BerichtKern>();
+  const zonderV2 = tickets.filter((tk) => tk.wacht_op == null).map((tk) => tk.id);
+  for (let i = 0; i < zonderV2.length; i += 100) {
+    const blok = zonderV2.slice(i, i + 100);
+    const { data: msgs } = await db
+      .from("ticket_messages")
+      .select("ticket_id, sender, created_at")
+      .in("ticket_id", blok)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    for (const m of (msgs as BerichtKern[] | null) ?? []) {
+      if (m.ticket_id && !laatsteMsg.has(m.ticket_id)) laatsteMsg.set(m.ticket_id, m);
+    }
+  }
+  const ticketRijen = tickets
+    .map((tk) => {
+      const m = laatsteMsg.get(tk.id);
+      return { t: tk, a: afgeleid(tk, m ? [m] : null), soort: soortVan(tk) };
+    })
+    .sort((x, y) => {
+      // Open eerst, daarna de recentste activiteit bovenaan.
+      if (x.a.gesloten !== y.a.gesloten) return x.a.gesloten ? 1 : -1;
+      return (Date.parse(y.a.laatsteOp) || 0) - (Date.parse(x.a.laatsteOp) || 0);
+    });
+  const openTickets = ticketRijen.filter((r) => !r.a.gesloten).length;
+  const nieuwTicketHref = `/admin/tickets/nieuw?email=${encodeURIComponent(email)}`;
   type ProgressRow = { step: string; note: string | null } | null;
   type CheckRow = { id: string; label: string; done: boolean };
   type DocRow = { id: string; name: string; url: string; kind: string };
@@ -214,17 +255,8 @@ export default async function AdminKlantDetail({
     documenten: documents.length,
     website: sites.length,
     domein: sites.filter((s) => s.domain).length,
-    tickets: tickets.filter((tk) => tk.status !== "gesloten").length,
+    tickets: openTickets,
   };
-  const allMsgs = (msgsR.data as Msg[]) ?? [];
-  const ticketIds = new Set(tickets.map((tk) => tk.id));
-  const msgsByTicket = new Map<string, Msg[]>();
-  for (const m of allMsgs) {
-    if (!ticketIds.has(m.ticket_id)) continue;
-    const arr = msgsByTicket.get(m.ticket_id);
-    if (arr) arr.push(m);
-    else msgsByTicket.set(m.ticket_id, [m]);
-  }
   const eur = (c: number | null | undefined) =>
     c == null ? "—" : `€ ${(c / 100).toFixed(2)}`;
   const sBadge = (s: string) =>
@@ -399,9 +431,7 @@ export default async function AdminKlantDetail({
             { k: "Documenten", v: String(documents.length) },
             {
               k: "Open tickets",
-              v: String(
-                tickets.filter((tk) => tk.status !== "gesloten").length,
-              ),
+              v: String(openTickets),
             },
           ].map((c) => (
             <div key={c.k} className="rounded-2xl bg-card shadow-sm p-5">
@@ -419,7 +449,7 @@ export default async function AdminKlantDetail({
           </p>
           <p className="mt-2 max-w-xl text-sm text-muted">
             Verwijdert deze klant definitief: alle scans, offertes,
-            facturen, abonnement, tickets, documenten, website-info én de
+            facturen, abonnement, tickets (met bijlagen), documenten, website-info én de
             portaaltoegang. Dit kan niet ongedaan gemaakt worden. Typ ter
             bevestiging het e-mailadres.
           </p>
@@ -684,7 +714,11 @@ export default async function AdminKlantDetail({
               const ref = oid
                 ? offers.find((o) => o.id === oid)
                 : undefined;
-              const rev = !!ref?.vat_reverse;
+              // Eigen keuze van de factuur (revisiefactuur) wint; anders die van de offerte.
+              const rev =
+                typeof i.vat_reverse === "boolean"
+                  ? i.vat_reverse
+                  : !!ref?.vat_reverse;
               const incl = rev
                 ? i.amount_cents
                 : Math.round(i.amount_cents * 1.21);
@@ -816,74 +850,91 @@ export default async function AdminKlantDetail({
 
       {tab === "tickets" && (
         <>
-      {/* TICKETS */}
-      <h2 className="mt-12 font-mono text-xs uppercase tracking-widest text-accent">
-        Tickets
-      </h2>
-      <div className="mt-4 space-y-4">
-        {tickets.length === 0 && (
-          <p className="text-sm text-muted">Nog geen tickets.</p>
-        )}
-        {tickets.map((tk) => (
-          <div key={tk.id} className="rounded-2xl bg-card shadow-sm p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-semibold tracking-tight">{tk.subject}</p>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest ${sBadge(
-                    tk.status,
-                  )}`}
-                >
-                  {tk.status}
-                </span>
-                <form action={setTicketStatus.bind(null, tk.id, "gesloten")}>
-                  <button className="rounded-full border px-3 py-1.5 text-xs hover:bg-card-hover">
-                    Sluiten
-                  </button>
-                </form>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              {(msgsByTicket.get(tk.id) ?? []).map((m) => (
-                <div
-                  key={m.id}
-                  className={`rounded-xl px-4 py-2.5 text-sm ${
-                    m.sender === "studio" ? "bg-accent/10" : "border bg-background"
-                  }`}
-                >
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                    {m.sender === "studio" ? "Studio VM" : "Klant"} ·{" "}
-                    {new Date(m.created_at).toLocaleString("nl-BE", {
-                      timeZone: "Europe/Brussels",
-                    })}
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap leading-relaxed">
-                    {m.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-            {tk.status !== "gesloten" && (
-              <form
-                action={replyTicketStudio}
-                className="mt-3 flex flex-col gap-2 sm:flex-row"
-              >
-                <input type="hidden" name="ticket_id" value={tk.id} />
-                <input type="hidden" name="client_email" value={email} />
-                <input
-                  name="body"
-                  required
-                  placeholder="Antwoord aan klant…"
-                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
-                />
-                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90">
-                  Antwoorden
-                </button>
-              </form>
-            )}
-          </div>
-        ))}
+      {/* TICKETS — beantwoorden en sluiten gebeurt op /admin/tickets/<id> */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
+          Tickets
+        </h2>
+        <Link
+          href={nieuwTicketHref}
+          className="inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          Nieuw ticket voor deze klant
+        </Link>
       </div>
+      {ticketRijen.length === 0 ? (
+        <p className="mt-4 rounded-2xl border border-dashed bg-card/40 p-4 text-sm text-muted">
+          Nog geen tickets voor deze klant.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {ticketRijen.map(({ t, a, soort }) => {
+            const ongelezen = a.studioOngelezen;
+            const status = a.gesloten
+              ? { label: "Gesloten", cls: "border text-muted" }
+              : a.wachtOp === "studio"
+                ? { label: "Aan mij", cls: "bg-accent text-background" }
+                : { label: "Wacht op klant", cls: "bg-sky-200 text-sky-950" };
+            return (
+              <li key={t.id}>
+                <Link
+                  href={`/admin/tickets/${t.id}`}
+                  className="flex flex-col gap-2 rounded-xl bg-card px-4 py-3 shadow-sm transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                      {ongelezen && (
+                        <>
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent"
+                            aria-hidden="true"
+                          />
+                          <span className="sr-only">Ongelezen:</span>
+                        </>
+                      )}
+                      <span className="font-mono">{ticketRef(t)}</span>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 ${SOORT_KLEUR[soort]}`}
+                      >
+                        {SOORT_LABEL[soort].nl}
+                      </span>
+                    </p>
+                    <p
+                      className={`mt-1 break-words ${ongelezen ? "font-semibold" : "font-medium"}`}
+                    >
+                      {toonOnderwerp(t) || t.subject}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
+                    <span
+                      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${status.cls}`}
+                    >
+                      {status.label}
+                    </span>
+                    <span className="text-xs text-muted">
+                      <span className="sr-only">Laatste activiteit: </span>
+                      {datumTijd(a.laatsteOp, "nl")}
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {tickets.length >= TICKETS_MAX && (
+        <p className="mt-3 text-xs text-muted">
+          De {TICKETS_MAX} recentste tickets worden getoond —{" "}
+          <Link
+            href={`/admin/tickets?weergave=alle&klant=${encodeURIComponent(email)}`}
+            className="text-accent underline-offset-2 hover:underline"
+          >
+            alle tickets van deze klant
+          </Link>
+          .
+        </p>
+      )}
 
       </>
       )}

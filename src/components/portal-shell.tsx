@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,8 +22,39 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
-import { PORTAL_T, type PortalCounts } from "@/lib/portal-shared";
+import { PORTAL_T, nieuweAntwoorden, type PortalCounts } from "@/lib/portal-shared";
 import { ThemeToggle } from "@/components/theme-toggle";
+
+// Onthouden voorkeur voor de ingeklapte zijbalk (desktop).
+const RAIL_SLEUTEL = "vm_portal_rail";
+const RAIL_GEBEURTENIS = "vm-portal-rail";
+// Zonder localStorage (geblokkeerd, privévenster) onthoudt dit de keuze
+// voor de rest van het bezoek.
+let railGeheugen = false;
+function leesRail(): boolean {
+  try {
+    return localStorage.getItem(RAIL_SLEUTEL) === "1";
+  } catch {
+    return railGeheugen;
+  }
+}
+function zetRail(n: boolean) {
+  railGeheugen = n;
+  try {
+    localStorage.setItem(RAIL_SLEUTEL, n ? "1" : "0");
+  } catch {
+    /* negeren */
+  }
+  window.dispatchEvent(new Event(RAIL_GEBEURTENIS));
+}
+function volgRail(cb: () => void) {
+  window.addEventListener("storage", cb);
+  window.addEventListener(RAIL_GEBEURTENIS, cb);
+  return () => {
+    window.removeEventListener("storage", cb);
+    window.removeEventListener(RAIL_GEBEURTENIS, cb);
+  };
+}
 
 export function PortalShell({
   locale,
@@ -67,6 +98,8 @@ export function PortalShell({
       exact?: boolean;
       badge?: number;
       green?: boolean;
+      /** Tekst voor schermlezers bij de teller (bv. "1 nieuw antwoord"). */
+      srBadge?: string;
     }[];
   }[] = [
     {
@@ -108,12 +141,23 @@ export function PortalShell({
     {
       title: g.support,
       entries: [
-        {
-          href: `${base}/tickets`,
-          label: t.tickets,
-          icon: LifeBuoy,
-          badge: counts.tickets,
-        },
+        // Nieuw antwoord van de studio → groene teller met het aantal
+        // ongelezen tickets; anders de gewone teller met de open tickets.
+        (counts.ticketsOngelezen ?? 0) > 0
+          ? {
+              href: `${base}/tickets`,
+              label: t.tickets,
+              icon: LifeBuoy,
+              badge: counts.ticketsOngelezen,
+              green: true,
+              srBadge: nieuweAntwoorden(counts.ticketsOngelezen ?? 0, locale),
+            }
+          : {
+              href: `${base}/tickets`,
+              label: t.tickets,
+              icon: LifeBuoy,
+              badge: counts.tickets,
+            },
         {
           href: `${base}/afspraak`,
           label: t.appointment,
@@ -156,28 +200,23 @@ export function PortalShell({
   // in de layout en blijft staan bij client-navigatie, dus we reageren
   // op het pad: in de builder-editor ALTIJD ingeklapt (max scherm om te
   // bouwen); daarbuiten de onthouden voorkeur (standaard uitgeklapt).
-  const [rail, setRail] = useState(wide);
-  useEffect(() => {
-    if (wide) {
-      setRail(true);
-      return;
-    }
-    try {
-      setRail(localStorage.getItem("vm_portal_rail") === "1");
-    } catch {
-      setRail(false);
-    }
-  }, [wide]);
-  const toggleRail = () =>
-    setRail((r) => {
-      const n = !r;
-      try {
-        localStorage.setItem("vm_portal_rail", n ? "1" : "0");
-      } catch {
-        /* negeren */
-      }
-      return n;
-    });
+  // De voorkeur komt via useSyncExternalStore uit localStorage (server en
+  // hydratie: uitgeklapt), zonder setState in een effect.
+  const opgeslagen = useSyncExternalStore(volgRail, leesRail, () => false);
+  // In de builder mag de knop de balk tijdelijk openklappen; bij elke
+  // nieuwe intrede in de builder klapt hij weer in.
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [vorigWide, setVorigWide] = useState(wide);
+  if (vorigWide !== wide) {
+    setVorigWide(wide);
+    setBuilderOpen(false);
+  }
+  const rail = wide ? !builderOpen : opgeslagen;
+  const toggleRail = () => {
+    const n = !rail;
+    zetRail(n);
+    if (wide) setBuilderOpen(!n);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -265,21 +304,33 @@ export function PortalShell({
                     <span className={`flex-1 ${lbl}`}>{label}</span>
                     {n > 0 && (
                       <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ${lbl} ${
+                        className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] ${lbl} ${
                           rest.green
-                            ? "bg-green-600 text-white"
-                            : "bg-accent/15 text-accent"
+                            ? "bg-emerald-500 font-semibold text-emerald-950"
+                            : "bg-accent/15 font-medium text-accent"
                         }`}
                       >
-                        {n}
+                        {rest.srBadge ? (
+                          <>
+                            <span aria-hidden>{n}</span>
+                            <span className="sr-only">{rest.srBadge}</span>
+                          </>
+                        ) : (
+                          n
+                        )}
                       </span>
                     )}
                     {n > 0 && rail && (
                       <span
                         className={`absolute right-2 hidden h-1.5 w-1.5 rounded-full md:block ${
-                          rest.green ? "bg-green-600" : "bg-accent"
+                          rest.green ? "bg-emerald-500" : "bg-accent"
                         }`}
-                      />
+                      >
+                        {/* Ingeklapte balk: label en teller zijn verborgen, dus hier voor schermlezers. */}
+                        {rest.srBadge && (
+                          <span className="sr-only">{`${label} · ${rest.srBadge}`}</span>
+                        )}
+                      </span>
                     )}
                   </Link>
                 );

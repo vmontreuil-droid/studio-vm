@@ -19,6 +19,9 @@ type Invoice = {
   paid_at: string | null;
   offer_id: string | null;
   description: string | null;
+  // Eigen btw-verlegging (losse/revisiefacturen, migratie 0049). Ontbreekt
+  // de kolom of staat ze op null, dan geldt de offerte.
+  vat_reverse?: boolean | null;
 };
 
 const STATUSES = ["alle", "open", "betaald", "vervallen"] as const;
@@ -37,9 +40,8 @@ export default async function AdminFacturen({
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("invoices")
-    .select(
-      "id, client_email, number, amount_cents, status, issued_at, due_at, paid_at, offer_id, description",
-    )
+    // "*" i.p.v. een vaste lijst: vat_reverse bestaat pas na migratie 0049.
+    .select("*")
     .order("issued_at", { ascending: false })
     .limit(1000);
   const all = (data as Invoice[]) ?? [];
@@ -58,10 +60,12 @@ export default async function AdminFacturen({
     }[]) ?? [])
       reverseByOffer.set(o.id, !!o.vat_reverse);
   }
+  const reverseOf = (i: Invoice) =>
+    typeof i.vat_reverse === "boolean"
+      ? i.vat_reverse
+      : !!(i.offer_id && reverseByOffer.get(i.offer_id));
   const inclOf = (i: Invoice) =>
-    i.offer_id && reverseByOffer.get(i.offer_id)
-      ? i.amount_cents
-      : Math.round(i.amount_cents * 1.21);
+    reverseOf(i) ? i.amount_cents : Math.round(i.amount_cents * 1.21);
   const invoices =
     status === "alle" ? all : all.filter((i) => i.status === status);
 

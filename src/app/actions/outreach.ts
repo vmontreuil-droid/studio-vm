@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
-import { resendApiKey } from "@/lib/supabase/config";
+import { resendApiKey, resendFrom } from "@/lib/supabase/config";
 import { getOutreachConfig } from "@/lib/admin/outreach";
 import {
   bedrijfVoorMail,
@@ -12,11 +12,7 @@ import {
 } from "@/lib/admin/outreach-mail";
 import { getCompanySettings } from "@/lib/admin/settings";
 import { parseNaceList } from "@/lib/admin/aannemers";
-import {
-  portalEmailHtml,
-  offerPreviewHtml,
-  invoicePaidPreviewHtml,
-} from "@/lib/email";
+import { klantMailVoorbeelden } from "@/lib/klant-mails";
 
 const STATUSES = [
   "nieuw",
@@ -135,84 +131,12 @@ function buildSamplePreview(
     const sample = buildOutreachSamples(cfg, bedrijf).find((x) => x.id === id);
     return sample ? sample.mail : null;
   }
-  if (id === "offer-sent-nl") {
-    return {
-      subject: "Je offerte staat klaar — Studio VM",
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: "Je offerte",
-        title: "Hi Jan Peeters,",
-        bodyLines: [
-          "Hierbij je persoonlijke offerte — het geschatte aantal uren, het uurtarief en de voorwaarden staan in je portaal.",
-        ],
-        ctaLabel: "Bekijk je voorstel",
-        ctaHref: "https://www.studio-vm.be/nl/portail",
-        extraHtml: offerPreviewHtml({
-          offerNo: "OFF2026-0042",
-          greeting: "Jan Peeters",
-          amountExclCents: 30000,
-          vatReverse: false,
-          validUntil: "2026-10-30",
-          includes: [
-            "3D-model wegenis — 6 u × € 50 (normaal)",
-            "Levering voor Trimble én Topcon (zonder meerprijs)",
-            "Lambert 72 + TAW, controle van niveaus en hellingen",
-          ],
-        }),
-      }),
-    };
-  }
-  if (id === "invoice-paid-nl") {
-    return {
-      subject: "Factuur F2026-0017 is betaald — bedankt!",
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: "Factuur betaald",
-        title: "Bedankt voor je betaling 🎉",
-        bodyLines: ["Je betaling is goed binnengekomen."],
-        ctaLabel: "Open mijn portaal",
-        ctaHref: "https://www.studio-vm.be/nl/portail",
-        extraHtml: invoicePaidPreviewHtml({
-          number: "F2026-0017",
-          description: "3D-model bouwput — 4 u",
-          amountExclCents: 20000,
-          vatReverse: false,
-          paidAt: new Date().toISOString(),
-          locale: "nl",
-        }),
-      }),
-    };
-  }
-  if (id === "support-free-nl") {
-    return {
-      subject: "Je supportmaand is gratis 🎁 — Studio VM",
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: "Je supportabonnement",
-        title: "Maand 1: gratis 🎁",
-        bodyLines: [
-          "Maand 1 van je Care-abonnement is gratis.",
-        ],
-        ctaLabel: "Bekijk je portaal",
-        ctaHref: "https://www.studio-vm.be/nl/portail",
-      }),
-    };
-  }
-  if (id === "reminder-1-nl") {
-    return {
-      subject: "Vriendelijke herinnering — factuur F2026-0017",
-      html: portalEmailHtml({
-        locale: "nl",
-        eyebrow: "Vriendelijke herinnering",
-        title: "Mogen we je even herinneren?",
-        bodyLines: [
-          "Factuur F2026-0017 is intussen vervallen.",
-          "Openstaand bedrag: € 180,00.",
-        ],
-        ctaLabel: "Betaal in je portaal",
-        ctaHref: "https://www.studio-vm.be/nl/portail",
-      }),
-    };
+  // Klantmails (offerte, factuur, tickets …) — exact de echte bouwers uit
+  // src/lib/klant-mails.ts, id = "<mail>.<taal>" zoals op /admin/mail-preview.
+  const m = /^([a-z0-9-]+)\.(nl|fr|en|de|es)$/.exec(id);
+  if (m) {
+    const v = klantMailVoorbeelden(m[2]).find((x) => x.id === m[1]);
+    return v ? { subject: v.mail.subject, html: v.mail.html, from: resendFrom } : null;
   }
   return null;
 }
