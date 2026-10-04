@@ -11,6 +11,8 @@ import { MerkIcoon } from "@/components/merk-iconen";
 // Iconen naar de profielen van Studio VM: elk ingevuld profiel uit SOCIAL
 // (lib/bedrijf), kaal adres zonder UTM, rel="me" voor de profielverificatie.
 
+const BEHEER: Record<Locale, string> = { nl: "Beheer", fr: "Gestion", en: "Admin", de: "Verwaltung", es: "Gestión" };
+
 const FL: Record<
   Locale,
   {
@@ -246,8 +248,12 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <TaalLinks current={locale} />
             <div className="flex flex-wrap items-center gap-4 lg:justify-end">
               <p className="font-mono text-muted">{t.footer.built}</p>
-              {/* Geen publieke knop naar /admin: het beheer bereik je via het
-                  adres zelf, zodat de site er geen bezoekers naartoe leidt. */}
+              {/* Klein en onopvallend linkje naar het beheer (Vincent, 4/10). Gewone <a>:
+                  geen prefetch van /admin; robots.txt sluit /admin al uit. De aanmelding
+                  zelf blijft beschermd (wachtwoord, tweestaps, blokkering na 5 fouten). */}
+              <a href="/admin" rel="nofollow" className="font-mono text-muted opacity-60 transition-opacity hover:opacity-100">
+                {BEHEER[locale]}
+              </a>
             </div>
           </div>
         </div>
