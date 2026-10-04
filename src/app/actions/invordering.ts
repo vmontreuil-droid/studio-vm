@@ -11,7 +11,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { verstuurMail } from "@/lib/monitor";
 import { BEDRIJF } from "@/lib/bedrijf";
 import { logBewijs } from "@/lib/invordering/bewijslog";
-import { isArrondissement } from "@/lib/invordering/arrondissement";
+import { isGebied, LANDEN_PARTNER, isLandPartner } from "@/lib/invordering/arrondissement";
 import { deurwaarders, isDeurwaarder, laadDossier, type Deurwaarder } from "@/lib/invordering/dossier";
 import { deurwaarderMail, dossierBijlagen } from "@/lib/invordering/documenten";
 
@@ -42,7 +42,7 @@ async function laad(id: string): Promise<Rij | null> {
 export async function bewaarDeurwaarder(fd: FormData): Promise<void> {
   if (!(await requireAdmin())) return;
   const arr = s(fd, "arrondissement");
-  if (!isArrondissement(arr)) redirect("/admin/deurwaarders?melding=fout");
+  if (!isGebied(arr)) redirect("/admin/deurwaarders?melding=fout");
   const naam = s(fd, "naam", 160);
   const email = s(fd, "email", 200).toLowerCase();
   const db = getSupabaseAdmin();
@@ -52,7 +52,7 @@ export async function bewaarDeurwaarder(fd: FormData): Promise<void> {
     redirect(`/admin/deurwaarders?melding=gewist#${arr}`);
   }
   if (!naam || !EMAIL.test(email)) redirect(`/admin/deurwaarders?melding=onvolledig#${arr}`);
-  const taal = s(fd, "taal");
+  const taal = s(fd, "taal") || (isLandPartner(arr) ? LANDEN_PARTNER[arr].taal : "nl");
   const { error } = await db.from("deurwaarders").upsert({
     arrondissement: arr,
     naam,
@@ -64,7 +64,9 @@ export async function bewaarDeurwaarder(fd: FormData): Promise<void> {
     updated_at: new Date().toISOString(),
   });
   revalidatePath("/admin/deurwaarders");
-  redirect(`/admin/deurwaarders?melding=${error ? "fout" : "bewaard"}#${arr}`);
+  // Een land bewaren vóór migratie 0053: de databank kent het nog niet.
+  const melding = !error ? "bewaard" : /check|23514/i.test(`${error.code} ${error.message}`) && isLandPartner(arr) ? "migratie-0053" : "fout";
+  redirect(`/admin/deurwaarders?melding=${melding}#${arr}`);
 }
 
 // ── Dossier ─────────────────────────────────────────────────────────────
@@ -79,7 +81,7 @@ export async function kiesDeurwaarder(fd: FormData): Promise<void> {
   let dw: Deurwaarder | null = null;
   const arr = s(fd, "arrondissement");
   if (arr) {
-    if (!isArrondissement(arr)) terug(r.id, "fout");
+    if (!isGebied(arr)) terug(r.id, "fout");
     dw = (await deurwaarders()).get(arr) ?? null;
     if (!dw) terug(r.id, "geen-deurwaarder");
   } else {
@@ -227,13 +229,13 @@ export async function maakDossier(fd: FormData): Promise<void> {
   const db = getSupabaseAdmin();
   const { data: al } = await db.from("invorderingen").select("id").eq("invoice_id", d.factuur.id).maybeSingle();
   if (al) terug((al as { id: string }).id, "bestaat");
-  const dw = d.arrondissement ? (await deurwaarders()).get(d.arrondissement) ?? null : null;
+  const dw = d.gebied ? (await deurwaarders()).get(d.gebied) ?? null : null;
   const { data, error } = await db
     .from("invorderingen")
     .insert({
       invoice_id: d.factuur.id,
       status: "klaar",
-      arrondissement: d.arrondissement,
+      arrondissement: d.gebied,
       deurwaarder: dw,
       hoofdsom_cent: d.vordering.hoofdsomCent,
       interest_cent: d.vordering.interestCent,

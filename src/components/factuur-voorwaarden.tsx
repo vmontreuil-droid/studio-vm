@@ -18,6 +18,7 @@ export function FactuurVoorwaarden({ taal, soort }: { taal: Locale; soort: Voorw
         ))}
       </dl>
       <p className="mt-2 text-[10px] text-muted print:mt-1.5 print:text-[7pt]">{v.volledig}</p>
+      <p className="mt-3 border-t pt-3 text-center text-xs text-foreground print:mt-2 print:pt-2 print:text-[8pt]">{v.slot}</p>
     </section>
   );
 }

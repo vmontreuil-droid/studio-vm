@@ -4,7 +4,7 @@ import { ArrowLeft, FileText, Gavel, Pause, Play, RefreshCw, Send, TriangleAlert
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { ARRONDISSEMENTEN, type Arrondissement } from "@/lib/invordering/arrondissement";
+import { ARRONDISSEMENTEN, LANDEN_PARTNER, type Arrondissement, type LandPartner } from "@/lib/invordering/arrondissement";
 import { arrondissementNaam, deurwaarders, isDeurwaarder, laadDossier } from "@/lib/invordering/dossier";
 import { euro, tijd, datum } from "@/lib/invordering/teksten";
 import { InvorderingStatus } from "@/components/admin/invordering-status";
@@ -170,8 +170,12 @@ export default async function InvorderingDossier({
               <dd>{d.klant.btw ?? "— (particulier)"}</dd>
               <dt className="text-muted">E-mail</dt>
               <dd>{d.klant.email}</dd>
-              <dt className="text-muted">Arrondissement</dt>
-              <dd>{arrondissementNaam(d.arrondissement) ?? (d.buitenland ? "buitenland" : "onbekend")}</dd>
+              <dt className="text-muted">{d.buitenland ? "Land" : "Arrondissement"}</dt>
+              <dd>
+                {d.buitenland
+                  ? `${d.land}${d.gebied ? ` — vaste partner: ${arrondissementNaam(d.gebied)}` : " — geen vaste partner"}`
+                  : arrondissementNaam(d.arrondissement) ?? "onbekend"}
+              </dd>
             </dl>
           </section>
 
@@ -242,6 +246,18 @@ export default async function InvorderingDossier({
               ))}
             </ul>
             <p className="mt-3 text-xs text-muted">Kopie van de mail gaat naar info@studio-vm.be.</p>
+            {d.buitenland && (
+              <div className="mt-4 border-t pt-3">
+                <a href={pdf("betalingsbevel")} target="_blank" rel="noopener" className="inline-flex items-center gap-2 text-accent hover:underline">
+                  <FileText className="h-4 w-4" />
+                  Europees betalingsbevel voorbereiden (pdf)
+                </a>
+                <p className="mt-1 text-xs text-muted">
+                  Voor jezelf, als de invordering in het buitenland niet lukt: de gegevens per vak van het officiële
+                  formulier A, om over te nemen op e-justice.europa.eu.
+                </p>
+              </div>
+            )}
           </section>
 
           {/* Deurwaarder */}
@@ -266,16 +282,26 @@ export default async function InvorderingDossier({
                 <form action={kiesDeurwaarder} className="mt-4 space-y-2">
                   <input type="hidden" name="id" value={r.id} />
                   <label className="block text-xs text-muted">Uit je lijst</label>
-                  <select name="arrondissement" defaultValue={d.arrondissement ?? ""} className={veld}>
+                  <select name="arrondissement" defaultValue={d.gebied ?? ""} className={veld}>
                     <option value="" disabled>
-                      Kies een arrondissement
+                      Kies een arrondissement of land
                     </option>
-                    {(Object.keys(ARRONDISSEMENTEN) as Arrondissement[]).map((a) => (
-                      <option key={a} value={a} disabled={!dws.has(a)}>
-                        {ARRONDISSEMENTEN[a].naam}
-                        {dws.has(a) ? ` — ${dws.get(a)!.naam}` : " (niet ingesteld)"}
-                      </option>
-                    ))}
+                    <optgroup label="België">
+                      {(Object.keys(ARRONDISSEMENTEN) as Arrondissement[]).map((a) => (
+                        <option key={a} value={a} disabled={!dws.has(a)}>
+                          {ARRONDISSEMENTEN[a].naam}
+                          {dws.has(a) ? ` — ${dws.get(a)!.naam}` : " (niet ingesteld)"}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Buitenland">
+                      {(Object.keys(LANDEN_PARTNER) as LandPartner[]).map((l) => (
+                        <option key={l} value={l} disabled={!dws.has(l)}>
+                          {LANDEN_PARTNER[l].naam}
+                          {dws.has(l) ? ` — ${dws.get(l)!.naam}` : " (niet ingesteld)"}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                   <button type="submit" className={knop}>
                     Deze deurwaarder nemen

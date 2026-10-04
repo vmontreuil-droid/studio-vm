@@ -8,11 +8,14 @@ import { regimeVan, type BtwRegime } from "@/lib/facturatie/btw";
 import { structuredComm } from "@/lib/bank";
 import type { Locale } from "@/lib/i18n/config";
 import {
-  ARRONDISSEMENTEN,
   arrondissementVanKlant,
-  isArrondissement,
-  isBuitenlands,
+  gebiedNaam,
+  gebiedVanKlant,
+  isGebied,
+  isLandPartner,
+  landVanKlant,
   type Arrondissement,
+  type Gebied,
 } from "./arrondissement";
 import { htmlNaarTekst } from "./teksten";
 import { laatsteInlezing } from "@/lib/bank-match";
@@ -84,7 +87,11 @@ export type Dossier = {
   /** Btw-nummer gekend → handelstransactie (wet 2 augustus 2002). */
   zakelijk: boolean;
   buitenland: boolean;
+  /** ISO-land van de klant ("BE", "NL" …), null = onbekend. */
+  land: string | null;
   arrondissement: Arrondissement | null;
+  /** Waar de invordering gebeurt: arrondissement, of land met een vaste partner. */
+  gebied: Gebied | null;
   offerte: {
     nummer: string;
     titel: string;
@@ -276,8 +283,10 @@ export async function laadDossier(invoiceId: string): Promise<Dossier | null> {
   const btw = i.client_vat || k.btw || null;
   const naam = i.client_name || k.bedrijf || k.naam || i.client_email;
   const zakelijk = !!btw;
-  const buitenland = isBuitenlands(adres, btw);
+  const land = landVanKlant(adres, btw);
+  const buitenland = !!land && land !== "BE";
   const arrondissement = arrondissementVanKlant(adres, btw);
+  const gebied = gebiedVanKlant(adres, btw);
 
   // Vordering tot vandaag
   const hoofdsom = b?.totaalCent ?? i.amount_cents;
@@ -310,7 +319,13 @@ export async function laadDossier(invoiceId: string): Promise<Dossier | null> {
   if (!zakelijk)
     waarschuwingen.push({ code: "particulier", tekst: "Geen btw-nummer: de klant geldt als particulier. Enkel de hoofdsom wordt gevorderd (geen verwijlinterest of forfait van de wet van 2 augustus 2002); de deurwaarder volgt de regels voor consumenten.", blokkeert: false });
   if (buitenland)
-    waarschuwingen.push({ code: "buitenland", tekst: "De klant lijkt in het buitenland te zitten: een Belgische deurwaarder kan daar niet optreden. Kies zelf een deurwaarder of gebruik het Europees betalingsbevel.", blokkeert: false });
+    waarschuwingen.push({
+      code: "buitenland",
+      tekst: `Klant in het buitenland (${land}): de brief vraagt invordering in dat land, bij ${
+        gebied ? `je vaste partner voor ${gebiedNaam(gebied)}` : "een kantoor dat je zelf kiest (geen vaste partner voor dit land)"
+      }. Lukt dat niet, dan kan je het Europees betalingsbevel indienen (zie "Wat de deurwaarder krijgt").`,
+      blokkeert: false,
+    });
   else if (!arrondissement)
     waarschuwingen.push({ code: "adres", tekst: "Geen Belgische postcode gevonden in het adres van de klant: kies zelf de deurwaarder.", blokkeert: false });
   if (zakelijk && !rente)
@@ -354,7 +369,9 @@ export async function laadDossier(invoiceId: string): Promise<Dossier | null> {
     klant: { email: i.client_email, naam, adres, btw, telefoon: k.telefoon, taal },
     zakelijk,
     buitenland,
+    land,
     arrondissement,
+    gebied,
     offerte: off
       ? {
           nummer: off.offer_no ?? "",
@@ -417,26 +434,29 @@ export function naarDeurwaarder(r: DwRij): Deurwaarder {
   };
 }
 
-/** Alle ingestelde deurwaarders, per arrondissement. Leeg zonder migratie 0052. */
-export async function deurwaarders(): Promise<Map<Arrondissement, Deurwaarder>> {
+/** Alle ingestelde deurwaarders en buitenlandse partners, per gebied. Leeg zonder migratie 0052. */
+export async function deurwaarders(): Promise<Map<Gebied, Deurwaarder>> {
   const { data, error } = await getSupabaseAdmin().from("deurwaarders").select("*");
-  const m = new Map<Arrondissement, Deurwaarder>();
+  const m = new Map<Gebied, Deurwaarder>();
   if (error) return m;
-  for (const r of (data as DwRij[] | null) ?? []) if (isArrondissement(r.arrondissement)) m.set(r.arrondissement, naarDeurwaarder(r));
+  for (const r of (data as DwRij[] | null) ?? []) if (isGebied(r.arrondissement)) m.set(r.arrondissement, naarDeurwaarder(r));
   return m;
 }
 
-/** Deurwaarder voor een dossier: die van het arrondissement van de klant. */
-export async function deurwaarderVoor(arr: Arrondissement | null): Promise<Deurwaarder | null> {
-  if (!arr) return null;
-  return (await deurwaarders()).get(arr) ?? null;
+/** Deurwaarder voor een dossier: die van het gebied (arrondissement of land) van de klant. */
+export async function deurwaarderVoor(g: Gebied | null): Promise<Deurwaarder | null> {
+  if (!g) return null;
+  return (await deurwaarders()).get(g) ?? null;
 }
+
+export { isLandPartner };
 
 export function isDeurwaarder(v: unknown): v is Deurwaarder {
   const d = v as Deurwaarder | null;
   return !!d && typeof d.naam === "string" && !!d.naam && typeof d.email === "string" && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email);
 }
 
+/** Naam van het gebied (arrondissement of land), in het Nederlands. */
 export function arrondissementNaam(a: string | null | undefined): string | null {
-  return a && isArrondissement(a) ? ARRONDISSEMENTEN[a].naam : null;
+  return gebiedNaam(a);
 }

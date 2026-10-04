@@ -137,6 +137,14 @@ with checks as (
       select 1 from information_schema.tables
       where table_schema = 'public' and table_name = 'invorderingen'
     )
+  union all select
+    '0053_invordering_buitenland.sql',
+    'invordering buitenland: vaste partner per land (NL/DE/FR/LU) in deurwaarders',
+    exists(
+      select 1 from pg_constraint
+      where conname = 'deurwaarders_arrondissement_check'
+        and pg_get_constraintdef(oid) like '%land-nl%'
+    )
 )
 select
   migration,

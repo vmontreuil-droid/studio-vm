@@ -2,12 +2,12 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isDeurwaarder, laadDossier, type Deurwaarder } from "@/lib/invordering/dossier";
-import { briefPdf, bewijsPdf, factuurPdf, taalVoor } from "@/lib/invordering/documenten";
+import { betalingsbevelPdf, briefPdf, bewijsPdf, factuurPdf, taalVoor } from "@/lib/invordering/documenten";
 
 export const dynamic = "force-dynamic";
 
 // Voorbeeld van de pdf's zoals de deurwaarder ze krijgt:
-// ?soort=brief | factuur | bewijs
+// ?soort=brief | factuur | bewijs | betalingsbevel (voorbereiding, voor Studio VM zelf)
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!adminConfigured || !(await requireAdmin())) return new Response("Unauthorized", { status: 401 });
@@ -29,7 +29,13 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     : { naam: "(nog geen deurwaarder gekozen)", email: "—", taal: taalVoor(null, d) };
   const soort = new URL(req.url).searchParams.get("soort");
   const bytes =
-    soort === "factuur" ? await factuurPdf(d) : soort === "bewijs" ? await bewijsPdf(d, taalVoor(dw, d)) : await briefPdf(d, dw);
+    soort === "factuur"
+      ? await factuurPdf(d)
+      : soort === "bewijs"
+        ? await bewijsPdf(d, taalVoor(dw, d))
+        : soort === "betalingsbevel"
+          ? await betalingsbevelPdf(d)
+          : await briefPdf(d, dw);
   return new Response(Buffer.from(bytes), {
     headers: {
       "Content-Type": "application/pdf",

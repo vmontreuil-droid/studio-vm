@@ -7,8 +7,9 @@ import { factuurVoorwaarden } from "@/lib/facturatie/voorwaarden";
 import { portalEmailHtml, siteLink } from "@/lib/email";
 import type { MailBijlage } from "@/lib/monitor";
 import { Pdf } from "./pdf";
+import { isArrondissement } from "./arrondissement";
 import type { Deurwaarder, Dossier, Gebeurtenis } from "./dossier";
-import { ARR_NAAM, DOSSIER, FACTUUR_L, briefTaal, datum, euro, tijd, type BriefTaal, type DossierTeksten } from "./teksten";
+import { ARR_NAAM, DOSSIER, FACTUUR_L, briefTaal, datum, euro, landNaam, tijd, type BriefTaal, type DossierTeksten } from "./teksten";
 
 // De drie pdf's voor de deurwaarder en de mail die ze meeneemt:
 //   1. begeleidende brief (taal van de deurwaarder)
@@ -78,10 +79,16 @@ export async function briefPdf(d: Dossier, dw: Deurwaarder): Promise<Uint8Array>
   pdf.alinea(T.referentie(d.factuur.nummer), { grootte: 9, kleur: "grijs" });
 
   pdf.alinea(T.aanhef);
-  const arr = d.arrondissement ?? dw.arrondissement ?? null;
+  const arr = d.arrondissement ?? (isArrondissement(dw.arrondissement) ? dw.arrondissement : null);
   const klant = [d.klant.naam, d.klant.btw ? `(${d.klant.btw})` : "", d.klant.adres ? `, ${d.klant.adres.replace(/\s*\n\s*/g, ", ")}` : ""].join(" ").replace(/ ,/g, ",").trim();
-  pdf.alinea(T.inleiding(klant, arr ? ARR_NAAM[taal][arr] ?? arr : null));
-  pdf.alinea(d.zakelijk ? T.zakelijk : T.particulier);
+  if (d.buitenland && d.land) {
+    // Buiten België: geen Belgische procedure, invordering in het land van de klant.
+    pdf.alinea(T.inleidingLand(klant, landNaam(d.land, taal)));
+    pdf.alinea(d.zakelijk ? T.buitenlandZakelijk : T.buitenlandParticulier);
+  } else {
+    pdf.alinea(T.inleiding(klant, arr ? ARR_NAAM[taal][arr] ?? arr : null));
+    pdf.alinea(d.zakelijk ? T.zakelijk : T.particulier);
+  }
 
   pdf.label(T.overzicht(datum(d.vordering.berekendOp, taal)));
   pdf.bedragen(vorderingRegels(d, T, taal));
@@ -169,6 +176,11 @@ function voorwaarden(pdf: Pdf, d: Dossier, kop?: string, uitleg?: string): void 
   if (uitleg) pdf.alinea(uitleg, { grootte: 8.5, kleur: "grijs" });
   for (const p of v.punten) pdf.alinea(`${p.kop}: ${p.tekst}`, { grootte: 8 });
   pdf.alinea(v.volledig, { grootte: 8, kleur: "grijs" });
+  if (!kop) {
+    // Op de factuurkopie ook de slotregel, zoals op de factuur zelf.
+    pdf.ruimte(4);
+    pdf.alinea(v.slot, { grootte: 8.5 });
+  }
 }
 
 // ── 3. Bewijsdossier ────────────────────────────────────────────────────
@@ -240,6 +252,110 @@ export async function bewijsPdf(d: Dossier, taal: BriefTaal): Promise<Uint8Array
   }
 
   voorwaarden(pdf, d, T.voorwaardenKop, T.voorwaardenUitleg);
+  return pdf.bytes();
+}
+
+// ── 4. Voorbereiding Europees betalingsbevel (voor Studio VM zelf) ──────
+// Verordening (EG) nr. 1896/2006: een onbetwiste vordering op een klant in
+// een ander EU-land. Dit blad volgt de vakken van het officiële formulier A,
+// zodat Studio VM ze kan overnemen op het e-justitieportaal.
+
+export async function betalingsbevelPdf(d: Dossier): Promise<Uint8Array> {
+  const pdf = await Pdf.nieuw(`Europees betalingsbevel — ${d.factuur.nummer}`, `${BEDRIJF.naam} · voorbereiding formulier A · ${d.factuur.nummer}`);
+  pdf.briefhoofd(HOOFD);
+  pdf.kop("Europees betalingsbevel — voorbereiding formulier A");
+  pdf.alinea(
+    "Voor een onbetwiste geldvordering op een klant in een ander EU-land (niet Denemarken). Vul het officiële formulier A online in op het Europese e-justitieportaal (e-justice.europa.eu, zoek 'Europees betalingsbevel') en neem de gegevens hieronder vak per vak over. Een advocaat is niet nodig. Na uitreiking aan de klant heeft die 30 dagen om verzet te doen; daarna is het bevel in zijn land uitvoerbaar zonder verdere procedure.",
+    { grootte: 9, kleur: "grijs" },
+  );
+
+  const land = d.land ?? "?";
+  const vervaldagPlus1 = new Date(Date.parse(`${d.factuur.vervaldag}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+
+  pdf.label("1. Gerecht");
+  pdf.alinea(
+    d.zakelijk
+      ? `Volgens de algemene voorwaarden zijn de rechtbanken van Kortrijk bevoegd. Tot € 5.000: Vredegerecht van het kanton Kortrijk; daarboven: Ondernemingsrechtbank Gent, afdeling Kortrijk. Vraag het bij twijfel na bij de griffie.`
+      : `De klant is een particulier: het gerecht van zijn woonplaats (${land}) is bevoegd (art. 18 Verordening (EU) nr. 1215/2012); een forumkeuze geldt niet tegenover een consument.`,
+    { grootte: 9.5 },
+  );
+
+  pdf.label("2. Partijen");
+  pdf.regels(
+    [
+      ["Eiser (01)", `${BEDRIJF.houder}, handelend onder de naam ${BEDRIJF.naam} · ondernemingsnummer ${ONDERNEMINGSNR} · ${BEDRIJF.straat}, ${BEDRIJF.postcode} ${BEDRIJF.gemeente}, België · ${BEDRIJF.email} · ${BEDRIJF.telefoon}`],
+      ["Verweerder (02)", [d.klant.naam, d.klant.adres?.replace(/\s*\n\s*/g, ", "), d.klant.btw ? `btw ${d.klant.btw}` : null, d.klant.email, d.klant.telefoon].filter(Boolean).join(" · ")],
+    ],
+    { grootte: 9 },
+  );
+
+  pdf.label("3. Grond voor de bevoegdheid");
+  pdf.alinea(
+    d.zakelijk
+      ? `Forumkeuze door de partijen (art. 25 Verordening (EU) nr. 1215/2012): algemene voorwaarden van Studio VM, aanvaard bij de offerte${d.offerte?.aanvaardOp ? ` op ${datum(d.offerte.aanvaardOp, "nl")}` : ""}. Kies in het formulier de grond "forumkeuze".`
+      : "Woonplaats van de verweerder.",
+    { grootte: 9.5 },
+  );
+
+  pdf.label("4. Grensoverschrijdend karakter");
+  pdf.regels([
+    ["Land van de eiser", "BE"],
+    ["Land van de verweerder", land],
+    ["Land van het gerecht", d.zakelijk ? "BE" : land],
+  ], { grootte: 9 });
+
+  pdf.label("5. Bankgegevens (optioneel, voor de gerechtskosten)");
+  pdf.alinea("Leeg laten of je eigen rekening invullen als het gerecht de kosten wil innen via domiciliëring.", { grootte: 9, kleur: "grijs" });
+
+  pdf.label("6. Hoofdsom");
+  pdf.regels([
+    ["Soort overeenkomst", "Dienstenovereenkomst: 3D-modellen voor machinesturing (technische dienstverlening)"],
+    ["Factuur", `${d.factuur.nummer} van ${datum(d.factuur.uitgereikt, "nl")}, vervallen op ${datum(d.factuur.vervaldag, "nl")}`],
+    ["Bedrag", `${euro(d.vordering.hoofdsomCent, "nl")} (EUR)`],
+  ], { grootte: 9 });
+
+  if (d.zakelijk) {
+    pdf.label("7. Interest");
+    pdf.alinea(
+      `Wettelijke interest bij handelstransacties (wet van 2 augustus 2002; richtlijn 2011/7/EU): referentierentevoet van de ECB + 8 procentpunten, per halfjaar vastgesteld${d.vordering.pct != null ? `; nu ${String(d.vordering.pct).replace(".", ",")} % per jaar` : ""}. Vanaf ${datum(vervaldagPlus1, "nl")} tot de volledige betaling. Tot ${datum(d.vordering.berekendOp, "nl")}: ${euro(d.vordering.interestCent, "nl")}.`,
+      { grootte: 9.5 },
+    );
+    pdf.label("8. Andere kosten");
+    pdf.alinea(`Forfaitaire vergoeding voor invorderingskosten: ${euro(d.vordering.forfaitCent, "nl")} (art. 6 wet van 2 augustus 2002; art. 6 richtlijn 2011/7/EU).`, { grootte: 9.5 });
+  } else {
+    pdf.label("7–8. Interest en andere kosten");
+    pdf.alinea("Particulier: enkel de hoofdsom vorderen (geen interest of forfait van de wet van 2 augustus 2002).", { grootte: 9.5 });
+  }
+
+  pdf.label("9. Bewijs (schriftelijk)");
+  const bewijs: string[] = [];
+  if (d.offerte) bewijs.push(`Offerte ${d.offerte.nummer}${d.offerte.aanvaardOp ? `, aanvaard via het klantenportaal op ${tijd(d.offerte.aanvaardOp, "nl")}${d.offerte.ip ? ` (IP ${d.offerte.ip})` : ""}` : ""}`);
+  if (d.leveringen.length) bewijs.push(`Oplevering van het model in het klantenportaal op ${datum(d.leveringen[0].op, "nl")}`);
+  bewijs.push(`Factuur ${d.factuur.nummer} van ${datum(d.factuur.uitgereikt, "nl")}`);
+  for (const h of d.herinneringen) if (h.op) bewijs.push(`${h.niveau >= 3 ? "Laatste herinnering (ingebrekestelling)" : `Herinnering ${h.niveau}`} per e-mail op ${datum(h.op, "nl")}`);
+  bewijs.push("Algemene voorwaarden (op de factuur en op studio-vm.be/nl/voorwaarden)");
+  pdf.alinea(bewijs.map((b) => `• ${b}`).join("\n"), { grootte: 9.5 });
+  pdf.alinea("Alles staat in het bewijsdossier van deze factuur (pdf), dat je als bijlage kunt meesturen.", { grootte: 9, kleur: "grijs" });
+
+  pdf.label("10. Bijkomende verklaringen");
+  pdf.alinea("De vordering werd niet betwist: er kwam geen klacht en geen verzet op de factuur of de herinneringen.", { grootte: 9.5 });
+  if (d.waarschuwingen.some((w) => w.code === "ticket"))
+    pdf.alinea("Let op: er staat een open ticket van deze klant sinds de factuur. Kijk eerst na of de factuur niet betwist is.", { grootte: 9, kleur: "grijs" });
+
+  pdf.label("11. Verklaring en ondertekening");
+  pdf.alinea(`Anzegem, (datum) — ${BEDRIJF.houder} (${BEDRIJF.naam})`, { grootte: 9.5 });
+
+  pdf.label("Totaal gevorderd tot vandaag");
+  pdf.bedragen([
+    ["Hoofdsom", euro(d.vordering.hoofdsomCent, "nl")],
+    ...(d.zakelijk
+      ? ([
+          ["Interest", euro(d.vordering.interestCent, "nl")],
+          ["Forfait", euro(d.vordering.forfaitCent, "nl")],
+        ] as [string, string][])
+      : []),
+    ["Totaal", euro(d.vordering.totaalCent, "nl")],
+  ]);
   return pdf.bytes();
 }
 

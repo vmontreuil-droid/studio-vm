@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n/config";
+import { BEDRIJF } from "@/lib/bedrijf";
 
 // Voorwaarden op de factuur — één bron voor het factuurdocument, het portaal
 // en het beheer. Een korte samenvatting van de algemene voorwaarden
@@ -9,7 +10,16 @@ import type { Locale } from "@/lib/i18n/config";
 
 export type VoorwaardenSoort = "uurwerk" | "website";
 export type Voorwaarde = { kop: string; tekst: string };
-export type FactuurVoorwaarden = { titel: string; punten: Voorwaarde[]; volledig: string };
+export type FactuurVoorwaarden = { titel: string; punten: Voorwaarde[]; volledig: string; slot: string };
+
+/** Slotregel onderaan elke factuur, in de taal van de klant. */
+const SLOT: Record<Locale, string> = {
+  nl: `Bedankt voor uw vertrouwen in Studio VM. Vragen over deze factuur? Mail naar ${BEDRIJF.email} of bel ${BEDRIJF.telefoon} en vermeld het factuurnummer.`,
+  fr: `Merci de votre confiance envers Studio VM. Une question sur cette facture ? Écrivez à ${BEDRIJF.email} ou appelez le ${BEDRIJF.telefoon} en mentionnant le numéro de facture.`,
+  en: `Thank you for choosing Studio VM. Questions about this invoice? Email ${BEDRIJF.email} or call ${BEDRIJF.telefoon}, quoting the invoice number.`,
+  de: `Vielen Dank für Ihr Vertrauen in Studio VM. Fragen zu dieser Rechnung? Schreiben Sie an ${BEDRIJF.email} oder rufen Sie ${BEDRIJF.telefoon} an und nennen Sie die Rechnungsnummer.`,
+  es: `Gracias por confiar en Studio VM. ¿Preguntas sobre esta factura? Escriba a ${BEDRIJF.email} o llame al ${BEDRIJF.telefoon} indicando el número de factura.`,
+};
 
 const TITEL: Record<Locale, string> = {
   nl: "Voorwaarden",
@@ -116,5 +126,6 @@ export function factuurVoorwaarden(taal: Locale, soort: VoorwaardenSoort): Factu
     titel: TITEL[taal],
     punten: [...eigen, LAAT[taal], RECHT[taal]],
     volledig: volledig(taal),
+    slot: SLOT[taal],
   };
 }

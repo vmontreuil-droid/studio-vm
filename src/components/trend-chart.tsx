@@ -63,90 +63,87 @@ export function TrendChart({
   const last = xy[xy.length - 1];
   const gid = `tg-${id}`;
 
+  // Enkel lijn en vlak rekken mee met de breedte (preserveAspectRatio="none");
+  // tekst en eindpunt staan als HTML erboven, zodat ze niet uitgerekt worden.
+  const links = (x: number) => `${(x / W) * 100}%`;
+  // Eerste label links uitlijnen, laatste rechts, de rest gecentreerd: zo valt
+  // niets buiten de kaart.
+  const anker = (i: number) => (n > 1 && i === 0 ? "0%" : n > 1 && i === n - 1 ? "-100%" : "-50%");
+  const waarde = (v: number) => `${v.toLocaleString("nl-BE")}${unit}`;
+
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="mt-4 w-full"
-      style={{ height: H }}
-      preserveAspectRatio="none"
-      role="img"
-    >
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
+    <div className="relative mt-4 w-full" style={{ height: H }} role="img">
+      <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
-      {/* subtiele baseline */}
-      <line
-        x1={padX}
-        x2={W - padX}
-        y1={padT + innerH}
-        y2={padT + innerH}
-        stroke="currentColor"
-        strokeOpacity="0.12"
-      />
-
-      {area && <path d={area} fill={`url(#${gid})`} />}
-      {line && (
-        <path
-          d={line}
-          fill="none"
-          stroke={color}
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        {/* subtiele baseline */}
+        <line
+          x1={padX}
+          x2={W - padX}
+          y1={padT + innerH}
+          y2={padT + innerH}
+          stroke="currentColor"
+          strokeOpacity="0.12"
           vectorEffect="non-scaling-stroke"
         />
-      )}
+
+        {area && <path d={area} fill={`url(#${gid})`} />}
+        {line && (
+          <path
+            d={line}
+            fill="none"
+            stroke={color}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+      </svg>
 
       {/* eindpunt */}
       {last && (
-        <>
-          <circle
-            cx={last[0]}
-            cy={last[1]}
-            r={6}
-            fill={color}
-            fillOpacity="0.18"
-          />
-          <circle cx={last[0]} cy={last[1]} r={3} fill={color} />
-        </>
+        <span
+          className="pointer-events-none absolute h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            left: links(last[0]),
+            top: last[1],
+            background: color,
+            boxShadow: `0 0 0 4px color-mix(in srgb, ${color} 18%, transparent)`,
+          }}
+        />
       )}
 
-      {/* waarde-labels boven elk punt */}
+      {/* waarde boven elk punt (op een smal scherm bij veel punten enkel de laatste) */}
       {xy.map(([x, y], i) => (
-        <text
+        <span
           key={`v${i}`}
-          x={x}
-          y={y - 8}
-          textAnchor="middle"
-          fontSize="11"
-          fill="currentColor"
-          fillOpacity="0.55"
-          fontFamily="ui-monospace, monospace"
+          className={`pointer-events-none absolute whitespace-nowrap font-mono text-[11px] leading-none text-muted ${
+            n > 6 && i !== n - 1 ? "hidden sm:block" : ""
+          }`}
+          style={{ left: links(x), top: Math.max(0, y - 18), transform: `translateX(${anker(i)})` }}
         >
-          {points[i].value}
-          {unit}
-        </text>
+          {waarde(points[i].value)}
+        </span>
       ))}
 
       {/* x-as labels */}
       {xy.map(([x], i) => (
-        <text
+        <span
           key={`x${i}`}
-          x={x}
-          y={H - 6}
-          textAnchor="middle"
-          fontSize="10"
-          fill="currentColor"
-          fillOpacity="0.45"
-          fontFamily="ui-monospace, monospace"
+          className={`pointer-events-none absolute bottom-0 whitespace-nowrap font-mono text-[10px] leading-none text-muted ${
+            n > 8 && i % 2 === 1 && i !== n - 1 ? "hidden sm:block" : ""
+          }`}
+          style={{ left: links(x), transform: `translateX(${anker(i)})` }}
         >
           {points[i].label}
-        </text>
+        </span>
       ))}
-    </svg>
+    </div>
   );
 }

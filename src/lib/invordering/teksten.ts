@@ -85,6 +85,10 @@ export type DossierTeksten = {
   inleiding: (klant: string, arr: string | null) => string;
   zakelijk: string;
   particulier: string;
+  /** Klant buiten België: invordering in zijn land (geen Belgische procedure). */
+  inleidingLand: (klant: string, land: string) => string;
+  buitenlandZakelijk: string;
+  buitenlandParticulier: string;
   overzicht: (d: string) => string;
   hoofdsom: (v: Vordering) => string;
   interest: (v: Vordering) => string;
@@ -164,6 +168,12 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
       "Het gaat om een onbetwiste geldschuld tussen ondernemingen. Wij verzoeken u de procedure tot invordering van onbetwiste geldschulden op te starten (art. 1394/20 e.v. Gerechtelijk Wetboek) en, zo nodig, de verdere gerechtelijke invordering.",
     particulier:
       "De schuldenaar is een particulier. Wij verzoeken u een minnelijke invordering, met inachtneming van de regels voor consumenten (boek XIX Wetboek van economisch recht). Wij vorderen enkel de hoofdsom.",
+    inleidingLand: (klant, land) =>
+      `Hierbij vertrouwen wij u de invordering toe van een onbetaalde factuur van ${klant}. De schuldenaar is gevestigd in ${land}.`,
+    buitenlandZakelijk:
+      "Het gaat om een onbetwiste geldschuld tussen ondernemingen. Wij verzoeken u de vordering minnelijk in te vorderen en, zo nodig, gerechtelijk volgens de regels van uw land. Op de overeenkomst is Belgisch recht van toepassing (zie de voorwaarden). De verwijlinterest en de forfaitaire vergoeding van € 40 volgen uit de Europese richtlijn 2011/7/EU betreffende bestrijding van betalingsachterstand bij handelstransacties (in België: wet van 2 augustus 2002).",
+    buitenlandParticulier:
+      "De schuldenaar is een particulier. Wij verzoeken u een minnelijke invordering, met inachtneming van de regels voor consumenten in uw land. Wij vorderen enkel de hoofdsom.",
     overzicht: (d) => `Overzicht van de vordering (berekend op ${d})`,
     hoofdsom: (v) => `Hoofdsom factuur ${v.nummer} (vervallen op ${v.vervaldag})`,
     interest: (v) => `Verwijlinterest, wet van 2 augustus 2002 (${v.dagen} dagen, ${v.pct} per jaar)`,
@@ -243,6 +253,12 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
       "Il s'agit d'une dette d'argent non contestée entre entreprises. Nous vous prions d'entamer la procédure de recouvrement de dettes d'argent non contestées (art. 1394/20 et suivants du Code judiciaire) et, si nécessaire, le recouvrement judiciaire.",
     particulier:
       "Le débiteur est un particulier. Nous vous prions de procéder à un recouvrement amiable, dans le respect des règles applicables aux consommateurs (livre XIX du Code de droit économique). Nous ne réclamons que le principal.",
+    inleidingLand: (klant, land) =>
+      `Par la présente, nous vous confions le recouvrement d'une facture impayée de ${klant}. Le débiteur est établi hors de Belgique (${land}).`,
+    buitenlandZakelijk:
+      "Il s'agit d'une dette d'argent non contestée entre entreprises. Nous vous prions d'en assurer le recouvrement amiable et, si nécessaire, judiciaire selon les règles de votre pays. Le contrat est soumis au droit belge (voir les conditions). Les intérêts de retard et l'indemnité forfaitaire de 40 € découlent de la directive européenne 2011/7/UE concernant la lutte contre le retard de paiement dans les transactions commerciales (en Belgique : loi du 2 août 2002).",
+    buitenlandParticulier:
+      "Le débiteur est un particulier. Nous vous prions de procéder à un recouvrement amiable, dans le respect des règles applicables aux consommateurs dans votre pays. Nous ne réclamons que le principal.",
     overzicht: (d) => `Décompte de la créance (calculé le ${d})`,
     hoofdsom: (v) => `Principal, facture ${v.nummer} (échue le ${v.vervaldag})`,
     interest: (v) => `Intérêts de retard, loi du 2 août 2002 (${v.dagen} jours, ${v.pct} par an)`,
@@ -322,6 +338,12 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
       "Es handelt sich um eine unbestrittene Geldforderung zwischen Unternehmen. Wir bitten Sie, das Verfahren zur Beitreibung unbestrittener Geldforderungen (Art. 1394/20 ff. Gerichtsgesetzbuch) und, falls nötig, die weitere gerichtliche Beitreibung einzuleiten.",
     particulier:
       "Der Schuldner ist eine Privatperson. Wir bitten Sie um eine gütliche Beitreibung unter Beachtung der Regeln für Verbraucher (Buch XIX des Wirtschaftsgesetzbuches). Wir fordern nur die Hauptsumme.",
+    inleidingLand: (klant, land) =>
+      `hiermit beauftragen wir Sie mit der Beitreibung einer unbezahlten Rechnung von ${klant}. Der Schuldner hat seinen Sitz außerhalb Belgiens (${land}).`,
+    buitenlandZakelijk:
+      "Es handelt sich um eine unbestrittene Geldforderung zwischen Unternehmen. Wir bitten Sie, die Forderung außergerichtlich und, falls nötig, gerichtlich nach den Regeln Ihres Landes beizutreiben. Auf den Vertrag ist belgisches Recht anwendbar (siehe Bedingungen). Die Verzugszinsen und die Pauschalentschädigung von 40 € ergeben sich aus der EU-Richtlinie 2011/7/EU zur Bekämpfung von Zahlungsverzug im Geschäftsverkehr (in Belgien: Gesetz vom 2. August 2002).",
+    buitenlandParticulier:
+      "Der Schuldner ist eine Privatperson. Wir bitten Sie um eine gütliche Beitreibung unter Beachtung der Verbraucherschutzregeln Ihres Landes. Wir fordern nur die Hauptsumme.",
     overzicht: (d) => `Forderungsaufstellung (berechnet am ${d})`,
     hoofdsom: (v) => `Hauptsumme Rechnung ${v.nummer} (fällig am ${v.vervaldag})`,
     interest: (v) => `Verzugszinsen, Gesetz vom 2. August 2002 (${v.dagen} Tage, ${v.pct} pro Jahr)`,
@@ -390,6 +412,15 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
     mailKnop: "Rechnung online ansehen",
   },
 };
+
+/** Landnaam in de taal van de brief ("NL" → Nederland / Pays-Bas / Niederlande). */
+export function landNaam(iso: string, taal: BriefTaal): string {
+  try {
+    return new Intl.DisplayNames([`${taal}-BE`], { type: "region" }).of(iso) ?? iso;
+  } catch {
+    return iso;
+  }
+}
 
 /** Naam van het gerechtelijk arrondissement in de taal van de brief. */
 export const ARR_NAAM: Record<BriefTaal, Record<string, string>> = {

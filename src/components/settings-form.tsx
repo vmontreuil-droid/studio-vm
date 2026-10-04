@@ -103,16 +103,15 @@ export function SettingsForm({
         </p>
         <Field label="Betaaltermijn (dagen)" name="payment_terms_days" type="number" defaultValue={s.payment_terms_days} />
         <Field label="Standaard btw-tarief (%)" name="default_vat_rate" type="number" defaultValue={s.default_vat_rate} />
-        <label className="block sm:col-span-2">
-          <span className="text-xs font-medium text-muted">Voettekst op facturen</span>
-          <textarea
-            name="invoice_footer"
-            rows={2}
-            defaultValue={s.invoice_footer ?? ""}
-            placeholder="bv. Bedankt voor het vertrouwen — betaalbaar binnen 14 dagen."
-            className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
-          />
-        </label>
+        <div className="block sm:col-span-2">
+          <span className="text-xs font-medium text-muted">Slotregel op facturen</span>
+          <p className="mt-1 rounded-lg border bg-background px-3 py-2 text-sm text-muted">
+            Staat vast onderaan elke factuur, automatisch in de taal van de klant (nl, fr, en, de, es): “Bedankt voor
+            uw vertrouwen in Studio VM. Vragen over deze factuur? Mail naar info@studio-vm.be of bel +32 477 99 56 51
+            en vermeld het factuurnummer.” Aan te passen in src/lib/facturatie/voorwaarden.ts.
+          </p>
+          <input type="hidden" name="invoice_footer" value={s.invoice_footer ?? ""} />
+        </div>
       </Section>
 
       <Section title="Outreach-engine">

@@ -107,13 +107,13 @@ export async function zetDossiersKlaar(nu = Date.now()): Promise<KlaarzetResulta
     if (bestaand.has(k.id)) continue;
     const d = await laadDossier(k.id);
     if (!d || d.factuur.status === "betaald") continue;
-    const dw = d.arrondissement ? dws.get(d.arrondissement) ?? null : null;
+    const dw = d.gebied ? dws.get(d.gebied) ?? null : null;
     const { data: nieuw, error: e } = await db
       .from("invorderingen")
       .insert({
         invoice_id: d.factuur.id,
         status: "klaar",
-        arrondissement: d.arrondissement,
+        arrondissement: d.gebied,
         deurwaarder: dw,
         hoofdsom_cent: d.vordering.hoofdsomCent,
         interest_cent: d.vordering.interestCent,
@@ -133,17 +133,17 @@ export async function zetDossiersKlaar(nu = Date.now()): Promise<KlaarzetResulta
       soort: "invordering",
       invoice_id: d.factuur.id,
       client_email: d.klant.email,
-      details: { actie: "klaargezet", totaal_cent: d.vordering.totaalCent, arrondissement: d.arrondissement },
+      details: { actie: "klaargezet", totaal_cent: d.vordering.totaalCent, gebied: d.gebied },
     });
     const wie = dw
       ? `deurwaarder: ${esc(dw.naam)}`
-      : d.arrondissement
-        ? `<b>nog geen deurwaarder ingesteld</b> voor ${esc(arrondissementNaam(d.arrondissement) ?? "")}`
+      : d.gebied
+        ? `<b>nog geen deurwaarder ingesteld</b> voor ${esc(arrondissementNaam(d.gebied) ?? "")}`
         : "<b>kies zelf een deurwaarder</b>";
     const let_op = d.waarschuwingen.length ? `<br><span style="color:#b45309">Let op: ${d.waarschuwingen.map((w) => esc(w.tekst)).join(" ")}</span>` : "";
     regels.push(
       `<b>${esc(d.factuur.nummer)}</b> — ${esc(d.klant.naam)} — ${euro(d.vordering.totaalCent, "nl")}<br>${
-        d.arrondissement ? `Arrondissement ${esc(arrondissementNaam(d.arrondissement) ?? "")}, ` : ""
+        d.gebied ? `${d.buitenland ? "Land" : "Arrondissement"} ${esc(arrondissementNaam(d.gebied) ?? "")}, ` : ""
       }${wie}${let_op}`,
     );
   }
