@@ -165,7 +165,7 @@ export function PortalShell({
         },
         { href: `${base}/account`, label: t.account, icon: UserRound },
         {
-          href: `/${locale}/voorwaarden`,
+          href: `/${locale}/portail/dashboard/voorwaarden`,
           label: {
             nl: "Voorwaarden",
             fr: "Conditions",
@@ -176,7 +176,7 @@ export function PortalShell({
           icon: ScrollText,
         },
         {
-          href: `/${locale}/privacy`,
+          href: `/${locale}/portail/dashboard/privacy`,
           label: {
             nl: "Privacy",
             fr: "Confidentialité",
