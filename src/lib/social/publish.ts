@@ -590,7 +590,11 @@ export function planBericht(p: PostRij, kanalen: SocialKanaal[], c: PlanContext)
         doelLink: dienst === "pinterest" || dienst === "google" ? socialUtmLink(p, dienst) : null,
         eersteReactie:
           dienst === "linkedin" && soort === "bericht"
-            ? `${p.taal === "fr" ? "Toutes les images et plus d'infos :" : "Alle beelden en meer uitleg:"} ${socialUtmLink(p, "linkedin")}`
+            ? `${
+                diaAantal(p) > 0
+                  ? p.taal === "fr" ? "Toutes les images et plus d'infos :" : "Alle beelden en meer uitleg:"
+                  : p.taal === "fr" ? "Plus d'infos :" : "Meer uitleg:"
+              } ${socialUtmLink(p, "linkedin")}`
             : null,
       };
       const beeldTekst = metVideo
