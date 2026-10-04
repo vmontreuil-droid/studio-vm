@@ -40,7 +40,7 @@ export default async function ProjectenPage({ params }: { params: Promise<{ loca
           </h1>
           <p className="mt-1 text-sm text-muted">{t.intro}</p>
         </div>
-        <Link href={localePath(locale, "/offerte")} className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90">
+        <Link href={localePath(locale, "/portail/dashboard/projecten/nieuw")} className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90">
           <FileUp className="h-4 w-4" strokeWidth={2} />
           {t.nieuw}
         </Link>

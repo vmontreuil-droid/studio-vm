@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import {
   Building2,
   MapPin,
@@ -13,11 +14,15 @@ import {
   Loader2,
   Send,
   Crosshair,
+  Pencil,
+  ArrowRight,
+  Boxes,
 } from "lucide-react";
-import { uploadPlekken, dienAanvraagIn } from "@/app/actions/offerte-3d";
+import { uploadPlekken, dienAanvraagIn, dienPortaalAanvraagIn } from "@/app/actions/offerte-3d";
 import { LANDEN, stelselVoor, isLand } from "@/lib/stelsel";
-import type { Locale } from "@/lib/i18n/config";
+import { localePath, type Locale } from "@/lib/i18n/config";
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
+import type { AanvraagProfiel } from "@/lib/aanvraag-profiel";
 
 // Per systeem waar het formaat verschilt (gedeelde lijst met de admin).
 import { MERKEN } from "@/lib/projecten";
@@ -80,6 +85,15 @@ const L = {
     teVeel: "Maximaal 15 bestanden.",
     uur: "uur",
     exBtw: "excl. btw",
+    wijzigen: "Wijzigen",
+    annuleren: "Annuleren",
+    bewerkUitleg: "Pas uw gegevens hier aan. Bij het indienen worden de wijzigingen op uw account bewaard. Het e-mailadres is dat waarmee u zich aanmeldt.",
+    aanvullen: "Deze gegevens ontbreken nog op uw account. Wat u hier invult, wordt erop bewaard.",
+    verzendPortaal: "Dossier indienen",
+    okPortaal: "Uw dossier is ingediend. U ontvangt meteen een bevestiging per mail, en ik bezorg u zo snel mogelijk een offerte op maat. De verdere opvolging vindt u in het dossier.",
+    naarDossier: "Naar het dossier",
+    alleDossiers: "Alle projecten",
+    sessie: "Uw sessie is verlopen. Meld u opnieuw aan en dien het dossier daarna opnieuw in.",
   },
   fr: {
     bedrijfKop: "Votre entreprise",
@@ -138,6 +152,15 @@ const L = {
     teVeel: "Maximum 15 fichiers.",
     uur: "h",
     exBtw: "HTVA",
+    wijzigen: "Modifier",
+    annuleren: "Annuler",
+    bewerkUitleg: "Modifiez vos coordonnées ici. Les modifications sont enregistrées sur votre compte lors de la soumission. L'adresse e-mail est celle avec laquelle vous vous connectez.",
+    aanvullen: "Ces données manquent encore sur votre compte. Ce que vous indiquez ici y sera enregistré.",
+    verzendPortaal: "Soumettre le dossier",
+    okPortaal: "Votre dossier a bien été soumis. Vous recevez immédiatement une confirmation par mail, et je vous envoie au plus vite un devis sur mesure. Vous suivez la suite dans le dossier.",
+    naarDossier: "Voir le dossier",
+    alleDossiers: "Tous les projets",
+    sessie: "Votre session a expiré. Veuillez vous reconnecter, puis soumettre à nouveau le dossier.",
   },
   en: {
     bedrijfKop: "Your company",
@@ -196,6 +219,15 @@ const L = {
     teVeel: "Maximum 15 files.",
     uur: "hr",
     exBtw: "excl. VAT",
+    wijzigen: "Change",
+    annuleren: "Cancel",
+    bewerkUitleg: "Edit your details here. The changes are saved to your account when you submit. The email address is the one you log in with.",
+    aanvullen: "These details are still missing from your account. Whatever you enter here will be saved to it.",
+    verzendPortaal: "Submit project",
+    okPortaal: "Your project has been submitted. You will receive a confirmation by email straight away, and I will send you a tailored quote as soon as possible. You can follow everything else in the project.",
+    naarDossier: "View project",
+    alleDossiers: "All projects",
+    sessie: "Your session has expired. Please log in again and then submit the project once more.",
   },
   de: {
     bedrijfKop: "Ihr Unternehmen",
@@ -254,6 +286,15 @@ const L = {
     teVeel: "Maximal 15 Dateien.",
     uur: "Std.",
     exBtw: "zzgl. MwSt.",
+    wijzigen: "Ändern",
+    annuleren: "Abbrechen",
+    bewerkUitleg: "Passen Sie Ihre Angaben hier an. Beim Einreichen werden die Änderungen in Ihrem Konto gespeichert. Die E-Mail-Adresse ist die, mit der Sie sich anmelden.",
+    aanvullen: "Diese Angaben fehlen noch in Ihrem Konto. Was Sie hier eingeben, wird dort gespeichert.",
+    verzendPortaal: "Projekt einreichen",
+    okPortaal: "Ihr Projekt wurde eingereicht. Sie erhalten sofort eine Bestätigung per E-Mail, und ich sende Ihnen so schnell wie möglich ein individuelles Angebot. Den weiteren Verlauf verfolgen Sie im Projekt.",
+    naarDossier: "Zum Projekt",
+    alleDossiers: "Alle Projekte",
+    sessie: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an und reichen Sie das Projekt danach noch einmal ein.",
   },
   es: {
     bedrijfKop: "Su empresa",
@@ -312,20 +353,53 @@ const L = {
     teVeel: "Máximo 15 archivos.",
     uur: "h",
     exBtw: "IVA no incl.",
+    wijzigen: "Modificar",
+    annuleren: "Cancelar",
+    bewerkUitleg: "Modifique aquí sus datos. Al presentar el proyecto, los cambios se guardarán en su cuenta. La dirección de correo electrónico es aquella con la que inicia sesión.",
+    aanvullen: "Estos datos aún faltan en su cuenta. Lo que indique aquí se guardará en ella.",
+    verzendPortaal: "Presentar proyecto",
+    okPortaal: "Su proyecto se ha presentado correctamente. Recibirá de inmediato una confirmación por correo electrónico y le enviaré un presupuesto a medida lo antes posible. Puede seguir todo lo demás en el proyecto.",
+    naarDossier: "Ver el proyecto",
+    alleDossiers: "Todos los proyectos",
+    sessie: "Su sesión ha caducado. Inicie sesión de nuevo y vuelva a presentar el proyecto.",
   },
 };
 
-type Status = { soort: "ok" | "fout"; tekst: string } | null;
+type Teksten = (typeof L)[keyof typeof L];
 
-export function Offerte3dFormulier({ locale }: { locale: Locale }) {
+type Status =
+  | { soort: "ok"; tekst: string; projectId?: string | null }
+  | { soort: "fout"; tekst: string }
+  | null;
+
+/**
+ * Publiek (/offerte): de klant vult alles zelf in.
+ * Portaal (`portaal` meegegeven): de klantgegevens komen uit het account en
+ * staan als korte samenvatting bovenaan; de server neemt het e-mailadres
+ * uit de sessie. Wat op het account ontbreekt, wordt nog gevraagd; via
+ * "Wijzigen" past de klant de rest aan (wordt op het account bewaard).
+ */
+export function Offerte3dFormulier({ locale, portaal }: { locale: Locale; portaal?: AanvraagProfiel }) {
   const t = L[locale];
   const [land, setLand] = useState("");
   const [merken, setMerken] = useState<string[]>([]);
   const [bestanden, setBestanden] = useState<File[]>([]);
   const [fase, setFase] = useState<"" | "upload" | "verzend">("");
   const [status, setStatus] = useState<Status>(null);
-  const [, startTransition] = useTransition();
+  // `verwerkt` = de actie loopt nog. Zonder deze vlag bleef de knop klikbaar:
+  // een setFase() vóór de eerste await zit in de transition en React houdt die
+  // vast tot de hele actie klaar is — elke extra klik gaf een extra dossier.
+  const [verwerkt, startTransition] = useTransition();
+  const bezigRef = useRef(false);
   const kiezer = useRef<HTMLInputElement>(null);
+  const bevestiging = useRef<HTMLDivElement>(null);
+
+  // Portaal: na het indienen de bevestiging in beeld brengen (het lange
+  // formulier verdwijnt, de knop stond helemaal onderaan).
+  const isOk = status?.soort === "ok";
+  useEffect(() => {
+    if (portaal && isOk) bevestiging.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [portaal, isOk]);
 
   const landNamen = useMemo(() => {
     const dn = new Intl.DisplayNames([locale], { type: "region" });
@@ -348,16 +422,11 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
     });
   }
 
+  // De bezig-stand ("upload"/"verzend") zet onSubmit al, buiten de transition.
   async function verstuur(fd: FormData) {
-    setStatus(null);
-    if (merken.length === 0) {
-      setStatus({ soort: "fout", tekst: t.merkNodig });
-      return;
-    }
     try {
       let geupload: { naam: string; pad: string; grootte: number }[] = [];
       if (bestanden.length) {
-        setFase("upload");
         const r = await uploadPlekken(bestanden.map((f) => ({ naam: f.name, grootte: f.size })));
         if (!r.ok) {
           const tekst = r.fout === "te_groot" ? t.teGroot : r.fout === "type" ? t.type : r.fout === "te_veel" ? t.teVeel : t.fout;
@@ -381,18 +450,55 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
       setFase("verzend");
       fd.set("bestanden", JSON.stringify(geupload));
       fd.set("locale", locale);
-      const res = await dienAanvraagIn(fd);
+      const res = portaal ? await dienPortaalAanvraagIn(fd) : await dienAanvraagIn(fd);
       if (res.ok) {
-        setStatus({ soort: "ok", tekst: t.ok });
+        setStatus({ soort: "ok", tekst: portaal ? t.okPortaal : t.ok, projectId: res.projectId ?? null });
         setBestanden([]);
         geupload = [];
       } else {
-        setStatus({ soort: "fout", tekst: res.fout === "ongeldig" ? t.ongeldig : t.fout });
+        setStatus({
+          soort: "fout",
+          tekst: res.fout === "ongeldig" ? t.ongeldig : res.fout === "sessie" ? t.sessie : t.fout,
+        });
       }
     } catch {
       setStatus({ soort: "fout", tekst: t.fout });
     }
     setFase("");
+  }
+
+  if (status?.soort === "ok" && portaal) {
+    const lijst = localePath(locale, "/portail/dashboard/projecten");
+    return (
+      <div ref={bevestiging} role="status" className="rounded-3xl border bg-card p-8 text-center sm:p-10">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
+          <Check className="h-7 w-7 text-accent" strokeWidth={2} />
+        </span>
+        <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed">{status.tekst}</p>
+        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+          {status.projectId && (
+            <Link
+              href={localePath(locale, `/portail/dashboard/projecten/${status.projectId}`)}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              {t.naarDossier}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          )}
+          <Link
+            href={lijst}
+            className={
+              status.projectId
+                ? "inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm transition-colors hover:bg-card-hover"
+                : "inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            }
+          >
+            <Boxes className="h-4 w-4" strokeWidth={2} />
+            {t.alleDossiers}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (status?.soort === "ok") {
@@ -406,24 +512,54 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
     );
   }
 
-  const bezig = fase !== "";
+  const bezig = fase !== "" || verwerkt;
 
   return (
     <form
-      action={(fd) => startTransition(() => verstuur(fd))}
-      className="space-y-8 2xl:grid 2xl:grid-cols-2 2xl:gap-8 2xl:space-y-0"
+      // Bewust onSubmit i.p.v. action: een form-action laat React het
+      // formulier na afloop leegmaken, zodat bij een fout (te groot bestand,
+      // verlopen sessie…) alles opnieuw ingevuld moest worden.
+      onSubmit={(e) => {
+        e.preventDefault();
+        // Dubbelklik of Enter vóór de volgende render: nooit twee aanvragen.
+        if (bezigRef.current) return;
+        if (merken.length === 0) {
+          setStatus({ soort: "fout", tekst: t.merkNodig });
+          return;
+        }
+        const fd = new FormData(e.currentTarget);
+        bezigRef.current = true;
+        // Buiten de transition: zo staat de knop meteen op "bezig".
+        setStatus(null);
+        setFase(bestanden.length ? "upload" : "verzend");
+        startTransition(async () => {
+          try {
+            await verstuur(fd);
+          } finally {
+            bezigRef.current = false;
+          }
+        });
+      }}
+      aria-busy={bezig}
+      className={portaal ? "space-y-6" : "space-y-8 2xl:grid 2xl:grid-cols-2 2xl:gap-8 2xl:space-y-0"}
     >
-      <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+      {portaal ? (
+        <Gegevens t={t} profiel={portaal} />
+      ) : (
+        <>
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
 
-      <Blok icoon={Building2} titel={t.bedrijfKop}>
-        <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
-          <Veld naam="bedrijf" label={t.bedrijf} verplicht autoComplete="organization" />
-          <Veld naam="naam" label={t.naam} verplicht autoComplete="name" />
-          <Veld naam="email" label={t.email} type="email" verplicht autoComplete="email" />
-          <Veld naam="telefoon" label={t.telefoon} type="tel" verplicht autoComplete="tel" />
-          <Veld naam="btw" label={`${t.btw} (${t.optioneel})`} />
-        </div>
-      </Blok>
+          <Blok icoon={Building2} titel={t.bedrijfKop}>
+            <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
+              <Veld naam="bedrijf" label={t.bedrijf} verplicht autoComplete="organization" />
+              <Veld naam="naam" label={t.naam} verplicht autoComplete="name" />
+              <Veld naam="email" label={t.email} type="email" verplicht autoComplete="email" />
+              <Veld naam="telefoon" label={t.telefoon} type="tel" verplicht autoComplete="tel" />
+              <Veld naam="btw" label={`${t.btw} (${t.optioneel})`} />
+            </div>
+          </Blok>
+        </>
+      )}
 
       <Blok icoon={MapPin} titel={t.werfKop} uitleg={t.werfUitleg}>
         <div className="grid gap-4 sm:grid-cols-6">
@@ -632,7 +768,7 @@ export function Offerte3dFormulier({ locale }: { locale: Locale }) {
           className="inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {bezig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" strokeWidth={2} />}
-          {fase === "upload" ? t.bezig : fase === "verzend" ? t.bezigVerzend : t.verzend}
+          {fase === "upload" ? t.bezig : bezig ? t.bezigVerzend : portaal ? t.verzendPortaal : t.verzend}
         </button>
       </div>
     </form>
@@ -668,6 +804,83 @@ function Blok({
   );
 }
 
+// Portaal: de klantgegevens als korte, alleen-lezen samenvatting. Velden die
+// op het account ontbreken, worden hier gevraagd; "Wijzigen" zet bedrijf,
+// naam, telefoon en btw open als ingevulde velden (de server bewaart ze bij
+// het indienen op het account). Het e-mailadres komt altijd uit de sessie en
+// is dus nooit een invoerveld.
+function Gegevens({ t, profiel }: { t: Teksten; profiel: AanvraagProfiel }) {
+  const [bewerken, setBewerken] = useState(false);
+  const velden: {
+    naam: "bedrijf" | "naam" | "telefoon" | "btw" | "email";
+    label: string;
+    waarde: string | null;
+    verplicht: boolean;
+    type?: string;
+    autoComplete?: string;
+  }[] = [
+    { naam: "bedrijf", label: t.bedrijf, waarde: profiel.bedrijf, verplicht: true, autoComplete: "organization" },
+    { naam: "naam", label: t.naam, waarde: profiel.naam, verplicht: true, autoComplete: "name" },
+    { naam: "email", label: t.email, waarde: profiel.email, verplicht: true },
+    { naam: "telefoon", label: t.telefoon, waarde: profiel.telefoon, verplicht: true, type: "tel", autoComplete: "tel" },
+    { naam: "btw", label: t.btw, waarde: profiel.btw, verplicht: false },
+  ];
+  // Bij "Wijzigen" staat enkel het e-mailadres nog als tekst; de rest wordt
+  // invoer. Anders: invoer alleen voor wat verplicht is en ontbreekt — een
+  // leeg btw-nummer (optioneel) vragen we niet telkens opnieuw; dat kan via
+  // "Wijzigen".
+  const gekend = velden.filter((v) => v.waarde && (!bewerken || v.naam === "email"));
+  const invoer = velden.filter((v) => v.naam !== "email" && (bewerken || (v.verplicht && !v.waarde)));
+
+  return (
+    <section className="rounded-3xl border bg-card p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-3 text-lg font-semibold tracking-tight">
+          <Building2 className="h-5 w-5 text-accent" strokeWidth={1.5} />
+          {t.bedrijfKop}
+        </h2>
+        <button
+          type="button"
+          onClick={() => setBewerken((b) => !b)}
+          aria-expanded={bewerken}
+          aria-controls="gegevens-invoer"
+          className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm text-muted transition-colors hover:bg-card-hover hover:text-accent"
+        >
+          {bewerken ? <X className="h-3.5 w-3.5" strokeWidth={2} /> : <Pencil className="h-3.5 w-3.5" strokeWidth={2} />}
+          {bewerken ? t.annuleren : t.wijzigen}
+        </button>
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 lg:grid-cols-3">
+        {gekend.map((v) => (
+          <div key={v.naam} className={v.naam === "email" ? "col-span-2 min-w-0 sm:col-span-1" : "min-w-0"}>
+            <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">{v.label}</dt>
+            <dd className="mt-0.5 break-words text-sm">{v.waarde}</dd>
+          </div>
+        ))}
+      </dl>
+      {invoer.length > 0 && (
+        <div id="gegevens-invoer" className="mt-5 border-t pt-5">
+          <p className="text-sm text-muted">{bewerken ? t.bewerkUitleg : t.aanvullen}</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {invoer.map((v) => (
+              <Veld
+                key={v.naam}
+                naam={v.naam}
+                label={v.verplicht ? v.label : `${v.label} (${t.optioneel})`}
+                type={v.type}
+                verplicht={v.verplicht}
+                autoComplete={v.autoComplete}
+                defaultValue={v.waarde ?? undefined}
+                maxLength={200}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Label({ label, verplicht, htmlFor }: { label: string; verplicht?: boolean; htmlFor: string }) {
   return (
     <label htmlFor={htmlFor} className="block font-mono text-xs uppercase tracking-widest text-muted">
@@ -684,6 +897,8 @@ function Veld({
   verplicht,
   placeholder,
   autoComplete,
+  defaultValue,
+  maxLength,
 }: {
   naam: string;
   label: string;
@@ -691,6 +906,8 @@ function Veld({
   verplicht?: boolean;
   placeholder?: string;
   autoComplete?: string;
+  defaultValue?: string;
+  maxLength?: number;
 }) {
   return (
     <div>
@@ -702,6 +919,8 @@ function Veld({
         required={verplicht}
         placeholder={placeholder}
         autoComplete={autoComplete ?? "off"}
+        defaultValue={defaultValue}
+        maxLength={maxLength}
         className={INPUT}
       />
     </div>
