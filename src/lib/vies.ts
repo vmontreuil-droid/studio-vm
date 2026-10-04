@@ -28,6 +28,10 @@ export async function checkVies(raw: string): Promise<ViesResult | null> {
     if (!res.ok)
       return { country, number, valid: null, name: null, address: null };
     const j = (await res.json()) as {
+      // POST /check-vat-number antwoordt met "valid"; de oudere GET-route
+      // met "isValid". Beide aanvaarden (vroeger las dit enkel isValid,
+      // waardoor elke controle "onbekend" bleef en nooit verlegd werd).
+      valid?: boolean;
       isValid?: boolean;
       name?: string;
       address?: string;
@@ -37,7 +41,7 @@ export async function checkVies(raw: string): Promise<ViesResult | null> {
     return {
       country,
       number,
-      valid: typeof j.isValid === "boolean" ? j.isValid : null,
+      valid: typeof j.valid === "boolean" ? j.valid : typeof j.isValid === "boolean" ? j.isValid : null,
       name: tidy(j.name),
       address: tidy(j.address),
     };

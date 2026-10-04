@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { slaFactuurOp, slaOfferteOp } from "@/lib/facturatie/opslaan";
 import { siteUrl } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendMail } from "@/lib/monitor";
@@ -208,16 +209,9 @@ export async function createOffer(formData: FormData): Promise<void> {
     );
   }
 
-  // Offertenummer OFF-{jaar}-{volgnr}
-  const year = new Date().getFullYear();
-  const { count } = await db
-    .from("offers")
-    .select("id", { count: "exact", head: true });
-  const offerNo = `OFF-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
-
-  const { error } = await db.from("offers").insert({
+  // Offertenummer OFF-{jaar}-{volgnr}: centraal toegekend.
+  const opgeslagen = await slaOfferteOp({
     client_email: email,
-    offer_no: offerNo,
     title,
     body: finalBody || null,
     items: picked,
@@ -233,7 +227,8 @@ export async function createOffer(formData: FormData): Promise<void> {
     vat_name: vatName,
     vat_reverse: vatReverse,
   });
-  if (error) return;
+  if (!opgeslagen.ok) return;
+  const offerNo = opgeslagen.doc.nummer;
   await ensurePortalUser(email);
   const includes = picked
     .filter((it) => it.cents >= 0 && it.kind !== "sub")
@@ -414,27 +409,19 @@ export async function createOfferInvoice(
         o.offer_no ? ` (${o.offer_no})` : ""
       } · rest vóór livegang`
     : `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`;
-  const year = new Date().getFullYear();
-  const { count } = await db
-    .from("invoices")
-    .select("id", { count: "exact", head: true });
-  const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
-    3,
-    "0",
-  )}`;
   const dueAt = new Date(Date.now() + 14 * 86400000)
     .toISOString()
     .slice(0, 10);
-  const { error } = await db.from("invoices").insert({
+  const opgeslagen = await slaFactuurOp({
     client_email: o.client_email,
-    number: invNo,
     description: invDesc,
     amount_cents: invCents,
     status: "open",
     due_at: dueAt,
     offer_id: o.id,
-  });
-  if (error) return;
+  }, db);
+  if (!opgeslagen.ok) return;
+  const invNo = opgeslagen.doc.nummer;
   await db
     .from("offers")
     .update({ invoiced_at: new Date().toISOString() })
@@ -490,27 +477,22 @@ export async function createSlotInvoice(
     revalidatePath("/admin/klanten", "layout");
     return;
   }
-  const year = new Date().getFullYear();
-  const { count } = await db
-    .from("invoices")
-    .select("id", { count: "exact", head: true });
-  const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(3, "0")}`;
   const dueAt = new Date(Date.now() + 14 * 86400000)
     .toISOString()
     .slice(0, 10);
   const desc = `Slotfactuur 70% — ${o.title}${
     o.offer_no ? ` (${o.offer_no})` : ""
   }`;
-  const { error } = await db.from("invoices").insert({
+  const opgeslagen = await slaFactuurOp({
     client_email: o.client_email,
-    number: invNo,
     description: desc,
     amount_cents: slot,
     status: "open",
     due_at: dueAt,
     offer_id: o.id,
-  });
-  if (error) return;
+  }, db);
+  if (!opgeslagen.ok) return;
+  const invNo = opgeslagen.doc.nummer;
   await ensurePortalUser(o.client_email);
   await notifyClient(o.client_email, (taal) =>
     factuurKlaarMail(taal, { nummer: invNo, bedragCent: slot, dueAt }),

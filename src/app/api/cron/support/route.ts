@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { slaFactuurOp } from "@/lib/facturatie/opslaan";
 import { monitorConfigured, cronSecret } from "@/lib/supabase/config";
 import { sendMail } from "@/lib/monitor";
 import { klantGegevens } from "@/lib/projecten-admin";
@@ -92,12 +93,6 @@ export async function GET(req: NextRequest) {
         freeNotices++;
       } else {
         // Betalende maand → factuur.
-        const { count } = await db
-          .from("invoices")
-          .select("id", { count: "exact", head: true });
-        const invNo = `FAC-${now.getFullYear()}-${String(
-          (count ?? 0) + 1,
-        ).padStart(3, "0")}`;
         const dueAt = new Date(Date.now() + 14 * 86400000)
           .toISOString()
           .slice(0, 10);
@@ -109,15 +104,15 @@ export async function GET(req: NextRequest) {
           month: "long",
           year: "numeric",
         });
-        const { error } = await db.from("invoices").insert({
+        const opgeslagen = await slaFactuurOp({
           client_email: s.client_email,
-          number: invNo,
           description: `Supportabonnement ${s.plan} — ${period}`,
           amount_cents: s.price_cents,
           status: "open",
           due_at: dueAt,
-        });
-        if (!error) {
+        }, db);
+        if (opgeslagen.ok) {
+          const invNo = opgeslagen.doc.nummer;
           invoiced++;
           await sendMail(
             s.client_email,

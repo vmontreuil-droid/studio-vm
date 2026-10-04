@@ -1,21 +1,3 @@
-  union all select
-    '0049_tickets_compleet.sql',
-    'tickets compleet: soort/project/volgnummer/ongelezen + bijlagen, notities, revisie-uren, invoices.ticket_id/vat_reverse',
-    exists(
-      select 1 from information_schema.columns
-      where table_schema = 'public' and table_name = 'tickets'
-        and column_name = 'klant_ongelezen'
-    )
-    and exists(
-      select 1 from information_schema.tables
-      where table_schema = 'public' and table_name = 'ticket_uren'
-    )
-    and exists(
-      select 1 from information_schema.columns
-      where table_schema = 'public' and table_name = 'invoices'
-        and column_name = 'vat_reverse'
-    )
-
 -- ============================================================
 -- MIGRATIONS AUDIT — welke heb je al uitgevoerd?
 -- ------------------------------------------------------------
@@ -106,6 +88,39 @@ with checks as (
       select 1 from information_schema.columns
       where table_schema = 'public' and table_name = 'invoices'
         and column_name = 'client_name'
+    )
+  union all select
+    '0049_tickets_compleet.sql',
+    'tickets compleet: soort/project/volgnummer/ongelezen + bijlagen, notities, revisie-uren, invoices.ticket_id/vat_reverse',
+    exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'tickets'
+        and column_name = 'klant_ongelezen'
+    )
+    and exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'ticket_uren'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'invoices'
+        and column_name = 'vat_reverse'
+    )
+
+  union all select
+    '0051_facturatie_waterdicht.sql',
+    'facturatie: doorlopende nummers per jaar (documentnummers + triggers), gestructureerde mededeling, btw-regime',
+    exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'documentnummers'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'invoices'
+        and column_name = 'ogm'
+    )
+    and exists(
+      select 1 from pg_trigger where tgname = 'invoices_nummer'
     )
 )
 select

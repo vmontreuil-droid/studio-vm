@@ -6,6 +6,8 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { setInvoiceStatus } from "@/app/actions/portal-admin";
 import { PrintButton } from "@/components/print-button";
+import { structuredComm } from "@/lib/bank";
+import { btwVermelding, regimeVan } from "@/lib/facturatie/btw";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +29,10 @@ type Inv = {
   // Revisiefactuur bij een ticket + eigen btw-verlegging (migratie 0049).
   ticket_id?: string | null;
   vat_reverse?: boolean | null;
+  // Btw-regime, VIES-bewijs en mededeling (migratie 0051).
+  btw_regime?: string | null;
+  btw_controle?: { geldig?: boolean | null; naam?: string | null; op?: string; bron?: string } | null;
+  ogm?: string | null;
 };
 type OfferRef = {
   client_name: string | null;
@@ -98,6 +104,9 @@ export default async function AdminInvoiceDoc({
   // aanwezig) die van de offerte, zoals voorheen.
   const reverse =
     typeof i.vat_reverse === "boolean" ? i.vat_reverse : !!ref?.vat_reverse;
+  const regime = regimeVan({ btw_regime: i.btw_regime, vat_reverse: reverse });
+  const vermelding = btwVermelding(regime, "nl");
+  const ogm = structuredComm(i.number, i.ogm);
   // Klantgegevens: die van de offerte, anders de eigen kolommen van de
   // factuur (losse/revisiefacturen hebben geen offerte).
   const kNaam =
@@ -359,9 +368,11 @@ export default async function AdminInvoiceDoc({
             </div>
             <div className="mt-1.5 flex items-center justify-between text-muted">
               <span>
-                {reverse
-                  ? "Btw (0% — verlegd, intracommunautair)"
-                  : "Btw 21%"}
+                {regime === "buiten-eu"
+                  ? "Btw (0% — dienst buiten de EU)"
+                  : reverse
+                    ? "Btw (0% — verlegd, intracommunautair)"
+                    : "Btw 21%"}
               </span>
               <span className="font-mono">{eur(vat)}</span>
             </div>
@@ -369,6 +380,15 @@ export default async function AdminInvoiceDoc({
               <span>Totaal incl. btw</span>
               <span className="font-mono">{eur(incl)}</span>
             </div>
+            {vermelding && (
+              <p className="mt-2 text-xs text-muted">
+                {vermelding}
+                {kBtw ? ` · ${kBtw}` : ""}
+                {i.btw_controle?.bron === "VIES" && i.btw_controle.op
+                  ? ` · VIES-controle ${d(i.btw_controle.op)}${i.btw_controle.geldig ? " (geldig)" : ""}`
+                  : ""}
+              </p>
+            )}
             {i.due_at && !paid && (
               <p className="mt-3 text-xs text-muted">
                 Te betalen tegen{" "}
@@ -377,6 +397,10 @@ export default async function AdminInvoiceDoc({
                 </strong>
               </p>
             )}
+            <p className="mt-2 text-xs text-muted">
+              Gestructureerde mededeling{" "}
+              <strong className="font-mono text-foreground">{ogm}</strong>
+            </p>
             {paid && (
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
                 <span className="inline-flex -rotate-3 items-center gap-2 rounded-lg border-2 border-green-600 px-4 py-2 text-base font-extrabold uppercase tracking-widest text-green-600">

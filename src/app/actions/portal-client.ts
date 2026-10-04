@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/config";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { slaFactuurOp } from "@/lib/facturatie/opslaan";
 import { sendMail } from "@/lib/monitor";
 import { createMolliePayment } from "@/lib/mollie";
 import { subscriptionTiers } from "@/lib/pricing";
@@ -162,27 +163,19 @@ export async function decideOffer(
             o.offer_no ? ` (${o.offer_no})` : ""
           } · rest vóór livegang`
         : `${o.title}${o.offer_no ? ` (${o.offer_no})` : ""}`;
-      const year = new Date().getFullYear();
-      const { count } = await db
-        .from("invoices")
-        .select("id", { count: "exact", head: true });
-      const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
-        3,
-        "0",
-      )}`;
       const dueAt = new Date(Date.now() + 14 * 86400000)
         .toISOString()
         .slice(0, 10);
-      const { error: invErr } = await db.from("invoices").insert({
+      const opgeslagen = await slaFactuurOp({
         client_email: email,
-        number: invNo,
         description: invDesc,
         amount_cents: invCents,
         status: "open",
         due_at: dueAt,
         offer_id: o.id,
-      });
-      if (!invErr) {
+      }, db);
+      if (opgeslagen.ok) {
+        const invNo = opgeslagen.doc.nummer;
         await db
           .from("offers")
           .update({ invoiced_at: new Date().toISOString() })
@@ -427,30 +420,20 @@ export async function payOfferDeposit(offerId: string): Promise<void> {
           o!.offer_no ? ` (${o!.offer_no})` : ""
         } · rest vóór livegang`
       : `${o!.title}${o!.offer_no ? ` (${o!.offer_no})` : ""}`;
-    const year = new Date().getFullYear();
-    const { count } = await db
-      .from("invoices")
-      .select("id", { count: "exact", head: true });
-    const invNo = `FAC-${year}-${String((count ?? 0) + 1).padStart(
-      3,
-      "0",
-    )}`;
     const dueAt = new Date(Date.now() + 14 * 86400000)
       .toISOString()
       .slice(0, 10);
-    const { data: created } = await db
-      .from("invoices")
-      .insert({
-        client_email: email,
-        number: invNo,
-        description: invDesc,
-        amount_cents: invCents,
-        status: "open",
-        due_at: dueAt,
-        offer_id: o!.id,
-      })
-      .select("id, number, amount_cents, status")
-      .maybeSingle();
+    const opgeslagen = await slaFactuurOp({
+      client_email: email,
+      description: invDesc,
+      amount_cents: invCents,
+      status: "open",
+      due_at: dueAt,
+      offer_id: o!.id,
+    }, db);
+    const created = opgeslagen.ok
+      ? { id: opgeslagen.doc.id, number: opgeslagen.doc.nummer, amount_cents: invCents, status: "open" }
+      : null;
     if (!o!.invoiced_at)
       await db
         .from("offers")

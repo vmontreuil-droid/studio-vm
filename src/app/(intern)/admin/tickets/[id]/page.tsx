@@ -292,7 +292,6 @@ export default async function AdminTicketDetail({
   const titelVoorFactuur = eigenProject?.titel ?? toonOnderwerp(t);
   const autoOmschrijving = open.length ? TICKET_MAIL[taal].revisieOmschrijving(titelVoorFactuur, openAangerekend, openTarief) : "";
   const projectGefactureerd = !!projectFactuur && projectFactuur.status !== "vervallen";
-  const btwBuitenland = !!klant?.btw && /^[A-Z]{2}/i.test(klant.btw.trim()) && !/^BE/i.test(klant.btw.trim());
   // 'Bij projecturen voegen' telt op bij wat de projectfactuur nu zou aanrekenen:
   // gewerkte uren, of zolang die leeg zijn de geschatte (zoals urenNaarProject).
   const projGewerkt = eigenProject?.gewerkte_uren != null ? Number(eigenProject.gewerkte_uren) : null;
@@ -756,25 +755,15 @@ export default async function AdminTicketDetail({
                           <option value="30">30 dagen</option>
                         </select>
                       </label>
-                      <label className="flex items-start gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          name="btw_verlegd"
-                          value="1"
-                          defaultChecked={offerteVerlegd}
-                          className="mt-0.5 h-4 w-4 accent-[var(--accent)]"
-                        />
-                        <span>
-                          Btw verlegd
-                          <span className="block text-xs text-muted">
-                            {eigenProject?.offer_id
-                              ? `Overgenomen van de offerte van het project (${offerteVerlegd ? "verlegd" : "21 %"}).`
-                              : btwBuitenland
-                                ? `Buitenlands btw-nummer (${klant?.btw}) — controleer de verlegging.`
-                                : "Geen offerte gekoppeld — standaard 21 %."}
-                          </span>
+                      <p className="text-sm">
+                        Btw: automatisch
+                        <span className="block text-xs text-muted">
+                          {klant?.btw
+                            ? `Bij het maken wordt ${klant.btw} via VIES gecontroleerd: geldig EU-nummer buiten België = verlegd, anders 21 %.`
+                            : "Geen btw-nummer gekend — 21 %."}
+                          {eigenProject?.offer_id ? ` (Offerte: ${offerteVerlegd ? "verlegd" : "21 %"}.)` : ""}
                         </span>
-                      </label>
+                      </p>
                       <label className="block text-xs text-muted">
                         Omschrijving (leeg = automatisch, in de taal van de klant)
                         <input name="omschrijving" maxLength={300} placeholder={autoOmschrijving} className={VELD} />

@@ -79,20 +79,4 @@ export async function klantGegevens(email: string, quoteId?: string | null): Pro
   };
 }
 
-/** Volgend nummer PREFIX-JAAR-NNN, zelfde reeks als de bestaande code, maar botsvrij. */
-export async function volgendNummer(tabel: "offers" | "invoices", prefix: "OFF" | "FAC"): Promise<string> {
-  const db = getSupabaseAdmin();
-  const kol = tabel === "offers" ? "offer_no" : "number";
-  const jaar = new Date().getFullYear();
-  const [{ count }, { data }] = await Promise.all([
-    db.from(tabel).select("id", { count: "exact", head: true }),
-    db.from(tabel).select(kol).like(kol, `${prefix}-${jaar}-%`).limit(5000),
-  ]);
-  let max = 0;
-  for (const r of (data as Record<string, string | null>[] | null) ?? []) {
-    const n = Number(String(r[kol] ?? "").split("-")[2]);
-    if (Number.isFinite(n) && n > max) max = n;
-  }
-  const volgende = Math.max((count ?? 0) + 1, max + 1);
-  return `${prefix}-${jaar}-${String(volgende).padStart(3, "0")}`;
-}
+// Documentnummers (offertes, facturen): zie src/lib/facturatie/opslaan.ts.

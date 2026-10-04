@@ -1,3 +1,4 @@
+import { ogmCijfers } from "@/lib/facturatie/nummers";
 // Tolerante CSV-parser voor Belgische bankafschriften. Banken
 // verschillen sterk (delimiter ; of , — kolomnamen NL/FR/EN), dus
 // we detecteren delimiter en kolommen op trefwoord i.p.v. vaste index.
@@ -121,9 +122,19 @@ export function fingerprint(t: ParsedTx): string {
     .toLowerCase();
 }
 
-// 12-cijferige kern van een Belgische gestructureerde mededeling.
+// 12-cijferige kern van een Belgische gestructureerde mededeling, enkel als
+// de controlecijfers kloppen. Zoekt eerst de vorm +++123/4567/89012+++ (ook
+// met *** of zonder tekens), daarna elke reeks van 12 cijfers.
 export function structuredDigits(s: string | null): string | null {
   if (!s) return null;
+  for (const m of s.matchAll(/(\d{3})\s*\/?\s*(\d{4})\s*\/?\s*(\d{5})/g)) {
+    const kandidaat = ogmCijfers(m[1] + m[2] + m[3]);
+    if (kandidaat) return kandidaat;
+  }
   const d = s.replace(/\D/g, "");
-  return d.length >= 12 ? d.slice(0, 12) : null;
+  for (let i = 0; i + 12 <= d.length; i++) {
+    const kandidaat = ogmCijfers(d.slice(i, i + 12));
+    if (kandidaat) return kandidaat;
+  }
+  return null;
 }

@@ -4,6 +4,7 @@ import { supabaseConfigured, mollieConfigured } from "@/lib/supabase/config";
 import { isValidLocale, type Locale } from "@/lib/i18n/config";
 import { payInvoice } from "@/app/actions/portal-client";
 import { BANK, structuredComm } from "@/lib/bank";
+import { btwLabel, btwVermelding, regimeVan } from "@/lib/facturatie/btw";
 import { SubmitButton } from "@/components/submit-button";
 import { PrintButton } from "@/components/print-button";
 import {
@@ -86,6 +87,9 @@ type Inv = {
   // Revisiefactuur bij een ticket + eigen btw-verlegging (migratie 0049).
   ticket_id?: string | null;
   vat_reverse?: boolean | null;
+  // Btw-regime en mededeling (migratie 0051).
+  btw_regime?: string | null;
+  ogm?: string | null;
 };
 type OfferRef = {
   id: string;
@@ -507,6 +511,8 @@ export default async function PortalInvoices({
             typeof i.vat_reverse === "boolean"
               ? i.vat_reverse
               : !!ref?.vat_reverse;
+          const regime = regimeVan({ btw_regime: i.btw_regime, vat_reverse: reverse });
+          const vermelding = btwVermelding(regime, locale);
           // Klantgegevens: die van de offerte, anders de eigen kolommen
           // van de factuur (losse/revisiefacturen hebben geen offerte).
           const kNaam =
@@ -733,7 +739,7 @@ export default async function PortalInvoices({
                       </>
                     )}
                     <div className="flex items-center justify-between text-muted">
-                      <span>{reverse ? l.reverse : l.vat}</span>
+                      <span>{reverse ? btwLabel(regime, locale) : l.vat}</span>
                       <span className="shrink-0 whitespace-nowrap font-mono">{eur(oVat)}</span>
                     </div>
                     <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
@@ -768,13 +774,19 @@ export default async function PortalInvoices({
                   <span className="shrink-0 whitespace-nowrap font-mono">{eur(amount)}</span>
                 </div>
                 <div className="mt-1.5 flex items-center justify-between text-muted">
-                  <span>{reverse ? l.reverse : l.vat}</span>
+                  <span>{reverse ? btwLabel(regime, locale) : l.vat}</span>
                   <span className="shrink-0 whitespace-nowrap font-mono">{eur(vat)}</span>
                 </div>
                 <div className="mt-2.5 flex items-center justify-between border-t pt-2.5 text-base font-semibold">
                   <span>{l.inclVat}</span>
                   <span className="shrink-0 whitespace-nowrap font-mono">{eur(incl)}</span>
                 </div>
+                {vermelding && (
+                  <p className="mt-2 text-xs text-muted">
+                    {vermelding}
+                    {kBtw ? ` · ${kBtw}` : ""}
+                  </p>
+                )}
                 {i.due_at && !paid && (
                   <p className="mt-3 text-xs text-muted">
                     {l.due}{" "}
@@ -900,7 +912,7 @@ export default async function PortalInvoices({
                             {l.commL}
                           </dt>
                           <dd className="mt-0.5 break-all font-mono text-base font-semibold text-accent">
-                            {structuredComm(i.number)}
+                            {structuredComm(i.number, i.ogm)}
                           </dd>
                         </div>
                       </dl>

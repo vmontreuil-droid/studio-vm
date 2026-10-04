@@ -16,7 +16,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isEmail, sendMail } from "@/lib/monitor";
 import { leveringMail, projectFactuurMail, projectOfferteMail, type KlantMail } from "@/lib/klant-mails";
 import { ensurePortalUser } from "@/lib/portal-access";
-import { checkVies } from "@/lib/vies";
+import { bepaalBtw } from "@/lib/facturatie/btw";
+import { slaFactuurOp, slaOfferteOp } from "@/lib/facturatie/opslaan";
 import { isLand, stelselVoor } from "@/lib/stelsel";
 import { UURTARIEF_CENT, MINIMUM_UREN, euro, type Categorie } from "@/lib/tarieven";
 import { STAPPEN, type Project, type ProjectStatus } from "@/lib/projecten";
@@ -28,7 +29,7 @@ import {
   factuurOmschrijving,
   type Taal,
 } from "@/lib/projecten-teksten";
-import { authGebruiker, klantGegevens, volgendNummer } from "@/lib/projecten-admin";
+import { authGebruiker, klantGegevens } from "@/lib/projecten-admin";
 import { zoekWerf } from "@/lib/geocode";
 
 const MODEL_MAX = 200 * 1024 * 1024; // 200 MB per modelbestand
@@ -445,28 +446,14 @@ export async function maakOfferte(fd: FormData): Promise<void> {
   const totaal = Math.max(0, lijnen.reduce((t, l) => t + l.cents, 0));
 
   const btw = s(fd, "vat_number").slice(0, 32);
-  let vatValid: boolean | null = null;
-  let vatName: string | null = null;
-  let vatReverse = false;
-  if (btw) {
-    const v = await checkVies(btw);
-    if (v) {
-      vatValid = v.valid;
-      vatName = v.name;
-      vatReverse = v.valid === true && v.country !== "BE";
-    }
-  }
+  const besluit = await bepaalBtw(btw);
+  const vatReverse = besluit.nulTarief;
 
-  const offerNo = await volgendNummer("offers", "OFF");
   const validUntil = new Date(Date.now() + geldig * 86400000).toISOString().slice(0, 10);
   const titel = s(fd, "titel").slice(0, 200) || p.titel;
   const naam = s(fd, "client_name").slice(0, 160);
-  const db = getSupabaseAdmin();
-  const { data, error } = await db
-    .from("offers")
-    .insert({
+  const opgeslagen = await slaOfferteOp({
       client_email: p.client_email,
-      offer_no: offerNo,
       title: titel,
       body: s(fd, "intro").slice(0, 8000) || null,
       items: lijnen,
@@ -478,18 +465,16 @@ export async function maakOfferte(fd: FormData): Promise<void> {
       client_company: s(fd, "client_company").slice(0, 160) || null,
       client_address: s(fd, "client_address").slice(0, 400) || null,
       vat_number: btw || null,
-      vat_valid: vatValid,
-      vat_name: vatName,
+      vat_valid: besluit.controle?.geldig ?? null,
+      vat_name: besluit.controle?.naam ?? null,
       vat_reverse: vatReverse,
-    })
-    .select("id")
-    .single();
-  if (error || !data) {
-    console.error("[projecten] offerte opslaan mislukt:", error?.message);
-    redirect(`/admin/projecten/${id}?melding=offerte-fout`);
-  }
+      btw_regime: besluit.regime,
+      btw_controle: besluit.controle,
+  });
+  if (!opgeslagen.ok) redirect(`/admin/projecten/${id}?melding=offerte-fout`);
+  const offerNo = opgeslagen.doc.nummer;
   await bijwerken(id, {
-    offer_id: (data as { id: string }).id,
+    offer_id: opgeslagen.doc.id,
     geschatte_uren: u,
     categorie,
     ...(p.status === "aanvraag" ? { status: "offerte" } : {}),
@@ -563,35 +548,34 @@ export async function maakFactuur(fd: FormData): Promise<void> {
   bedrag = Math.max(0, bedrag);
   if (bedrag <= 0) redirect(`/admin/projecten/${id}?melding=factuur-nul`);
 
-  const nummer = await volgendNummer("invoices", "FAC");
   const termijn = s(fd, "termijn") === "30" ? 30 : 14;
   const dueAt = new Date(Date.now() + termijn * 86400000).toISOString().slice(0, 10);
   const omschrijving =
     s(fd, "omschrijving").slice(0, 300) ||
     [factuurOmschrijving(taal, p.titel, u, tarief), ...extra].join(" ").slice(0, 300);
   const klantNaam = offerte?.client_company || offerte?.client_name || k.bedrijf || k.naam || null;
-  const { data, error } = await db
-    .from("invoices")
-    .insert({
-      client_email: p.client_email,
-      number: nummer,
-      description: omschrijving,
-      amount_cents: bedrag,
-      status: "open",
-      due_at: dueAt,
-      offer_id: offerte?.id ?? null,
-      public_token: randomBytes(18).toString("base64url"),
-      client_name: klantNaam,
-      client_address: offerte?.client_address || k.adres || null,
-      client_vat: offerte?.vat_number || k.btw || null,
-    })
-    .select("id")
-    .single();
-  if (error || !data) {
-    console.error("[projecten] factuur opslaan mislukt:", error?.message);
-    redirect(`/admin/projecten/${id}?melding=factuur-fout`);
-  }
-  await bijwerken(id, { invoice_id: (data as { id: string }).id, gewerkte_uren: p.gewerkte_uren ?? u });
+  // Btw opnieuw bepalen op het moment van factureren: de VIES-controle van
+  // vandaag is het bewijs dat op de factuur hoort.
+  const klantBtw = offerte?.vat_number || k.btw || null;
+  const besluit = await bepaalBtw(klantBtw);
+  const opgeslagen = await slaFactuurOp({
+    client_email: p.client_email,
+    description: omschrijving,
+    amount_cents: bedrag,
+    status: "open",
+    due_at: dueAt,
+    offer_id: offerte?.id ?? null,
+    public_token: randomBytes(18).toString("base64url"),
+    client_name: klantNaam,
+    client_address: offerte?.client_address || k.adres || null,
+    client_vat: klantBtw,
+    vat_reverse: besluit.nulTarief,
+    btw_regime: besluit.regime,
+    btw_controle: besluit.controle,
+  });
+  if (!opgeslagen.ok) redirect(`/admin/projecten/${id}?melding=factuur-fout`);
+  const nummer = opgeslagen.doc.nummer;
+  await bijwerken(id, { invoice_id: opgeslagen.doc.id, gewerkte_uren: p.gewerkte_uren ?? u });
   if (offerte?.id) await db.from("offers").update({ invoiced_at: new Date().toISOString() }).eq("id", offerte.id);
 
   await ensurePortalUser(p.client_email);
@@ -602,7 +586,7 @@ export async function maakFactuur(fd: FormData): Promise<void> {
       nummer,
       titel: p.titel,
       bedragExclCent: bedrag,
-      verlegd: !!offerte?.vat_reverse,
+      verlegd: besluit.nulTarief,
       dueAt,
       projectId: p.id,
     }),

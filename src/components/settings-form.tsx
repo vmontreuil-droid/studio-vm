@@ -94,10 +94,13 @@ export function SettingsForm({
       </Section>
 
       <Section title="Facturatie">
-        <Field label="Factuur-prefix" name="invoice_prefix" defaultValue={s.invoice_prefix} hint="bv. F → F2026-0001" />
-        <Field label="Factuurteller" name="invoice_counter" type="number" defaultValue={s.invoice_counter} hint="laatst gebruikte volgnummer" />
-        <Field label="Creditnota-prefix" name="credit_prefix" defaultValue={s.credit_prefix} hint="bv. CN" />
-        <Field label="Creditnotateller" name="credit_counter" type="number" defaultValue={s.credit_counter} />
+        <p className="text-sm text-muted sm:col-span-2">
+          Nummering gebeurt automatisch door de databank, doorlopend per jaar en zonder gaten:
+          facturen <span className="font-mono">FAC-2026-001</span>, creditnota&apos;s{" "}
+          <span className="font-mono">CN-2026-001</span>, offertes <span className="font-mono">OFF-2026-001</span>.
+          Elke factuur krijgt haar eigen gestructureerde mededeling. Een factuur met een nummer
+          kan niet gewist worden — maak een creditnota.
+        </p>
         <Field label="Betaaltermijn (dagen)" name="payment_terms_days" type="number" defaultValue={s.payment_terms_days} />
         <Field label="Standaard btw-tarief (%)" name="default_vat_rate" type="number" defaultValue={s.default_vat_rate} />
         <label className="block sm:col-span-2">

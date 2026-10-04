@@ -6,7 +6,7 @@ import { runScan } from "@/app/actions/scan";
 import { sendMail } from "@/lib/monitor";
 import { portalEmailHtml } from "@/lib/email";
 import { buildActionPlan } from "@/lib/health-check-actionplan";
-import { nextDocNumber } from "@/lib/admin/numbering";
+import { slaFactuurOp } from "@/lib/facturatie/opslaan";
 import { sendInvoiceViaBillit } from "@/lib/billit";
 import { randomBytes } from "node:crypto";
 
@@ -91,7 +91,6 @@ export async function POST(req: NextRequest) {
     // Automatische factuur (volledig betaald) — Standard €49 incl
     // of Premium €99 incl btw 21%. amount_cents wordt opgeslagen
     // als EXCL btw (zoals de rest van het systeem).
-    const invoiceNumber = await nextDocNumber("invoice");
     const exclCents = Math.round(grossCents / 1.21);
     const publicToken = randomBytes(18).toString("base64url");
     const pkgLabel = pkg === "premium" ? "Premium" : "Standard";
@@ -110,12 +109,11 @@ export async function POST(req: NextRequest) {
       .join("\n");
     const issuedAt = new Date().toISOString().slice(0, 10);
     const invoiceDesc = `Site Health Check ${pkgLabel} — ${hc.website.replace(/^https?:\/\//, "")}`;
-    await db.from("invoices").insert({
+    const opgeslagen = await slaFactuurOp({
       client_email: hc.email,
       client_name: clientName,
       client_address: clientAddress || null,
       client_vat: hc.vat_number,
-      number: invoiceNumber,
       description: invoiceDesc,
       amount_cents: exclCents,
       status: "betaald",
@@ -124,13 +122,16 @@ export async function POST(req: NextRequest) {
       mollie_payment_id: paymentId,
       public_token: publicToken,
       peppol_status: hc.vat_number ? "wachten" : "niet_vereist",
-    });
+    }, db);
+    const invoiceNumber = opgeslagen.ok ? opgeslagen.doc.nummer : "";
 
     // Peppol-verzending via Billit — faalt-stil. Particulier (geen
     // btw-nr) krijgt direct 'niet_vereist'; B2B gaat naar Billit's
     // Peppol Access Point. De resultaten worden naar de invoice
     // gesynct zodat /admin/facturen de status toont.
-    const billit = await sendInvoiceViaBillit({
+    const billit = !invoiceNumber
+      ? { ok: false as const, error: "factuur niet opgeslagen" }
+      : await sendInvoiceViaBillit({
       number: invoiceNumber,
       issued_at: issuedAt,
       lines: [

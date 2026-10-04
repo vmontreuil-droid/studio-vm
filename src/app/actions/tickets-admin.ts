@@ -17,7 +17,9 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { ensurePortalUser } from "@/lib/portal-access";
 import { UURTARIEF_CENT, MINIMUM_UREN, type Categorie } from "@/lib/tarieven";
-import { klantGegevens, volgendNummer } from "@/lib/projecten-admin";
+import { klantGegevens } from "@/lib/projecten-admin";
+import { bepaalBtw } from "@/lib/facturatie/btw";
+import { slaFactuurOp } from "@/lib/facturatie/opslaan";
 import { isValidLocale } from "@/lib/i18n/config";
 import {
   BIJLAGE_MAX_AANTAL,
@@ -478,7 +480,6 @@ export async function factureerRevisie(fd: FormData): Promise<void> {
   const tarief = tarieven.size === 1 ? rijen[0].tarief_cent : Math.round(bedrag / aangerekend);
 
   const termijn = s(fd, "termijn") === "30" ? 30 : 14;
-  const verlegd = s(fd, "btw_verlegd") === "1";
   const db = getSupabaseAdmin();
 
   const p = await projectVan(t);
@@ -503,31 +504,31 @@ export async function factureerRevisie(fd: FormData): Promise<void> {
   const titel = p?.titel ?? toonOnderwerp(t);
   const omschrijving = (s(fd, "omschrijving") || TICKET_MAIL[taal].revisieOmschrijving(titel, aangerekend, tarief)).slice(0, 300);
 
-  const nummer = await volgendNummer("invoices", "FAC");
   const dueAt = new Date(Date.now() + termijn * 86400000).toISOString().slice(0, 10);
-  const { data: inv, error } = await db
-    .from("invoices")
-    .insert({
-      client_email: email,
-      number: nummer,
-      description: omschrijving,
-      amount_cents: bedrag,
-      status: "open",
-      due_at: dueAt,
-      public_token: randomBytes(18).toString("base64url"),
-      client_name: offerte?.client_company || offerte?.client_name || k.bedrijf || k.naam || null,
-      client_address: offerte?.client_address || k.adres || null,
-      client_vat: offerte?.vat_number || k.btw || null,
-      ticket_id: t.id,
-      vat_reverse: verlegd,
-    })
-    .select("id")
-    .single();
-  if (error || !inv) {
-    console.error("[tickets] revisiefactuur opslaan mislukt:", error?.code, error?.message);
-    terug(t.id, error && isOntbrekend(error) ? "migratie" : "factuur-fout");
+  // Btw automatisch (VIES), zoals bij elke factuur.
+  const klantBtw = offerte?.vat_number || k.btw || null;
+  const besluit = await bepaalBtw(klantBtw);
+  const verlegd = besluit.nulTarief;
+  const opgeslagen = await slaFactuurOp({
+    client_email: email,
+    description: omschrijving,
+    amount_cents: bedrag,
+    status: "open",
+    due_at: dueAt,
+    public_token: randomBytes(18).toString("base64url"),
+    client_name: offerte?.client_company || offerte?.client_name || k.bedrijf || k.naam || null,
+    client_address: offerte?.client_address || k.adres || null,
+    client_vat: klantBtw,
+    ticket_id: t.id,
+    vat_reverse: verlegd,
+    btw_regime: besluit.regime,
+    btw_controle: besluit.controle,
+  }, db);
+  if (!opgeslagen.ok) {
+    terug(t.id, /column|ticket_id|42703/i.test(opgeslagen.fout) ? "migratie" : "factuur-fout");
   }
-  const factuurId = (inv as { id: string }).id;
+  const factuurId = opgeslagen.doc.id;
+  const nummer = opgeslagen.doc.nummer;
 
   // De rijen opeisen; liep er intussen een tweede factuur of 'bij project'
   // (dubbelklik), dan deze factuur terugdraaien.

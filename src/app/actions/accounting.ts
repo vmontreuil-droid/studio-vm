@@ -41,10 +41,6 @@ export async function saveCompanySettings(
           iban: str(fd, "iban"),
           bic: str(fd, "bic"),
           bank_holder: str(fd, "bank_holder"),
-          invoice_prefix: str(fd, "invoice_prefix") || "F",
-          invoice_counter: int(fd, "invoice_counter", 0),
-          credit_prefix: str(fd, "credit_prefix") || "CN",
-          credit_counter: int(fd, "credit_counter", 0),
           payment_terms_days: int(fd, "payment_terms_days", 14),
           default_vat_rate: num(fd, "default_vat_rate", 21),
           invoice_footer: str(fd, "invoice_footer"),
@@ -186,17 +182,16 @@ export async function createCreditNote(
   const email = str(fd, "client_email");
   if (!email) return { ok: false, error: "Klant-e-mail is verplicht." };
   try {
-    const { nextDocNumber } = await import("@/lib/admin/numbering");
-    const number = await nextDocNumber("credit");
-    const { error } = await getSupabaseAdmin().from("credit_notes").insert({
-      number,
+    // Nummer CN-jjjj-nnn: centraal toegekend (doorlopend, zonder gaten).
+    const { slaCreditnotaOp } = await import("@/lib/facturatie/opslaan");
+    const opgeslagen = await slaCreditnotaOp({
       invoice_id: str(fd, "invoice_id"),
       client_email: email.toLowerCase(),
       amount_cents: cents(fd, "amount"),
       vat_rate: num(fd, "vat_rate", 21),
       reason: str(fd, "reason"),
     });
-    if (error) return { ok: false, error: error.message };
+    if (!opgeslagen.ok) return { ok: false, error: opgeslagen.fout };
     revalidatePath("/admin/creditnotas");
     return { ok: true };
   } catch (e) {

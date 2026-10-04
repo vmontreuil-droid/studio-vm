@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isValidLocale } from "@/lib/i18n/config";
 import { getCompanySettings } from "@/lib/admin/settings";
 import { PrintButton } from "@/components/print-button";
+import { BANK, structuredComm } from "@/lib/bank";
+import { btwLabel, btwVermelding, regimeVan } from "@/lib/facturatie/btw";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -18,6 +20,10 @@ type Inv = {
   status: string;
   issued_at: string;
   paid_at: string | null;
+  due_at?: string | null;
+  vat_reverse?: boolean | null;
+  btw_regime?: string | null;
+  ogm?: string | null;
 };
 
 const eur = (c: number) =>
@@ -52,6 +58,10 @@ const L = {
     paidOn: "Betaald op",
     issuedOn: "Uitgereikt op",
     print: "Afdrukken / PDF",
+    payTitle: "Betaling",
+    payBefore: "Te betalen vóór",
+    comm: "Gestructureerde mededeling",
+    beneficiary: "Begunstigde",
   },
   fr: {
     title: "Facture",
@@ -65,6 +75,10 @@ const L = {
     paidOn: "Payée le",
     issuedOn: "Émise le",
     print: "Imprimer / PDF",
+    payTitle: "Paiement",
+    payBefore: "À payer avant le",
+    comm: "Communication structurée",
+    beneficiary: "Bénéficiaire",
   },
   en: {
     title: "Invoice",
@@ -78,6 +92,10 @@ const L = {
     paidOn: "Paid on",
     issuedOn: "Issued on",
     print: "Print / PDF",
+    payTitle: "Payment",
+    payBefore: "Due by",
+    comm: "Structured reference",
+    beneficiary: "Beneficiary",
   },
   de: {
     title: "Rechnung",
@@ -91,6 +109,10 @@ const L = {
     paidOn: "Bezahlt am",
     issuedOn: "Ausgestellt am",
     print: "Drucken / PDF",
+    payTitle: "Zahlung",
+    payBefore: "Zahlbar bis",
+    comm: "Strukturierte Mitteilung",
+    beneficiary: "Empfänger",
   },
   es: {
     title: "Factura",
@@ -104,6 +126,10 @@ const L = {
     paidOn: "Pagada el",
     issuedOn: "Emitida el",
     print: "Imprimir / PDF",
+    payTitle: "Pago",
+    payBefore: "A pagar antes del",
+    comm: "Comunicación estructurada",
+    beneficiary: "Beneficiario",
   },
 } as const;
 
@@ -118,17 +144,22 @@ export default async function PublicInvoice({
 
   const { data } = await getSupabaseAdmin()
     .from("invoices")
-    .select(
-      "client_email, client_name, client_address, client_vat, number, description, amount_cents, status, issued_at, paid_at",
-    )
+    // "*": werkt vóór en na migratie 0051 (btw_regime, ogm).
+    .select("*")
     .eq("public_token", token)
     .maybeSingle();
   const i = data as Inv | null;
   if (!i) notFound();
 
   const settings = await getCompanySettings();
-  const vat = Math.round(i.amount_cents * 0.21);
+  const regime = regimeVan(i);
+  const vat = regime === "binnenland" ? Math.round(i.amount_cents * 0.21) : 0;
   const incl = i.amount_cents + vat;
+  const vatLabel = btwLabel(regime, locale);
+  const vermelding = btwVermelding(regime, locale);
+  const iban = settings.iban || BANK.iban;
+  const bic = settings.bic || BANK.bic;
+  const ogm = structuredComm(i.number, i.ogm);
   const d = (s: string | null) =>
     s
       ? new Date(s).toLocaleDateString("nl-BE", {
@@ -238,14 +269,41 @@ export default async function PublicInvoice({
               </span>
             </div>
             <div className="flex items-center justify-between text-muted">
-              <span>{t.vat}</span>
+              <span>{vatLabel}</span>
               <span className="whitespace-nowrap font-mono">{eur(vat)}</span>
             </div>
             <div className="flex items-center justify-between border-t pt-2.5 text-base font-semibold">
               <span>{t.incl}</span>
               <span className="whitespace-nowrap font-mono">{eur(incl)}</span>
             </div>
+            {vermelding && (
+              <p className="pt-1.5 text-xs text-muted">
+                {vermelding}
+                {i.client_vat ? ` · ${i.client_vat}` : ""}
+              </p>
+            )}
           </div>
+
+          {/* Betaling (enkel zolang de factuur openstaat) */}
+          {i.status !== "betaald" && (
+            <div className="mt-6 rounded-xl border-2 border-accent bg-background p-5 text-sm">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-accent">{t.payTitle}</p>
+              <dl className="grid gap-x-6 gap-y-1.5 sm:grid-cols-[auto_1fr]">
+                {i.due_at && (
+                  <>
+                    <dt className="text-muted">{t.payBefore}</dt>
+                    <dd className="font-medium">{d(i.due_at)}</dd>
+                  </>
+                )}
+                <dt className="text-muted">{t.beneficiary}</dt>
+                <dd>{settings.bank_holder || BANK.holder}</dd>
+                <dt className="text-muted">IBAN</dt>
+                <dd className="font-mono">{iban}{bic ? ` · BIC ${bic}` : ""}</dd>
+                <dt className="text-muted">{t.comm}</dt>
+                <dd className="font-mono text-base font-semibold tracking-wide">{ogm}</dd>
+              </dl>
+            </div>
+          )}
 
           {/* Paid stamp */}
           {i.status === "betaald" && (

@@ -30,6 +30,7 @@ import { TICKET_MAIL, revisieTariefZin } from "@/lib/tickets-teksten";
 import { esc, soortVan, tekstNaarHtml, ticketRef, toonOnderwerp } from "@/lib/tickets";
 import { UURTARIEF_CENT, euro, type Categorie } from "@/lib/tarieven";
 import { CATEGORIE_LABEL } from "@/lib/projecten";
+import { BANK, structuredComm } from "@/lib/bank";
 
 export type { Taal };
 
@@ -67,6 +68,26 @@ function kaartTabel(kop: string, rijen: [string, string][]): string {
 <p style="margin:0 0 10px;font:700 12px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:#78716c">${kop}</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${r}</table>
 </td></tr></table>`;
+}
+
+const OVERSCHRIJVING: Record<Taal, { kop: string; begunstigde: string; bedrag: string; mededeling: string }> = {
+  nl: { kop: "Betalen per overschrijving", begunstigde: "Begunstigde", bedrag: "Bedrag", mededeling: "Mededeling" },
+  fr: { kop: "Paiement par virement", begunstigde: "Bénéficiaire", bedrag: "Montant", mededeling: "Communication" },
+  en: { kop: "Pay by bank transfer", begunstigde: "Beneficiary", bedrag: "Amount", mededeling: "Reference" },
+  de: { kop: "Zahlung per Überweisung", begunstigde: "Empfänger", bedrag: "Betrag", mededeling: "Mitteilung" },
+  es: { kop: "Pago por transferencia", begunstigde: "Beneficiario", bedrag: "Importe", mededeling: "Comunicación" },
+};
+
+/** Betaalkaart voor een factuur: begunstigde, IBAN, BIC, bedrag en de gestructureerde mededeling. */
+function overschrijving(taal: Taal, nummer: string, bedragInclCent: number): string {
+  const T = OVERSCHRIJVING[taal];
+  return kaartTabel(T.kop, [
+    [T.begunstigde, esc(BANK.holder)],
+    ["IBAN", `<span style="font-family:${MONO}">${esc(BANK.iban)}</span>`],
+    ["BIC", `<span style="font-family:${MONO}">${esc(BANK.bic)}</span>`],
+    [T.bedrag, mailBedrag(bedragInclCent, taal)],
+    [T.mededeling, `<span style="font-family:${MONO};font-size:15px">${esc(structuredComm(nummer))}</span>`],
+  ]);
 }
 
 // ── Gemeenschappelijke teksten ──────────────────────────────────────────
@@ -442,6 +463,7 @@ export function projectFactuurMail(
       M.factuurL1(esc(a.nummer), esc(a.titel), bedragMetBtw(taal, mailBedrag(incl, taal), a.verlegd ? "verlegd" : "incl")),
       M.factuurL2(mailDatum(a.dueAt, taal)),
     ],
+    extraHtml: overschrijving(taal, a.nummer, incl),
     cta: M.cta,
     href: portaalLink(taal, `/projecten/${a.projectId}`),
     footnote: M.footnote,
@@ -647,6 +669,7 @@ export function betaalHerinneringMail(
       T.bedrag(bedragMetBtw(taal, mailBedrag(a.bedragCent, taal), a.btw)),
       T.betaal,
     ],
+    extraHtml: overschrijving(taal, nr, a.bedragCent),
     cta: T.cta,
     href: portaalLink(taal, "/facturen"),
     footnote: `${niveau === 3 ? T.voetLaatste : T.voet}<br>${ALG[taal].vragen}`,
@@ -863,6 +886,7 @@ export function revisieFactuurMail(
         ),
         M.revisieFactuurL2(mailDatum(String(a.dueAt ?? "").slice(0, 10), taal)),
       ],
+      extraHtml: overschrijving(taal, a.nummer, incl),
       ctaLabel: M.ctaFactuur,
       doel: "/facturen",
       zonderViaPortaal: true,
@@ -930,6 +954,7 @@ export function factuurKlaarMail(
   return mail(taal, T.subject(a.nummer), {
     eyebrow: ALG[taal].eyebrowPortaal,
     regels,
+    extraHtml: overschrijving(taal, a.nummer, a.bedragCent),
     cta: T.cta,
     href: portaalLink(taal, "/facturen"),
     footnote: MAIL[taal].footnote,
@@ -1340,6 +1365,7 @@ export function supportFactuurMail(
       T.factuurL1(esc(a.plan), periode, mailBedrag(a.exclCent, taal), mailBedrag(incl, taal)),
       T.factuurL2(mailDatum(a.dueAt, taal)),
     ],
+    extraHtml: overschrijving(taal, a.nummer, incl),
     cta: T.ctaFactuur,
     href: portaalLink(taal, "/facturen"),
     footnote: MAIL[taal].footnote,
