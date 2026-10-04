@@ -146,7 +146,18 @@ const nextConfig: NextConfig = {
       permanent: true,
     }));
 
-    return [...hosts, ...beelden, ...paginas];
+    // Korte profiellink: oogt netjes in de Instagram-bio en houdt de meting
+    // (Instagram geeft zelf meestal geen herkomst mee). Zonder taal: /offerte
+    // stuurt daarna door naar de taal van de bezoeker, met de UTM erbij.
+    const kort = [
+      {
+        source: "/ig",
+        destination: "/offerte?utm_source=instagram&utm_medium=profiel&utm_campaign=bio",
+        permanent: false,
+      },
+    ];
+
+    return [...hosts, ...beelden, ...paginas, ...kort];
   },
   async rewrites() {
     return [
