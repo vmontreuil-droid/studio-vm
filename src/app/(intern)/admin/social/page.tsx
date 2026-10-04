@@ -210,8 +210,9 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
             ))}
           </ul>
           <p className="mt-3 text-xs text-muted">
-            Gepland op maandag 07:00 (zomer 08:00). Rotatie over vier weken: realisatie, carrousel uit de kennisbank, tip,
-            vraag of aanbod.
+            Gepland op maandag 07:00 (zomer 08:00). Drie berichten per week op alle feeds (maandag realisatie, woensdag
+            tip of kennis, vrijdag uitdaging, aanbod of tip), Nederlands en Frans om de beurt, plus een Google-bericht en
+            een story.
           </p>
           <div className="mt-4 border-t border-border pt-4">
             <AutoSchakelaar aan={stand.allesAutomatisch} terug={terug} />

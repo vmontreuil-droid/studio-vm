@@ -15,7 +15,7 @@
 // video. De generator (social-generator.ts) plant er elke week vier in.
 
 import { CATEGORIEEN, REALISATIES, UITGELICHT, type Categorie, type Systeem } from "@/lib/realisaties";
-import { UURTARIEF_CENT, euro, type Categorie as TariefCategorie } from "@/lib/tarieven";
+import { MINIMUM_UREN, UURTARIEF_CENT, euro, type Categorie as TariefCategorie } from "@/lib/tarieven";
 import { UTM_BRONNEN } from "@/lib/utm";
 
 // ============================================================================
@@ -1065,6 +1065,456 @@ Nous rassemblerons les causes les plus fréquentes dans un prochain conseil.`,
         tags: fr("#GNSS"),
       }),
     },
+  },
+
+  // ── EXTRA TIPS (uit de kennisbank) ──────────────────────────────────────
+  {
+    id: "tip-tegenstrijdig",
+    type: "tip",
+    doel: "/kennis/controle-en-toleranties",
+    kaart: "/3d/terrein-hoogtelijnen.jpg",
+    tekst: {
+      nl: () => ({
+        kop: "Klopt het peil niet? Wij melden het",
+        body: `Plannen spreken elkaar soms tegen. Een peil op het grondplan dat niet overeenkomt met het lengteprofiel. Een helling die niet past bij de opgegeven hoogtes.
+
+Zulke punten vullen we niet stilzwijgend zelf in. We melden ze, met de plaats en de twee waarden, zodat de ontwerper of de werfleider beslist welke waarde geldt.
+
+Liever één vraag vóór de levering dan een discussie op de werf.`,
+        kort: "Plannen spreken elkaar soms tegen: een peil dat niet past bij het lengteprofiel. Wij vullen dat niet stil zelf in, maar melden het, zodat de ontwerper beslist.",
+        tags: nl("#3Dmodel"),
+      }),
+      fr: () => ({
+        kop: "Un niveau qui ne colle pas ? Nous le signalons",
+        body: `Les plans se contredisent parfois. Un niveau sur le plan d'implantation qui ne correspond pas au profil en long. Une pente qui ne colle pas avec les altitudes indiquées.
+
+Nous ne comblons pas ces écarts en silence. Nous les signalons, avec l'endroit et les deux valeurs, pour que le bureau d'études ou le conducteur de travaux décide quelle valeur s'applique.
+
+Mieux vaut une question avant la livraison qu'une discussion sur chantier.`,
+        kort: "Les plans se contredisent parfois : un niveau qui ne colle pas avec le profil en long. Nous ne tranchons pas en silence : nous le signalons, et le bureau d'études décide.",
+        tags: fr("#modele3D"),
+      }),
+    },
+    google: () => ({
+      kop: "Tegenstrijdige peilen? Wij melden ze",
+      body: "Plannen spreken elkaar soms tegen, bijvoorbeeld een peil op het grondplan dat niet overeenkomt met het lengteprofiel. Wij vullen zulke punten niet zelf in, maar melden ze met de plaats en de twee waarden. Zo beslist de ontwerper of de werfleider welke waarde geldt, nog vóór de levering van het 3D-model.",
+    }),
+  },
+  {
+    id: "tip-werfkalibratie",
+    type: "tip",
+    doel: "/kennis/coordinatenstelsels",
+    kaart: "/3d/trace-luchtfoto.jpg",
+    tekst: {
+      nl: () => ({
+        kop: "Werfkalibratie: enkel binnen de punten",
+        body: `Op veel werven werkt de machine met een lokale kalibratie: een paar gekende punten worden ingemeten en de GNSS-metingen worden er exact op afgestemd.
+
+Dat werkt goed, maar enkel binnen het gebied van die punten. Daarbuiten kunnen afwijkingen snel oplopen.
+
+Breidt de werf uit, of werkt de machine een eind buiten de gekalibreerde zone? Laat dan extra punten inmeten en controleer opnieuw op een gekend punt.
+
+Wij leveren het model in het afgesproken stelsel; de kalibratie op de machine beheert de aannemer of zijn meetploeg.`,
+        kort: "Een lokale werfkalibratie klopt binnen het gebied van de gemeten punten; daarbuiten kunnen afwijkingen snel oplopen. Werf groter geworden? Extra punten inmeten en opnieuw controleren.",
+        tags: nl("#GNSS"),
+      }),
+      fr: () => ({
+        kop: "Calibration de chantier : entre les points",
+        body: `Sur beaucoup de chantiers, la machine travaille avec une calibration locale : quelques points connus sont levés et les mesures GNSS y sont ajustées.
+
+Cela fonctionne bien, mais uniquement dans la zone couverte par ces points. En dehors, les écarts peuvent vite augmenter.
+
+Le chantier s'agrandit, ou la machine travaille loin de la zone calibrée ? Faites lever des points supplémentaires et contrôlez à nouveau sur un point connu.
+
+Nous livrons le modèle dans le système convenu ; la calibration de la machine reste du ressort de l'entreprise ou de son équipe de mesure.`,
+        kort: "Une calibration locale est juste dans la zone des points levés ; au-delà, les écarts augmentent vite. Le chantier s'agrandit ? Levez des points supplémentaires et recontrôlez.",
+        tags: fr("#GNSS"),
+      }),
+    },
+    google: () => ({
+      kop: "Werfkalibratie geldt binnen de punten",
+      body: "Een lokale werfkalibratie stemt de GNSS-metingen af op enkele gekende punten. Binnen dat gebied klopt alles, daarbuiten kunnen afwijkingen snel oplopen. Werkt de machine buiten de gekalibreerde zone, laat dan extra punten inmeten en controleer opnieuw op een gekend punt.",
+    }),
+  },
+  {
+    id: "tip-planwijziging",
+    type: "tip",
+    doel: "/kennis/veelgestelde-vragen",
+    kaart: "/3d/rotondes-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "Ontwerp gewijzigd? Zo gaat het",
+        body: `Ontwerpen veranderen tijdens een project. Dat is normaal.
+
+Stuur de gewijzigde plannen door met een korte omschrijving van wat er veranderd is: welke zone, welke peilen, welke versie. Dan passen we het model gericht aan en staat de nieuwe versie in uw klantenportaal, naast de vorige.
+
+Aanpassingen aan het ontwerp worden per uur verrekend. Een fout in het model ten opzichte van de aangeleverde plannen zetten we uiteraard kosteloos recht.`,
+        kort: "Ontwerp gewijzigd? Stuur de nieuwe plannen met een korte omschrijving. U krijgt een nieuwe versie in uw portaal, naast de vorige. Een fout in het model herstellen we kosteloos.",
+        tags: nl("#3Dmodel"),
+      }),
+      fr: () => ({
+        kop: "Projet modifié ? Voici comment faire",
+        body: `Les projets évoluent en cours de route. C'est normal.
+
+Envoyez les plans modifiés avec une courte description de ce qui a changé : quelle zone, quels niveaux, quelle version. Nous adaptons le modèle de manière ciblée et la nouvelle version vous attend dans votre espace client, à côté de la précédente.
+
+Les modifications du projet sont facturées à l'heure. Une erreur du modèle par rapport aux plans fournis est bien sûr corrigée gratuitement.`,
+        kort: "Projet modifié ? Envoyez les nouveaux plans avec une courte description. Nouvelle version dans votre espace client, à côté de l'ancienne. Une erreur du modèle est corrigée gratuitement.",
+        tags: fr("#modele3D"),
+      }),
+    },
+    google: () => ({
+      kop: "Ontwerp gewijzigd? Nieuwe versie in het portaal",
+      body: "Stuur de gewijzigde plannen met een korte omschrijving van wat er veranderd is. We passen het 3D-model gericht aan en zetten de nieuwe versie in uw klantenportaal, naast de vorige. Aanpassingen worden per uur verrekend; een fout in het model ten opzichte van de plannen herstellen we kosteloos.",
+    }),
+  },
+  {
+    id: "tip-grondbalans",
+    type: "tip",
+    doel: "/kennis/grondverzet-en-volumes",
+    kaart: "/3d/r/p-uitgraving-hoogtelijn-donker.webp",
+    tekst: {
+      nl: () => ({
+        kop: "Grondbalans: losse grond neemt meer plaats in",
+        body: `Een volumeberekening zet het bestaande terrein tegenover het ontwerp: hoeveel grond moet weg, hoeveel moet erbij.
+
+Maar grond verandert van volume. Losgegraven grond neemt meer plaats in dan in de ongeroerde bodem, verdichte grond minder. En niet alle uitgegraven grond is geschikt om opnieuw te gebruiken.
+
+Een geometrische grondbalans is dus een vertrekpunt voor de planning van transport en materiaal, geen eindantwoord. Voor de afrekening blijven een opmeting op het terrein en het bestek bepalend.`,
+        kort: "Een grondbalans uit het model is een vertrekpunt, geen eindantwoord: losgegraven grond neemt meer plaats in, verdichte grond minder, en niet alle grond is herbruikbaar.",
+        tags: nl("#grondbalans"),
+      }),
+      fr: () => ({
+        kop: "Équilibre des terres : la terre foisonne",
+        body: `Un calcul de volumes compare le terrain existant au projet : combien de terre enlever, combien en apporter.
+
+Mais la terre change de volume. Une fois excavée, elle prend plus de place qu'en place ; compactée, elle en prend moins. Et toute la terre excavée n'est pas réutilisable.
+
+Un équilibre géométrique des terres est donc un point de départ pour planifier transport et matériaux, pas une réponse définitive. Pour les décomptes, un levé sur terrain et le cahier des charges restent déterminants.`,
+        kort: "L'équilibre des terres issu du modèle est un point de départ : la terre foisonne une fois excavée, se tasse une fois compactée, et n'est pas toujours réutilisable.",
+        tags: fr("#volumes"),
+      }),
+    },
+    google: () => ({
+      kop: "Grondbalans: een vertrekpunt",
+      body: "Een volumeberekening uit het 3D-model vergelijkt bestaand terrein en ontwerp. Houd rekening met het verschil tussen losse en verdichte grond, en met grond die niet herbruikbaar is. De balans helpt bij de planning van transport en materiaal; voor de afrekening blijven een opmeting en het bestek bepalend.",
+    }),
+  },
+  {
+    id: "tip-laagdikte",
+    type: "tip",
+    doel: "/kennis/grondverzet-en-volumes",
+    kaart: "/3d/weg-kruispunt-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "Een paar centimeter laagdikte telt op",
+        body: `Onder een verharding liggen meestal meerdere lagen: onderfundering, fundering en verharding, elk met een eigen ontwerpdikte.
+
+Wie het uitgravingsvolume berekent tot het afgewerkte niveau in plaats van tot de bodem van de opbouw, onderschat het grondverzet. Een verschil van enkele centimeters lijkt klein, maar over een grote oppervlakte telt het snel op.
+
+Daarom modelleren we elke laag als een apart oppervlak. Zo volgt de machine in elke fase het juiste niveau, en ziet u het volume per laag.`,
+        kort: "Uitgraving berekend tot het afgewerkte niveau? Dan onderschat u het grondverzet. Wij modelleren elke laag apart: het juiste niveau in elke fase, en het volume per laag.",
+        tags: nl("#wegenbouw"),
+      }),
+      fr: () => ({
+        kop: "Quelques centimètres d'épaisseur, ça compte",
+        body: `Sous un revêtement, il y a généralement plusieurs couches : sous-fondation, fondation et revêtement, chacune avec son épaisseur de projet.
+
+Calculer le déblai jusqu'au niveau fini au lieu du fond de la structure, c'est sous-estimer les terrassements. Quelques centimètres semblent peu, mais sur une grande surface, cela s'additionne vite.
+
+C'est pourquoi nous modélisons chaque couche comme une surface distincte. La machine suit le bon niveau à chaque phase, et vous voyez le volume par couche.`,
+        kort: "Déblai calculé jusqu'au niveau fini ? Les terrassements sont sous-estimés. Chaque couche est modélisée à part : le bon niveau à chaque phase, et le volume par couche.",
+        tags: fr("#voirie"),
+      }),
+    },
+  },
+  {
+    id: "tip-open-formaten",
+    type: "tip",
+    doel: "/kennis/bestanden-per-merk",
+    kaart: "/3d/driehoeksnet-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "LandXML en DXF: de open formaten",
+        body: `Naast de eigen formaten van elk merk zijn er twee open formaten die bijna overal gelezen worden.
+
+LandXML: een open standaard voor oppervlakken (driehoeksnet), lijnwerk, assen en punten, met hun coördinaten. Veel machinesturingen lezen het rechtstreeks of zetten het om.
+
+DXF: het gangbare CAD-formaat, vooral voor lijnwerk en 3D-lijnen, en als achtergrondtekening in de cabine.
+
+Werkt u met een systeem dat niet in onze lijst staat? Met LandXML en DXF zit u bijna altijd goed. Geef bij de aanvraag wel het systeem en de softwareversie op.`,
+        kort: "LandXML voor oppervlakken, lijnwerk en punten; DXF voor lijnwerk en achtergrond. Met die twee open formaten zit u op bijna elk systeem voor machinesturing goed.",
+        tags: nl("#LandXML"),
+      }),
+      fr: () => ({
+        kop: "LandXML et DXF : les formats ouverts",
+        body: `À côté des formats propres à chaque marque, deux formats ouverts sont lus presque partout.
+
+LandXML : un standard ouvert pour les surfaces (réseau de triangles), les lignes, les axes et les points, avec leurs coordonnées. Beaucoup de systèmes de guidage le lisent directement ou le convertissent.
+
+DXF : le format CAO courant, surtout pour les lignes et polylignes 3D, et comme fond de plan en cabine.
+
+Votre système n'est pas dans notre liste ? Avec LandXML et DXF, vous êtes presque toujours couvert. Indiquez tout de même le système et la version du logiciel dans votre demande.`,
+        kort: "LandXML pour les surfaces, lignes et points ; DXF pour les lignes et le fond de plan. Avec ces deux formats ouverts, presque tous les systèmes de guidage sont couverts.",
+        tags: fr("#LandXML"),
+      }),
+    },
+    google: () => ({
+      kop: "LandXML en DXF: open formaten",
+      body: "Naast de eigen formaten van Trimble, Topcon, Leica en andere merken leveren we ook de open formaten LandXML (oppervlakken, lijnwerk en punten) en DXF (lijnwerk en achtergrond). Daarmee werkt het 3D-model op bijna elk systeem voor machinesturing.",
+    }),
+  },
+  {
+    id: "tip-gnss-hoogte",
+    type: "tip",
+    doel: "/kennis/controle-en-toleranties",
+    kaart: "/3d/terrein-hoogtelijnen-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "GNSS is minder nauwkeurig in de hoogte",
+        body: `Een machine met GNSS-sturing bepaalt haar positie doorgaans nauwkeuriger in ligging dan in hoogte. Bij grondwerk valt dat zelden op, maar bij fundering en afwerkingslagen telt het wel.
+
+Daarom:
+• moet het model zelf ruim binnen de toleranties van het werk liggen;
+• controleert u vóór de start op een gekend punt, ook in hoogte;
+• kan voor fijne afwerking een total station of een extra controle nodig zijn.
+
+De toleranties van het bestek blijven altijd bepalend.`,
+        kort: "GNSS-machinesturing is doorgaans minder nauwkeurig in hoogte dan in ligging. Bij fundering en afwerking telt dat: controleer vóór de start ook de hoogte op een gekend punt.",
+        tags: nl("#GNSS"),
+      }),
+      fr: () => ({
+        kop: "Le GNSS est moins précis en altitude",
+        body: `Une machine guidée par GNSS détermine généralement sa position plus précisément en plan qu'en altitude. En terrassement, cela se remarque rarement ; pour la fondation et les couches de finition, cela compte.
+
+C'est pourquoi :
+• le modèle lui-même doit rester largement dans les tolérances du chantier ;
+• contrôlez avant le démarrage sur un point connu, aussi en altitude ;
+• pour une finition fine, une station totale ou un contrôle supplémentaire peut être nécessaire.
+
+Les tolérances du cahier des charges restent toujours déterminantes.`,
+        kort: "Le guidage GNSS est généralement moins précis en altitude qu'en plan. Pour la fondation et la finition, cela compte : contrôlez aussi l'altitude sur un point connu.",
+        tags: fr("#GNSS"),
+      }),
+    },
+    google: () => ({
+      kop: "Hoogte controleren bij GNSS",
+      body: "Machinesturing met GNSS is doorgaans minder nauwkeurig in hoogte dan in ligging. Bij fundering en afwerkingslagen telt dat. Controleer vóór de start altijd ook de hoogte op een gekend punt; de toleranties van het bestek blijven bepalend.",
+    }),
+  },
+  {
+    id: "aanbod-buitenland",
+    type: "aanbod",
+    doel: "/3d-modellen",
+    kaart: "/3d/weg-trace-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "Ook voor werven buiten België",
+        body: `Een werf in Nederland, Frankrijk, Duitsland of Luxemburg? We maken het 3D-model in het coördinatenstelsel en de hoogtereferentie van dat land, of in een lokaal stelsel naar keuze.
+
+Dezelfde werkwijze als in België: plannen doorsturen, een offerte met het geschatte aantal uren, en het model in het formaat van uw machine.
+
+We communiceren in het Nederlands, Frans, Engels, Duits of Spaans.
+
+${CTA_NL}`,
+        kort: "Werf in Nederland, Frankrijk, Duitsland of Luxemburg? Het 3D-model komt in het stelsel en de hoogtereferentie van dat land. Communicatie in vijf talen.",
+        tags: nl("#3Dmodel"),
+      }),
+      fr: () => ({
+        kop: "Aussi pour vos chantiers hors de Belgique",
+        body: `Un chantier en France, au Luxembourg, aux Pays-Bas ou en Allemagne ? Nous réalisons le modèle 3D dans le système de coordonnées et la référence altimétrique du pays, ou dans un système local de votre choix.
+
+La même méthode qu'en Belgique : vous envoyez les plans, vous recevez une offre avec le nombre d'heures estimé, puis le modèle au format de votre machine.
+
+Nous échangeons en français, néerlandais, anglais, allemand ou espagnol.
+
+${CTA_FR}`,
+        kort: "Chantier en France, au Luxembourg, aux Pays-Bas ou en Allemagne ? Le modèle 3D dans le système et la référence altimétrique du pays. Échanges en cinq langues.",
+        tags: fr("#modele3D"),
+      }),
+    },
+    google: () => ({
+      kop: "3D-modellen ook voor werven in het buitenland",
+      body: "Werf in Nederland, Frankrijk, Duitsland of Luxemburg? We maken het 3D-model voor machinesturing in het coördinatenstelsel en de hoogtereferentie van dat land, of in een lokaal stelsel naar keuze. Communicatie in het Nederlands, Frans, Engels, Duits of Spaans.",
+    }),
+  },
+
+  // ── UITDAGINGEN (vragen die de lezer bij zichzelf doen nadenken) ─────────
+  {
+    id: "vraag-test-stelsel",
+    type: "vraag",
+    doel: "/kennis/coordinatenstelsels",
+    kaart: "/3d/h/plan-hoogtelijnen-donker.webp",
+    tekst: {
+      nl: () => ({
+        kop: "Test: in welk stelsel staat uw plan?",
+        body: `Een kleine test voor uw volgende werf.
+
+Open het plan en zoek het coördinatenstelsel. Staat er Lambert 72 of Lambert 2008? En de hoogte: TAW of DNG?
+
+Vindt u het niet terug? Dan bent u niet alleen. Maar uw machine moet het wel weten, en een verkeerd stelsel geeft geen foutmelding: het model ligt gewoon op de verkeerde plaats of hoogte.
+
+Wij vragen het bij elke opdracht na, nog vóór we beginnen.
+
+${CTA_NL}`,
+        kort: "Test: open uw plan. Lambert 72 of 2008? TAW of DNG? Niet terug te vinden? Uw machine moet het wel weten. Wij vragen het bij elke opdracht na.",
+        tags: nl("#Lambert2008"),
+      }),
+      fr: () => ({
+        kop: "Test : dans quel système est votre plan ?",
+        body: `Un petit test pour votre prochain chantier.
+
+Ouvrez le plan et cherchez le système de coordonnées. Lambert 72 ou Lambert 2008 ? Et l'altitude : DNG ou TAW ? En France : Lambert-93 ou une zone CC, et NGF-IGN69 ?
+
+Introuvable ? Vous n'êtes pas le seul. Mais votre machine, elle, doit le savoir, et un mauvais système ne donne pas de message d'erreur : le modèle est simplement au mauvais endroit ou à la mauvaise hauteur.
+
+Nous le vérifions pour chaque mission, avant de commencer.
+
+${CTA_FR}`,
+        kort: "Test : ouvrez votre plan. Lambert 72, 2008 ou 93 ? Quelle altitude ? Introuvable ? Votre machine doit pourtant le savoir. Nous le vérifions pour chaque mission.",
+        tags: fr("#Lambert93"),
+      }),
+    },
+  },
+  {
+    id: "vraag-piketten",
+    type: "vraag",
+    doel: "/3d-modellen",
+    kaart: "/3d/relief-sportterrein-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "Hoeveel uur zette uw ploeg piketten?",
+        body: `Een eerlijke vraag: hoeveel uur ging er vorig jaar naar uitzetten, piketten slaan en hoogtes nameten?
+
+Met een 3D-model in de cabine ziet de machinist het ontwerpniveau rechtstreeks op zijn scherm. Minder piketten, minder wachten op de meetploeg, en het ontwerp ligt er zoals het getekend is.
+
+Het model voor een werf is een aantal uren modelleerwerk, aan ${eur("vroegtijdig")} tot ${eur("last-minute")} per uur (excl. btw). Zet dat eens naast de uren die u nu kwijt bent.
+
+${CTA_NL}`,
+        kort: "Hoeveel uur ging er vorig jaar naar piketten en hoogtes nameten? Met een 3D-model in de cabine ziet de machinist het ontwerp op zijn scherm. Zet het eens naast elkaar.",
+        tags: nl("#uitzetten"),
+      }),
+      fr: () => ({
+        kop: "Combien d'heures de piquetage ?",
+        body: `Une question franche : combien d'heures votre équipe a-t-elle passées l'an dernier à implanter, piqueter et revérifier les niveaux ?
+
+Avec un modèle 3D en cabine, le conducteur voit le niveau de projet directement sur son écran. Moins de piquets, moins d'attente de l'équipe de mesure, et le projet est réalisé tel qu'il a été dessiné.
+
+Le modèle d'un chantier, ce sont quelques heures de modélisation, de ${eur("vroegtijdig", "fr")} à ${eur("last-minute", "fr")} de l'heure (HTVA). Comparez avec les heures que vous y passez aujourd'hui.
+
+${CTA_FR}`,
+        kort: "Combien d'heures de piquetage et de contrôle des niveaux l'an dernier ? Avec un modèle 3D en cabine, le conducteur voit le projet sur son écran. Comparez.",
+        tags: fr("#implantation"),
+      }),
+    },
+    google: () => ({
+      kop: "Minder piketten, meer graven",
+      body: `Met een 3D-model in de cabine ziet de machinist het ontwerpniveau rechtstreeks op zijn scherm: minder uitzetten, minder wachten op de meetploeg. Het model voor een werf is een aantal uren modelleerwerk, aan ${eur("vroegtijdig")} tot ${eur("last-minute")} per uur (excl. btw). Stuur uw plannen voor een offerte met het geschatte aantal uren.`,
+    }),
+  },
+  {
+    id: "vraag-herwerk",
+    type: "vraag",
+    doel: "/kennis/controle-en-toleranties",
+    kaart: "/3d/relief-bouwput-donker.png",
+    tekst: {
+      nl: () => ({
+        kop: "Wat kost een halve dag herwerk?",
+        body: `Reken even mee. Een halve dag herwerk door een verkeerd niveau: de machine, de machinist, de vrachtwagens die wachten of extra rijden, het materiaal dat er opnieuw uit moet.
+
+Veel fouten op een werf met machinesturing ontstaan niet in de cabine, maar al in het model: een verkeerd stelsel, een ontbrekende laag, een peil dat niet klopt met het profiel.
+
+Daarom controleren we elk model op peilen, hellingen en aansluitingen vóór het vertrekt. En melden we tegenstrijdigheden in de plannen in plaats van ze zelf in te vullen.
+
+${CTA_NL}`,
+        kort: "Een halve dag herwerk door een verkeerd niveau: machine, machinist, vrachtwagens, materiaal. Daarom controleren we elk model op peilen, hellingen en aansluitingen vóór levering.",
+        tags: nl("#3Dmodel"),
+      }),
+      fr: () => ({
+        kop: "Combien coûte une demi-journée de reprise ?",
+        body: `Faites le calcul. Une demi-journée de reprise à cause d'un mauvais niveau : la machine, le conducteur, les camions qui attendent ou roulent en plus, les matériaux à ressortir.
+
+Beaucoup d'erreurs sur un chantier guidé ne naissent pas en cabine, mais déjà dans le modèle : un mauvais système, une couche manquante, un niveau qui ne colle pas avec le profil.
+
+C'est pourquoi nous contrôlons chaque modèle, niveaux, pentes et raccords, avant livraison. Et nous signalons les contradictions dans les plans au lieu de les combler nous-mêmes.
+
+${CTA_FR}`,
+        kort: "Une demi-journée de reprise pour un mauvais niveau : machine, conducteur, camions, matériaux. Nous contrôlons donc chaque modèle, niveaux, pentes et raccords, avant livraison.",
+        tags: fr("#modele3D"),
+      }),
+    },
+    google: () => ({
+      kop: "Wat kost een halve dag herwerk?",
+      body: "Een verkeerd niveau kost al snel een halve dag herwerk: machine, machinist, vrachtwagens en materiaal. Veel fouten ontstaan al in het model. Daarom controleren we elk 3D-model op peilen, hellingen en aansluitingen vóór levering, en melden we tegenstrijdigheden in de plannen.",
+    }),
+  },
+  {
+    id: "vraag-machinist",
+    type: "vraag",
+    doel: "/kennis/lijnwerk-en-breeklijnen",
+    kaart: "/3d/terrein-lijnwerk.jpg",
+    tekst: {
+      nl: () => ({
+        kop: "Machinist, wat mist u op uw scherm?",
+        body: `Een vraag voor wie elke dag in de cabine zit.
+
+Wat maakt een 3D-model voor u goed of slecht? Lijnwerk van boordstenen en grachten? Hoogtelijnen? Duidelijke namen voor de lagen? Of net minder op het scherm?
+
+Wij bouwen elk model met lijnwerk, aparte lagen per fase en een controle op hellingen. Maar de beste tips komen van de mensen die ermee werken.
+
+Laat het weten in de reacties.`,
+        kort: "Machinist, wat maakt een 3D-model voor u goed? Lijnwerk, hoogtelijnen, duidelijke lagen, of net minder op het scherm? Laat het weten.",
+        tags: nl("#machinist"),
+      }),
+      fr: () => ({
+        kop: "Conducteur, que manque-t-il à votre écran ?",
+        body: `Une question pour ceux qui sont en cabine tous les jours.
+
+Qu'est-ce qui rend un modèle 3D bon ou mauvais pour vous ? Les lignes des bordures et des fossés ? Les courbes de niveau ? Des noms de couches clairs ? Ou justement moins d'informations à l'écran ?
+
+Nous construisons chaque modèle avec ses lignes, des couches séparées par phase et un contrôle des pentes. Mais les meilleurs conseils viennent de ceux qui l'utilisent.
+
+Dites-le en commentaire.`,
+        kort: "Conducteur, qu'est-ce qui rend un modèle 3D bon pour vous ? Lignes, courbes de niveau, couches claires, ou moins à l'écran ? Dites-le en commentaire.",
+        tags: fr("#conducteurdengins"),
+      }),
+    },
+  },
+  {
+    id: "vraag-kleine-werf",
+    type: "vraag",
+    doel: "/tarieven",
+    kaart: "/3d/r/p-uitgraving-helling-donker.webp",
+    tekst: {
+      nl: () => ({
+        kop: "Enkel voor grote werven? Niet waar",
+        body: `Veel aannemers denken dat een 3D-model enkel loont voor een autosnelweg of een groot industrieterrein.
+
+Maar ook een parking, een oprit met afwatering, een bouwput of een sportveld heeft hellingen en niveaus die moeten kloppen. Juist daar kost een kleine fout snel herwerk.
+
+We rekenen per uur, met een minimum van ${MINIMUM_UREN} uur per opdracht. Een kleine werf is dus ook een kleine factuur.
+
+${CTA_NL}`,
+        kort: "Een 3D-model enkel voor grote werven? Ook een parking, oprit, bouwput of sportveld heeft hellingen die moeten kloppen. Per uur gerekend: kleine werf, kleine factuur.",
+        tags: nl("#aannemer"),
+      }),
+      fr: () => ({
+        kop: "Seulement pour les grands chantiers ? Faux",
+        body: `Beaucoup d'entreprises pensent qu'un modèle 3D ne se justifie que pour une autoroute ou un grand zoning.
+
+Mais un parking, une allée avec écoulement, une fouille ou un terrain de sport ont aussi des pentes et des niveaux qui doivent être justes. C'est justement là qu'une petite erreur coûte vite une reprise.
+
+Nous facturons à l'heure, avec un minimum de ${MINIMUM_UREN} heure par mission. Un petit chantier, c'est donc aussi une petite facture.
+
+${CTA_FR}`,
+        kort: "Un modèle 3D seulement pour les grands chantiers ? Un parking, une fouille ou un terrain de sport ont aussi des pentes à respecter. Facturé à l'heure : petit chantier, petite facture.",
+        tags: fr("#travauxpublics"),
+      }),
+    },
+    google: () => ({
+      kop: "Ook voor kleine werven",
+      body: `Een 3D-model voor machinesturing is niet enkel voor grote werven. Ook een parking, een oprit met afwatering, een bouwput of een sportveld heeft hellingen en niveaus die moeten kloppen. We rekenen per uur, met een minimum van ${MINIMUM_UREN} uur per opdracht.`,
+    }),
   },
 
   // ── VIDEO (enkel als er een video klaarstaat) ───────────────────────────

@@ -2,12 +2,14 @@
 //
 // Wordt aangeroepen door /api/cron/social-generate (maandag 06:00 UTC, dus
 // 07:00 in de winter en 08:00 in de zomer) en door de knop "Week plannen" in
-// /admin/social. Per week vier plaatsen (Belgische tijd):
-//   di 12:00  Nederlandstalig bericht  (Facebook, Instagram, Threads, Bluesky, X, Pinterest)
-//   wo 12:00  Google Bedrijfsprofiel   (NL)
-//   do 12:00  Franstalig bericht       (zelfde kanalen als dinsdag)
-//   vr 12:00  story of reel            (reel als er een video klaarstaat)
-// De soort volgt een rotatie over 4 weken (typeVoorWeek). Tips, vragen,
+// /admin/social. Per week vijf plaatsen (Belgische tijd):
+//   ma 12:00  realisatie               (Facebook, Instagram, Threads, Bluesky, X, Pinterest)
+//   di 12:00  Google Bedrijfsprofiel   (NL)
+//   wo 12:00  tip of kennis            (zelfde kanalen als maandag)
+//   do 12:00  story of reel            (reel als er een video klaarstaat)
+//   vr 12:00  uitdaging, aanbod of tip (zelfde kanalen als maandag)
+// Drie berichten per week op de feeds, NL en FR om de beurt (taalVoorFeed,
+// soortVoorFeed). Tips, vragen,
 // carrousels, aanbod en video's staan meteen op "goedgekeurd"; realisaties
 // wachten op een akkoord (ze kunnen klantgegevens tonen), tenzij de schakelaar
 // "social_alles_automatisch" aan staat. Een tekst die de controle niet
@@ -358,12 +360,36 @@ function minstRecent<T>(items: T[], sleutel: (t: T) => string, gebruik: Map<stri
 
 export type Plaats = "feed" | "google" | "story" | "reel";
 
-export const WEEK_SLOTS: ReadonlyArray<{ id: string; dagNaMaandag: number; uur: number; plaats: "feed" | "google" | "story"; taal?: "nl" | "fr"; label: string }> = [
-  { id: "di", dagNaMaandag: 1, uur: 12, plaats: "feed", taal: "nl", label: "dinsdag 12:00 · NL-bericht" },
-  { id: "wo", dagNaMaandag: 2, uur: 12, plaats: "google", taal: "nl", label: "woensdag 12:00 · Google Bedrijfsprofiel" },
-  { id: "do", dagNaMaandag: 3, uur: 12, plaats: "feed", taal: "fr", label: "donderdag 12:00 · FR-bericht" },
-  { id: "vr", dagNaMaandag: 4, uur: 12, plaats: "story", label: "vrijdag 12:00 · story of reel" },
+// Drie berichten per week op alle feeds (ma, wo, vr: om de twee dagen, het
+// weekend vrij), Nederlands en Frans om de beurt over de weken heen; daarnaast
+// een Google-bericht en een story. "feed" = welk soort bericht op die dag.
+export const WEEK_SLOTS: ReadonlyArray<{
+  id: string;
+  dagNaMaandag: number;
+  uur: number;
+  plaats: "feed" | "google" | "story";
+  /** Volgnummer van de feedplaats in de week (0, 1, 2): bepaalt de taal. */
+  feed?: number;
+  label: string;
+}> = [
+  { id: "ma", dagNaMaandag: 0, uur: 12, plaats: "feed", feed: 0, label: "maandag 12:00 · realisatie (NL/FR om de beurt)" },
+  { id: "di", dagNaMaandag: 1, uur: 12, plaats: "google", label: "dinsdag 12:00 · Google Bedrijfsprofiel" },
+  { id: "wo", dagNaMaandag: 2, uur: 12, plaats: "feed", feed: 1, label: "woensdag 12:00 · tip of kennis (NL/FR om de beurt)" },
+  { id: "do", dagNaMaandag: 3, uur: 12, plaats: "story", label: "donderdag 12:00 · story of reel" },
+  { id: "vr", dagNaMaandag: 4, uur: 12, plaats: "feed", feed: 2, label: "vrijdag 12:00 · uitdaging, aanbod of tip (NL/FR om de beurt)" },
 ];
+
+/** Taal van een feedplaats: NL en FR om de beurt, ook over de weken heen. */
+export function taalVoorFeed(isoWeek: number, feed: number): "nl" | "fr" {
+  return (isoWeek + feed) % 2 === 0 ? "nl" : "fr";
+}
+
+/** Soort bericht per feedplaats: ma realisatie, wo kennis, vr vooral uitdagingen. */
+export function soortVoorFeed(isoWeek: number, feed: number): PostType {
+  if (feed === 0) return "realisatie";
+  if (feed === 1) return isoWeek % 2 === 0 ? "carrousel" : "tip";
+  return (["vraag", "aanbod", "vraag", "tip"] as const)[isoWeek % 4];
+}
 
 /** Eén bericht zoals het in social_posts komt (met de kolommen van migratie 0050). */
 export type SocialRij = {
@@ -565,13 +591,14 @@ export function bouwWeekPlan(week: string, c: WeekContext, nu = new Date()): Wee
     const maandKey = `${dag.jaar}-${String(dag.maand).padStart(2, "0")}`;
 
     if (slot.plaats === "feed") {
-      const t = kies(templatesVanType(type)) ?? kies(templatesVanType("tip"));
+      const feed = slot.feed ?? 0;
+      const t = kies(templatesVanType(soortVoorFeed(w.week, feed))) ?? kies(templatesVanType("tip"));
       if (!t) continue;
       // Aanbod mag een linkbericht zijn, zolang het maandbudget het toelaat.
       const link = t.type === "aanbod" && (linkBudget.get(maandKey) ?? 0) < LINK_BUDGET_PER_MAAND;
       if (link) linkBudget.set(maandKey, (linkBudget.get(maandKey) ?? 0) + 1);
       rijen.push(
-        bouwRij({ week, slot, plaats: "feed", taal: slot.taal ?? "nl", t, ctx: ctxVoor(t), moment, allesAutomatisch: c.allesAutomatisch, linkPost: link, nu }),
+        bouwRij({ week, slot, plaats: "feed", taal: taalVoorFeed(w.week, feed), t, ctx: ctxVoor(t), moment, allesAutomatisch: c.allesAutomatisch, linkPost: link, nu }),
       );
     } else if (slot.plaats === "google") {
       const t = kies(TEMPLATES.filter((x) => x.google));

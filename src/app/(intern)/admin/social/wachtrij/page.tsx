@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { getLinkBerichten, getSocialStand, listWeekPosts, planWeekNu, type SocialPost } from "@/app/actions/social";
 import {
   WEEK_SLOTS,
+  soortVoorFeed,
   brusselsDelen,
   brusselsNaarUtc,
   huidigeWeek,
@@ -16,7 +17,7 @@ import {
   weekBereik,
   type SocialRij,
 } from "@/lib/admin/social-generator";
-import { POST_TYPE_LABEL, typeVoorWeek } from "@/lib/admin/social-templates";
+import { POST_TYPE_LABEL } from "@/lib/admin/social-templates";
 import { AutoSchakelaar, BerichtKaart, KanaalRij, Melding, MigratieBanner, Pil, plaatsVan } from "../onderdelen";
 import { VoorbeeldBeeld } from "../voorbeeld-beeld";
 
@@ -85,7 +86,9 @@ export default async function Wachtrij({ searchParams }: { searchParams: Promise
     perDag.set(k, [...(perDag.get(k) ?? []), p]);
   }
   const w = parseWeek(week)!;
-  const thema = POST_TYPE_LABEL[typeVoorWeek(w.week)];
+  const thema = (WEEK_SLOTS.filter((s) => s.plaats === "feed") as Array<(typeof WEEK_SLOTS)[number]>)
+    .map((s) => POST_TYPE_LABEL[soortVoorFeed(w.week, s.feed ?? 0)])
+    .join(", ");
   const wachtend = posts.filter((p) => p.status === "concept" && p.goedkeuring_nodig).length;
 
   return (
