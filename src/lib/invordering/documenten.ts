@@ -34,6 +34,8 @@ function gebeurtenis(g: Gebeurtenis, T: DossierTeksten): string {
       return Number(w.niveau) >= 3 ? T.herinneringLaatste : T.herinnering(Number(w.niveau) || 1);
     case "download":
       return T.gedownload(String(w.bestand ?? ""));
+    case "betaling":
+      return T.betaald(String(w.via ?? ""));
     default:
       return "";
   }

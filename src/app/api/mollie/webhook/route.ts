@@ -11,6 +11,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { factuurBedrag, factuurTaal } from "@/lib/factuur-klant";
 import { klantGegevens } from "@/lib/projecten-admin";
 import { betalingOntvangenMail, incassoMisluktMail } from "@/lib/klant-mails";
+import { logBewijs } from "@/lib/invordering/bewijslog";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,20 @@ export async function POST(req: NextRequest) {
           mollie_payment_id: payment.id,
         })
         .eq("id", invoiceId);
+
+      if (firstTime && inv) {
+        await logBewijs({
+          soort: "betaling",
+          invoice_id: inv.id,
+          client_email: inv.client_email,
+          details: {
+            via: "mollie",
+            payment_id: payment.id,
+            bedrag: payment.amount?.value ?? null,
+            methode: payment.method ?? null,
+          },
+        });
+      }
 
       if (firstTime && inv && inv.client_email) {
         try {

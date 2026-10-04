@@ -38,7 +38,8 @@ export default async function AdminBank() {
     db
       .from("invoices")
       .select("id, number, client_email, amount_cents")
-      .eq("status", "open")
+      // Ook vervallen (na de laatste herinnering) kan nog betaald worden.
+      .in("status", ["open", "vervallen"])
       .order("issued_at", { ascending: false })
       .limit(300),
   ]);

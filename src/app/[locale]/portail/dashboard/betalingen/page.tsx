@@ -165,7 +165,7 @@ export default async function PortalPayments({
                 </a>
               )}
               {mollieConfigured && i.status !== "betaald" && (
-                <form action={payInvoice.bind(null, i.id)}>
+                <form action={payInvoice.bind(null, i.id, locale)}>
                   <SubmitButton className="rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90">
                     {{ nl: "Betaal nu", fr: "Payer", en: "Pay now", de: "Jetzt bezahlen", es: "Pagar ahora" }[locale]}
                   </SubmitButton>

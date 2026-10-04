@@ -7,6 +7,9 @@ import { BANK, structuredComm } from "@/lib/bank";
 import { btwLabel, btwVermelding, regimeVan } from "@/lib/facturatie/btw";
 import { FactuurVoorwaarden } from "@/components/factuur-voorwaarden";
 import { FACTUUR_AFDRUK_CSS } from "@/lib/facturatie/afdruk";
+import { mollieConfigured } from "@/lib/supabase/config";
+import { getMolliePayment } from "@/lib/mollie";
+import { factuurBedrag } from "@/lib/factuur-klant";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -28,6 +31,8 @@ type Inv = {
   ogm?: string | null;
   id?: string;
   ticket_id?: string | null;
+  offer_id?: string | null;
+  mollie_payment_id?: string | null;
 };
 
 const eur = (c: number) =>
@@ -41,6 +46,10 @@ const eur = (c: number) =>
 const L = {
   nl: {
     title: "Factuur",
+    payOnline: "Online betalen",
+    betaalOk: "Bedankt! Uw betaling is ontvangen.",
+    betaalBezig: "Bedankt! We verwerken uw betaling; dit duurt meestal enkele seconden. Vernieuw de pagina om de status te zien.",
+    betaalFout: "Online betalen lukte niet. Probeer het opnieuw of betaal per overschrijving.",
     from: "Van",
     to: "Voor",
     desc: "Omschrijving",
@@ -58,6 +67,10 @@ const L = {
   },
   fr: {
     title: "Facture",
+    payOnline: "Payer en ligne",
+    betaalOk: "Merci ! Votre paiement a bien été reçu.",
+    betaalBezig: "Merci ! Nous traitons votre paiement ; cela ne prend généralement que quelques secondes. Actualisez la page pour voir le statut.",
+    betaalFout: "Le paiement en ligne n'a pas abouti. Réessayez ou payez par virement.",
     from: "De",
     to: "Pour",
     desc: "Description",
@@ -75,6 +88,10 @@ const L = {
   },
   en: {
     title: "Invoice",
+    payOnline: "Pay online",
+    betaalOk: "Thank you! Your payment has been received.",
+    betaalBezig: "Thank you! We are processing your payment; this usually takes a few seconds. Refresh the page to see the status.",
+    betaalFout: "Online payment did not go through. Please try again or pay by bank transfer.",
     from: "From",
     to: "To",
     desc: "Description",
@@ -92,6 +109,10 @@ const L = {
   },
   de: {
     title: "Rechnung",
+    payOnline: "Online bezahlen",
+    betaalOk: "Vielen Dank! Ihre Zahlung ist eingegangen.",
+    betaalBezig: "Vielen Dank! Wir verarbeiten Ihre Zahlung; das dauert meist nur wenige Sekunden. Laden Sie die Seite neu, um den Status zu sehen.",
+    betaalFout: "Die Online-Zahlung hat nicht geklappt. Bitte versuchen Sie es erneut oder zahlen Sie per Überweisung.",
     from: "Von",
     to: "An",
     desc: "Beschreibung",
@@ -109,6 +130,10 @@ const L = {
   },
   es: {
     title: "Factura",
+    payOnline: "Pagar en línea",
+    betaalOk: "¡Gracias! Hemos recibido su pago.",
+    betaalBezig: "¡Gracias! Estamos procesando su pago; suele tardar unos segundos. Actualice la página para ver el estado.",
+    betaalFout: "El pago en línea no se ha completado. Inténtelo de nuevo o pague por transferencia.",
     from: "De",
     to: "Para",
     desc: "Descripción",
@@ -128,10 +153,12 @@ const L = {
 
 export default async function PublicInvoice({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; token: string }>;
+  searchParams: Promise<{ betaling?: string }>;
 }) {
-  const { locale, token } = await params;
+  const [{ locale, token }, { betaling }] = await Promise.all([params, searchParams]);
   if (!isValidLocale(locale)) notFound();
   const t = L[locale];
 
@@ -160,6 +187,19 @@ export default async function PublicInvoice({
   const iban = settings.iban || BANK.iban;
   const bic = settings.bic || BANK.bic;
   const ogm = structuredComm(i.number, i.ogm);
+  // Online betalen enkel als Mollie hetzelfde bedrag zou vragen als hier staat.
+  const teBetalen = i.id ? (await factuurBedrag({ ...i, id: i.id }))?.totaalCent : null;
+  const kanOnline = mollieConfigured && i.status !== "betaald" && teBetalen === incl;
+  // Terug van Mollie zonder dat de betaling al verwerkt is: echte status
+  // opvragen (geannuleerd of mislukt ≠ "we verwerken uw betaling").
+  let melding: "ok" | "bezig" | "fout" | null = null;
+  if (betaling) {
+    if (i.status === "betaald") melding = "ok";
+    else if (betaling === "terug" && i.mollie_payment_id) {
+      const st = (await getMolliePayment(i.mollie_payment_id))?.status;
+      melding = st === "paid" || st === "authorized" ? "ok" : st === "pending" ? "bezig" : "fout";
+    } else melding = betaling === "fout" ? "fout" : "bezig";
+  }
   const d = (s: string | null) =>
     s
       ? new Date(s).toLocaleDateString("nl-BE", {
@@ -176,6 +216,23 @@ export default async function PublicInvoice({
           <PrintButton label={t.print} />
         </div>
       </div>
+
+      {melding && (
+        <div className="no-print mx-auto max-w-3xl px-6 pt-6">
+          <p
+            role="status"
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              melding === "ok"
+                ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                : melding === "fout"
+                  ? "border-red-300 bg-red-100 text-red-900"
+                  : "border-amber-400 bg-amber-200 text-amber-950"
+            }`}
+          >
+            {melding === "ok" ? t.betaalOk : melding === "fout" ? t.betaalFout : t.betaalBezig}
+          </p>
+        </div>
+      )}
 
       <div id="print-area" className="mx-auto max-w-3xl px-6 py-8 sm:py-12">
         <article className="doc rounded-2xl bg-card p-6 shadow-sm sm:p-9">
@@ -302,6 +359,15 @@ export default async function PublicInvoice({
                 <dt className="text-muted">{t.comm}</dt>
                 <dd className="font-mono text-base font-semibold tracking-wide">{ogm}</dd>
               </dl>
+              {kanOnline && (
+                <a
+                  href={`/${locale}/factuur/${encodeURIComponent(token)}/betaal`}
+                  className="no-print mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
+                >
+                  {t.payOnline}
+                  <span aria-hidden>&rarr;</span>
+                </a>
+              )}
             </div>
           )}
 

@@ -9,6 +9,7 @@ import { verwijlinterest } from "@/lib/facturatie/rente";
 import { logBewijs } from "@/lib/invordering/bewijslog";
 import { zetDossiersKlaar } from "@/lib/invordering/klaarzetten";
 import type { Locale } from "@/lib/i18n/config";
+import { betaalLink, zorgVoorToken } from "@/lib/facturatie/online-betalen";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -21,6 +22,7 @@ type Inv = KlantFactuur & {
   due_at: string | null;
   reminder_level: number | null;
   client_vat?: string | null;
+  public_token?: string | null;
 };
 
 const DAY = 86_400_000;
@@ -96,6 +98,8 @@ export async function GET(req: NextRequest) {
       btw: !b || !b.metBtw ? "geen" : b.verlegd ? "verlegd" : "incl",
       dueAt: dueISO,
       rente,
+      // Knop "Online betalen" zonder aanmelden (oude factuur: token aanmaken).
+      betaalHref: betaalLink(taal, await zorgVoorToken(i.id, i.public_token)),
     });
     const { ok, id: resendId } = await verstuurMail(i.client_email, mail);
     if (!ok) continue;

@@ -109,6 +109,7 @@ export type DossierTeksten = {
   herinnering: (n: number) => string;
   herinneringLaatste: string;
   gedownload: (bestand: string) => string;
+  betaald: (via: string) => string;
   // Bewijsdossier
   bewijsTitel: (nr: string) => string;
   partijen: string;
@@ -187,6 +188,7 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
     herinnering: (n) => `Betalingsherinnering ${n} per e-mail verstuurd`,
     herinneringLaatste: "Laatste herinnering (ingebrekestelling) per e-mail verstuurd",
     gedownload: (b) => `Bestand gedownload door de klant: ${b}`,
+    betaald: (via) => `Betaling ontvangen${via === "mollie" ? " (online via Mollie)" : via === "bank" ? " (overschrijving)" : ""}`,
     bewijsTitel: (nr) => `Bewijsdossier factuur ${nr}`,
     partijen: "Partijen",
     schuldeiser: "Schuldeiser",
@@ -265,6 +267,7 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
     herinnering: (n) => `Rappel de paiement ${n} envoyé par e-mail`,
     herinneringLaatste: "Dernier rappel (mise en demeure) envoyé par e-mail",
     gedownload: (b) => `Fichier téléchargé par le client : ${b}`,
+    betaald: (via) => `Paiement reçu${via === "mollie" ? " (en ligne via Mollie)" : via === "bank" ? " (virement)" : ""}`,
     bewijsTitel: (nr) => `Dossier de preuves, facture ${nr}`,
     partijen: "Parties",
     schuldeiser: "Créancier",
@@ -343,6 +346,7 @@ export const DOSSIER: Record<BriefTaal, DossierTeksten> = {
     herinnering: (n) => `Zahlungserinnerung ${n} per E-Mail gesendet`,
     herinneringLaatste: "Letzte Mahnung (Inverzugsetzung) per E-Mail gesendet",
     gedownload: (b) => `Datei vom Kunden heruntergeladen: ${b}`,
+    betaald: (via) => `Zahlung eingegangen${via === "mollie" ? " (online über Mollie)" : via === "bank" ? " (Überweisung)" : ""}`,
     bewijsTitel: (nr) => `Beweisakte Rechnung ${nr}`,
     partijen: "Parteien",
     schuldeiser: "Gläubiger",

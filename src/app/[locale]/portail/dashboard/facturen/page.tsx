@@ -397,12 +397,24 @@ const L: Record<
 };
 
 
+// Terug van Mollie (?betaling=terug): de webhook zet de factuur op betaald,
+// meestal binnen enkele seconden.
+const TERUG: Record<string, string> = {
+  nl: "Bedankt! Zodra Mollie uw betaling bevestigt, staat de factuur hieronder op betaald. Vernieuw de pagina als dat nog niet zo is.",
+  fr: "Merci ! Dès que Mollie confirme votre paiement, la facture ci-dessous passe à « payée ». Actualisez la page si ce n'est pas encore le cas.",
+  en: "Thank you! As soon as Mollie confirms your payment, the invoice below shows as paid. Refresh the page if it doesn't yet.",
+  de: "Vielen Dank! Sobald Mollie Ihre Zahlung bestätigt, steht die Rechnung unten auf bezahlt. Laden Sie die Seite neu, falls das noch nicht so ist.",
+  es: "¡Gracias! En cuanto Mollie confirme su pago, la factura de abajo aparecerá como pagada. Actualice la página si aún no es así.",
+};
+
 export default async function PortalInvoices({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ betaling?: string }>;
 }) {
-  const { locale } = await params;
+  const [{ locale }, { betaling }] = await Promise.all([params, searchParams]);
   if (!isValidLocale(locale)) notFound();
   if (!supabaseConfigured) return null;
   const t = PORTAL_T[locale];
@@ -454,6 +466,11 @@ export default async function PortalInvoices({
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
         {t.invoices}
       </h1>
+      {betaling === "terug" && (
+        <p role="status" className="no-print mt-4 rounded-xl border border-emerald-300 bg-emerald-100 px-4 py-3 text-sm text-emerald-900">
+          {TERUG[locale]}
+        </p>
+      )}
 
       <div id="print-area" className="mt-8 space-y-8">
         {invoices.length === 0 && (
@@ -832,7 +849,7 @@ export default async function PortalInvoices({
                       </div>
                       {mollieConfigured && (
                         <form
-                          action={payInvoice.bind(null, i.id)}
+                          action={payInvoice.bind(null, i.id, locale)}
                           className="no-print mt-4"
                         >
                           <SubmitButton className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90">

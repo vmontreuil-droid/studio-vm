@@ -35,6 +35,8 @@ import {
   verwijderKlantMap,
   verwijderTicketBestanden,
 } from "@/lib/tickets-bijlagen";
+import { betaalLink, nieuwToken } from "@/lib/facturatie/online-betalen";
+import { logBewijs } from "@/lib/invordering/bewijslog";
 
 async function guard(): Promise<boolean> {
   return await requireAdmin();
@@ -428,7 +430,7 @@ export async function createOfferInvoice(
     .eq("id", o.id);
   await ensurePortalUser(o.client_email);
   await notifyClient(o.client_email, (taal) =>
-    factuurKlaarMail(taal, { nummer: invNo, bedragCent: invCents, dueAt }),
+    factuurKlaarMail(taal, { nummer: invNo, bedragCent: invCents, dueAt, betaalHref: betaalLink(taal, opgeslagen.doc.token) }),
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/facturen");
@@ -495,7 +497,7 @@ export async function createSlotInvoice(
   const invNo = opgeslagen.doc.nummer;
   await ensurePortalUser(o.client_email);
   await notifyClient(o.client_email, (taal) =>
-    factuurKlaarMail(taal, { nummer: invNo, bedragCent: slot, dueAt }),
+    factuurKlaarMail(taal, { nummer: invNo, bedragCent: slot, dueAt, betaalHref: betaalLink(taal, opgeslagen.doc.token) }),
   );
   revalidatePath("/admin/klanten", "layout");
   revalidatePath("/admin/facturen");
@@ -605,12 +607,14 @@ export async function addInvoice(formData: FormData): Promise<void> {
   const dueAt = String(formData.get("due_at") ?? "").trim();
   if (!email || !number) return;
 
+  const token = nieuwToken();
   const { error } = await getSupabaseAdmin().from("invoices").insert({
     client_email: email,
     number,
     description: description || null,
     amount_cents: amount,
     due_at: dueAt || null,
+    public_token: token,
   });
   if (error) return;
   await ensurePortalUser(email);
@@ -619,6 +623,7 @@ export async function addInvoice(formData: FormData): Promise<void> {
       nummer: number,
       bedragCent: amount,
       dueAt: /^\d{4}-\d{2}-\d{2}$/.test(dueAt) ? dueAt : null,
+      betaalHref: betaalLink(taal, token),
     }),
   );
   revalidatePath("/admin/klanten", "layout");
@@ -635,6 +640,7 @@ export async function setInvoiceStatus(
     .update({ status })
     .eq("id", id);
   if (error) return;
+  if (status === "betaald") await logBewijs({ soort: "betaling", invoice_id: id, details: { via: "manueel" } });
   revalidatePath("/admin/klanten", "layout");
   return;
 }

@@ -27,6 +27,8 @@ import { mailStudio } from "@/lib/tickets-mail";
 import { factuurBedrag } from "@/lib/factuur-klant";
 import { factuurKlaarMail } from "@/lib/klant-mails";
 import { herkomst, logBewijs } from "@/lib/invordering/bewijslog";
+import { betaalLink, MOLLIE_LOCALE } from "@/lib/facturatie/online-betalen";
+import { isValidLocale } from "@/lib/i18n/config";
 
 // Fallback wanneer company_settings.email leeg is.
 const STUDIO_INBOX_FALLBACK = "vmontreuil@outlook.be";
@@ -200,6 +202,7 @@ export async function decideOffer(
             bedragCent: invCents,
             dueAt,
             akkoordOp: o.title,
+            betaalHref: betaalLink(dloc, opgeslagen.doc.token),
           }),
         ).catch(() => {});
       }
@@ -331,9 +334,14 @@ async function mollieBedrag(inv: BetaalFactuur): Promise<number | null> {
   return (await factuurBedrag(inv))?.totaalCent ?? null;
 }
 
-export async function payInvoice(id: string): Promise<void> {
+/**
+ * "Online betalen" in het portaal. taal = taal van de pagina (gebonden in de
+ * knop): de Mollie-pagina en de terugkeer volgen die taal.
+ */
+export async function payInvoice(id: string, taalIn?: unknown): Promise<void> {
   const email = await authedEmail();
-  const facturen = `${siteUrl}/nl/portail/dashboard/facturen`;
+  const taal = typeof taalIn === "string" && isValidLocale(taalIn) ? taalIn : "nl";
+  const facturen = `${siteUrl}/${taal}/portail/dashboard/facturen`;
   if (!email || !mollieConfigured) redirect(facturen);
 
   const sb = await getSupabaseServer();
@@ -355,9 +363,10 @@ export async function payInvoice(id: string): Promise<void> {
   const pay = await createMolliePayment({
     amountCents: amountCents!,
     description: `Factuur ${inv!.number} — Studio VM`,
-    redirectUrl: facturen,
+    redirectUrl: `${facturen}?betaling=terug`,
     webhookUrl: `${siteUrl}/api/mollie/webhook`,
     metadata: { invoice_id: inv!.id },
+    locale: MOLLIE_LOCALE[taal],
   });
   if (!pay) redirect(facturen);
 

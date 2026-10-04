@@ -59,9 +59,17 @@ const COL = {
   amount: /bedrag|amount|montant|mutatie/i,
   debit: /debet|debit|af|uitgaven/i,
   credit: /credit|bij|inkomsten/i,
-  comm: /mededeling|communication|omschrijving|description|détail|libell/i,
-  party: /tegenpartij|naam|begunstigde|counterparty|contrepartie|payee/i,
+  comm: /mededeling|communication|omschrijving|description|détail|libell|reference|referentie|référence|referenz/i,
+  party: /tegenpartij|naam|begunstigde|counterparty|contrepartie|payee|payer|betaler/i,
+  // Revolut e.a.: enkel voltooide transacties tellen (niet PENDING/REVERTED/DECLINED).
+  state: /^(state|status|staat)$/i,
 };
+// Exacte kolomnaam gaat voor (Revolut Business heeft "Orig amount",
+// "Amount" en "Total amount": "Amount" is het ontvangen bedrag).
+const EXACT = {
+  amount: /^(bedrag|amount|montant)$/i,
+};
+const VOLTOOID = /^(completed|voltooid|terminé|abgeschlossen|uitgevoerd|executed|booked)$/i;
 
 export function parseBankCsv(text: string): ParsedTx[] {
   const clean = text.replace(/\r/g, "").trim();
@@ -78,16 +86,21 @@ export function parseBankCsv(text: string): ParsedTx[] {
   const find = (re: RegExp) => header.findIndex((h) => re.test(h));
 
   const iDate = find(COL.date);
-  const iAmount = find(COL.amount);
+  const iAmountExact = find(EXACT.amount);
+  const iAmount = iAmountExact >= 0 ? iAmountExact : find(COL.amount);
   const iDebit = find(COL.debit);
   const iCredit = find(COL.credit);
-  const iComm = find(COL.comm);
+  // Alle mededeling-achtige kolommen samen (Revolut: "Reference" én
+  // "Description"): de gestructureerde mededeling kan in elk ervan staan.
+  const iComms = header.map((h, i) => (COL.comm.test(h) ? i : -1)).filter((i) => i >= 0);
   const iParty = find(COL.party);
+  const iState = find(COL.state);
   if (iDate < 0 || (iAmount < 0 && iDebit < 0 && iCredit < 0)) return [];
 
   const rows: ParsedTx[] = [];
   for (let r = 1; r < lines.length; r++) {
     const f = splitLine(lines[r], delim);
+    if (iState >= 0 && f[iState] && !VOLTOOID.test(f[iState])) continue;
     const iso = toISO(f[iDate] ?? "");
     if (!iso) continue;
 
@@ -105,7 +118,7 @@ export function parseBankCsv(text: string): ParsedTx[] {
       bookedAt: iso,
       amountCents: cents,
       counterparty: iParty >= 0 ? f[iParty] || null : null,
-      communication: iComm >= 0 ? f[iComm] || null : null,
+      communication: [...new Set(iComms.map((i) => f[i]).filter(Boolean))].join(" · ") || null,
     });
   }
   return rows;

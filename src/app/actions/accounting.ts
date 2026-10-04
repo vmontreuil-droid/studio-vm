@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
 import { parseNaceList } from "@/lib/admin/aannemers";
+import { logBewijs } from "@/lib/invordering/bewijslog";
 
 // Boekhoud-suite — gedeelde server actions. Groeit mee met de modules.
 
@@ -394,41 +395,56 @@ export async function deletePurchaseInvoice(fd: FormData): Promise<void> {
 
 // ---------- Module 5 — bank ----------
 
-// Match openstaande inkomende transacties met openstaande facturen
-// via de Belgische gestructureerde mededeling (uniek per factuur).
+// Match openstaande inkomende transacties met onbetaalde facturen (open of
+// vervallen: na de laatste herinnering staat een factuur op vervallen) via
+// de Belgische gestructureerde mededeling (uniek per factuur). Enkel bij het
+// volledige bedrag: een gedeeltelijke betaling blijft open voor nazicht.
+// Uitbetalingen van Mollie horen bij geen factuur (die staan al op betaald
+// via de webhook): die gaan op 'genegeerd'.
 // Idempotent: enkel status='open' wordt aangeraakt.
 async function autoMatchBank(): Promise<number> {
   const db = getSupabaseAdmin();
   const { structuredComm } = await import("@/lib/bank");
   const { structuredDigits } = await import("@/lib/bank-import");
+  const { factuurBedrag } = await import("@/lib/factuur-klant");
 
   const [{ data: txs }, { data: invs }] = await Promise.all([
     db
       .from("bank_transactions")
-      .select("id, amount_cents, communication")
+      .select("id, amount_cents, counterparty, communication")
       .eq("status", "open")
       .gt("amount_cents", 0)
       .limit(2000),
     db
       .from("invoices")
-      .select("id, number, status")
-      .eq("status", "open")
+      // "*": ogm (0051), ticket_id/vat_reverse (0049) voor het bedrag.
+      .select("*")
+      .in("status", ["open", "vervallen"])
       .limit(2000),
   ]);
 
-  const byCode = new Map<string, string>();
-  for (const i of (invs as { id: string; number: string }[] | null) ?? []) {
-    const code = structuredDigits(structuredComm(i.number));
-    if (code) byCode.set(code, i.id);
+  type BankInv = { id: string; number: string; ogm?: string | null; amount_cents: number; offer_id?: string | null; ticket_id?: string | null; vat_reverse?: boolean | null };
+  const byCode = new Map<string, BankInv>();
+  for (const i of (invs as BankInv[] | null) ?? []) {
+    const code = structuredDigits(structuredComm(i.number, i.ogm));
+    if (code) byCode.set(code, i);
   }
   let matched = 0;
   for (const t of (txs as
-    | { id: string; amount_cents: number; communication: string | null }[]
+    | { id: string; amount_cents: number; counterparty: string | null; communication: string | null }[]
     | null) ?? []) {
     const code = structuredDigits(t.communication);
-    if (!code) continue;
-    const invId = byCode.get(code);
-    if (!invId) continue;
+    if (!code) {
+      if (/\bmollie\b/i.test(`${t.counterparty ?? ""} ${t.communication ?? ""}`)) {
+        await db.from("bank_transactions").update({ status: "genegeerd" }).eq("id", t.id);
+      }
+      continue;
+    }
+    const inv = byCode.get(code);
+    if (!inv) continue;
+    const teBetalen = (await factuurBedrag(inv))?.totaalCent;
+    if (teBetalen == null || t.amount_cents < teBetalen) continue;
+    const invId = inv.id;
     await db
       .from("bank_transactions")
       .update({ matched_invoice_id: invId, status: "gematcht" })
@@ -437,6 +453,7 @@ async function autoMatchBank(): Promise<number> {
       .from("invoices")
       .update({ status: "betaald", paid_at: new Date().toISOString() })
       .eq("id", invId);
+    await logBewijs({ soort: "betaling", invoice_id: invId, details: { via: "bank", transactie: t.id, bedrag_cent: t.amount_cents } });
     byCode.delete(code);
     matched++;
   }
@@ -516,6 +533,7 @@ export async function matchTransaction(fd: FormData): Promise<void> {
       .from("invoices")
       .update({ status: "betaald", paid_at: new Date().toISOString() })
       .eq("id", invoiceId);
+    await logBewijs({ soort: "betaling", invoice_id: invoiceId, details: { via: "bank", transactie: id } });
     revalidatePath("/admin/bank");
     revalidatePath("/admin/facturen");
   } catch {}

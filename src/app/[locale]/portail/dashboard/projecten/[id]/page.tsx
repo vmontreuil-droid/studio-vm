@@ -300,7 +300,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
                         {t.betaald}
                       </p>
                     ) : (
-                      <form action={payInvoice.bind(null, factuur.id)} className="mt-3">
+                      <form action={payInvoice.bind(null, factuur.id, locale)} className="mt-3">
                         <SubmitButton className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90">
                           <CreditCard className="h-4 w-4" strokeWidth={2} />
                           {t.betaal}

@@ -32,6 +32,7 @@ import {
 import { authGebruiker, klantGegevens } from "@/lib/projecten-admin";
 import { zoekWerf } from "@/lib/geocode";
 import { logBewijs } from "@/lib/invordering/bewijslog";
+import { betaalLink } from "@/lib/facturatie/online-betalen";
 
 const MODEL_MAX = 200 * 1024 * 1024; // 200 MB per modelbestand
 const PLAN_MAX = 50 * 1024 * 1024; // 50 MB per plan (limiet bucket 'plannen')
@@ -588,6 +589,7 @@ export async function maakFactuur(fd: FormData): Promise<void> {
     verlegd: besluit.nulTarief,
     dueAt,
     projectId: p.id,
+    betaalHref: betaalLink(taal, opgeslagen.doc.token),
   });
   const verstuurd = await mailKlant(p.client_email, factuurMail);
   await logBewijs({
@@ -611,6 +613,7 @@ export async function markeerBetaald(projectId: string): Promise<void> {
     .from("invoices")
     .update({ status: "betaald", paid_at: new Date().toISOString() })
     .eq("id", p.invoice_id);
+  await logBewijs({ soort: "betaling", invoice_id: p.invoice_id, project_id: p.id, client_email: p.client_email, details: { via: "manueel" } });
   herlaad(projectId);
   revalidatePath("/admin/facturen");
 }

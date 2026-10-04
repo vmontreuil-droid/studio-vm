@@ -91,6 +91,35 @@ function overschrijving(taal: Taal, nummer: string, bedragInclCent: number): str
   ]);
 }
 
+/** Online betalen zonder aanmelden: knop rechtstreeks naar Mollie (betaalHref). */
+const ONLINE: Record<Taal, { knop: string; regel: string; portaal: (href: string) => string }> = {
+  nl: {
+    knop: "Online betalen",
+    regel: "Met de knop hieronder betaalt u meteen veilig online, zonder aan te melden. Overschrijven kan ook.",
+    portaal: (h) => `De factuur staat ook in uw <a href="${h}" style="color:#78716c">klantenportaal</a>.`,
+  },
+  fr: {
+    knop: "Payer en ligne",
+    regel: "Le bouton ci-dessous vous permet de payer immédiatement en ligne, en toute sécurité et sans vous connecter. Le virement reste possible.",
+    portaal: (h) => `La facture se trouve aussi dans votre <a href="${h}" style="color:#78716c">espace client</a>.`,
+  },
+  en: {
+    knop: "Pay online",
+    regel: "Use the button below to pay securely online right away, without signing in. Bank transfer is also possible.",
+    portaal: (h) => `The invoice is also in your <a href="${h}" style="color:#78716c">client portal</a>.`,
+  },
+  de: {
+    knop: "Online bezahlen",
+    regel: "Mit der Schaltfläche unten bezahlen Sie sofort sicher online, ohne Anmeldung. Eine Überweisung ist ebenfalls möglich.",
+    portaal: (h) => `Die Rechnung finden Sie auch in Ihrem <a href="${h}" style="color:#78716c">Kundenportal</a>.`,
+  },
+  es: {
+    knop: "Pagar en línea",
+    regel: "Con el botón de abajo paga ahora mismo en línea de forma segura, sin iniciar sesión. También puede pagar por transferencia.",
+    portaal: (h) => `La factura también está en su <a href="${h}" style="color:#78716c">portal de cliente</a>.`,
+  },
+};
+
 // ── Gemeenschappelijke teksten ──────────────────────────────────────────
 
 const ALG: Record<
@@ -452,22 +481,27 @@ export function projectFactuurMail(
     /** ISO-datum (YYYY-MM-DD). */
     dueAt: string;
     projectId: string;
+    /** Rechtstreeks online betalen (zonder aanmelden); zonder: knop naar het project. */
+    betaalHref?: string | null;
   },
 ): KlantMail {
   const taal = taalVan(taalIn);
   const M = MAIL[taal];
+  const O = ONLINE[taal];
   const incl = a.bedragExclCent + (a.verlegd ? 0 : Math.round(a.bedragExclCent * 0.21));
+  const project = portaalLink(taal, `/projecten/${a.projectId}`);
   return mail(taal, M.factuurOnderwerp(a.nummer), {
     eyebrow: M.eyebrow,
     regels: [
       M.hallo(voornaam(a.naam)),
       M.factuurL1(esc(a.nummer), esc(a.titel), bedragMetBtw(taal, mailBedrag(incl, taal), a.verlegd ? "verlegd" : "incl")),
       M.factuurL2(mailDatum(a.dueAt, taal)),
+      ...(a.betaalHref ? [O.regel] : []),
     ],
     extraHtml: overschrijving(taal, a.nummer, incl),
-    cta: M.cta,
-    href: portaalLink(taal, `/projecten/${a.projectId}`),
-    footnote: M.footnote,
+    cta: a.betaalHref ? O.knop : M.cta,
+    href: a.betaalHref || project,
+    footnote: a.betaalHref ? `${O.portaal(project)}<br>${M.footnote}` : M.footnote,
   });
 }
 
@@ -653,7 +687,7 @@ const BETAAL_HERINNERING: Record<
   },
 };
 
-/** Betalingsherinnering (1 = op de vervaldag, 2 = +7 dagen, 3 = +14 dagen, laatste). */
+/** Betalingsherinnering (1 = de dag na de vervaldag, 2 = +7 dagen, 3 = +14 dagen, laatste). */
 const HERINNERING_RENTE: Record<
   Taal,
   {
@@ -723,11 +757,15 @@ export function betaalHerinneringMail(
     dueAt: string;
     /** Verwijlinterest tot vandaag; null = rentevoet onbekend; weglaten = niet vermelden. */
     rente?: Verwijlinterest | null;
+    /** Rechtstreeks online betalen (zonder aanmelden); zonder: knop naar het portaal. */
+    betaalHref?: string | null;
   },
 ): KlantMail {
   const taal = taalVan(taalIn);
   const T = BETAAL_HERINNERING[taal];
+  const O = ONLINE[taal];
   const nr = String(a.nummer ?? "").trim();
+  const portaal = portaalLink(taal, "/facturen");
   return mail(taal, T.subject(T.eyebrow[niveau], nr), {
     eyebrow: T.eyebrow[niveau],
     titel: T.titel[niveau](nr),
@@ -735,12 +773,12 @@ export function betaalHerinneringMail(
       T.lijn[niveau](esc(nr), mailDatum(a.dueAt, taal)),
       T.bedrag(bedragMetBtw(taal, mailBedrag(a.bedragCent, taal), a.btw)),
       ...renteRegels(taal, niveau, a.rente),
-      T.betaal,
+      a.betaalHref ? O.regel : T.betaal,
     ],
     extraHtml: overschrijving(taal, nr, a.bedragCent),
-    cta: T.cta,
-    href: portaalLink(taal, "/facturen"),
-    footnote: `${niveau === 3 ? T.voetLaatste : T.voet}<br>${ALG[taal].vragen}`,
+    cta: a.betaalHref ? O.knop : T.cta,
+    href: a.betaalHref || portaal,
+    footnote: `${niveau === 3 ? T.voetLaatste : T.voet}<br>${a.betaalHref ? `${O.portaal(portaal)}<br>` : ""}${ALG[taal].vragen}`,
   });
 }
 
@@ -849,10 +887,15 @@ function ticketMail(
     doel?: string;
     /** Zonder de oproep om via het portaal te antwoorden (bv. bij een factuur). */
     zonderViaPortaal?: boolean;
+    /** Knop naar een volledige link buiten het portaal (bv. online betalen). */
+    ctaHref?: string;
+    /** Extra regel (HTML) bovenaan de voetnoot. */
+    voet?: string;
   },
   replyTo?: string,
 ): KlantMail {
   const M = TICKET_MAIL[taal];
+  const voet = m.voet ? `${m.voet}<br>` : "";
   return {
     subject: m.onderwerp,
     replyTo: replyTo || ANTWOORD_ADRES,
@@ -863,8 +906,8 @@ function ticketMail(
       bodyLines: m.regels,
       extraHtml: m.extraHtml,
       ctaLabel: m.ctaLabel ?? M.cta,
-      ctaHref: portaalLink(taal, m.doel ?? `/tickets/${t.id}`),
-      footnote: m.zonderViaPortaal ? M.footnote : `${M.viaPortaal}<br>${M.footnote}`,
+      ctaHref: m.ctaHref || portaalLink(taal, m.doel ?? `/tickets/${t.id}`),
+      footnote: voet + (m.zonderViaPortaal ? M.footnote : `${M.viaPortaal}<br>${M.footnote}`),
     }),
   };
 }
@@ -933,11 +976,21 @@ export function ticketGeslotenMail(taalIn: string, t: TicketKop, a: { automatisc
 export function revisieFactuurMail(
   taalIn: string,
   t: TicketKop,
-  a: { nummer: string; titel: string; bedragExclCent: number; verlegd: boolean; uren: number; dueAt: string },
+  a: {
+    nummer: string;
+    titel: string;
+    bedragExclCent: number;
+    verlegd: boolean;
+    uren: number;
+    dueAt: string;
+    /** Rechtstreeks online betalen (zonder aanmelden); zonder: knop naar de facturen. */
+    betaalHref?: string | null;
+  },
   replyTo?: string,
 ): KlantMail {
   const taal = taalVan(taalIn);
   const M = TICKET_MAIL[taal];
+  const O = ONLINE[taal];
   const incl = a.bedragExclCent + (a.verlegd ? 0 : Math.round(a.bedragExclCent * 0.21));
   return ticketMail(
     taal,
@@ -953,10 +1006,13 @@ export function revisieFactuurMail(
           urenTekst(a.uren, taal),
         ),
         M.revisieFactuurL2(mailDatum(String(a.dueAt ?? "").slice(0, 10), taal)),
+        ...(a.betaalHref ? [O.regel] : []),
       ],
       extraHtml: overschrijving(taal, a.nummer, incl),
-      ctaLabel: M.ctaFactuur,
+      ctaLabel: a.betaalHref ? O.knop : M.ctaFactuur,
       doel: "/facturen",
+      ctaHref: a.betaalHref || undefined,
+      voet: a.betaalHref ? O.portaal(portaalLink(taal, "/facturen")) : undefined,
       zonderViaPortaal: true,
     },
     replyTo,
@@ -1010,22 +1066,33 @@ const FACTUUR_KLAAR: Record<
 /** Losse factuur (klantfiche, of oude websiteofferte na akkoord). Bedrag zoals op de factuur. */
 export function factuurKlaarMail(
   taalIn: string,
-  a: { nummer: string; bedragCent: number; btw?: "incl" | "verlegd" | "geen"; dueAt?: string | null; akkoordOp?: string | null },
+  a: {
+    nummer: string;
+    bedragCent: number;
+    btw?: "incl" | "verlegd" | "geen";
+    dueAt?: string | null;
+    akkoordOp?: string | null;
+    /** Rechtstreeks online betalen (zonder aanmelden); zonder: knop naar het portaal. */
+    betaalHref?: string | null;
+  },
 ): KlantMail {
   const taal = taalVan(taalIn);
   const T = FACTUUR_KLAAR[taal];
+  const O = ONLINE[taal];
+  const portaal = portaalLink(taal, "/facturen");
   const regels = [
     ...(a.akkoordOp ? [T.dank(esc(a.akkoordOp))] : []),
     T.l1(esc(a.nummer), bedragMetBtw(taal, mailBedrag(a.bedragCent, taal), a.btw ?? "geen")),
     ...(a.dueAt ? [T.due(mailDatum(a.dueAt, taal))] : []),
+    ...(a.betaalHref ? [O.regel] : []),
   ];
   return mail(taal, T.subject(a.nummer), {
     eyebrow: ALG[taal].eyebrowPortaal,
     regels,
     extraHtml: overschrijving(taal, a.nummer, a.bedragCent),
-    cta: T.cta,
-    href: portaalLink(taal, "/facturen"),
-    footnote: MAIL[taal].footnote,
+    cta: a.betaalHref ? O.knop : T.cta,
+    href: a.betaalHref || portaal,
+    footnote: a.betaalHref ? `${O.portaal(portaal)}<br>${MAIL[taal].footnote}` : MAIL[taal].footnote,
   });
 }
 
@@ -1545,7 +1612,7 @@ export function klantMailVoorbeelden(taalIn: string): VoorbeeldMail[] {
       id: "factuur",
       titel: "Factuur (3D-project)",
       groep: "Klant",
-      mail: projectFactuurMail(taal, { naam: "Jan Peeters", nummer: "FAC-2026-021", titel: "Wegenis — Kortrijk", bedragExclCent: 30000, verlegd: false, dueAt: iso(14), projectId: pid }),
+      mail: projectFactuurMail(taal, { naam: "Jan Peeters", nummer: "FAC-2026-021", titel: "Wegenis — Kortrijk", bedragExclCent: 30000, verlegd: false, dueAt: iso(14), projectId: pid, betaalHref: siteLink(`/${taal}/factuur/voorbeeld/betaal`) }),
     },
     {
       id: "levering",
@@ -1563,7 +1630,7 @@ export function klantMailVoorbeelden(taalIn: string): VoorbeeldMail[] {
       id: `herinnering-${n}`,
       titel: `Betalingsherinnering ${n}`,
       groep: "Klant" as const,
-      mail: betaalHerinneringMail(taal, n, { nummer: "FAC-2026-021", bedragCent: 36300, btw: "incl", dueAt: iso(-7 * n), rente: verwijlinterest(36300, iso(-7 * n), iso(0)) }),
+      mail: betaalHerinneringMail(taal, n, { nummer: "FAC-2026-021", bedragCent: 36300, btw: "incl", dueAt: iso(-7 * n), rente: verwijlinterest(36300, iso(-7 * n), iso(0)), betaalHref: siteLink(`/${taal}/factuur/voorbeeld/betaal`) }),
     })),
     {
       id: "betaald",
@@ -1598,9 +1665,9 @@ export function klantMailVoorbeelden(taalIn: string): VoorbeeldMail[] {
       id: "revisiefactuur",
       titel: "Revisiefactuur",
       groep: "Support",
-      mail: revisieFactuurMail(taal, rev, { nummer: "FAC-2026-022", titel: "Wegenis — Kortrijk", bedragExclCent: 7500, verlegd: false, uren: 1.5, dueAt: iso(14) }),
+      mail: revisieFactuurMail(taal, rev, { nummer: "FAC-2026-022", titel: "Wegenis — Kortrijk", bedragExclCent: 7500, verlegd: false, uren: 1.5, dueAt: iso(14), betaalHref: siteLink(`/${taal}/factuur/voorbeeld/betaal`) }),
     },
-    { id: "factuur-los", titel: "Losse factuur (klantfiche)", groep: "Klant", mail: factuurKlaarMail(taal, { nummer: "FAC-2026-023", bedragCent: 12100, dueAt: iso(14) }) },
+    { id: "factuur-los", titel: "Losse factuur (klantfiche)", groep: "Klant", mail: factuurKlaarMail(taal, { nummer: "FAC-2026-023", bedragCent: 12100, dueAt: iso(14), betaalHref: siteLink(`/${taal}/factuur/voorbeeld/betaal`) }) },
     { id: "document", titel: "Nieuw document (klantfiche)", groep: "Klant", mail: documentMail(taal, { naam: "Uitzetplan werf Kortrijk.pdf" }) },
     {
       id: "offerte-los",

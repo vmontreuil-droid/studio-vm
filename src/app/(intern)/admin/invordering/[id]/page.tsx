@@ -198,6 +198,12 @@ export default async function InvorderingDossier({
                       <>{Number(g.w.niveau) >= 3 ? "Laatste herinnering (ingebrekestelling)" : `Herinnering ${String(g.w.niveau)}`}</>
                     )}
                     {g.soort === "download" && <>Gedownload: {String(g.w.bestand)}</>}
+                    {g.soort === "betaling" && (
+                      <>
+                        Betaling ontvangen
+                        {g.w.via ? <span className="text-muted"> · {g.w.via === "mollie" ? "online (Mollie)" : g.w.via === "bank" ? "overschrijving" : "manueel op betaald gezet"}</span> : null}
+                      </>
+                    )}
                   </span>
                 </li>
               ))}

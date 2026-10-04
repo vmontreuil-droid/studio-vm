@@ -30,6 +30,7 @@ import {
   type KlantMail,
 } from "@/lib/klant-mails";
 import { studioInbox, ticketTaal } from "@/lib/tickets-server";
+import { betaalLink } from "@/lib/facturatie/online-betalen";
 
 /** Een ticket of een deel ervan: id, e-mail en onderwerp zijn genoeg. */
 type MailTicket = Pick<TicketRij, "id" | "client_email" | "subject"> & Partial<TicketRij>;
@@ -117,6 +118,8 @@ export async function mailKlantRevisieFactuur(a: {
   verlegd: boolean;
   uren: number;
   dueAt: string;
+  /** public_token van de factuur: knop "Online betalen" zonder aanmelden. */
+  token?: string | null;
 }): Promise<boolean> {
   return mailKlant(a.t, "revisiefactuur", (taal, replyTo) =>
     revisieFactuurMail(
@@ -129,6 +132,7 @@ export async function mailKlantRevisieFactuur(a: {
         verlegd: a.verlegd,
         uren: a.uren,
         dueAt: a.dueAt,
+        betaalHref: betaalLink(taal, a.token),
       },
       replyTo,
     ),

@@ -46,7 +46,7 @@ export type Herinnering = {
 
 export type Gebeurtenis = {
   op: string;
-  soort: "offerte" | "levering" | "factuur" | "factuurmail" | "herinnering" | "download" | "invordering";
+  soort: "offerte" | "levering" | "factuur" | "factuurmail" | "herinnering" | "download" | "betaling" | "invordering";
   /** Gegevens voor de tekst (nummer, bestand, niveau, IP …). */
   w: Record<string, string | number | null>;
 };
@@ -264,6 +264,8 @@ export async function laadDossier(invoiceId: string): Promise<Dossier | null> {
       tijdlijn.push({ op: l.created_at, soort: "factuurmail", w: { aan: tekst(l.details?.aan) ?? i.client_email } });
     if (l.soort === "levering_gedownload")
       tijdlijn.push({ op: l.created_at, soort: "download", w: { bestand: tekst(l.details?.bestand) ?? "" } });
+    if (l.soort === "betaling")
+      tijdlijn.push({ op: l.created_at, soort: "betaling", w: { via: tekst(l.details?.via) ?? "" } });
   }
   for (const h of herinneringen) if (h.op) tijdlijn.push({ op: h.op, soort: "herinnering", w: { niveau: h.niveau } });
   tijdlijn.sort((a, b2) => a.op.localeCompare(b2.op));

@@ -8,11 +8,15 @@ type CreateInput = {
   redirectUrl: string;
   webhookUrl: string;
   metadata: Record<string, string>;
+  /** Taal van de betaalpagina (nl_BE, fr_BE, …); zonder: Mollie kiest zelf. */
+  locale?: string;
 };
 
 type MolliePayment = {
   id: string;
   status: string;
+  amount?: { currency: string; value: string };
+  method?: string | null;
   metadata?: Record<string, string> | null;
   _links?: { checkout?: { href?: string } };
 };
@@ -37,6 +41,7 @@ export async function createMolliePayment(
         redirectUrl: input.redirectUrl,
         webhookUrl: input.webhookUrl,
         metadata: input.metadata,
+        ...(input.locale ? { locale: input.locale } : {}),
       }),
     });
     if (!res.ok) return null;

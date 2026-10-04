@@ -1,6 +1,7 @@
 import "server-only";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { leesDocumentnummer, maakDocumentnummer, ogmVoorFactuur, type DocumentSoort } from "@/lib/facturatie/nummers";
+import { nieuwToken } from "@/lib/facturatie/online-betalen";
 
 // De ENIGE plek die facturen, creditnota's en offertes aanmaakt.
 //
@@ -14,7 +15,8 @@ import { leesDocumentnummer, maakDocumentnummer, ogmVoorFactuur, type DocumentSo
 type Db = ReturnType<typeof getSupabaseAdmin>;
 type Rij = Record<string, unknown>;
 
-export type Opgeslagen = { id: string; nummer: string; ogm: string | null };
+/** token = public_token van een factuur (factuurdocument en online betalen zonder aanmelden). */
+export type Opgeslagen = { id: string; nummer: string; ogm: string | null; token: string | null };
 export type Uitkomst = { ok: true; doc: Opgeslagen } | { ok: false; fout: string };
 
 let actiefCache: { waarde: boolean; tot: number } | null = null;
@@ -54,6 +56,8 @@ async function slaOp(db: Db, soort: DocumentSoort, rij: Rij): Promise<Uitkomst> 
   // Een meegegeven nummer negeren we altijd: nummers komen enkel van hier.
   const schoon: Rij = { ...rij };
   delete schoon[kolom];
+  // Elke factuur een publieke link (document + online betalen).
+  if (soort === "FAC" && !schoon.public_token) schoon.public_token = nieuwToken();
   const actief = await nummeringActief(db);
   if (!actief) {
     schoon[kolom] = await oudVolgendNummer(db, soort);
@@ -69,7 +73,8 @@ async function slaOp(db: Db, soort: DocumentSoort, rij: Rij): Promise<Uitkomst> 
   const r = data as unknown as Rij;
   const nummer = String(r[kolom] ?? "");
   const ogm = soort === "FAC" ? ogmVoorFactuur(nummer, (r.ogm as string | null | undefined) ?? null) : null;
-  return { ok: true, doc: { id: String(r.id), nummer, ogm } };
+  const token = soort === "FAC" ? String(schoon.public_token) : null;
+  return { ok: true, doc: { id: String(r.id), nummer, ogm, token } };
 }
 
 /** Nieuwe factuur. Geef GEEN nummer mee; je krijgt nummer en mededeling terug. */

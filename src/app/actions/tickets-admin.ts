@@ -558,6 +558,7 @@ export async function factureerRevisie(fd: FormData): Promise<void> {
     verlegd,
     uren: aangerekend,
     dueAt,
+    token: opgeslagen.doc.token,
   });
   await logBewijs({
     soort: "factuur_verstuurd",
