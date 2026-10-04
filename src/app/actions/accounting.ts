@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
 import { parseNaceList } from "@/lib/admin/aannemers";
 import { logBewijs } from "@/lib/invordering/bewijslog";
-import { koppelBetalingen } from "@/lib/bank-match";
+import { koppelBetalingen, markeerInlezing } from "@/lib/bank-match";
 
 // Boekhoud-suite — gedeelde server actions. Groeit mee met de modules.
 
@@ -434,6 +434,7 @@ export async function importBankCsv(
       .from("bank_transactions")
       .upsert(rows, { onConflict: "fingerprint", ignoreDuplicates: true });
     if (error) return { ok: false, error: error.message };
+    await markeerInlezing();
 
     const matched = await koppelBetalingen();
     revalidatePath("/admin/bank");

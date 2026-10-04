@@ -76,3 +76,19 @@ export async function koppelBetalingen(): Promise<number> {
   }
   return gekoppeld;
 }
+
+// Wanneer werden de bankbewegingen laatst ingelezen (afschrift of Revolut)?
+// Het deurwaardersdossier vertrekt pas na een recente inlezing: wie per
+// overschrijving betaalde, wordt pas dan herkend.
+const LAATSTE = "bank_laatste_inlezing";
+
+export async function markeerInlezing(): Promise<void> {
+  await getSupabaseAdmin()
+    .from("app_settings")
+    .upsert({ key: LAATSTE, value: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: "key" });
+}
+
+export async function laatsteInlezing(): Promise<string | null> {
+  const { data } = await getSupabaseAdmin().from("app_settings").select("value").eq("key", LAATSTE).maybeSingle();
+  return (data as { value: string | null } | null)?.value ?? null;
+}

@@ -15,6 +15,7 @@ import {
   type Arrondissement,
 } from "./arrondissement";
 import { htmlNaarTekst } from "./teksten";
+import { laatsteInlezing } from "@/lib/bank-match";
 
 // Alles wat de deurwaarder nodig heeft over één onbetaalde factuur: de
 // factuur zelf, wie de klant is, hoe de opdracht tot stand kwam (offerte en
@@ -314,6 +315,20 @@ export async function laadDossier(invoiceId: string): Promise<Dossier | null> {
     waarschuwingen.push({ code: "adres", tekst: "Geen Belgische postcode gevonden in het adres van de klant: kies zelf de deurwaarder.", blokkeert: false });
   if (zakelijk && !rente)
     waarschuwingen.push({ code: "rentevoet", tekst: "De rentevoet van dit semester staat nog niet in de tabel (src/lib/facturatie/rente.ts): de verwijlinterest staat op € 0.", blokkeert: false });
+  // Wie per overschrijving betaalde, wordt pas herkend na het inlezen van
+  // de bankbewegingen: zonder recente inlezing vertrekt er niets.
+  if (i.status !== "betaald") {
+    const laatste = await laatsteInlezing();
+    const oud = !laatste || Date.now() - Date.parse(laatste) > 3 * DAG;
+    if (oud)
+      waarschuwingen.unshift({
+        code: "bank",
+        tekst: `Lees eerst je recentste bankafschrift in op Beheer → Bank (laatst ingelezen: ${
+          laatste ? new Date(laatste).toLocaleDateString("nl-BE", { timeZone: "Europe/Brussels" }) : "nog nooit"
+        }). Wie per overschrijving betaalde, wordt pas dan herkend; tot dan kan het dossier niet vertrekken.`,
+        blokkeert: true,
+      });
+  }
   if (herinneringen.some((h) => !h.tekst))
     waarschuwingen.push({ code: "bewijs", tekst: "Niet van elke herinnering is de tekst bewaard (verstuurd vóór de bewijslog bestond).", blokkeert: false });
 

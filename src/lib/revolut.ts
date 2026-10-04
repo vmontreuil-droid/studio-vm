@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { MAIL_SITE, portalEmailHtml } from "@/lib/email";
 import { sendMail } from "@/lib/monitor";
 import { BEDRIJF } from "@/lib/bedrijf";
-import { koppelBetalingen } from "@/lib/bank-match";
+import { koppelBetalingen, markeerInlezing } from "@/lib/bank-match";
 
 // Revolut Business: inkomende betalingen automatisch ophalen (Business API,
 // enkel lezen). Dagelijks vóór de herinneringen (cron) en op vraag in
@@ -221,6 +221,7 @@ export async function haalRevolutOp(dagen = 14): Promise<OphaalResultaat> {
       if (error) throw new Error(`Opslaan mislukt: ${error.message}`);
       nieuw = (data as unknown[] | null)?.length ?? 0;
     }
+    await markeerInlezing();
     const gekoppeld = await koppelBetalingen();
     await zet(K.status, JSON.stringify({ laatsteOphaling: new Date().toISOString(), nieuw, gekoppeld, fout: null, foutOp: null } satisfies RevolutStatus));
     return { ok: true, actief: true, nieuw, gekoppeld };
