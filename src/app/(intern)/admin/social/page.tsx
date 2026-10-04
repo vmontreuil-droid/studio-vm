@@ -34,7 +34,10 @@ import {
   datumVeld,
   huidigeWeek,
   isOudeDraft,
+  brusselsNaarUtc,
+  maandagVan,
   planWeek,
+  plusDagenDatum,
   verschuifWeek,
   type SocialRij,
 } from "@/lib/admin/social-generator";
@@ -113,6 +116,12 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
       .filter((p) => ["goedgekeurd", "concept"].includes(p.status) && p.scheduled_for && Date.parse(p.scheduled_for) > nu - 3_600_000)
       .sort((a, b) => Date.parse(a.scheduled_for!) - Date.parse(b.scheduled_for!))[0] ?? null;
   const verbonden = new Set(kanalen.kanalen.kanalen.filter((k) => k.aan && !k.weg && !k.ontkoppeld && !k.vergrendeld).map((k) => k.dienst));
+  // Valt er deze week nog iets in te vullen? (Zondagavond zijn alle plaatsen voorbij.)
+  const dezeMa = maandagVan(deze);
+  const nogOpen = WEEK_SLOTS.some((s) => {
+    const d = plusDagenDatum(dezeMa, s.dagNaMaandag);
+    return brusselsNaarUtc(d.jaar, d.maand, d.dag, s.uur).getTime() > nu + 30 * 60_000;
+  });
 
   // Niets gepland? Toon wat de machine zou plannen (alleen lezen, niets wordt geschreven).
   let voorstel: SocialRij[] = [];
@@ -251,13 +260,13 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
             <ul className="mt-2 divide-y divide-border">
               {dezeWeek.map((p) => (
                 <li key={p.id}>
-                  <BerichtRegel post={p} href={`/admin/social/wachtrij?week=${deze}#b-${p.id.slice(0, 8)}`} />
+                  <BerichtRegel post={p} verbonden={verbonden} href={`/admin/social/wachtrij?week=${deze}#b-${p.id.slice(0, 8)}`} />
                 </li>
               ))}
             </ul>
           ) : (
             <div className="mt-3 rounded-xl border border-dashed border-border p-3 text-sm text-muted sm:p-4">
-              <p>Nog niets gepland voor deze week.</p>
+              <p>{nogOpen ? "Nog niets gepland voor deze week." : "Alle plaatsen van deze week zijn voorbij. Volgende week staat hieronder."}</p>
               {voorstel.length > 0 && (
                 <>
                   <p className="mt-3 font-mono text-[10px] uppercase tracking-widest">
@@ -284,7 +293,7 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
                   </ul>
                 </>
               )}
-              {stand.migratie.kolommen && (
+              {stand.migratie.kolommen && nogOpen && (
                 <form action={planWeekNu} className="mt-3">
                   <input type="hidden" name="week" value={deze} />
                   <input type="hidden" name="terug" value={terug} />
@@ -305,7 +314,7 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
               <ul className="mt-2 divide-y divide-border">
                 {volgendeWeek.map((p) => (
                   <li key={p.id}>
-                    <BerichtRegel post={p} href={`/admin/social/wachtrij?week=${volgende}#b-${p.id.slice(0, 8)}`} />
+                    <BerichtRegel post={p} verbonden={verbonden} href={`/admin/social/wachtrij?week=${volgende}#b-${p.id.slice(0, 8)}`} />
                   </li>
                 ))}
               </ul>

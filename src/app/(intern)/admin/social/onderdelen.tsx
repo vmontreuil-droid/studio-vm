@@ -634,15 +634,18 @@ export function BerichtRegel({
   href,
   bronnen,
   pil,
+  verbonden,
 }: {
   post: SocialPost;
   href?: string;
   bronnen?: string[];
   /** Vervangt de statuspil (bv. bij een voorstel). */
   pil?: React.ReactNode;
+  /** Verbonden en actieve kanalen: dan telt de regel enkel die (de rest wordt overgeslagen). */
+  verbonden?: Set<string>;
 }) {
   const plaats = plaatsVan(post);
-  const aantalKanalen = kanalenVan(post).length;
+  const aantalKanalen = kanalenVan(post).filter((k) => !verbonden || verbonden.has(k)).length;
   const inhoud = (
     <>
       <span className={`shrink-0 ${plaats.formaat === "story" ? "w-8" : plaats.formaat === "gbp" ? "w-14" : "w-11"}`}>
