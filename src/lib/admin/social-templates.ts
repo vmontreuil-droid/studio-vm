@@ -232,6 +232,8 @@ export type Template = {
   google?: (ctx: TemplateCtx) => { kop: string; body: string };
   /** Dia's voor een carrousel. */
   dias?: Record<"nl" | "fr", Dia[]>;
+  /** Hoogstens één keer per zoveel dagen (bv. een sjabloon dat altijd hetzelfde project toont). */
+  pauzeDagen?: number;
 };
 
 // ---------- Hulp ----------
@@ -276,7 +278,10 @@ const CAT_ZIN: Record<Categorie, { nl: string; fr: string }> = {
 };
 
 /** Alle realisaties die de generator kan kiezen. */
-export const REALISATIE_IDS: string[] = REALISATIES.map((r) => r.id);
+// Enkel echte projecten: "tin" en "lijnwerk" zijn algemene weergaven (die
+// komen al aan bod in de tips) en klinken als titel niet als een realisatie.
+const GEEN_PROJECT = new Set(["tin", "lijnwerk"]);
+export const REALISATIE_IDS: string[] = REALISATIES.map((r) => r.id).filter((id) => !GEEN_PROJECT.has(id));
 
 export function realisatieKeuze(id?: string, cat?: Categorie): RealisatieKeuze {
   const pool = cat ? REALISATIES.filter((r) => r.cat === cat) : REALISATIES;
@@ -807,6 +812,8 @@ Du plan à un modèle que la machine charge directement : surface de projet, lig
   },
   {
     id: "realisatie-uitgraving",
+    // Toont altijd hetzelfde uitgelichte project: niet vaker dan om de twee maanden.
+    pauzeDagen: 60,
     type: "realisatie",
     doel: "/realisaties",
     kaart: "/3d/r/p-uitgraving-hoogte-donker.webp",

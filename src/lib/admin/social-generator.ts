@@ -608,7 +608,9 @@ export function bouwWeekPlan(week: string, c: WeekContext, nu = new Date()): Wee
     return { realisatie: realisatieKeuze(r) };
   };
   const kies = (lijst: Template[]): Template | undefined => {
-    const t = minstRecent(lijst, (x) => x.id, c.gebruik.template, gebruikt);
+    // Sjablonen met een pauze die nog loopt, vallen weg (tenzij er niets overblijft).
+    const vrij = lijst.filter((x) => !x.pauzeDagen || nu.getTime() - (c.gebruik.template.get(x.id) ?? 0) >= x.pauzeDagen * 86_400_000);
+    const t = minstRecent(vrij.length ? vrij : lijst, (x) => x.id, c.gebruik.template, gebruikt);
     if (t) {
       // Een sjabloon met een realisatie mag twee keer per week (telkens een ander project).
       if (!t.realisatie) gebruikt.add(t.id);
