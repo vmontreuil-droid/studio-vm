@@ -14,7 +14,11 @@ import {
   Send,
   Globe2,
   Crosshair,
+  DraftingCompass,
+  LocateFixed,
 } from "lucide-react";
+import { Graafkraan } from "@/components/icons/graafkraan";
+import { archiefBeeld, archiefPad, type ArchiefWeergave } from "@/lib/archief";
 import { ContactForm } from "@/components/contact-form";
 import { CtaBanner } from "@/components/cta-banner";
 import { HeroCarrousel } from "@/components/hero-carrousel";
@@ -132,7 +136,7 @@ const X: Record<
       { titel: "Grondwerk en platformen", tekst: "Bedrijfsterreinen, verkavelingen en funderingsplatformen.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Wegenis en tracés", tekst: "Wegen, fietspaden en opritten met hun profielen.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Bouwputten", tekst: "Uitgravingen met taluds en werkvloeren op niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
-      { titel: "Parkings en verhardingen", tekst: "Afwatering en hellingen tot op de centimeter.", beeld: "/3d/model-parking.jpg" },
+      { titel: "Kruispunten en verhardingen", tekst: "Rotondes, kruispunten en parkings, met verkanting en afwatering tot op de centimeter.", beeld: "/3d/model-parking.jpg" },
     ],
     toepLink: "Bekijk realisaties",
     stelselEyebrow: "Overal in Europa",
@@ -140,7 +144,7 @@ const X: Record<
     stelselTekst:
       "Een model in het verkeerde coördinatenstelsel ligt naast de werf. Daarom vragen we bij elke aanvraag het adres van de werf: daaruit volgt meteen het stelsel en het hoogtereferentiekader van dat land.",
     stelselVoorbeelden: [
-      { land: "België", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "België", stelsel: "Lambert 72 · TAW" },
       { land: "Nederland", stelsel: "RD New · NAP" },
       { land: "Frankrijk", stelsel: "Lambert-93 / CC-zones · NGF" },
       { land: "Duitsland", stelsel: "ETRS89 / UTM · DHHN2016" },
@@ -209,7 +213,7 @@ const X: Record<
       { titel: "Terrassements et plateformes", tekst: "Zones d'activité, lotissements et plateformes de fondation.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Voiries et tracés", tekst: "Routes, pistes cyclables et accès avec leurs profils.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Fouilles", tekst: "Excavations avec talus et fonds de fouille à niveau.", beeld: "/3d/model-platform-hoogte.jpg" },
-      { titel: "Parkings et revêtements", tekst: "Écoulements et pentes au centimètre.", beeld: "/3d/model-parking.jpg" },
+      { titel: "Carrefours et revêtements", tekst: "Giratoires, carrefours et parkings, avec dévers et écoulements au centimètre.", beeld: "/3d/model-parking.jpg" },
     ],
     toepLink: "Voir les réalisations",
     stelselEyebrow: "Partout en Europe",
@@ -217,7 +221,7 @@ const X: Record<
     stelselTekst:
       "Un modèle dans le mauvais système de coordonnées tombe à côté du chantier. C'est pourquoi nous demandons l'adresse du chantier : elle détermine aussitôt le système et la référence altimétrique du pays.",
     stelselVoorbeelden: [
-      { land: "Belgique", stelsel: "Lambert 72 / 2008 · DNG" },
+      { land: "Belgique", stelsel: "Lambert 72 · DNG" },
       { land: "Pays-Bas", stelsel: "RD New · NAP" },
       { land: "France", stelsel: "Lambert-93 / zones CC · NGF" },
       { land: "Allemagne", stelsel: "ETRS89 / UTM · DHHN2016" },
@@ -286,7 +290,7 @@ const X: Record<
       { titel: "Earthworks and platforms", tekst: "Industrial sites, housing plots and foundation platforms.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Roads and alignments", tekst: "Roads, cycle paths and driveways with their profiles.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Excavations", tekst: "Pits with embankments and formation levels.", beeld: "/3d/model-platform-hoogte.jpg" },
-      { titel: "Car parks and paving", tekst: "Drainage falls and slopes to the centimetre.", beeld: "/3d/model-parking.jpg" },
+      { titel: "Junctions and paving", tekst: "Roundabouts, junctions and car parks, with crossfall and drainage to the centimetre.", beeld: "/3d/model-parking.jpg" },
     ],
     toepLink: "See projects",
     stelselEyebrow: "Anywhere in Europe",
@@ -294,7 +298,7 @@ const X: Record<
     stelselTekst:
       "A model in the wrong coordinate system ends up next to the site. That is why we ask for the site address with every request: it immediately tells us the country's coordinate system and height datum.",
     stelselVoorbeelden: [
-      { land: "Belgium", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "Belgium", stelsel: "Lambert 72 · TAW" },
       { land: "Netherlands", stelsel: "RD New · NAP" },
       { land: "France", stelsel: "Lambert-93 / CC zones · NGF" },
       { land: "Germany", stelsel: "ETRS89 / UTM · DHHN2016" },
@@ -363,7 +367,7 @@ const X: Record<
       { titel: "Erdbau und Planien", tekst: "Gewerbegebiete, Baugebiete und Gründungsplanien.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Straßenbau und Trassen", tekst: "Straßen, Radwege und Zufahrten mit ihren Profilen.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Baugruben", tekst: "Aushub mit Böschungen und Sohlen auf Höhe.", beeld: "/3d/model-platform-hoogte.jpg" },
-      { titel: "Parkplätze und Befestigungen", tekst: "Entwässerung und Gefälle auf den Zentimeter genau.", beeld: "/3d/model-parking.jpg" },
+      { titel: "Kreuzungen und Befestigungen", tekst: "Kreisverkehre, Kreuzungen und Parkplätze, mit Querneigung und Entwässerung auf den Zentimeter genau.", beeld: "/3d/model-parking.jpg" },
     ],
     toepLink: "Referenzen ansehen",
     stelselEyebrow: "Überall in Europa",
@@ -371,7 +375,7 @@ const X: Record<
     stelselTekst:
       "Ein Modell im falschen Koordinatensystem liegt neben der Baustelle. Deshalb fragen wir bei jeder Anfrage nach der Baustellenadresse: Daraus ergeben sich sofort das Koordinatensystem und der Höhenbezug des Landes.",
     stelselVoorbeelden: [
-      { land: "Belgien", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "Belgien", stelsel: "Lambert 72 · TAW" },
       { land: "Niederlande", stelsel: "RD New · NAP" },
       { land: "Frankreich", stelsel: "Lambert-93 / CC-Zonen · NGF" },
       { land: "Deutschland", stelsel: "ETRS89 / UTM · DHHN2016" },
@@ -440,7 +444,7 @@ const X: Record<
       { titel: "Movimiento de tierras y plataformas", tekst: "Polígonos industriales, urbanizaciones y plataformas de cimentación.", beeld: "/3d/model-bedrijfsterrein.jpg" },
       { titel: "Viales y trazados", tekst: "Carreteras, carriles bici y accesos con sus perfiles.", beeld: "/3d/trace-weg.jpg" },
       { titel: "Excavaciones", tekst: "Vaciados con taludes y fondos de excavación a cota.", beeld: "/3d/model-platform-hoogte.jpg" },
-      { titel: "Aparcamientos y pavimentos", tekst: "Desagües y pendientes al centímetro.", beeld: "/3d/model-parking.jpg" },
+      { titel: "Cruces y pavimentos", tekst: "Glorietas, cruces y aparcamientos, con peralte y desagüe al centímetro.", beeld: "/3d/model-parking.jpg" },
     ],
     toepLink: "Ver proyectos",
     stelselEyebrow: "En toda Europa",
@@ -448,7 +452,7 @@ const X: Record<
     stelselTekst:
       "Un modelo en el sistema de coordenadas equivocado queda fuera de la obra. Por eso pedimos la dirección de la obra en cada solicitud: de ella se deducen de inmediato el sistema de coordenadas y la referencia altimétrica del país.",
     stelselVoorbeelden: [
-      { land: "Bélgica", stelsel: "Lambert 72 / 2008 · TAW" },
+      { land: "Bélgica", stelsel: "Lambert 72 · TAW" },
       { land: "Países Bajos", stelsel: "RD New · NAP" },
       { land: "Francia", stelsel: "Lambert-93 / zonas CC · NGF" },
       { land: "Alemania", stelsel: "ETRS89 / UTM · DHHN2016" },
@@ -499,6 +503,7 @@ export default async function Home({
       <Hero locale={locale} x={x} t={t} />
       <Merken locale={locale} x={x} />
       <Levering locale={locale} x={x} />
+      <VoorWie locale={locale} />
       <Werkwijze locale={locale} x={x} />
       <Toepassingen locale={locale} x={x} />
       <Stelsels locale={locale} x={x} />
@@ -642,11 +647,111 @@ function Levering({ locale, x }: { locale: Locale; x: Xt }) {
   );
 }
 
+// ── Voor wie: dezelfde drie doelgroepen als de outreach (aannemers, ontwerpers,
+// landmeters), zodat wie op een mail klikt hier zijn aanbod terugvindt. ──────
+
+const VOOR_WIE: Record<
+  Locale,
+  { eyebrow: string; titel: string; intro: string; groepen: { titel: string; tekst: string }[]; cta: string }
+> = {
+  nl: {
+    eyebrow: "Voor wie",
+    titel: "Voor wie de werf voorbereidt",
+    intro: "Of u nu de machine bestuurt, het ontwerp tekent of de werf uitzet: u krijgt een model dat meteen werkt.",
+    groepen: [
+      { titel: "Aannemers", tekst: "Uw plannen als model voor uw graafmachine, grader of dozer. Voor elk systeem, ook last-minute." },
+      { titel: "Studiebureaus en architecten", tekst: "Uw ontwerp als 3D-model voor de machine van de aannemer, met een controle van het ontwerp vóór de werf start." },
+      { titel: "Landmeters", tekst: "Onderaanneming wanneer het druk is: wij maken het model, u levert het onder uw eigen naam." },
+    ],
+    cta: "Vraag een offerte aan",
+  },
+  fr: {
+    eyebrow: "Pour qui",
+    titel: "Pour ceux qui préparent le chantier",
+    intro: "Que vous pilotiez la machine, dessiniez le projet ou implantiez le chantier : vous recevez un modèle qui fonctionne tout de suite.",
+    groepen: [
+      { titel: "Entrepreneurs", tekst: "Vos plans en modèle pour votre pelle, niveleuse ou bouteur. Pour chaque système, même en urgence." },
+      { titel: "Bureaux d'études et architectes", tekst: "Votre projet en modèle 3D pour la machine de l'entrepreneur, avec un contrôle du projet avant le début du chantier." },
+      { titel: "Géomètres", tekst: "Sous-traitance quand le travail s'accumule : nous réalisons le modèle, vous le livrez sous votre propre nom." },
+    ],
+    cta: "Demander un devis",
+  },
+  en: {
+    eyebrow: "Who it's for",
+    titel: "For everyone who prepares the site",
+    intro: "Whether you run the machine, draw the design or set out the site: you get a model that works straight away.",
+    groepen: [
+      { titel: "Contractors", tekst: "Your drawings as a model for your excavator, grader or dozer. For every system, even last-minute." },
+      { titel: "Engineers and architects", tekst: "Your design as a 3D model for the contractor's machine, with a check of the design before the works start." },
+      { titel: "Surveyors", tekst: "Subcontracting when work piles up: we build the model, you deliver it under your own name." },
+    ],
+    cta: "Request a quote",
+  },
+  de: {
+    eyebrow: "Für wen",
+    titel: "Für alle, die die Baustelle vorbereiten",
+    intro: "Ob Sie die Maschine fahren, die Planung zeichnen oder die Baustelle abstecken: Sie erhalten ein Modell, das sofort funktioniert.",
+    groepen: [
+      { titel: "Bauunternehmen", tekst: "Ihre Pläne als Modell für Ihren Bagger, Grader oder Dozer. Für jedes System, auch kurzfristig." },
+      { titel: "Planungsbüros und Architekten", tekst: "Ihre Planung als 3D-Modell für die Maschine des Bauunternehmens, mit einer Prüfung der Planung vor Baubeginn." },
+      { titel: "Vermessungsbüros", tekst: "Unterauftrag, wenn es eng wird: Wir erstellen das Modell, Sie liefern es unter Ihrem eigenen Namen." },
+    ],
+    cta: "Angebot anfordern",
+  },
+  es: {
+    eyebrow: "Para quién",
+    titel: "Para quien prepara la obra",
+    intro: "Tanto si maneja la máquina como si dibuja el proyecto o replantea la obra: recibe un modelo que funciona a la primera.",
+    groepen: [
+      { titel: "Contratistas", tekst: "Sus planos como modelo para su excavadora, motoniveladora o bulldozer. Para cualquier sistema, incluso con urgencia." },
+      { titel: "Ingenierías y arquitectos", tekst: "Su proyecto como modelo 3D para la máquina del contratista, con una revisión del proyecto antes de empezar la obra." },
+      { titel: "Topógrafos", tekst: "Subcontratación cuando se acumula el trabajo: nosotros hacemos el modelo, usted lo entrega con su propio nombre." },
+    ],
+    cta: "Solicitar presupuesto",
+  },
+};
+
+const VOOR_WIE_ICONEN = [Graafkraan, DraftingCompass, LocateFixed];
+
+function VoorWie({ locale }: { locale: Locale }) {
+  const v = VOOR_WIE[locale];
+  return (
+    <section className="reveal-on-scroll border-b bg-card">
+      <div className="wrap py-24 sm:py-28">
+        <SectieKop eyebrow={v.eyebrow} titel={v.titel} intro={v.intro} />
+        <ul className="mt-14 grid gap-6 md:grid-cols-3 2xl:gap-8">
+          {v.groepen.map((g, i) => {
+            const Icoon = VOOR_WIE_ICONEN[i]!;
+            return (
+              <li key={g.titel}>
+                <Link
+                  href={localePath(locale, "/offerte")}
+                  className="group flex h-full flex-col rounded-2xl border bg-background p-8 transition-colors hover:border-accent 2xl:p-10"
+                >
+                  <span className="grid h-12 w-12 place-items-center rounded-full border bg-card text-accent">
+                    <Icoon className="h-6 w-6" strokeWidth={1.5} />
+                  </span>
+                  <span className="mt-6 text-lg font-semibold tracking-tight">{g.titel}</span>
+                  <span className="mt-2 flex-1 text-sm leading-relaxed text-muted">{g.tekst}</span>
+                  <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-accent">
+                    {v.cta}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 const STAP_ICONEN = [FileUp, Calculator, Layers, Send];
 
 function Werkwijze({ locale, x }: { locale: Locale; x: Xt }) {
   return (
-    <section id="werkwijze" className="reveal-on-scroll scroll-mt-24 border-b bg-card">
+    <section id="werkwijze" className="reveal-on-scroll scroll-mt-24 border-b">
       <div className="wrap py-24 sm:py-28">
         <SectieKop eyebrow={x.stappenEyebrow} titel={x.stappenTitel} intro={x.stappenIntro} />
         <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
@@ -681,30 +786,43 @@ function Werkwijze({ locale, x }: { locale: Locale; x: Xt }) {
   );
 }
 
+// Toepassingen tonen echte projecten uit het archief (lib/archief), elk met een
+// link naar de projectpagina. Volgorde = volgorde van x.toep.
+const TOEP_PROJECT: { code: string; weergave: ArchiefWeergave }[] = [
+  { code: "a08", weergave: "3d" }, // platformen op twee niveaus
+  { code: "a13", weergave: "luchtfoto3d" }, // wegenis van een verkaveling
+  { code: "a06", weergave: "3d" }, // bouwput met funderingsputten
+  { code: "a04", weergave: "luchtfoto3d" }, // rotonde
+];
+
 function Toepassingen({ locale, x }: { locale: Locale; x: Xt }) {
   return (
-    <section className="reveal-on-scroll border-b">
+    <section className="reveal-on-scroll border-b bg-card">
       <div className="wrap py-24 sm:py-28">
         <SectieKop eyebrow={x.toepEyebrow} titel={x.toepTitel} intro={x.toepIntro} />
         <div className="mt-14 grid gap-6 md:grid-cols-2 2xl:grid-cols-4 2xl:gap-8">
-          {x.toep.map((k) => (
-            <article
-              key={k.titel}
-              className="group relative isolate aspect-[16/10] overflow-hidden rounded-3xl border bg-[#0b1220] 2xl:aspect-[4/5]"
-            >
-              <Image
-                src={k.beeld}
-                alt={`${k.titel} — ${BEELD_ALT[locale]}`}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 25vw"
-                className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 text-white">
-                <h3 className="text-xl font-semibold tracking-tight">{k.titel}</h3>
-                <p className="mt-1 text-sm text-white/80">{k.tekst}</p>
-              </div>
-            </article>
-          ))}
+          {x.toep.map((k, i) => {
+            const p = TOEP_PROJECT[i];
+            return (
+              <Link
+                key={k.titel}
+                href={p ? localePath(locale, archiefPad(p.code)) : localePath(locale, "/realisaties")}
+                className="group relative isolate block aspect-[16/10] overflow-hidden rounded-3xl border bg-[#0c0a09] 2xl:aspect-[4/5]"
+              >
+                <Image
+                  src={p ? archiefBeeld(p.code, p.weergave) : k.beeld}
+                  alt={`${k.titel} — ${BEELD_ALT[locale]}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 25vw"
+                  className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 text-white">
+                  <h3 className="text-xl font-semibold tracking-tight">{k.titel}</h3>
+                  <p className="mt-1 text-sm text-white/80">{k.tekst}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
         <VerderLink href={localePath(locale, "/realisaties")} label={x.toepLink} />
       </div>
@@ -740,7 +858,7 @@ const MEER_LANDEN: Record<Locale, (n: number) => string> = {
 function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
   const landNaam = new Intl.DisplayNames([locale === "en" ? "en-GB" : locale], { type: "region" });
   return (
-    <section className="reveal-on-scroll border-b bg-card">
+    <section className="reveal-on-scroll border-b">
       <div className="wrap grid gap-12 py-24 sm:py-28 lg:grid-cols-2 lg:items-center xl:gap-20">
         <div>
           <p className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent">
@@ -764,7 +882,7 @@ function Stelsels({ locale, x }: { locale: Locale; x: Xt }) {
             {STELSEL_LANDEN.map((land) => {
               const v = stelselVoor(land, null, null);
               return (
-                <li key={land} className="flex items-start gap-3 rounded-xl border bg-background px-4 py-3">
+                <li key={land} className="flex items-start gap-3 rounded-xl border bg-card px-4 py-3">
                   <span className="mt-0.5 grid h-7 w-9 shrink-0 place-items-center rounded-md border bg-card font-mono text-[11px] font-semibold text-accent" aria-hidden>
                     {land}
                   </span>

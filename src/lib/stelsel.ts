@@ -45,7 +45,7 @@ export function stelselVoor(land: Land, lat: number | null, lon: number | null):
         stelsel: "Belgian Lambert 72",
         epsg: "EPSG:31370",
         hoogte: "TAW / DNG (Oostende)",
-        opmerking: "Lambert 2008 (EPSG:3812) is ook mogelijk als het plan daarin getekend is.",
+        // Belgische werven: enkel Lambert 72 (Vincent, 4/10).
       };
     case "NL":
       return { stelsel: "Amersfoort / RD New", epsg: "EPSG:28992", hoogte: "NAP" };

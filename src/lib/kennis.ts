@@ -592,7 +592,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Coördinatenstelsels en hoogtereferenties",
         metaTitel: "Coördinatenstelsel en hoogtereferentie per land",
         metaBeschrijving:
-          "Lambert 72/2008, RD New, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
+          "Lambert 72, RD New, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
         samenvatting:
           "Een model is pas bruikbaar als het in hetzelfde stelsel staat als de machine. Welke stelsels en hoogtereferenties per land gangbaar zijn, wat een lokale kalibratie doet en wat er gebeurt bij een verkeerde keuze.",
         secties: [
@@ -609,7 +609,7 @@ export const KENNIS: KennisArtikel[] = [
               "Hieronder de stelsels die in de praktijk het vaakst op plannen voorkomen. Een project kan altijd in een ander of lokaal stelsel getekend zijn; daarom vragen we dit steeds na.",
             ],
             lijst: [
-              "België: Belgian Lambert 72 of Lambert 2008, hoogte TAW/DNG (Oostende).",
+              "België: Belgian Lambert 72, hoogte TAW/DNG (Oostende).",
               "Nederland: RD New (Amersfoort), hoogte NAP.",
               "Frankrijk: Lambert-93 of een van de conische zones CC42 tot CC50, hoogte NGF-IGN69.",
               "Duitsland: ETRS89 / UTM (zone 32 of 33), hoogte DHHN2016.",
@@ -644,7 +644,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Systèmes de coordonnées et références altimétriques",
         metaTitel: "Systèmes de coordonnées et altimétrie par pays",
         metaBeschrijving:
-          "Lambert 2008, Lambert-93, RD New, UTM : quel système et quelle référence altimétrique votre engin attend, le rôle d’une calibration et les erreurs à éviter.",
+          "Lambert 72, Lambert-93, RD New, UTM : quel système et quelle référence altimétrique votre engin attend, le rôle d’une calibration et les erreurs à éviter.",
         samenvatting:
           "Un modèle n’est utilisable que s’il est dans le même système que la machine. Les systèmes et références d’altitude courants par pays, le rôle d’une calibration locale et ce qui se passe en cas de mauvais choix.",
         secties: [
@@ -661,7 +661,7 @@ export const KENNIS: KennisArtikel[] = [
               "Voici les systèmes que l’on rencontre le plus souvent sur les plans. Un projet peut toujours être dessiné dans un autre système ou un système local ; c’est pourquoi nous le vérifions systématiquement.",
             ],
             lijst: [
-              "Belgique : Lambert belge 72 ou Lambert 2008, altitude DNG/TAW (Ostende).",
+              "Belgique : Lambert belge 72, altitude DNG/TAW (Ostende).",
               "Pays-Bas : RD New (Amersfoort), altitude NAP.",
               "France : Lambert-93 ou l’une des zones coniques CC42 à CC50, altitude NGF-IGN69.",
               "Allemagne : ETRS89 / UTM (zone 32 ou 33), altitude DHHN2016.",
@@ -696,7 +696,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Coordinate reference systems and height datums",
         metaTitel: "Coordinate systems and height datums by country",
         metaBeschrijving:
-          "Lambert 2008, RD New, Lambert-93, UTM: which grid and height datum your machine expects, what a site calibration does and what goes wrong otherwise.",
+          "Lambert 72, RD New, Lambert-93, UTM: which grid and height datum your machine expects, what a site calibration does and what goes wrong otherwise.",
         samenvatting:
           "A model is only usable when it is in the same system as the machine. The coordinate systems and height datums commonly used in each country, what a local site calibration does and what happens when the wrong system is chosen.",
         secties: [
@@ -713,7 +713,7 @@ export const KENNIS: KennisArtikel[] = [
               "Below are the systems most often found on drawings. A project may always be drawn in another or a local system, which is why we always check.",
             ],
             lijst: [
-              "Belgium: Belgian Lambert 72 or Lambert 2008, height TAW/DNG (Ostend).",
+              "Belgium: Belgian Lambert 72, height TAW/DNG (Ostend).",
               "Netherlands: RD New (Amersfoort), height NAP.",
               "France: Lambert-93 or one of the conic zones CC42 to CC50, height NGF-IGN69.",
               "Germany: ETRS89 / UTM (zone 32 or 33), height DHHN2016.",
@@ -748,7 +748,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Koordinatenreferenzsysteme und Höhenbezug",
         metaTitel: "Koordinatensysteme und Höhenbezug je Land",
         metaBeschrijving:
-          "ETRS89/UTM, DHHN2016, Lambert 2008, RD New: welches System und welchen Höhenbezug Ihre Maschine erwartet und was eine Baustellenkalibrierung bewirkt.",
+          "ETRS89/UTM, DHHN2016, Lambert 72, RD New: welches System und welchen Höhenbezug Ihre Maschine erwartet und was eine Baustellenkalibrierung bewirkt.",
         samenvatting:
           "Ein Modell ist erst nutzbar, wenn es im selben System liegt wie die Maschine. Welche Koordinatensysteme und Höhenbezüge in den einzelnen Ländern üblich sind, was eine Baustellenkalibrierung bewirkt und was bei einer falschen Wahl passiert.",
         secties: [
@@ -765,7 +765,7 @@ export const KENNIS: KennisArtikel[] = [
               "Nachfolgend die Systeme, die in der Praxis am häufigsten auf Plänen vorkommen. Ein Projekt kann jederzeit in einem anderen oder lokalen System gezeichnet sein; deshalb fragen wir dies stets nach.",
             ],
             lijst: [
-              "Belgien: Belgian Lambert 72 oder Lambert 2008, Höhe TAW/DNG (Ostende).",
+              "Belgien: Belgian Lambert 72, Höhe TAW/DNG (Ostende).",
               "Niederlande: RD New (Amersfoort), Höhe NAP.",
               "Frankreich: Lambert-93 oder eine der Kegelzonen CC42 bis CC50, Höhe NGF-IGN69.",
               "Deutschland: ETRS89 / UTM (Zone 32 oder 33), Höhe DHHN2016.",
@@ -800,7 +800,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Sistemas de referencia de coordenadas y referencias altimétricas",
         metaTitel: "Sistemas de coordenadas y altimetría por país",
         metaBeschrijving:
-          "ETRS89/UTM, Lambert 2008, Lambert-93, RD New: qué sistema y qué referencia altimétrica espera su máquina y qué hace una calibración de obra.",
+          "ETRS89/UTM, Lambert 72, Lambert-93, RD New: qué sistema y qué referencia altimétrica espera su máquina y qué hace una calibración de obra.",
         samenvatting:
           "Un modelo solo es utilizable si está en el mismo sistema que la máquina. Qué sistemas y referencias altimétricas son habituales en cada país, qué hace una calibración de obra y qué ocurre cuando se elige el sistema equivocado.",
         secties: [
@@ -817,7 +817,7 @@ export const KENNIS: KennisArtikel[] = [
               "A continuación, los sistemas que aparecen con más frecuencia en los planos. Un proyecto siempre puede estar dibujado en otro sistema o en un sistema local; por eso lo comprobamos siempre.",
             ],
             lijst: [
-              "Bélgica: Belgian Lambert 72 o Lambert 2008, altura TAW/DNG (Ostende).",
+              "Bélgica: Belgian Lambert 72, altura TAW/DNG (Ostende).",
               "Países Bajos: RD New (Amersfoort), altura NAP.",
               "Francia: Lambert-93 o una de las zonas cónicas CC42 a CC50, altura NGF-IGN69.",
               "Alemania: ETRS89 / UTM (huso 32 o 33), altura DHHN2016.",

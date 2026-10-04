@@ -21,7 +21,8 @@ export const PAGINA_BIJGEWERKT: Record<
   | "/cookies",
   string
 > = {
-  "": VANDAAG,
+  // 4/10: blok "Voor wie" en projectbeelden bij de toepassingen.
+  "": "2026-10-04",
   "/3d-modellen": VANDAAG,
   // 4/10: projecten in beeld (archief) met eigen pagina's.
   "/realisaties": "2026-10-04",
@@ -44,7 +45,8 @@ export const ARCHIEF_BIJGEWERKT = "2026-10-04";
 export const KENNIS_DATUM: Record<string, { gepubliceerd: string; bijgewerkt: string }> = {
   "wat-is-een-3d-model": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
   "lijnwerk-en-breeklijnen": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
-  coordinatenstelsels: { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
+  // 4/10: België enkel Lambert 72.
+  coordinatenstelsels: { gepubliceerd: EERSTE_REEKS, bijgewerkt: "2026-10-04" },
   "bestanden-per-merk": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
   "wat-aanleveren": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
   "controle-en-toleranties": { gepubliceerd: EERSTE_REEKS, bijgewerkt: VANDAAG },
