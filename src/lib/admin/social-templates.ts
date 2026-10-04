@@ -584,55 +584,55 @@ ${CTA_FR}`,
     kaart: "/3d/trace-luchtfoto.jpg",
     tekst: {
       nl: () => ({
-        kop: "Lambert 72 of Lambert 2008?",
-        body: `Lambert 72 of Lambert 2008: op het plan lijkt het een detail. Op de werf is het het verschil tussen een model dat meteen klopt en een machine die het model niet terugvindt.
+        kop: "Lambert 72 en TAW: ligging én hoogte",
+        body: `Op een Belgische werf werkt de machine in Lambert 72 voor de ligging en in TAW voor de hoogte. Klinkt eenvoudig, maar net daar gaat het vaak mis.
 
 Een verkeerd stelsel geeft zelden een foutmelding. Het model wordt gewoon ingelezen, maar ligt op de verkeerde plaats of op de verkeerde hoogte. En een paar centimeter hoogteverschil valt in de cabine niet op.
 
-Daarom vragen we bij elke opdracht na:
-• in welk stelsel het plan getekend is;
-• welke hoogtereferentie (TAW of DNG);
-• in welk stelsel de machine werkt, en of er een lokale werfkalibratie is.
+Waar we bij elke opdracht op letten:
+• is het plan in Lambert 72 getekend, of in lokale coördinaten met een eigen nulpunt;
+• staan de hoogtes in TAW, of ten opzichte van een peil +0,00;
+• gebruikt de machine het juiste geoïdemodel (hBG18): zonder dat zit GNSS ruim 40 meter naast TAW.
 
 En vóór de start: altijd controleren op een gekend punt, in ligging en hoogte.`,
-        kort: "Lambert 72 of 2008? Een verkeerd stelsel geeft zelden een foutmelding: het model ligt gewoon op de verkeerde plaats of hoogte. Wij vragen stelsel en hoogtereferentie altijd na.",
+        kort: "Lambert 72 en TAW: ligging én hoogte. Een verkeerd stelsel geeft zelden een foutmelding: het model ligt gewoon op de verkeerde plaats of hoogte. Wij gaan het bij elke opdracht na.",
         tags: nl("#Lambert72"),
       }),
       fr: () => ({
-        kop: "Lambert 72 ou Lambert 2008 ?",
-        body: `Lambert 72 ou Lambert 2008 : sur le plan, cela ressemble à un détail. Sur chantier, c'est la différence entre un modèle juste et une machine qui ne le retrouve pas.
+        kop: "Lambert 72 et DNG : position et altitude",
+        body: `Sur un chantier belge, la machine travaille en Lambert 72 pour la position et en DNG (TAW) pour l'altitude. Cela paraît simple, mais c'est souvent là que ça coince.
 
 Un mauvais système ne donne presque jamais de message d'erreur. Le modèle se charge, mais il est décalé, en plan ou en altitude. Et quelques centimètres d'écart ne se voient pas en cabine.
 
-Pour chaque mission, nous vérifions :
-• le système dans lequel le plan est dessiné ;
-• la référence altimétrique (DNG ou TAW) ;
-• le système de la machine, et s'il existe une calibration locale.
+Ce que nous vérifions pour chaque mission :
+• le plan est-il dessiné en Lambert 72, ou en coordonnées locales avec un point zéro propre ;
+• les altitudes sont-elles en DNG, ou par rapport à un niveau +0,00 ;
+• la machine utilise-t-elle le bon modèle de géoïde (hBG18) : sans lui, le GNSS est à plus de 40 mètres du DNG.
 
 Et avant de commencer : toujours contrôler sur un point connu, en plan et en altitude.`,
-        kort: "Lambert 72 ou 2008 ? Un mauvais système ne donne presque jamais d'erreur : le modèle est simplement décalé. Nous vérifions toujours le système et la référence altimétrique.",
+        kort: "Lambert 72 et DNG : position et altitude. Un mauvais système ne donne presque jamais d'erreur : le modèle est simplement décalé. Nous le vérifions pour chaque mission.",
         tags: fr("#Lambert72"),
       }),
     },
     dias: {
       nl: [
-        { kop: "Lambert 72 of 2008?", tekst: "Op het plan een detail, op de werf een verschuiving." },
+        { kop: "Lambert 72 en TAW", tekst: "Ligging én hoogte: beide moeten kloppen." },
         { kop: "Geen foutmelding", tekst: "Het model laadt gewoon, maar op de verkeerde plaats of hoogte." },
-        { kop: "Hoogte: TAW of DNG", tekst: "Ga altijd de hoogtereferentie van het plan na." },
-        { kop: "Machine en model", tekst: "Beide moeten in hetzelfde stelsel werken, met of zonder werfkalibratie." },
+        { kop: "Lokaal getekend?", tekst: "Een eigen nulpunt of peil +0,00 moet eerst naar Lambert 72 en TAW." },
+        { kop: "Geoïde hBG18", tekst: "Zonder het juiste geoïdemodel zit GNSS ruim 40 meter naast TAW." },
         { kop: "Controleer op een gekend punt", tekst: "In ligging en hoogte, vóór de eerste schop." },
       ],
       fr: [
-        { kop: "Lambert 72 ou 2008 ?", tekst: "Un détail sur le plan, un décalage sur chantier." },
+        { kop: "Lambert 72 et DNG", tekst: "Position et altitude : les deux doivent être justes." },
         { kop: "Aucun message d'erreur", tekst: "Le modèle se charge, mais au mauvais endroit ou à la mauvaise altitude." },
-        { kop: "Altitudes : DNG ou TAW", tekst: "Vérifiez toujours la référence altimétrique du plan." },
-        { kop: "Machine et modèle", tekst: "Les deux doivent utiliser le même système, avec ou sans calibration locale." },
+        { kop: "Dessiné en local ?", tekst: "Un point zéro propre ou un niveau +0,00 doit d'abord passer en Lambert 72 et DNG." },
+        { kop: "Géoïde hBG18", tekst: "Sans le bon modèle de géoïde, le GNSS est à plus de 40 mètres du DNG." },
         { kop: "Contrôlez sur un point connu", tekst: "En plan et en altitude, avant le premier coup de godet." },
       ],
     },
     google: () => ({
-      kop: "Lambert 72 of Lambert 2008?",
-      body: "Een verkeerd coördinatenstelsel geeft zelden een foutmelding: het model wordt gewoon ingelezen, maar ligt op de verkeerde plaats of hoogte. Daarom gaan we bij elke opdracht het stelsel van het plan, de hoogtereferentie (TAW of DNG) en het stelsel van de machine na.",
+      kop: "Lambert 72 en TAW: ligging én hoogte",
+      body: "Op een Belgische werf werkt de machine in Lambert 72 en TAW. Een verkeerd stelsel geeft zelden een foutmelding: het model wordt gewoon ingelezen, maar ligt op de verkeerde plaats of hoogte. Daarom gaan we bij elke opdracht het stelsel van het plan, de hoogtereferentie en het geoïdemodel van de machine na.",
     }),
   },
   {
@@ -1399,31 +1399,31 @@ ${CTA_FR}`,
     kaart: "/3d/h/plan-hoogtelijnen-donker.webp",
     tekst: {
       nl: () => ({
-        kop: "Test: in welk stelsel staat uw plan?",
+        kop: "Test: staat uw plan in Lambert 72 en TAW?",
         body: `Een kleine test voor uw volgende werf.
 
-Open het plan en zoek het coördinatenstelsel. Staat er Lambert 72 of Lambert 2008? En de hoogte: TAW of DNG?
+Open het plan en zoek het coördinatenstelsel. Staat er Lambert 72? En de hoogtes: in TAW, of ten opzichte van een peil +0,00?
 
 Vindt u het niet terug? Dan bent u niet alleen. Maar uw machine moet het wel weten, en een verkeerd stelsel geeft geen foutmelding: het model ligt gewoon op de verkeerde plaats of hoogte.
 
 Wij vragen het bij elke opdracht na, nog vóór we beginnen.
 
 ${CTA_NL}`,
-        kort: "Test: open uw plan. Lambert 72 of 2008? TAW of DNG? Niet terug te vinden? Uw machine moet het wel weten. Wij vragen het bij elke opdracht na.",
-        tags: nl("#Lambert2008"),
+        kort: "Test: open uw plan. Lambert 72? Hoogtes in TAW of ten opzichte van een peil +0,00? Niet terug te vinden? Uw machine moet het wel weten. Wij vragen het bij elke opdracht na.",
+        tags: nl("#Lambert72"),
       }),
       fr: () => ({
-        kop: "Test : dans quel système est votre plan ?",
+        kop: "Test : votre plan est-il en Lambert 72 et DNG ?",
         body: `Un petit test pour votre prochain chantier.
 
-Ouvrez le plan et cherchez le système de coordonnées. Lambert 72 ou Lambert 2008 ? Et l'altitude : DNG ou TAW ? En France : Lambert-93 ou une zone CC, et NGF-IGN69 ?
+Ouvrez le plan et cherchez le système de coordonnées. Lambert 72 ? Et les altitudes : en DNG, ou par rapport à un niveau +0,00 ? En France : Lambert-93 ou une zone CC, et NGF-IGN69 ?
 
 Introuvable ? Vous n'êtes pas le seul. Mais votre machine, elle, doit le savoir, et un mauvais système ne donne pas de message d'erreur : le modèle est simplement au mauvais endroit ou à la mauvaise hauteur.
 
 Nous le vérifions pour chaque mission, avant de commencer.
 
 ${CTA_FR}`,
-        kort: "Test : ouvrez votre plan. Lambert 72, 2008 ou 93 ? Quelle altitude ? Introuvable ? Votre machine doit pourtant le savoir. Nous le vérifions pour chaque mission.",
+        kort: "Test : ouvrez votre plan. Lambert 72 ? Altitudes en DNG ou par rapport à un niveau +0,00 ? Introuvable ? Votre machine doit pourtant le savoir. Nous le vérifions pour chaque mission.",
         tags: fr("#Lambert93"),
       }),
     },
