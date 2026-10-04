@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { Boxes, MapPin, ArrowRight, FileUp } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { isValidLocale, localePath, type Locale } from "@/lib/i18n/config";
-import { STATUS_LABEL, CATEGORIE_LABEL, werfTekst, statusKleur, type Project } from "@/lib/projecten";
+import { STATUS_LABEL, CATEGORIE_LABEL, werfTekst, type Project } from "@/lib/projecten";
 import { dt } from "@/lib/portal-shared";
+import { werfGroep, werfPunten } from "@/lib/werf-punten";
+import { WervenKaart } from "@/components/werven-kaart";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,10 @@ export default async function ProjectenPage({ params }: { params: Promise<{ loca
   const sb = await getSupabaseServer();
   const { data } = await sb.from("projecten").select("*").order("created_at", { ascending: false });
   const projecten = (data as Project[] | null) ?? [];
+  const href = (p: Project) => localePath(locale, `/portail/dashboard/projecten/${p.id}`);
+
+  // Werven met geldige coördinaten voor de kaart; zonder één ervan geen kaart.
+  const punten = werfPunten(projecten, locale, { href });
 
   return (
     <div className="space-y-8">
@@ -43,39 +49,46 @@ export default async function ProjectenPage({ params }: { params: Promise<{ loca
       {projecten.length === 0 ? (
         <p className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted">{t.leeg}</p>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2">
-          {projecten.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={localePath(locale, `/portail/dashboard/projecten/${p.id}`)}
-                className="group block rounded-2xl border bg-card p-5 transition-colors hover:border-accent"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-semibold tracking-tight">{p.titel}</h2>
-                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusKleur(p.status)}`}>
-                    {STATUS_LABEL[p.status][locale]}
+        <WervenKaart punten={punten} taal={locale}>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {projecten.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={href(p)}
+                  data-werf-id={p.id}
+                  className="group block rounded-2xl border bg-card p-5 transition-colors hover:border-accent"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="font-semibold tracking-tight">{p.titel}</h2>
+                    {/* Effen label met donkere tekst, zelfde kleuren als de pin en de popup */}
+                    <span
+                      className={`werf-status werf-status--${werfGroep(p.status)} inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold`}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden />
+                      {STATUS_LABEL[p.status][locale]}
+                    </span>
+                  </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                    <span className="truncate">{werfTekst(p.werf) || "—"}</span>
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full border px-2 py-0.5">{CATEGORIE_LABEL[p.categorie][locale]}</span>
+                    {p.merken.slice(0, 3).map((m) => (
+                      <span key={m} className="rounded-full border px-2 py-0.5 text-muted">{m}</span>
+                    ))}
+                    {p.merken.length > 3 && <span className="text-muted">+{p.merken.length - 3}</span>}
+                    <span className="ml-auto font-mono text-muted">{dt(p.created_at, locale)}</span>
+                  </div>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent">
+                    {t.open}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
                   </span>
-                </div>
-                <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                  <span className="truncate">{werfTekst(p.werf)}</span>
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="rounded-full border px-2 py-0.5">{CATEGORIE_LABEL[p.categorie][locale]}</span>
-                  {p.merken.slice(0, 3).map((m) => (
-                    <span key={m} className="rounded-full border px-2 py-0.5 text-muted">{m}</span>
-                  ))}
-                  {p.merken.length > 3 && <span className="text-muted">+{p.merken.length - 3}</span>}
-                  <span className="ml-auto font-mono text-muted">{dt(p.created_at, locale)}</span>
-                </div>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent">
-                  {t.open}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </WervenKaart>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import { STATUS_LABEL, statusKleur, werfTekst, type Project } from "@/lib/projec
 import { datumTijd, soortVan, ticketRef, toonOnderwerp, type TicketRij } from "@/lib/tickets";
 import { SOORT_LABEL } from "@/lib/tickets-teksten";
 import { ticketSchema } from "@/lib/tickets-server";
+import { PortaalWervenOverzicht } from "@/components/portaal-werven-overzicht";
 
 export const dynamic = "force-dynamic";
 
@@ -205,6 +206,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           </ul>
         )}
       </section>
+
+      <PortaalWervenOverzicht locale={locale} />
 
       <section>
         <div className="mb-4 flex items-center justify-between">

@@ -639,3 +639,937 @@ body {
 /* Hero-carrousel: voortgangsbalk + label dat binnenschuift */
 @keyframes hero-voortgang { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes hero-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ==========================================================================
+   Werven-kaart — src/components/werven-kaart.tsx + werven-kaart-binnen.tsx
+   Leaflet-kaart boven de projectenlijsten (portaal + admin). Alles hangt
+   onder .werven-kaart / .werven-lijst. Bewust ongelaagd: leaflet.css is dat
+   ook, en ongelaagde regels winnen van Tailwind-utilities.
+   De kleurvariabelen gelden ook voor .werven-lijst: de statuslabels in de
+   lijst gebruiken dezelfde effen pillen (.werf-status) als de popup.
+   ========================================================================== */
+.werven-kaart,
+.werven-lijst {
+  --pin-open: #d97706;
+  --pin-bezig: #2563eb;
+  --pin-klaar: #059669;
+  --pin-grijs: #78716c;
+  --pin-rand: #ffffff;
+  /* Statuslabel: effen vlak + donkere tekst (geen zwakke tint) */
+  --stat-open: #fcd34d;
+  --stat-bezig: #93c5fd;
+  --stat-klaar: #6ee7b7;
+  --stat-grijs: #e7e5e4;
+  --werf-glas: color-mix(in srgb, var(--card) 86%, transparent);
+  --werf-schaduw: 0 22px 44px -16px rgb(28 25 23 / 0.32), 0 6px 16px -8px rgb(28 25 23 / 0.22);
+}
+:root.theme-dark .werven-kaart,
+:root.theme-dark .werven-lijst,
+:root[data-theme="dark"] .werven-kaart,
+:root[data-theme="dark"] .werven-lijst {
+  --pin-open: var(--accent);
+  --pin-bezig: #3b82f6;
+  --pin-klaar: #10b981;
+  --pin-grijs: #a8a29e;
+  --pin-rand: #0c0a09;
+  --stat-open: #fbbf24;
+  --stat-bezig: #60a5fa;
+  --stat-klaar: #34d399;
+  --stat-grijs: #a8a29e;
+  --werf-glas: color-mix(in srgb, var(--card) 78%, transparent);
+  --werf-schaduw: 0 24px 50px -14px rgb(0 0 0 / 0.8), 0 8px 18px -8px rgb(0 0 0 / 0.6);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not([data-theme="light"]) .werven-kaart,
+  :root:not(.theme-light):not([data-theme="light"]) .werven-lijst {
+    --pin-open: var(--accent);
+    --pin-bezig: #3b82f6;
+    --pin-klaar: #10b981;
+    --pin-grijs: #a8a29e;
+    --pin-rand: #0c0a09;
+    --stat-open: #fbbf24;
+    --stat-bezig: #60a5fa;
+    --stat-klaar: #34d399;
+    --stat-grijs: #a8a29e;
+    --werf-glas: color-mix(in srgb, var(--card) 78%, transparent);
+    --werf-schaduw: 0 24px 50px -14px rgb(0 0 0 / 0.8), 0 8px 18px -8px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Laadvlak zolang Leaflet nog niet binnen is */
+.werven-kaart-skelet {
+  background:
+    linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--foreground) 5%, transparent) 50%, transparent 70%) 0 0 / 220% 100%,
+    var(--card);
+  animation: werf-skelet 1.6s ease-in-out infinite;
+}
+@keyframes werf-skelet {
+  from { background-position: 120% 0, 0 0; }
+  to { background-position: -120% 0, 0 0; }
+}
+
+.werven-kaart .leaflet-container {
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  /* Eigen compositielaag: staat de kaart op een halve pixel (en blurt er
+     een sticky kop boven), dan tekent Chrome anders een haarlijn tussen
+     twee tegelrijen. De laag legt de oorsprong op een hele pixel. */
+  will-change: transform;
+}
+.werven-kaart .leaflet-container:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
+/* Glazen panelen boven de kaart (legende, knoppen) */
+.werven-kaart .werf-glas {
+  background: var(--werf-glas);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+}
+.werf-stip {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--pin);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pin) 22%, transparent);
+}
+
+.werf-stip--leeg {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted-foreground);
+}
+
+/* Statuskleur per pin / legendestip */
+.werf-pin--open, .werf-stip--open { --pin: var(--pin-open); }
+.werf-pin--bezig, .werf-stip--bezig { --pin: var(--pin-bezig); }
+.werf-pin--klaar, .werf-stip--klaar { --pin: var(--pin-klaar); }
+.werf-pin--grijs, .werf-stip--grijs { --pin: var(--pin-grijs); }
+
+/* Legende: één rij; past ze niet (smalle kaart), dan zijwaarts te vegen.
+   De rand vervaagt aan de kant waar nog iets staat (is-links / is-rechts,
+   gezet door werven-kaart-binnen.tsx). */
+.werven-kaart .werf-legende {
+  scrollbar-width: none;
+}
+.werven-kaart .werf-legende::-webkit-scrollbar {
+  display: none;
+}
+.werven-kaart .werf-legende.is-rechts {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+.werven-kaart .werf-legende.is-links {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
+}
+.werven-kaart .werf-legende.is-links.is-rechts {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+}
+
+/* Legende als filter: uitgeklikte groep = holle stip, gedimd */
+.werven-kaart .werf-filter[aria-pressed="false"] {
+  color: var(--muted-foreground);
+}
+.werven-kaart .werf-filter[aria-pressed="false"] > span {
+  opacity: 0.6;
+}
+.werven-kaart .werf-filter[aria-pressed="false"] .werf-stip {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--pin);
+}
+.werven-kaart .werf-filter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Statuslabel in popup en blad */
+.werf-status { color: #1c1917; }
+.werf-status--open { background: var(--stat-open); }
+.werf-status--bezig { background: var(--stat-bezig); }
+.werf-status--klaar { background: var(--stat-klaar); }
+.werf-status--grijs { background: var(--stat-grijs); }
+
+/* Bundel: ring met de statusverdeling, aantal in het midden */
+.werven-kaart .werf-bundel {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.werven-kaart .werf-bundel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.werf-bundel__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card) 70%, transparent), 0 6px 18px -4px rgb(0 0 0 / 0.5);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1), box-shadow 0.25s ease;
+}
+.werf-bundel__kern {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  border-radius: 9999px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.werf-bundel.is-sterk .werf-bundel__ring,
+.werf-bundel:hover .werf-bundel__ring,
+.werf-bundel:focus-visible .werf-bundel__ring {
+  transform: scale(1.12);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--card) 70%, transparent),
+    0 0 0 7px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 8px 22px -4px rgb(0 0 0 / 0.55);
+}
+.werf-bundel.is-sterk .werf-bundel__kern,
+.werf-bundel:hover .werf-bundel__kern {
+  transform: scale(1.06);
+}
+
+/* Pin: stip met twee radar-ringen (box-shadow die uitdijt en vervaagt) */
+.werven-kaart .werf-pin {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.werven-kaart .werf-pin:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+.werf-pin__kern {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--pin) 50%, #ffffff) 0, var(--pin) 58%);
+  box-shadow: 0 0 0 2px var(--pin-rand), 0 1px 5px rgb(0 0 0 / 0.45);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1), box-shadow 0.25s ease;
+}
+.werf-pin__puls {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 9999px;
+}
+.werf-pin__puls::before,
+.werf-pin__puls::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: werf-puls 2.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation-delay: var(--werf-d, 0s);
+}
+.werf-pin__puls::after {
+  animation-delay: calc(var(--werf-d, 0s) - 1.4s);
+}
+@keyframes werf-puls {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pin) 60%, transparent); }
+  80%, 100% { box-shadow: 0 0 0 15px color-mix(in srgb, var(--pin) 0%, transparent); }
+}
+
+/* Sterk: hover op pin, kaartje in de lijst of open popup */
+.werf-pin.is-sterk .werf-pin__kern,
+.werf-pin:hover .werf-pin__kern,
+.werf-pin:focus-visible .werf-pin__kern {
+  transform: scale(1.35);
+  box-shadow:
+    0 0 0 2px var(--pin-rand),
+    0 0 0 5px color-mix(in srgb, var(--pin) 38%, transparent),
+    0 2px 12px rgb(0 0 0 / 0.5);
+}
+.werf-pin.is-sterk .werf-pin__puls::before,
+.werf-pin.is-sterk .werf-pin__puls::after,
+.werf-pin:hover .werf-pin__puls::before,
+.werf-pin:hover .werf-pin__puls::after {
+  animation-name: werf-puls-sterk;
+  animation-duration: 1.9s;
+}
+.werf-pin.is-sterk .werf-pin__puls::after,
+.werf-pin:hover .werf-pin__puls::after {
+  animation-delay: -0.95s;
+}
+.werf-pin.is-sterk .werf-pin__puls::before,
+.werf-pin:hover .werf-pin__puls::before {
+  animation-delay: 0s;
+}
+@keyframes werf-puls-sterk {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pin) 85%, transparent); }
+  80%, 100% { box-shadow: 0 0 0 24px color-mix(in srgb, var(--pin) 0%, transparent); }
+}
+
+/* Tooltip met de titel (enkel met muis) */
+.werven-kaart .werf-tip {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.55);
+}
+.werven-kaart .werf-tip.leaflet-tooltip-top::before {
+  border-top-color: var(--foreground);
+}
+
+/* Popup als kaartje */
+.werven-kaart .werf-popup {
+  margin-bottom: 16px;
+}
+.werven-kaart .werf-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--werf-schaduw);
+  transform-origin: 50% 100%;
+  animation: werf-popup-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.werven-kaart .werf-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 16px 16px 14px;
+  min-height: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.werven-kaart .werf-popup .leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+.werven-kaart .werf-popup .leaflet-popup-tip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.werven-kaart .leaflet-container a.werf-open,
+.werven-kaart .leaflet-container a.werf-open:hover {
+  color: var(--background);
+}
+.werven-kaart .leaflet-container a.werf-rij,
+.werven-kaart .leaflet-container a.werf-rij:hover {
+  color: var(--foreground);
+}
+.werven-kaart a.werf-rij:focus-visible,
+.werven-kaart a.werf-open:focus-visible,
+.werven-kaart .werf-sluit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.werven-kaart .werf-rijen {
+  scrollbar-width: thin;
+}
+.werven-kaart .werf-chip--dringend {
+  border-color: transparent;
+  background: #dc2626;
+  color: #ffffff;
+}
+@keyframes werf-popup-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Smalle kaart: blad onderaan i.p.v. popup, net boven de bronvermelding */
+.werven-kaart .werf-blad {
+  bottom: calc(var(--werf-bron, 18px) + 6px);
+  box-shadow: var(--werf-schaduw);
+  animation: werf-blad-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.werven-kaart .werf-blad a.werf-open,
+.werven-kaart .werf-blad a.werf-open:hover {
+  color: var(--background);
+}
+@keyframes werf-blad-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Bronvermelding */
+.werven-kaart .leaflet-container .leaflet-control-attribution {
+  margin: 0;
+  padding: 1px 9px;
+  border-top-left-radius: 10px;
+  background: var(--werf-glas);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.7;
+}
+.werven-kaart .leaflet-container .leaflet-control-attribution a {
+  color: inherit;
+}
+.werven-kaart .leaflet-container .leaflet-control-attribution a:hover {
+  color: var(--foreground);
+}
+
+/* Lijst: kaartje oplichten als zijn pin onder de muis is of open staat */
+.werven-lijst [data-werf-id] {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+/* Portaalkaartjes: accentrand bij hover. Tailwinds hover:border-accent haalt
+   het niet tegen de ongelaagde `* { border-color }` bovenaan dit bestand. */
+.werven-lijst li > a[data-werf-id]:hover,
+.werven-lijst li > a[data-werf-id]:focus-visible {
+  border-color: var(--accent);
+}
+.werven-lijst [data-werf-licht] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 12px 30px -16px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.werven-lijst tr[data-werf-licht] {
+  box-shadow: none;
+  background: var(--card-hover);
+}
+.werven-lijst tr[data-werf-licht] > td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Vergroot: kaart over (bijna) het hele scherm, pagina gedimd erachter */
+.werf-groot-achter {
+  background: rgb(12 10 9 / 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: werf-achter-in 0.2s ease both;
+}
+.werven-kaart--groot {
+  box-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.6), 0 0 0 1px color-mix(in srgb, var(--foreground) 6%, transparent);
+  animation: werf-groot-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes werf-achter-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes werf-groot-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Rustig: geen puls bij voorkeur voor minder beweging of heel veel pinnen */
+@media (prefers-reduced-motion: reduce) {
+  .werven-kaart .werf-pin__puls::before,
+  .werven-kaart .werf-pin__puls::after {
+    animation: none;
+  }
+  .werven-kaart .werf-pin.is-sterk .werf-pin__puls::before {
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--pin) 28%, transparent);
+  }
+  .werven-kaart .werf-popup .leaflet-popup-content-wrapper,
+  .werven-kaart .werf-blad,
+  .werven-kaart--groot,
+  .werf-groot-achter,
+  .werven-kaart-skelet {
+    animation: none;
+  }
+  .werf-pin__kern,
+  .werf-bundel__ring,
+  .werf-bundel__kern {
+    transition: none;
+  }
+}
+.werven-kaart--rustig .werf-pin__puls::before,
+.werven-kaart--rustig .werf-pin__puls::after {
+  animation: none;
+}
+
+/* Ondergrond-wissel (kaart / luchtfoto), linksonder boven de bronvermelding */
+.werven-kaart .werf-ondergrond {
+  bottom: calc(var(--werf-bron, 18px) + 10px);
+}
+.werven-kaart .werf-ondergrond__knop {
+  color: var(--muted);
+}
+.werven-kaart .werf-ondergrond__knop:hover {
+  background: var(--card-hover);
+  color: var(--foreground);
+}
+.werven-kaart .werf-ondergrond__knop[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+}
+.werven-kaart .werf-ondergrond__knop:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.werven-kaart--luchtfoto .leaflet-container {
+  background: #1d231c;
+}
+
+/* ==========================================================================
+   Werfkaart (admin) — src/components/admin/werfkaart.tsx + werfkaart-filters.tsx
+   Alle projecten op één kaart: filterpaneel | kaart | resultaten. Zelfde
+   statuspalet als .werven-kaart hierboven (de pillen en stippen staan hier
+   buiten de kaart). Pillen: effen vlak + donkere tekst.
+   ========================================================================== */
+.werfkaart {
+  --pin-open: #d97706;
+  --pin-bezig: #2563eb;
+  --pin-klaar: #059669;
+  --pin-grijs: #78716c;
+  --stat-open: #fcd34d;
+  --stat-bezig: #93c5fd;
+  --stat-klaar: #6ee7b7;
+  --stat-grijs: #e7e5e4;
+  --wk-amber: #fde68a;
+  --wk-groen: #a7f3d0;
+  --wk-rood: #dc2626;
+  --wk-op-accent: #ffffff;
+  /* Hoogte van het werkvlak naast elkaar: scherm min admin-kop en titel */
+  --wk-h: max(520px, calc(100dvh - 172px));
+}
+:root.theme-dark .werfkaart,
+:root[data-theme="dark"] .werfkaart {
+  --pin-open: var(--accent);
+  --pin-bezig: #3b82f6;
+  --pin-klaar: #10b981;
+  --pin-grijs: #a8a29e;
+  --stat-open: #fbbf24;
+  --stat-bezig: #60a5fa;
+  --stat-klaar: #34d399;
+  --stat-grijs: #a8a29e;
+  --wk-amber: #fbbf24;
+  --wk-groen: #34d399;
+  --wk-rood: #ef4444;
+  --wk-op-accent: #1c1917;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not([data-theme="light"]) .werfkaart {
+    --pin-open: var(--accent);
+    --pin-bezig: #3b82f6;
+    --pin-klaar: #10b981;
+    --pin-grijs: #a8a29e;
+    --stat-open: #fbbf24;
+    --stat-bezig: #60a5fa;
+    --stat-klaar: #34d399;
+    --stat-grijs: #a8a29e;
+    --wk-amber: #fbbf24;
+    --wk-groen: #34d399;
+    --wk-rood: #ef4444;
+    --wk-op-accent: #1c1917;
+  }
+}
+
+/* Indeling: gsm = kaart, lijst eronder; vanaf 1024 px filters naast de kaart
+   (lijst eronder); vanaf 1280 px drie kolommen die samen het scherm vullen. */
+.werfkaart .wk-kaart {
+  height: max(320px, 58dvh);
+}
+@media (min-width: 1024px) {
+  .werfkaart .wk-vlak {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--wk-h) auto;
+  }
+  .werfkaart .wk-kaart {
+    height: auto;
+    min-height: 0;
+  }
+  .werfkaart .wk-lijst {
+    grid-column: 1 / -1;
+    max-height: 70vh;
+  }
+}
+@media (min-width: 1280px) {
+  .werfkaart .wk-vlak {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: var(--wk-h);
+  }
+  .werfkaart .wk-lijst {
+    grid-column: auto;
+    width: 320px;
+    max-height: none;
+  }
+}
+.werfkaart .wk-rail-tekst {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* Knoppen, velden, tellers */
+.werfkaart .wk-teller {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--wk-op-accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.werfkaart .wk-link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--muted) 40%, transparent);
+  text-underline-offset: 3px;
+}
+.werfkaart .wk-link:hover {
+  color: var(--foreground);
+}
+.werfkaart .wk-icoonknop {
+  color: var(--muted);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.werfkaart .wk-icoonknop:hover {
+  background: var(--card-hover);
+  color: var(--foreground);
+}
+.werfkaart .wk-veld {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.werfkaart .wk-veld::placeholder {
+  color: var(--muted-foreground);
+}
+.werfkaart .wk-veld:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.werfkaart .wk-zoek::-webkit-search-cancel-button {
+  display: none;
+}
+.werfkaart .wk-select {
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+.werfkaart button:focus-visible,
+.werfkaart a:focus-visible,
+.werfkaart select:focus-visible,
+.wk-lade button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.werfkaart .wk-zonder {
+  background: var(--wk-amber);
+  color: #1c1917;
+}
+.werfkaart .wk-zonder[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--wk-amber);
+}
+.werfkaart .wk-fout {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+.werfkaart .wk-uitleg {
+  background: var(--wk-amber);
+  color: #1c1917;
+}
+.werfkaart .wk-filterpil:hover {
+  background: var(--card-hover);
+}
+.werfkaart .wk-leeg {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow: 0 22px 44px -16px rgb(0 0 0 / 0.35);
+}
+
+/* Filterpaneel: secties, chips, segmenten */
+.wk-paneel .wk-sectie {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.wk-paneel .wk-sectie:first-child {
+  border-top: 0;
+}
+.wk-paneel .wk-sectie__aan {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+.wk-paneel .wk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 9px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.35;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.wk-paneel .wk-chip:hover {
+  background: var(--card-hover);
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+.wk-paneel .wk-chip.is-leeg {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+.wk-paneel .wk-chip__n,
+.wk-paneel .wk-seg__n {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.wk-paneel .wk-chip[aria-pressed="true"] {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+}
+.wk-paneel .wk-chip[aria-pressed="true"] .wk-chip__n {
+  color: color-mix(in srgb, var(--background) 65%, var(--foreground));
+}
+.wk-paneel .wk-chip[aria-pressed="mixed"] {
+  border-color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--foreground);
+}
+.wk-paneel .wk-chip[aria-pressed="true"] .werf-stip {
+  box-shadow: 0 0 0 2px var(--background);
+}
+.wk-paneel .wk-chip[aria-pressed="true"] .wk-zap {
+  color: var(--background);
+}
+.wk-paneel .wk-zap {
+  color: var(--wk-rood);
+}
+.wk-paneel .wk-stip-rood {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--wk-rood);
+}
+.wk-paneel .wk-chip:focus-visible,
+.wk-paneel .wk-seg > button:focus-visible,
+.wk-paneel .wk-link:focus-visible,
+.wk-paneel .wk-icoonknop:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.wk-paneel .wk-seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--card-hover);
+}
+.wk-paneel .wk-seg > button {
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 4px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.wk-paneel .wk-seg > button:hover {
+  color: var(--foreground);
+}
+.wk-paneel .wk-seg > button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 0 0 1px var(--border);
+}
+.wk-paneel .wk-boom {
+  border-left: 2px solid var(--border);
+}
+.wk-paneel .wk-keuzelijst {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  scrollbar-width: thin;
+}
+.wk-paneel .wk-keuzelijst [role="option"][aria-selected="true"] {
+  background: var(--card-hover);
+}
+.wk-paneel .wk-veld,
+.wk-lade .wk-veld {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 13px;
+  outline: none;
+}
+.wk-paneel .wk-veld:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.wk-paneel .wk-icoonknop {
+  color: var(--muted);
+}
+.wk-paneel .wk-icoonknop:hover {
+  background: var(--card-hover);
+  color: var(--foreground);
+}
+.wk-paneel .wk-link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wk-paneel .wk-link:hover {
+  color: var(--foreground);
+}
+
+/* Resultaten */
+.werfkaart .wk-rijen {
+  scrollbar-width: thin;
+}
+.werfkaart .wk-rij {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-radius: 14px;
+  transition: background-color 0.15s ease;
+}
+.werfkaart .wk-rij:hover,
+.werfkaart .wk-rij.is-licht {
+  background: var(--card-hover);
+}
+.werfkaart .wk-rij.is-licht::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+.werfkaart .wk-rij__hoofd {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 10px;
+  padding: 10px 4px 10px 12px;
+  border-radius: 14px;
+  text-align: left;
+}
+.werfkaart .wk-rij__open {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  transition: color 0.15s ease;
+}
+.werfkaart .wk-rij__open:hover {
+  color: var(--foreground);
+}
+.werfkaart .wk-rij__hoofd:focus-visible,
+.werfkaart .wk-rij__open:focus-visible {
+  outline-offset: -2px;
+}
+.werfkaart .wk-pil {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.werfkaart .wk-pil--rood {
+  background: var(--wk-rood);
+  color: #ffffff;
+}
+.werfkaart .wk-pil--amber {
+  background: var(--wk-amber);
+  color: #1c1917;
+}
+.werfkaart .wk-pil--groen {
+  background: var(--wk-groen);
+  color: #1c1917;
+}
+.werfkaart .wk-pil--rand {
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Schuiflade met filters (gsm/tablet): native <dialog> van links */
+.wk-lade {
+  width: min(92vw, 400px);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  inset: 0 auto 0 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 24px 0 60px -20px rgb(0 0 0 / 0.5);
+}
+.wk-lade[open] {
+  animation: wk-lade-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.wk-lade::backdrop {
+  background: rgb(12 10 9 / 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+@keyframes wk-lade-in {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+html:has(.wk-lade[open]) {
+  overflow: hidden;
+}
+.wk-lade .wk-teller {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--wk-op-accent, #ffffff);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.wk-lade .wk-icoonknop {
+  color: var(--muted);
+}
+.wk-lade .wk-icoonknop:hover {
+  background: var(--card-hover);
+  color: var(--foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wk-lade[open] {
+    animation: none;
+  }
+}
