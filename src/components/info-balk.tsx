@@ -61,9 +61,9 @@ function Streep() {
 }
 
 export function InfoBalk({ locale }: { locale: Locale }) {
-  // Voorlopig de ticketlijst (met knop "Nieuw ticket"); na de nieuwe
-  // ticketmodule rechtstreeks naar /portail/dashboard/tickets/nieuw.
-  const ticketPad = localePath(locale, "/portail/dashboard/tickets");
+  // Rechtstreeks naar het formulier voor een nieuw ticket; wie nog niet
+  // aangemeld is, meldt zich eerst aan en komt daarna op het formulier.
+  const ticketPad = localePath(locale, "/portail/dashboard/tickets/nieuw");
   const ticketHref = `${localePath(locale, "/portail")}?next=${encodeURIComponent(ticketPad)}`;
   const t = TICKET[locale];
   const item =
