@@ -142,6 +142,14 @@ export function detectLang(
   return "nl";
 }
 
+/** NACE-hoofdcode van een prospect (bepaalt de doelgroep en dus de mail). */
+export async function naceVanProspect(land: Land, prospectId: string): Promise<string | null> {
+  const src = sourceFromLand(land);
+  const { data } = await getSupabaseAdmin().from(src.table).select(src.codeCol).eq(src.idCol, prospectId).maybeSingle();
+  const v = (data as Record<string, unknown> | null)?.[src.codeCol];
+  return typeof v === "string" ? v : null;
+}
+
 /** Taal voor een bestaande outreach-rij (postcode uit KBO voor BE). */
 export async function langVoorProspect(
   land: Land,

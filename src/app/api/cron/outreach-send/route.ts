@@ -14,7 +14,7 @@ import {
 } from "@/lib/admin/outreach";
 import { bedrijfVoorMail, buildOutreachMail } from "@/lib/admin/outreach-mail";
 import { sourceFromLand, type Land } from "@/lib/admin/prospect-source";
-import { effectiveNace, naceMatches } from "@/lib/admin/aannemers";
+import { doelgroepVoorNace, effectiveNace, naceMatches } from "@/lib/admin/aannemers";
 import { getCompanySettings } from "@/lib/admin/settings";
 
 export const dynamic = "force-dynamic";
@@ -149,7 +149,8 @@ export async function GET(req: NextRequest) {
 
   // NACE-controle (de doelgroep kan sinds de kwalificatie gewijzigd zijn).
   const prefixes = effectiveNace(cfg.nacePrefixes);
-  const filtered: OutreachRow[] = [];
+  // De NACE-code bepaalt ook de doelgroep (aannemer, ontwerper, landmeter) en dus de mail.
+  const filtered: Array<OutreachRow & { nace: string | null }> = [];
   for (const r of rows) {
     if (filtered.length >= sendLimit) break;
     const src = sourceFromLand(r.land);
@@ -159,7 +160,7 @@ export async function GET(req: NextRequest) {
       .eq(src.idCol, r.prospect_id)
       .maybeSingle();
     const code = (pr as Record<string, string | null> | null)?.[src.codeCol];
-    if (naceMatches(code, prefixes)) filtered.push(r);
+    if (naceMatches(code, prefixes)) filtered.push({ ...r, nace: code ?? null });
   }
 
   const bedrijf = bedrijfVoorMail(await getCompanySettings());
@@ -189,7 +190,7 @@ export async function GET(req: NextRequest) {
     const land = r.land as Land;
     const lang = await langVoorProspect(land, r.prospect_id, signalen);
     const mail = buildOutreachMail(
-      { land, website: r.website, signalen, token: r.scan_token },
+      { land, website: r.website, signalen, token: r.scan_token, doelgroep: doelgroepVoorNace(r.nace, land) },
       cfg,
       bedrijf,
       lang,

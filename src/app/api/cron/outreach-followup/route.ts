@@ -9,8 +9,10 @@ import {
   adresOnderdrukt,
   getOutreachConfig,
   langVoorProspect,
+  naceVanProspect,
   signalenUitRij,
 } from "@/lib/admin/outreach";
+import { doelgroepVoorNace } from "@/lib/admin/aannemers";
 import { bedrijfVoorMail, buildOutreachMail } from "@/lib/admin/outreach-mail";
 import { getCompanySettings } from "@/lib/admin/settings";
 import type { Land } from "@/lib/admin/prospect-source";
@@ -126,8 +128,9 @@ export async function GET(req: NextRequest) {
     const signalen = signalenUitRij(r);
     const land = r.land as Land;
     const lang = await langVoorProspect(land, r.prospect_id, signalen);
+    const doelgroep = doelgroepVoorNace(await naceVanProspect(land, r.prospect_id), land);
     const mail = buildOutreachMail(
-      { land, website: r.website, signalen, token: r.scan_token },
+      { land, website: r.website, signalen, token: r.scan_token, doelgroep },
       cfg,
       bedrijf,
       lang,

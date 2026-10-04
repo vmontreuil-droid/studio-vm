@@ -21,9 +21,18 @@ export type MailTaal = "nl" | "fr" | "en" | "de";
 // NACE-doelgroep
 // ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Wie krijgt welke mail: aannemers (eigen machines), ontwerpers (architecten
+ * en studiebureaus: hun ontwerp wordt een model voor de aannemer) en
+ * landmeters (onderaanneming bij drukte, onder hun naam).
+ */
+export type Doelgroep = "aannemer" | "ontwerper" | "landmeter";
+
 export type NaceOptie = {
   code: string;
   label: string;
+  /** Standaard "aannemer". */
+  doelgroep?: Doelgroep;
   standaard: boolean;
   /**
    * Kernactiviteit grond-, weg- en waterbouw: ook zonder signalen op de
@@ -52,6 +61,13 @@ export const NACE_OPTIES: NaceOptie[] = [
   { code: "4120", label: "Algemene bouw van gebouwen", standaard: false, kern: false },
   { code: "8130", label: "Tuin- en landschapsaanleg", standaard: false, kern: false },
   { code: "0812", label: "Zand- en grindwinning", standaard: false, kern: false },
+  // Ontwerpers en landmeters (Vincent 4/10). Studiebureaus en landmeters altijd;
+  // architecten enkel als hun site over terrein, wegenis of riolering spreekt
+  // (zo'n 18.000 bureaus: niet blind mailen). Interieurarchitecten (71.112) niet.
+  { code: "71121", label: "Studiebureaus (ingenieurs en technisch advies)", doelgroep: "ontwerper", standaard: true, kern: true },
+  { code: "71122", label: "Landmeters", doelgroep: "landmeter", standaard: true, kern: true },
+  { code: "71111", label: "Bouwarchitecten", doelgroep: "ontwerper", standaard: true, kern: false },
+  { code: "71113", label: "Stedenbouwkundigen en landschapsarchitecten", doelgroep: "ontwerper", standaard: true, kern: false },
 ];
 
 const NACE_GROEPEN: Record<string, string> = {
@@ -64,7 +80,27 @@ const NACE_GROEPEN: Record<string, string> = {
   "431": "Slopen en bouwrijp maken",
   "439": "Overige gespecialiseerde bouwwerkzaamheden",
   "81": "Facilitaire diensten en landschapsaanleg",
+  "71": "Architecten, ingenieurs en landmeters",
+  "711": "Architecten, ingenieurs en landmeters",
+  "7111": "Architecten",
+  "7112": "Ingenieurs en landmeters",
 };
+
+/**
+ * Doelgroep uit de NACE-hoofdcode (KBO "71122", APE "71.12A", SIC "71122").
+ * In Frankrijk is 71.12A géomètres en 71.12B bureaux d'études; het VK
+ * onderscheidt landmeters niet apart, daar is alles in 71.1 "ontwerper".
+ */
+export function doelgroepVoorNace(code: unknown, land?: ProspectLand): Doelgroep {
+  const ruw = String(code ?? "").trim().toUpperCase();
+  if (/^71\.12A/.test(ruw)) return "landmeter";
+  if (/^71\.1[12]/.test(ruw)) return "ontwerper";
+  const c = normalizeNace(ruw);
+  // SIC 71122 (VK) is technisch advies, geen landmeter.
+  if (c.startsWith("71122") && land !== "uk") return "landmeter";
+  if (c.startsWith("7111") || c.startsWith("7112")) return "ontwerper";
+  return "aannemer";
+}
 
 /** Is dit een kernactiviteit (mailen ook zonder website-signalen)? */
 export function isKernNace(code: unknown): boolean {
@@ -133,6 +169,11 @@ export function naceMatches(code: unknown, prefixes: string[]): boolean {
 /** Prefix in het formaat van de bron-tabel van dat land. */
 export function prefixVoorLand(prefix: string, land: ProspectLand): string {
   const n = normalizeNace(prefix);
+  // Belgische subcodes van 71.1 → het formaat van het land.
+  if (n.startsWith("711") && n.length === 5) {
+    if (land === "fr") return n === "71122" ? "71.12A" : n === "71121" ? "71.12B" : "71.11";
+    if (land === "uk") return n.slice(0, 4);
+  }
   if (land === "fr") {
     // APE/NAF: "43.12A" — 4 cijfers met punt, daarna een letter.
     const p = n.slice(0, 4);
