@@ -4,13 +4,16 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { addClient } from "@/app/actions/portal-admin";
+import { portaalKlanten } from "@/lib/portal-access";
 import { TrendChart } from "@/components/trend-chart";
 import { ChartCard } from "@/components/charts";
 
 export const dynamic = "force-dynamic";
 
 // Een klant = iemand met een project, offerte, factuur, abonnement of
-// een 3D-/contactaanvraag. Scan-leads uit de websitetijd tellen niet mee.
+// een 3D-/contactaanvraag, of een portaalaccount dat als klant gemarkeerd
+// is (zelf toegevoegd, oud-klant 3DG). Scan-leads uit de websitetijd tellen
+// niet mee.
 type Client = {
   email: string;
   naam: string | null;
@@ -21,7 +24,11 @@ type Client = {
   actief: number;
   betaaldCent: number;
   openCent: number;
+  bron: string | null;
+  activiteit: boolean;
 };
+
+const BRON_LABEL: Record<string, string> = { "3dg": "3DG" };
 
 const ACTIEF = new Set(["aanvraag", "offerte", "akkoord", "productie", "geleverd"]);
 
@@ -34,7 +41,7 @@ export default async function AdminKlanten({
   const sp = await searchParams;
   const db = getSupabaseAdmin();
 
-  const [{ data: prData }, { data: offerData }, { data: invData }, { data: subData }, { data: qData }] =
+  const [{ data: prData }, { data: offerData }, { data: invData }, { data: subData }, { data: qData }, accounts] =
     await Promise.all([
       db.from("projecten").select("client_email, status, created_at, updated_at").limit(5000),
       db.from("offers").select("client_email, client_name, client_company, created_at").limit(5000),
@@ -45,18 +52,21 @@ export default async function AdminKlanten({
         .select("email, name, company, created_at, source")
         .in("source", ["3d-model", "contact", "offerte-configurator", "builder"])
         .limit(5000),
+      portaalKlanten(),
     ]);
 
   const byEmail = new Map<string, Client>();
-  const raak = (email: string | null | undefined, at: string | null | undefined) => {
+  const raak = (email: string | null | undefined, at: string | null | undefined, activiteit = true) => {
     const key = email?.toLowerCase().trim();
     if (!key) return null;
     const t = at ?? new Date(0).toISOString();
     let c = byEmail.get(key);
     if (!c) {
-      c = { email: key, naam: null, bedrijf: null, eersteAt: t, lastAt: t, projecten: 0, actief: 0, betaaldCent: 0, openCent: 0 };
+      c = { email: key, naam: null, bedrijf: null, eersteAt: t, lastAt: t, projecten: 0, actief: 0, betaaldCent: 0, openCent: 0, bron: null, activiteit };
       byEmail.set(key, c);
+      return c;
     }
+    if (!activiteit) return c;
     if (t > c.lastAt) c.lastAt = t;
     if (t < c.eersteAt) c.eersteAt = t;
     return c;
@@ -90,9 +100,23 @@ export default async function AdminKlanten({
     c.bedrijf ??= q.company;
   }
 
+  // Accounts als laatste, zodat hun aanmaakdatum de datums van echte
+  // activiteit (projecten, offertes, …) niet overschrijft.
+  for (const a of accounts) {
+    const c = raak(a.email, a.aangemaakt, false);
+    if (!c) continue;
+    c.naam ??= a.naam;
+    c.bedrijf ??= a.bedrijf;
+    c.bron ??= a.bron;
+  }
+
   const alle = [...byEmail.values()];
-  let clients = [...alle].sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+  // Klanten met activiteit eerst, daarna kale accounts; elk op recentste.
+  let clients = [...alle].sort((a, b) =>
+    a.activiteit !== b.activiteit ? (a.activiteit ? -1 : 1) : a.lastAt < b.lastAt ? 1 : -1,
+  );
   if (sp.f === "actief") clients = clients.filter((c) => c.actief > 0);
+  if (sp.f === "3dg") clients = clients.filter((c) => c.bron === "3dg");
   if (sp.f === "open") clients = clients.filter((c) => c.openCent > 0);
   if (sp.q) {
     const n = sp.q.toLowerCase();
@@ -112,7 +136,8 @@ export default async function AdminKlanten({
     const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
     return {
       label: dt.toLocaleDateString("nl-BE", { month: "short" }),
-      value: alle.filter((c) => c.eersteAt.startsWith(ym)).length,
+      // Oud-klanten (met bron) zijn geen nieuwe klanten van die maand.
+      value: alle.filter((c) => !c.bron && c.eersteAt.startsWith(ym)).length,
     };
   });
   const totaalBetaald = alle.reduce((t, c) => t + c.betaaldCent, 0);
@@ -124,6 +149,8 @@ export default async function AdminKlanten({
     { k: "actief", label: `Met lopend project (${metActief})` },
     { k: "open", label: `Openstaand saldo (${alle.filter((c) => c.openCent > 0).length})` },
   ];
+  const oud3dg = alle.filter((c) => c.bron === "3dg").length;
+  if (oud3dg) filters.push({ k: "3dg", label: `Oud-klanten 3DG (${oud3dg})` });
   const href = (f?: string) => {
     const p = new URLSearchParams();
     if (f) p.set("f", f);
@@ -138,7 +165,7 @@ export default async function AdminKlanten({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Klanten</h1>
           <p className="mt-1 text-sm text-muted">
-            Aannemers en opdrachtgevers met een project, offerte, factuur of aanvraag.
+            Aannemers en opdrachtgevers met een project, offerte, factuur of aanvraag, en klanten die u zelf toevoegde.
           </p>
         </div>
         <form className="flex gap-2">
@@ -236,7 +263,14 @@ export default async function AdminKlanten({
                   <tr key={c.email} className="group flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 transition-colors hover:bg-card-hover md:table-row md:p-0">
                     <td className="min-w-0 flex-1 md:px-5 md:py-4">
                       <Link href={link} className="block">
-                        <span className="block truncate font-medium">{c.bedrijf || c.naam || c.email}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate font-medium">{c.bedrijf || c.naam || c.email}</span>
+                          {c.bron && (
+                            <span className="shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] text-muted">
+                              {BRON_LABEL[c.bron] ?? c.bron}
+                            </span>
+                          )}
+                        </span>
                         <span className="block truncate text-xs text-muted">
                           {c.bedrijf && c.naam ? `${c.naam} · ` : ""}
                           {c.email}
@@ -259,7 +293,7 @@ export default async function AdminKlanten({
                       {c.openCent ? eur(c.openCent) : "—"}
                     </td>
                     <td className="font-mono text-[11px] text-muted md:px-3 md:py-4">
-                      {new Date(c.lastAt).toLocaleDateString("nl-BE", { timeZone: "Europe/Brussels" })}
+                      {c.activiteit ? new Date(c.lastAt).toLocaleDateString("nl-BE", { timeZone: "Europe/Brussels" }) : "—"}
                     </td>
                     <td className="md:pr-5">
                       <Link href={link} aria-label={`Open ${c.email}`}>

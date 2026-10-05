@@ -4,6 +4,7 @@ import { adminConfigured } from "@/lib/supabase/config";
 import { ADMIN_COOKIE, isValidAdmin } from "@/lib/admin-auth";
 import { AdminLogin } from "@/components/admin-login";
 import { AdminShell, type AdminCounts } from "@/components/admin-shell";
+import { portaalKlanten } from "@/lib/portal-access";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -75,7 +76,7 @@ export default async function AdminLayout({
     : null;
   // "Klanten"-badge = dezelfde bronnen als de klantenlijst (zonder
   // scan-leads uit de websitetijd), zodat het cijfer overeenkomt.
-  const [prEmR, subEmR, quoteEmR, offerEmR, invEmR, ticketsOud] = await Promise.all([
+  const [prEmR, subEmR, quoteEmR, offerEmR, invEmR, ticketsOud, accounts] = await Promise.all([
     db.from("projecten").select("client_email").limit(5000),
     db.from("subscriptions").select("client_email").limit(5000),
     db
@@ -86,6 +87,7 @@ export default async function AdminLayout({
     db.from("offers").select("client_email").limit(5000),
     db.from("invoices").select("client_email").limit(5000),
     ticketsOudR,
+    portaalKlanten(),
   ]);
   const ticketsOpen = ticketsOud ? (ticketsOud.count ?? 0) : (ticketsR.count ?? 0);
   const klantSet = new Set<string>();
@@ -103,6 +105,7 @@ export default async function AdminLayout({
     add(r.client_email);
   for (const r of (invEmR.data as { client_email: string }[] | null) ?? [])
     add(r.client_email);
+  for (const a of accounts) add(a.email);
   const klanten = klantSet.size;
   const counts: AdminCounts = {
     nieuw: nieuwR.count ?? 0,

@@ -826,7 +826,7 @@ export async function addClient(formData: FormData): Promise<void> {
     .trim()
     .toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
-  await ensurePortalUser(email);
+  await ensurePortalUser(email, { klant: true });
   revalidatePath("/admin/klanten", "layout");
   redirect(`/admin/klanten/${encodeURIComponent(email)}`);
 }

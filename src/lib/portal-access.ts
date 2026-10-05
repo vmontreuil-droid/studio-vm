@@ -11,6 +11,10 @@ export type PortalProfile = {
   company?: string | null;
   vat_number?: string | null;
   address?: string | null;
+  // Telt als klant in /admin/klanten, ook zonder project of offerte
+  // (zelf toegevoegd, of oud-klant via `bron`, bv. "3dg").
+  klant?: boolean | null;
+  bron?: string | null;
 };
 
 export async function ensurePortalUser(
@@ -45,6 +49,41 @@ export async function ensurePortalUser(
   } catch {
     // Niet-kritisch — login werkt sowieso.
   }
+}
+
+export type PortaalKlant = {
+  email: string;
+  naam: string | null;
+  bedrijf: string | null;
+  bron: string | null;
+  aangemaakt: string;
+};
+
+// Portaalaccounts die als klant gemarkeerd zijn (user_metadata.klant).
+export async function portaalKlanten(): Promise<PortaalKlant[]> {
+  const uit: PortaalKlant[] = [];
+  try {
+    const admin = getSupabaseAdmin();
+    for (let page = 1; page <= 20; page++) {
+      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error || !data) break;
+      for (const u of data.users) {
+        const m = (u.user_metadata ?? {}) as Record<string, unknown>;
+        if (m.klant !== true || !u.email) continue;
+        uit.push({
+          email: u.email.toLowerCase(),
+          naam: typeof m.name === "string" ? m.name : null,
+          bedrijf: typeof m.company === "string" ? m.company : null,
+          bron: typeof m.bron === "string" ? m.bron : null,
+          aangemaakt: u.created_at,
+        });
+      }
+      if (data.users.length < 1000) break;
+    }
+  } catch {
+    // Niet-kritisch — de lijst valt terug op projecten/offertes/facturen.
+  }
+  return uit;
 }
 
 // Trekt portaaltoegang in: verwijdert de Supabase-auth-gebruiker.
