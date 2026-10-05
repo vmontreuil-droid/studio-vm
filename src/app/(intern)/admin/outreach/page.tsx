@@ -490,8 +490,8 @@ export default async function AdminOutreach({
               </>
             ) : (
               <>
-                Nog niet gestart — de eerste dagen max <strong>5</strong>{" "}
-                mails/dag, op dag 14 de volle quota ({cfg.dailyQuota}).
+                Nog niet gestart — de eerste dagen max <strong>10</strong>{" "}
+                mails/dag, op dag 11 de volle quota ({cfg.dailyQuota}).
               </>
             )}
           </p>

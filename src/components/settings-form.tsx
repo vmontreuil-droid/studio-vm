@@ -166,7 +166,7 @@ export function SettingsForm({
         </div>
         {o.startedAt && (
           <p className="sm:col-span-2 text-xs text-muted">
-            Warm-up actief sinds <strong className="text-foreground">{o.startedAt}</strong> — engine bouwt afzender-reputatie geleidelijk op (dag 0–3: max 5/dag, dag 4–7: 10, dag 8–10: 25, dag 11–13: 50, daarna jouw quota).
+            Warm-up actief sinds <strong className="text-foreground">{o.startedAt}</strong> — engine bouwt afzender-reputatie geleidelijk op (dag 0–1: max 10/dag, dag 2–3: 25, dag 4–6: 50, dag 7–9: 75, daarna jouw quota; opvolgmails komen erbovenop).
           </p>
         )}
       </Section>
