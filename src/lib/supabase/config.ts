@@ -37,7 +37,9 @@ export const adminConfigured = Boolean(monitorConfigured && adminPassword);
 // Online betalen via Mollie (optioneel). Zonder MOLLIE_API_KEY blijft de
 // "Betaal nu"-knop verborgen — facturen tonen dan enkel hun status.
 // Sleutel: Mollie dashboard → Developers → API keys (test_ of live_).
-export const mollieApiKey = process.env.MOLLIE_API_KEY ?? "";
+// Spaties, regeleinden en aanhalingstekens die bij het plakken in Vercel
+// meekomen, knippen we weg: anders weigert Mollie de sleutel.
+export const mollieApiKey = (process.env.MOLLIE_API_KEY ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
 // Globale betaal-killswitch: zet env PAYMENTS_OFF=1 (bv. tijdens
 // een simulatieronde) → geen enkele Mollie-betaling/incasso meer,
 // niemand kan via de site iets kopen. Verwijder de var om weer

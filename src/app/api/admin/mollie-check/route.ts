@@ -32,8 +32,27 @@ export async function GET(req: NextRequest) {
   const viaCron = !!cronSecret && req.headers.get("authorization") === `Bearer ${cronSecret}`;
   if (!viaCron && !(await requireAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const soort = mollieApiKey.startsWith("live_") ? "live" : mollieApiKey.startsWith("test_") ? "test" : mollieApiKey ? "onbekend" : "geen";
+  // Soort sleutel aan het voorvoegsel; de sleutel zelf verlaat de server nooit.
+  const soort = mollieApiKey.startsWith("live_")
+    ? "live"
+    : mollieApiKey.startsWith("test_")
+      ? "test"
+      : mollieApiKey.startsWith("access_")
+        ? "organisatietoken (niet de API-sleutel)"
+        : mollieApiKey.startsWith("pfl_")
+          ? "profiel-ID (niet de API-sleutel)"
+          : mollieApiKey.startsWith("org_")
+            ? "organisatie-ID (niet de API-sleutel)"
+            : mollieApiKey
+              ? "onbekend"
+              : "geen";
   if (soort === "geen") return NextResponse.json({ sleutel: "geen", betalingenAan: paymentsEnabled });
+  const ruw = process.env.MOLLIE_API_KEY ?? "";
+  const extra = {
+    lengte: mollieApiKey.length,
+    ...(ruw !== mollieApiKey ? { opgeschoond: "spaties of aanhalingstekens rond de sleutel weggeknipt" } : {}),
+  };
+  if (soort !== "live" && soort !== "test") return NextResponse.json({ sleutel: soort, ...extra, betalingenAan: paymentsEnabled });
 
   const [profiel, methodes] = await Promise.all([vraag("/profiles/me"), vraag("/methods?locale=nl_BE")]);
   const p = profiel.json;
@@ -41,6 +60,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     sleutel: soort,
+    ...extra,
     betalingenAan: paymentsEnabled,
     sleutelWerkt: methodes.ok,
     profiel: profiel.ok && p ? { naam: p.name ?? null, website: p.website ?? null, status: p.status ?? null } : { fout: profiel.status },
