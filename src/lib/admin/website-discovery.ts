@@ -165,11 +165,16 @@ export async function probeDomain(host: string): Promise<boolean> {
  * Bevestig dat de homepage over deze onderneming gaat: een kenmerkend
  * woord uit de naam (≥ 4 tekens, niet generiek) moet op de pagina staan,
  * of anders de volledige naam aaneengeschreven.
+ *
+ * `strikt` (domein uit een deel van de naam, bv. enkel het eerste woord):
+ * dan telt enkel de volledige naam. Anders keurt "Evreux Revêtement" de
+ * stadssite evreux.fr goed omdat "evreux" erop staat.
  */
 export async function bevestigNaam(
   host: string,
   name: string,
   land: DomeinLand,
+  strikt = false,
 ): Promise<boolean> {
   const page = await safeFetchText(`https://${host}/`, {
     timeoutMs: 6000,
@@ -182,6 +187,10 @@ export async function bevestigNaam(
   if (isGeparkeerd(page.text)) return false;
   const tekst = htmlNaarTekst(page.text).replace(/[^a-z0-9]+/g, " ");
   const compact = tekst.replace(/ /g, "");
+  if (strikt) {
+    const volledig = nameWords(name, land).join("").replace(/[^a-z0-9]/g, "");
+    return volledig.length >= 5 && compact.includes(volledig);
+  }
   const woorden = nameWords(name, land).filter(
     (w) => w.length >= 4 && !GENERIEK.has(w) && /[a-z]/.test(w),
   );
@@ -200,9 +209,12 @@ export async function findWebsiteForName(
   maxTries = 10,
 ): Promise<string | null> {
   const candidates = candidateDomains(name, land).slice(0, maxTries);
+  const woorden = nameWords(name, land);
+  const volledig = new Set([woorden.join(""), woorden.join("-")]);
   for (const host of candidates) {
     if (!(await probeDomain(host))) continue;
-    if (await bevestigNaam(host, name, land)) return `https://${host}`;
+    const deel = !volledig.has(host.split(".")[0]);
+    if (await bevestigNaam(host, name, land, deel)) return `https://${host}`;
   }
   return null;
 }

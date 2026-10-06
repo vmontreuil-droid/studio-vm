@@ -22,11 +22,11 @@
     },
     {
       "path": "/api/cron/outreach-email-finder",
-      "schedule": "0 4 * * *"
+      "schedule": "5,35 * * * *"
     },
     {
       "path": "/api/cron/outreach-prescan",
-      "schedule": "0 5 * * *"
+      "schedule": "50 */2 * * *"
     },
     {
       "path": "/api/cron/outreach-send",
@@ -38,7 +38,7 @@
     },
     {
       "path": "/api/cron/website-discovery",
-      "schedule": "30 3 * * *"
+      "schedule": "15,45 * * * *"
     },
     {
       "path": "/api/cron/social-generate",

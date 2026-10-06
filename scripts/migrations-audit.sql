@@ -195,6 +195,19 @@ with checks as (
       select 1 from information_schema.tables
       where table_schema = 'public' and table_name = 'sirene_enterprises_oud'
     )
+  union all select
+    '0056_discovery_kolommen.sql',
+    'wat 0048 miste: prospect_outreach.signalen + website_discovery_at op KBO/NL/DE',
+    exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'prospect_outreach'
+        and column_name = 'signalen'
+    )
+    and exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'de_bedrijven'
+        and column_name = 'website_discovery_at'
+    )
 )
 select
   migration,
