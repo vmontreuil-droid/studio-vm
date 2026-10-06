@@ -1,138 +1,88 @@
-#!/usr/bin/env node
-// UK Companies House — bulk basic data import (~5 M companies).
+// VK: Companies House "BasicCompanyDataAsOneFile" → uk_companies.
 //
-// Gebruik:
-//   1) Download van http://download.companieshouse.gov.uk/en_output.html
-//      → "BasicCompanyDataAsOneFile-YYYY-MM-DD.zip" (~250 MB)
-//   2) Uitpakken → "BasicCompanyDataAsOneFile-YYYY-MM-DD.csv" (~500 MB)
-//   3) Run:
-//        node --max-old-space-size=4096 scripts/uk-companies-import.mjs \
-//             /pad/naar/BasicCompanyDataAsOneFile-YYYY-MM-DD.csv
+//   1) Download http://download.companieshouse.gov.uk/en_output.html
+//      → BasicCompanyDataAsOneFile-YYYY-MM-DD.zip, en pak uit (CSV, ~2,8 GB).
+//   2) node scripts/uk-companies-import.mjs /pad/naar/BasicCompanyDataAsOneFile-….csv [--droog]
+//
+// DuckDB staat niet in package.json: zet DUCKDB_DIR naar een map waar
+// `npm i @duckdb/node-api` gedraaid is (zoals bij overture-import.mjs).
+//
+// Enkel actieve bedrijven met een SIC-code in de doelgroep (een van de vier
+// SIC-velden); sic_main = die doelgroep-code, zodat de NACE-filter ze vindt.
+// Website, adressen en scan worden niet aangeraakt (blijven bij een herimport).
 
-import fs from "node:fs";
-import readline from "node:readline";
-import { createClient } from "@supabase/supabase-js";
-import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+import { createRequire } from "node:module";
+import { readFileSync, existsSync } from "node:fs";
+import path from "node:path";
 
-const file = process.argv[2];
-if (!file) {
-  console.error("Pad naar BasicCompanyDataAsOneFile-YYYY-MM-DD.csv vereist.");
-  process.exit(1);
+const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1")), "..");
+const args = process.argv.slice(2);
+const DROOG = args.includes("--droog");
+const CSV = args.find((a) => !a.startsWith("--"))?.replace(/\\/g, "/");
+if (!CSV || !existsSync(CSV)) { console.error("Pad naar de uitgepakte CSV vereist."); process.exit(1); }
+
+for (const l of readFileSync(path.join(REPO, ".env.local"), "utf8").split(/\r?\n/)) {
+  const m = l.match(/^([A-Z_]+)=(.*)$/);
+  if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^"|"$/g, "");
 }
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !key) {
-  console.error("Zet NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env.local.");
-  process.exit(1);
-}
-const sb = createClient(url, key, { auth: { persistSession: false } });
-
-function splitCsv(line) {
-  const out = [];
-  let cur = "";
-  let q = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (q && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else q = !q;
-    } else if (c === "," && !q) {
-      out.push(cur);
-      cur = "";
-    } else cur += c;
-  }
-  out.push(cur);
-  return out.map((s) => s.trim());
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function upsert(chunk) {
-  for (const wait of [1500, 4000, 10_000, 0]) {
-    const { error } = await sb
-      .from("uk_companies")
-      .upsert(chunk, { onConflict: "company_number" });
-    if (!error) return true;
-    if (wait === 0) {
-      console.error(`    laatste poging: ${error.message}`);
-      return false;
-    }
-    console.warn(`    fout, retry in ${wait}ms (${error.message})`);
-    await sleep(wait);
-  }
-  return false;
-}
-
-function isoDate(s) {
-  if (!s) return null;
-  // UK formaat: "DD/MM/YYYY"
-  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
-}
-
-const BATCH = 1000;
-let buf = [];
-let upserted = 0;
-let failed = 0;
-
-console.log(`> ${file}`);
-const rl = readline.createInterface({
-  input: fs.createReadStream(file, { encoding: "utf8" }),
-  crlfDelay: Infinity,
+const repoRequire = createRequire(path.join(REPO, "package.json"));
+const duckRequire = createRequire(path.join(process.env.DUCKDB_DIR || REPO, "package.json"));
+const { DuckDBInstance } = duckRequire("@duckdb/node-api");
+const { createClient } = repoRequire("@supabase/supabase-js");
+const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
 });
 
-let header = null;
-let n = 0;
-for await (const line of rl) {
-  if (!line) continue;
-  const cols = splitCsv(line);
-  if (!header) {
-    header = cols;
-    continue;
-  }
-  const row = {};
-  for (let i = 0; i < header.length; i++) row[header[i]] = cols[i];
-  if (!row.CompanyNumber) continue;
-  // SIC-code zit als "12345 - Description" → eerste 5 cijfers eruit.
-  const sicRaw = row["SICCode.SicText_1"] || "";
-  const sicMatch = sicRaw.match(/^(\d{4,5})/);
-  buf.push({
-    company_number: row.CompanyNumber,
-    name: row.CompanyName || null,
-    status: row.CompanyStatus || null,
-    category: row.CompanyCategory || null,
-    incorporated_date: isoDate(row.IncorporationDate),
-    postcode: row["RegAddress.PostCode"] || null,
-    city: row["RegAddress.PostTown"] || null,
-    street:
-      [
-        row["RegAddress.AddressLine1"],
-        row["RegAddress.AddressLine2"],
-      ]
-        .filter(Boolean)
-        .join(", ") || null,
-    sic_main: sicMatch ? sicMatch[1] : null,
-    email: null,
-    phone: null,
-    website: null,
-    updated_at: new Date().toISOString(),
-  });
-  if (++n % 250_000 === 0) console.log(`  ${n} rijen gelezen`);
-  if (buf.length >= BATCH) {
-    const ok = await upsert(buf);
-    if (ok) upserted += buf.length;
-    else failed += buf.length;
-    buf = [];
-    if (upserted % 100_000 === 0) console.log(`  upserted ${upserted}`);
-  }
-}
-if (buf.length > 0) {
-  const ok = await upsert(buf);
-  if (ok) upserted += buf.length;
-  else failed += buf.length;
-}
+// Zelfde codes als NACE_OPTIES in src/lib/admin/aannemers.ts, in SIC-vorm.
+const CODES = "^(42|431|4399|4120|8130|0812|711)";
+const sic = (i) => `coalesce("SICCode.SicText_${i}", '')`;
+const treffer = (i) => `CASE WHEN regexp_matches(${sic(i)}, '${CODES}') THEN regexp_extract(${sic(i)}, '^(\\d{4,5})', 1) END`;
 
-console.log(`\nKlaar — ${upserted} upserted${failed ? `, ${failed} mislukt` : ""}.`);
+const db = await (await DuckDBInstance.create(":memory:")).connect();
+const t0 = Date.now();
+await db.run(`CREATE TABLE r AS SELECT * FROM (
+  SELECT trim(CompanyNumber) AS company_number,
+         nullif(trim(CompanyName), '') AS name,
+         CompanyStatus AS status,
+         CompanyCategory AS category,
+         CAST(try_strptime(IncorporationDate, '%d/%m/%Y') AS DATE)::VARCHAR AS incorporated_date,
+         nullif(trim("RegAddress.PostCode"), '') AS postcode,
+         nullif(trim("RegAddress.PostTown"), '') AS city,
+         nullif(concat_ws(', ', nullif(trim("RegAddress.AddressLine1"), ''), nullif(trim("RegAddress.AddressLine2"), '')), '') AS street,
+         coalesce(${treffer(1)}, ${treffer(2)}, ${treffer(3)}, ${treffer(4)}) AS sic_main
+  FROM read_csv('${CSV}', header = true, all_varchar = true, quote = '"', escape = '"', ignore_errors = true)
+  WHERE CompanyStatus = 'Active'
+) WHERE sic_main IS NOT NULL AND name IS NOT NULL`);
+const [{ n }] = (await db.runAndReadAll("SELECT count(*)::INT AS n FROM r")).getRowObjectsJson();
+console.log(`${n} actieve bedrijven in de doelgroep (${Math.round((Date.now() - t0) / 1000)} s)`);
+console.table((await db.runAndReadAll("SELECT sic_main AS sic, count(*)::INT AS n FROM r GROUP BY 1 ORDER BY n DESC")).getRowObjectsJson());
+if (DROOG) process.exit(0);
+
+const BATCH = 1000;
+let klaar = 0;
+for (let van = 0; van < n; van += 20_000) {
+  const nu = new Date().toISOString();
+  const rijen = (await db.runAndReadAll(`SELECT * FROM r ORDER BY company_number LIMIT 20000 OFFSET ${van}`))
+    .getRowObjectsJson()
+    .map((r) => ({ ...r, updated_at: nu }));
+  const delen = [];
+  for (let i = 0; i < rijen.length; i += BATCH) delen.push(rijen.slice(i, i + BATCH));
+  // Vier tegelijk; tot vier pogingen per deel, zodat een haperende verbinding de import niet stopt.
+  await Promise.all(
+    Array.from({ length: 4 }, async () => {
+      for (let deel; (deel = delen.shift()); ) {
+        let fout = null;
+        for (let poging = 1; poging <= 4; poging++) {
+          const { error } = await sb.from("uk_companies").upsert(deel, { onConflict: "company_number" });
+          fout = error;
+          if (!error) break;
+          await new Promise((z) => setTimeout(z, 2000 * poging));
+        }
+        if (fout) { console.error("FOUT:", fout.message); process.exit(1); }
+        klaar += deel.length;
+      }
+    }),
+  );
+  console.log(`  ${klaar}/${n}`);
+}
+console.log(`uk_companies: ${klaar} rijen (${Math.round((Date.now() - t0) / 1000)} s)`);

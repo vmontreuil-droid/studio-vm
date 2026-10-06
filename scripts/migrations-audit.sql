@@ -183,6 +183,18 @@ with checks as (
       where table_schema = 'public' and table_name = 'de_bedrijven'
     )
     and exists(select 1 from pg_proc where proname = 'claim_de_for_scan')
+  union all select
+    '0055_sirene_compact.sql',
+    'Sirene compact (enkel doelgroep) in de plaats van de volledige stock + website_discovery_at op FR/UK',
+    exists(
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'sirene_enterprises'
+        and column_name = 'website_discovery_at'
+    )
+    and not exists(
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = 'sirene_enterprises_oud'
+    )
 )
 select
   migration,
