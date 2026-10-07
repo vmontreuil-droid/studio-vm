@@ -8,7 +8,7 @@ const nl = {
   meta: {
     siteName: "Studio VM",
     title: "3D-modellen voor GPS-machinebesturing | Studio VM",
-    description: `Uw 2D-plannen als 3D-model voor uw GPS-gestuurde kraan, grader of dozer: Trimble, Topcon, Leica, Unicontrol en meer. Vanaf ${P} per uur excl. btw.`,
+    description: `Uw 2D-plannen als 3D-terreinmodel voor machinegeleiding op uw GPS-kraan, rupskraan, grader of dozer: Trimble, Topcon, Leica, Unicontrol. Vanaf ${P}/uur excl. btw.`,
     locale: "nl_BE",
   },
   nav: {

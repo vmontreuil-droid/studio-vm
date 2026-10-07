@@ -8,7 +8,7 @@ const en: Messages = {
   meta: {
     siteName: "Studio VM",
     title: "Machine control 3D models for earthworks | Studio VM",
-    description: `Your 2D drawings as 3D models for GPS-guided excavators, graders and dozers: Trimble, Topcon, Leica, Unicontrol and more. From ${P} per hour excl. VAT.`,
+    description: `Your 2D drawings as 3D terrain models (DTM) for GPS machine control on excavators, graders and dozers: Trimble, Topcon, Leica, Unicontrol. From ${P}/h excl. VAT.`,
     locale: "en_GB",
   },
   nav: {

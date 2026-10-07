@@ -34,7 +34,7 @@ const T: Record<
   nl: {
     meta: {
       title: "Over Studio VM: 3D-modellen voor machinesturing uit België",
-      description: "Studio VM (Anzegem, België) maakt 3D-modellen voor GPS-gestuurde machines, voor aannemers in heel Europa. Rechtstreeks contact, gecontroleerd werk.",
+      description: "Studio VM (Anzegem, België) maakt 3D-modellen voor machinegeleiding op GPS-gestuurde kranen en graders, voor aannemers in Vlaanderen, Nederland en Europa.",
     },
     titel: "Over Studio VM: één aanspreekpunt, van plan tot model",
     lead: "Studio VM maakt vanuit Anzegem (West-Vlaanderen, België) 3D-modellen voor machinesturing, voor aannemers in heel Europa.",
@@ -58,7 +58,7 @@ const T: Record<
   fr: {
     meta: {
       title: "À propos de Studio VM : modèles 3D de guidage d'engins",
-      description: "Studio VM (Anzegem, Belgique) réalise des modèles 3D pour engins guidés par GPS, partout en Europe. Contact direct, travail contrôlé, délais clairs.",
+      description: "Studio VM (Anzegem, Belgique) réalise des modèles 3D pour le guidage d'engins GPS, en Wallonie, en France et partout en Europe. Contact direct, travail contrôlé.",
     },
     titel: "À propos de Studio VM : un seul interlocuteur, du plan au modèle",
     lead: "Depuis Anzegem (Flandre-Occidentale, Belgique), Studio VM réalise des modèles 3D pour le guidage d'engins, pour des entrepreneurs dans toute l'Europe.",
@@ -82,7 +82,7 @@ const T: Record<
   en: {
     meta: {
       title: "About Studio VM: machine control 3D models from Belgium",
-      description: "Studio VM (Anzegem, Belgium) creates 3D models for GPS-guided machines for contractors across Europe. Direct contact, checked work, clear lead times.",
+      description: "Studio VM (Anzegem, Belgium) creates machine control 3D models for GPS-guided excavators and graders, for contractors across Europe. Direct contact, checked work.",
     },
     titel: "About Studio VM: one point of contact, from plan to model",
     lead: "From Anzegem (West Flanders, Belgium), Studio VM creates 3D models for machine control for contractors across Europe.",
@@ -106,7 +106,7 @@ const T: Record<
   de: {
     meta: {
       title: "Über Studio VM: 3D-Modelle für Maschinensteuerung aus Belgien",
-      description: "Studio VM (Anzegem, Belgien) erstellt 3D-Modelle für GPS-gesteuerte Maschinen, europaweit. Direkter Kontakt, geprüfte Arbeit, klare Fristen.",
+      description: "Studio VM (Anzegem, Belgien) erstellt 3D-Modelle für die Maschinensteuerung von GPS-Baggern und Gradern, europaweit. Direkter Kontakt, geprüfte Arbeit.",
     },
     titel: "Über Studio VM: ein Ansprechpartner, vom Plan bis zum Modell",
     lead: "Von Anzegem (Westflandern, Belgien) aus erstellt Studio VM 3D-Modelle für Maschinensteuerung, für Bauunternehmen in ganz Europa.",
@@ -130,7 +130,7 @@ const T: Record<
   es: {
     meta: {
       title: "Sobre Studio VM: modelos 3D para maquinaria desde Bélgica",
-      description: "Studio VM (Anzegem, Bélgica) crea modelos 3D para máquinas guiadas por GPS en toda Europa. Contacto directo, trabajo comprobado y plazos claros.",
+      description: "Studio VM (Anzegem, Bélgica) crea modelos 3D para control de maquinaria en excavadoras y motoniveladoras GPS, en toda Europa. Contacto directo, trabajo comprobado.",
     },
     titel: "Sobre Studio VM: un único interlocutor, del plano al modelo",
     lead: "Desde Anzegem (Flandes Occidental, Bélgica), Studio VM crea modelos 3D para control de maquinaria, para contratistas de toda Europa.",

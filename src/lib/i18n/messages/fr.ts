@@ -8,7 +8,7 @@ const fr: Messages = {
   meta: {
     siteName: "Studio VM",
     title: "Modèles 3D pour le guidage d'engins GPS | Studio VM",
-    description: `Vos plans 2D en modèle 3D pour votre pelle, niveleuse ou bouteur guidé par GPS : Trimble, Topcon, Leica, Unicontrol et autres. Dès ${P} de l'heure HTVA.`,
+    description: `Vos plans 2D en modèle numérique de terrain (MNT) pour le guidage de votre pelle, niveleuse ou bouteur GPS : Trimble, Topcon, Leica, Unicontrol. Dès ${P}/h HTVA.`,
     locale: "fr_BE",
   },
   nav: {

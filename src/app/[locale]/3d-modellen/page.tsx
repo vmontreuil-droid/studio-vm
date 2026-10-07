@@ -49,7 +49,7 @@ const T: Record<
   nl: {
     meta: {
       title: "3D-model voor machinebesturing: wat u krijgt | Studio VM",
-      description: "Ontwerpoppervlak (TIN), lijnwerk, hoogtelijnen en hellingscontrole voor machinebesturing, in het formaat van al uw systemen en het juiste stelsel.",
+      description: "Ontwerpoppervlak (TIN/DTM), lijnwerk, breeklijnen en hellingscontrole voor machinegeleiding: LandXML of het formaat van uw systeem, in Lambert 72/TAW of RD/NAP.",
     },
     eyebrow: "3D-modellen",
     titel: "Wat zit er in een 3D-model voor machinesturing?",
@@ -98,7 +98,7 @@ const T: Record<
   fr: {
     meta: {
       title: "Modèle 3D pour guidage d'engins : le contenu | Studio VM",
-      description: "Surface de projet (TIN), filaire, courbes de niveau et contrôle des pentes, au format de tous vos systèmes de guidage. Découvrez ce que vous recevez.",
+      description: "Surface de projet (TIN/MNT), filaire, lignes de rupture et contrôle des pentes pour le guidage d'engins : LandXML ou format natif, en Lambert 72/DNG ou Lambert-93.",
     },
     eyebrow: "Modèles 3D",
     titel: "Que contient un modèle 3D pour le guidage d'engins ?",
@@ -147,7 +147,7 @@ const T: Record<
   en: {
     meta: {
       title: "What's in a machine control 3D model | Studio VM",
-      description: "Design surface (TIN), linework, contours and slope checks, delivered in the format of all your machine control systems and the right coordinate system.",
+      description: "Design surface (TIN/DTM), linework, breaklines and slope checks for machine control: LandXML or your system's native format, in the right coordinate system.",
     },
     eyebrow: "3D models",
     titel: "What is in a 3D model for machine control?",
@@ -196,7 +196,7 @@ const T: Record<
   de: {
     meta: {
       title: "3D-Modell für Maschinensteuerung: der Inhalt | Studio VM",
-      description: "Planungsoberfläche (DGM), Linien, Höhenlinien und Neigungsprüfung, im Format all Ihrer Maschinensteuerungen und im richtigen Koordinatensystem.",
+      description: "Planungsoberfläche (DGM/TIN), Bruchkanten, Höhenlinien und Neigungsprüfung für die Maschinensteuerung: LandXML oder Herstellerformat, in ETRS89/UTM und DHHN2016.",
     },
     eyebrow: "3D-Modelle",
     titel: "Was steckt in einem 3D-Modell für Maschinensteuerung?",
@@ -245,7 +245,7 @@ const T: Record<
   es: {
     meta: {
       title: "Modelo 3D para control de maquinaria: contenido | Studio VM",
-      description: "Superficie de proyecto (TIN), líneas, curvas de nivel y control de pendientes, en el formato de todos sus sistemas de control de maquinaria.",
+      description: "Superficie de proyecto (TIN/MDT), líneas de ruptura, curvas de nivel y control de pendientes para control de maquinaria: LandXML o formato nativo, en ETRS89/UTM.",
     },
     eyebrow: "Modelos 3D",
     titel: "¿Qué contiene un modelo 3D para control de maquinaria?",

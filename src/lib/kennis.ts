@@ -592,7 +592,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Coördinatenstelsels en hoogtereferenties",
         metaTitel: "Coördinatenstelsel en hoogtereferentie per land",
         metaBeschrijving:
-          "Lambert 72, RD New, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
+          "Lambert 72/TAW, RD New/NAP, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
         samenvatting:
           "Een model is pas bruikbaar als het in hetzelfde stelsel staat als de machine. Welke stelsels en hoogtereferenties per land gangbaar zijn, wat een lokale kalibratie doet en wat er gebeurt bij een verkeerde keuze.",
         secties: [
@@ -644,7 +644,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Systèmes de coordonnées et références altimétriques",
         metaTitel: "Systèmes de coordonnées et altimétrie par pays",
         metaBeschrijving:
-          "Lambert 72, Lambert-93, RD New, UTM : quel système et quelle référence altimétrique votre engin attend, le rôle d’une calibration et les erreurs à éviter.",
+          "Lambert 72/DNG, Lambert-93/NGF, RD New, UTM : quel système et quelle référence altimétrique votre engin attend, le rôle d’une calibration et les erreurs à éviter.",
         samenvatting:
           "Un modèle n’est utilisable que s’il est dans le même système que la machine. Les systèmes et références d’altitude courants par pays, le rôle d’une calibration locale et ce qui se passe en cas de mauvais choix.",
         secties: [
@@ -696,7 +696,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Coordinate reference systems and height datums",
         metaTitel: "Coordinate systems and height datums by country",
         metaBeschrijving:
-          "Lambert 72, RD New, Lambert-93, UTM: which grid and height datum your machine expects, what a site calibration does and what goes wrong otherwise.",
+          "Lambert 72, RD New/NAP, Lambert-93, ETRS89/UTM: which grid and height datum your machine expects, what a site calibration does and what goes wrong otherwise.",
         samenvatting:
           "A model is only usable when it is in the same system as the machine. The coordinate systems and height datums commonly used in each country, what a local site calibration does and what happens when the wrong system is chosen.",
         secties: [
@@ -861,7 +861,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Bestanden per merk en systeem",
         metaTitel: "Bestanden voor Trimble, Topcon, Leica en meer",
         metaBeschrijving:
-          "Elke machinebesturing leest eigen bestanden. Hoe we werken met Trimble, Topcon, Leica en andere merken, welke uitwisselingsformaten werken en wat u nakijkt.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol: welke bestanden elke machinebesturing leest (TTM, TP3, LandXML, DXF) en wat u vooraf nakijkt.",
         samenvatting:
           "Elk machinesturingssysteem leest zijn eigen bestanden. Hoe we met de verschillende merken omgaan, welke uitwisselingsformaten breed aanvaard zijn en waarom u het bestand altijd zelf op uw systeem controleert.",
         secties: [
@@ -926,7 +926,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Fichiers par marque et par système",
         metaTitel: "Fichiers pour Trimble, Topcon, Leica et autres",
         metaBeschrijving:
-          "Chaque système de guidage lit ses propres fichiers. Comment nous travaillons avec Trimble, Topcon, Leica et d’autres marques, et ce que vous devez vérifier.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol : quels fichiers lit chaque système de guidage (TTM, TP3, LandXML, DXF) et ce que vous vérifiez.",
         samenvatting:
           "Chaque système de guidage lit ses propres fichiers. Comment nous travaillons avec les différentes marques, quels formats d’échange sont largement acceptés et pourquoi vous contrôlez toujours le fichier sur votre propre système.",
         secties: [
@@ -991,7 +991,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Files by brand and system",
         metaTitel: "Files for Trimble, Topcon, Leica and more",
         metaBeschrijving:
-          "Every machine control system reads its own files. How we work with Trimble, Topcon, Leica and other brands, and why you check the file on your system.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol: which files each machine control system reads (TTM, TP3, LandXML, DXF) and what you check first.",
         samenvatting:
           "Every machine control system reads its own files. How we handle the different brands, which exchange formats are widely accepted and why you always check the file on your own system.",
         secties: [
@@ -1056,7 +1056,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Dateien nach Marke und System",
         metaTitel: "Dateien für Trimble, Topcon, Leica und mehr",
         metaBeschrijving:
-          "Jede Maschinensteuerung liest eigene Dateien. Wie wir mit Trimble, Topcon, Leica und anderen Marken arbeiten und warum Sie die Datei selbst prüfen.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol: welche Dateien jede Maschinensteuerung liest (TTM, TP3, LandXML, DXF) und was Sie vorab prüfen.",
         samenvatting:
           "Jedes Maschinensteuerungssystem liest seine eigenen Dateien. Wie wir mit den verschiedenen Marken umgehen, welche Austauschformate breit akzeptiert sind und warum Sie die Datei immer selbst auf Ihrem System prüfen.",
         secties: [
@@ -1121,7 +1121,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Archivos por marca y sistema",
         metaTitel: "Archivos para Trimble, Topcon, Leica y más",
         metaBeschrijving:
-          "Cada sistema de control lee sus propios archivos. Cómo trabajamos con Trimble, Topcon, Leica y otras marcas, y por qué debe comprobar el archivo usted mismo.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol: qué archivos lee cada sistema de control de maquinaria (TTM, TP3, LandXML, DXF) y qué comprobar.",
         samenvatting:
           "Cada sistema de control de maquinaria lee sus propios archivos. Cómo trabajamos con las distintas marcas, qué formatos de intercambio están ampliamente aceptados y por qué usted siempre debe comprobar el archivo en su propio sistema.",
         secties: [

@@ -8,7 +8,7 @@ const de: Messages = {
   meta: {
     siteName: "Studio VM",
     title: "3D-Modelle für Maschinensteuerung im Erdbau | Studio VM",
-    description: `Ihre 2D-Pläne als 3D-Modell (DGM, Bruchkanten) für GPS-gesteuerte Bagger, Grader und Raupen: Trimble, Topcon, Leica, Unicontrol. Ab ${P}/Std. zzgl. MwSt.`,
+    description: `Ihre 2D-Pläne als Geländemodell (DGM, Bruchkanten) für die Maschinensteuerung von Bagger, Grader und Raupe: Trimble, Topcon, Leica. Ab ${P}/Std. zzgl. MwSt.`,
     locale: "de_DE",
   },
   nav: {
