@@ -495,12 +495,20 @@ const CAMPAGNE: Record<Doelgroep, string> = {
   landmeter: "landmeters-3d",
 };
 
-function utm(url: string, variant: "first" | "followup", lang: MailTaal, doelgroep: Doelgroep): string {
+/**
+ * utm_content = variant-taal-code: de code (begin van scan_token) laat de
+ * bezoekersteller zien welk bedrijf echt op de site kwam ("warme lead",
+ * zie lib/admin/warme-leads). Scanners husselen de waarde en vallen weg.
+ */
+export const LEAD_CODE_LENGTE = 12;
+
+function utm(url: string, variant: "first" | "followup", lang: MailTaal, doelgroep: Doelgroep, token: string): string {
+  const code = token.replace(/[^A-Za-z0-9_-]/g, "").slice(0, LEAD_CODE_LENGTE);
   const q = new URLSearchParams({
     utm_source: "outreach",
     utm_medium: "email",
     utm_campaign: CAMPAGNE[doelgroep],
-    utm_content: `${variant}-${lang}`,
+    utm_content: code ? `${variant}-${lang}-${code}` : `${variant}-${lang}`,
   });
   return `${url}?${q.toString()}`;
 }
@@ -598,8 +606,8 @@ export function buildOutreachMail(
   const v = VAST[lang] ?? VAST.nl;
   const b = (BOODSCHAP[doelgroep] ?? BOODSCHAP.aannemer)[lang] ?? BOODSCHAP.aannemer.nl;
   const base = BASE();
-  const realisaties = utm(`${base}/${lang}/realisaties`, variant, lang, doelgroep);
-  const offerte = utm(`${base}/${lang}/offerte`, variant, lang, doelgroep);
+  const realisaties = utm(`${base}/${lang}/realisaties`, variant, lang, doelgroep, pr.token);
+  const offerte = utm(`${base}/${lang}/offerte`, variant, lang, doelgroep, pr.token);
   const unsub = `${base}/api/outreach/unsubscribe?t=${encodeURIComponent(pr.token)}&l=${lang}`;
   const subject = variant === "first" ? b.subject : `Re: ${b.subject}`;
   const dp = lang === "fr" ? " : " : ": ";

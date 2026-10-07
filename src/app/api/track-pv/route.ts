@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import crypto from "node:crypto";
+import { leadCodeUit, markeerLeadBezoek } from "@/lib/admin/warme-leads";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { schoneUtm, utmContentOntbreekt } from "@/lib/utm";
@@ -163,6 +164,10 @@ export async function POST(req: NextRequest) {
     } else {
       await db.from("page_views").insert(rij);
     }
+
+    // Klik uit de outreachmail met leadcode: warme lead (zie lib/admin/warme-leads).
+    const leadCode = utmSource === "outreach" ? leadCodeUit(utmContent) : null;
+    if (leadCode) after(() => markeerLeadBezoek(leadCode).catch(() => false));
 
     return NextResponse.json({ ok: true });
   } catch {
