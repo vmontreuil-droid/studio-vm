@@ -38,7 +38,7 @@ const T: Record<
   nl: {
     meta: {
       title: "Realisaties: 3D-modellen wegenis en grondwerk | Studio VM",
-      description: `${N} voorbeelden van 3D-modellen voor wegenis, grondwerk, bouwputten en bekkens, in hoogtekleuren, helling, hoogtelijnen en driehoeksnet. Bekijk de galerij.`,
+      description: `${N} voorbeelden van 3D-terreinmodellen voor wegenis, grondwerk, bouwputten en bekkens, in hoogtekleuren, helling, hoogtelijnen en driehoeksnet. Bekijk de galerij.`,
     },
     eyebrow: "Realisaties",
     titel: "3D-modellen die op de werf liggen",

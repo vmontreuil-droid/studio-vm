@@ -14,7 +14,7 @@ import { JsonLd } from "@/components/json-ld";
 
 const T: Record<Locale, { meta: { title: string; description: string }; eyebrow: string; titel: string; intro: string; lees: string }> = {
   nl: {
-    meta: { title: "Kennisbank 3D-modellen en machinebesturing | Studio VM", description: "Uitleg over terreinmodellen, breeklijnen, coördinatenstelsels, bestanden per merk en wat u aanlevert. Praktische kennis voor aannemers en machinisten." },
+    meta: { title: "Kennisbank 3D-modellen en machinebesturing | Studio VM", description: "Uitleg over terreinmodellen (DTM), breeklijnen, Lambert/TAW en RD/NAP, bestanden voor Trimble, Topcon en Leica, en wat u aanlevert. Voor aannemers en machinisten." },
     eyebrow: "Kennisbank",
     titel: "Alles over 3D-modellen voor machinesturing",
     intro: "Praktische uitleg voor aannemers, werfleiders en uitvoerders: hoe een model in elkaar zit, welk stelsel u nodig hebt en wat u best aanlevert.",

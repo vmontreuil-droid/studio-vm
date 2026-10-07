@@ -49,7 +49,7 @@ const T: Record<
   nl: {
     meta: {
       title: "3D-model voor machinebesturing: wat u krijgt | Studio VM",
-      description: "Ontwerpoppervlak (TIN), lijnwerk, hoogtelijnen en hellingscontrole voor machinebesturing, in het formaat van al uw systemen en het juiste stelsel.",
+      description: "Ontwerpoppervlak (TIN/DTM), lijnwerk, breeklijnen en hellingscontrole voor machinegeleiding: LandXML of het formaat van uw systeem, in Lambert 72/TAW of RD/NAP.",
     },
     eyebrow: "3D-modellen",
     titel: "Wat zit er in een 3D-model voor machinesturing?",

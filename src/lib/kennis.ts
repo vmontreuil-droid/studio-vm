@@ -592,7 +592,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Coördinatenstelsels en hoogtereferenties",
         metaTitel: "Coördinatenstelsel en hoogtereferentie per land",
         metaBeschrijving:
-          "Lambert 72, RD New, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
+          "Lambert 72/TAW, RD New/NAP, Lambert-93, UTM: welk stelsel en welke hoogtereferentie uw machine verwacht, wat een werfkalibratie doet en wat er misgaat.",
         samenvatting:
           "Een model is pas bruikbaar als het in hetzelfde stelsel staat als de machine. Welke stelsels en hoogtereferenties per land gangbaar zijn, wat een lokale kalibratie doet en wat er gebeurt bij een verkeerde keuze.",
         secties: [
@@ -861,7 +861,7 @@ export const KENNIS: KennisArtikel[] = [
         titel: "Bestanden per merk en systeem",
         metaTitel: "Bestanden voor Trimble, Topcon, Leica en meer",
         metaBeschrijving:
-          "Elke machinebesturing leest eigen bestanden. Hoe we werken met Trimble, Topcon, Leica en andere merken, welke uitwisselingsformaten werken en wat u nakijkt.",
+          "Trimble Siteworks, Topcon 3D-MC, Leica iCON, Unicontrol: welke bestanden elke machinebesturing leest (TTM, TP3, LandXML, DXF) en wat u vooraf nakijkt.",
         samenvatting:
           "Elk machinesturingssysteem leest zijn eigen bestanden. Hoe we met de verschillende merken omgaan, welke uitwisselingsformaten breed aanvaard zijn en waarom u het bestand altijd zelf op uw systeem controleert.",
         secties: [

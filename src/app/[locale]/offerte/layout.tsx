@@ -7,7 +7,7 @@ export const META: Record<Locale, { title: string; description: string; ogAlt: s
   nl: {
     title: "Offerte voor een 3D-model machinebesturing | Studio VM",
     description:
-      "Laad uw plannen op, geef het werfadres en het merk van uw machinebesturing. U krijgt een offerte op maat, met het juiste coördinatenstelsel voorgesteld.",
+      "Laad uw plannen op, geef het werfadres en het merk van uw machinegeleiding of GPS-kraan. U krijgt een offerte op maat, met het juiste coördinatenstelsel.",
     ogAlt: "Offerte voor een 3D-model — Studio VM",
   },
   fr: {
