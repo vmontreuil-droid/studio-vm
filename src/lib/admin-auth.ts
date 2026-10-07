@@ -13,6 +13,12 @@ export const ADMIN_COOKIE = "__Host-svm_admin";
 /** Oude cookienamen: enkel nog om op te ruimen. */
 export const ADMIN_COOKIE_OUD = ["svm_admin"] as const;
 export const ADMIN_SESSIE_SECONDEN = 60 * 60 * 8;
+/**
+ * Markering "toestel van de beheerder": bij elke aanmelding gezet, een jaar
+ * geldig, ook na afmelden. De bezoekersteller (/api/track-pv) slaat zo'n
+ * toestel over, ook als de sessie al verlopen is.
+ */
+export const NIET_TELLEN_COOKIE = "svm_niet_tellen";
 
 const sessieGeheim = process.env.ADMIN_SESSION_SECRET ?? "";
 

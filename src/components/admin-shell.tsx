@@ -365,6 +365,14 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
+  // Dit toestel is van de beheerder: Vercel Analytics telt het niet meer mee
+  // (officiële uitschakelvlag). De eigen teller: zie NIET_TELLEN_COOKIE.
+  useEffect(() => {
+    try {
+      localStorage.setItem("va-disable", "true");
+    } catch {}
+  }, []);
+
   useEffect(() => {
     try {
       setCollapsed(localStorage.getItem("svm-admin-collapsed") === "1");

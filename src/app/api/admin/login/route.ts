@@ -3,6 +3,7 @@ import { adminConfigured } from "@/lib/supabase/config";
 import {
   ADMIN_COOKIE,
   ADMIN_SESSIE_SECONDEN,
+  NIET_TELLEN_COOKIE,
   adminBestemming,
   nieuweAdminSessie,
   wachtwoordKlopt,
@@ -94,6 +95,13 @@ export async function POST(req: NextRequest) {
     sameSite: "lax",
     path: "/",
     maxAge: ADMIN_SESSIE_SECONDEN,
+  });
+  res.cookies.set(NIET_TELLEN_COOKIE, "1", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
   });
   wisOudeAdminCookies(res.headers);
   after(async () => {

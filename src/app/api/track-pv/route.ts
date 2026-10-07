@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { adminConfigured } from "@/lib/supabase/config";
 import { schoneUtm, utmContentOntbreekt } from "@/lib/utm";
+import { ADMIN_COOKIE, NIET_TELLEN_COOKIE, isValidAdmin } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,14 @@ export async function POST(req: NextRequest) {
     process.env.NODE_ENV !== "production" ||
     host.startsWith("localhost") ||
     host.startsWith("127.0.0.1")
+  ) {
+    return NextResponse.json({ ok: true });
+  }
+  // De beheerder zelf niet meetellen: aangemeld, of een toestel waarop ooit
+  // aangemeld werd (bv. eerst de homepage, dan "Beheer" onderaan).
+  if (
+    req.cookies.get(NIET_TELLEN_COOKIE)?.value === "1" ||
+    isValidAdmin(req.cookies.get(ADMIN_COOKIE)?.value)
   ) {
     return NextResponse.json({ ok: true });
   }
