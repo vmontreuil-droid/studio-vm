@@ -13,25 +13,25 @@ export const META: Record<Locale, { title: string; description: string; ogAlt: s
   fr: {
     title: "Devis pour un modèle 3D de guidage d'engins | Studio VM",
     description:
-      "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage. Vous recevez un devis sur mesure, avec le système de coordonnées proposé.",
+      "Chargez vos plans, indiquez l'adresse du chantier et la marque de votre guidage d'engins ou pelle GPS. Vous recevez un devis sur mesure, avec le bon système.",
     ogAlt: "Devis pour un modèle 3D — Studio VM",
   },
   en: {
     title: "Quote for a machine control 3D model | Studio VM",
     description:
-      "Upload your plans, give the site address and your machine control brand. You get a tailored quote, with the right coordinate system proposed for your site.",
+      "Upload your plans, give the site address and your machine control brand or GPS excavator. You get a tailored quote, with the right coordinate system proposed.",
     ogAlt: "Quote for a 3D model — Studio VM",
   },
   de: {
     title: "Angebot für ein 3D-Modell anfordern | Studio VM",
     description:
-      "Laden Sie Ihre Pläne hoch und nennen Sie Baustellenadresse und Steuerungsmarke. Sie erhalten ein Angebot mit dem passenden Koordinatensystem.",
+      "Laden Sie Ihre Pläne hoch und nennen Sie Baustellenadresse und die Marke Ihrer Maschinensteuerung oder Ihres GPS-Baggers. Sie erhalten ein Angebot nach Maß.",
     ogAlt: "Angebot für ein 3D-Modell — Studio VM",
   },
   es: {
     title: "Presupuesto de modelo 3D para maquinaria | Studio VM",
     description:
-      "Suba sus planos e indique la dirección de la obra y la marca de su sistema de control. Recibirá un presupuesto a medida con el sistema de coordenadas propuesto.",
+      "Suba sus planos e indique la dirección de la obra y la marca de su control de maquinaria o excavadora GPS. Recibirá un presupuesto a medida.",
     ogAlt: "Presupuesto de modelo 3D — Studio VM",
   },
 };

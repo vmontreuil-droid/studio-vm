@@ -8,7 +8,7 @@ const es: Messages = {
   meta: {
     siteName: "Studio VM",
     title: "Modelos 3D para control de maquinaria GPS | Studio VM",
-    description: `Sus planos 2D como modelo 3D para excavadoras, motoniveladoras y bulldozers con GPS: Trimble, Topcon, Leica, Unicontrol y más. Desde ${P}/h, IVA aparte.`,
+    description: `Sus planos 2D como modelo del terreno (MDT) para control de maquinaria GPS en excavadoras y motoniveladoras: Trimble, Topcon, Leica. Desde ${P}/h, IVA aparte.`,
     locale: "es_ES",
   },
   nav: {

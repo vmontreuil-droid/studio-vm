@@ -56,7 +56,7 @@ const T: Record<
   fr: {
     meta: {
       title: "Réalisations : modèles 3D voirie et terrassement | Studio VM",
-      description: `${N} exemples de modèles 3D pour voiries, terrassements, fouilles et bassins, en couleurs hypsométriques, pentes, courbes et triangles. Voir la galerie.`,
+      description: `${N} exemples de modèles 3D (MNT) pour voiries, terrassements, fouilles et bassins, en couleurs hypsométriques, pentes, courbes et triangles. Voir la galerie.`,
     },
     eyebrow: "Réalisations",
     titel: "Des modèles 3D qui tombent juste sur le chantier",
@@ -74,7 +74,7 @@ const T: Record<
   en: {
     meta: {
       title: "Projects: 3D models for roads and earthworks | Studio VM",
-      description: `${N} examples of 3D models for roads, earthworks, excavations and basins, shown in height colours, slope, contours and triangle network. Browse the gallery.`,
+      description: `${N} examples of 3D terrain models for roads, earthworks, excavations and basins, shown in height colours, slope, contours and triangle network. Browse the gallery.`,
     },
     eyebrow: "Projects",
     titel: "3D models that land on site",
@@ -92,7 +92,7 @@ const T: Record<
   de: {
     meta: {
       title: "Referenzen: 3D-Modelle für Straßen- und Erdbau | Studio VM",
-      description: `${N} Beispiele für 3D-Modelle im Straßenbau, Erdbau, für Baugruben und Becken, in Höhenfarben, Neigung, Höhenlinien und Dreiecksnetz. Zur Galerie.`,
+      description: `${N} Beispiele für 3D-Geländemodelle im Straßenbau, Erdbau, für Baugruben und Becken, in Höhenfarben, Neigung, Höhenlinien und Dreiecksnetz. Zur Galerie.`,
     },
     eyebrow: "Referenzen",
     titel: "3D-Modelle, die auf der Baustelle sitzen",
@@ -110,7 +110,7 @@ const T: Record<
   es: {
     meta: {
       title: "Proyectos: modelos 3D para viales y tierras | Studio VM",
-      description: `${N} ejemplos de modelos 3D para viales, movimiento de tierras, excavaciones y balsas, en colores hipsométricos, pendientes y curvas de nivel. Vea la galería.`,
+      description: `${N} ejemplos de modelos 3D del terreno para viales, movimiento de tierras, excavaciones y balsas, en colores hipsométricos, pendientes y curvas de nivel. Vea la galería.`,
     },
     eyebrow: "Proyectos realizados",
     titel: "Modelos 3D que encajan en la obra",
