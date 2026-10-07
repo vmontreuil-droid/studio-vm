@@ -24,6 +24,15 @@ const DAGCODE_ZOUT = process.env.PV_HASH_SALT || "svm-pv-2026";
 const KOLOM_HERTEST = 10 * 60_000;
 let utmContentOntbreektSinds = 0;
 
+// Beveiligingsscanners van mailservers openen de links uit onze mails in een
+// sandbox (datacenters in IE/CH/US/NL) en husselen daarbij de UTM-waarden
+// (utm_source=bhgefbdu). Zo'n klik telt niet, en ook de rest van die
+// dagcode niet: wat er al stond (kwartier terug) gaat weg, wat volgt wordt
+// genegeerd. Echte mailbronnen: de outreach en de persoonlijke mails.
+const MAIL_BRONNEN = new Set(["outreach", "mail"]);
+const SCANNER_MS = 15 * 60_000;
+const scanners = new Map<string, number>();
+
 // Privacy-light bezoekers-tracker — accepteert page-view-pings van een
 // client-component (PageViewTracker). Geen cookies, geen IP-opslag — alleen
 // een dagcode (sha256 van ip+ua+dag+zout, ingekort) zodat we per dag 'unieke
@@ -108,6 +117,22 @@ export async function POST(req: NextRequest) {
       .slice(0, 16);
 
     const db = getSupabaseAdmin();
+    const utmSource = schoneUtm(body.utm_source);
+    const utmMedium = schoneUtm(body.utm_medium);
+
+    const nu = Date.now();
+    for (const [k, tot] of scanners) if (tot < nu) scanners.delete(k);
+    if (utmMedium === "email" && utmSource && !MAIL_BRONNEN.has(utmSource)) {
+      scanners.set(visitorHash, nu + SCANNER_MS);
+      await db
+        .from("page_views")
+        .delete()
+        .eq("visitor_hash", visitorHash)
+        .gte("created_at", new Date(nu - SCANNER_MS).toISOString());
+      return NextResponse.json({ ok: true });
+    }
+    if (scanners.has(visitorHash)) return NextResponse.json({ ok: true });
+
     const rij = {
       path,
       locale,
@@ -115,8 +140,8 @@ export async function POST(req: NextRequest) {
       visitor_hash: visitorHash,
       ua_family: uaFamily,
       country,
-      utm_source: schoneUtm(body.utm_source),
-      utm_medium: schoneUtm(body.utm_medium),
+      utm_source: utmSource,
+      utm_medium: utmMedium,
       utm_campaign: schoneUtm(body.utm_campaign),
     };
     // utm_content (bericht-id) enkel meesturen als er een is én de kolom
