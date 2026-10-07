@@ -221,6 +221,11 @@ const MELDINGEN: Record<string, { toon: "amber" | "groen" | "rood" | "blauw"; te
   "kanalen-fout": { toon: "rood", tekst: "Buffer was niet bereikbaar of gaf een fout. Probeer het zo meteen opnieuw." },
   "kanaal-opgeslagen": { toon: "groen", tekst: "Kanaal aangepast." },
   "kanaal-onbekend": { toon: "amber", tekst: "Dat kanaal staat niet (meer) in de lijst. Druk op Verbinding testen om ze opnieuw op te halen." },
+  "groep-toegevoegd": { toon: "groen", tekst: "Groep toegevoegd." },
+  "groep-verwijderd": { toon: "blauw", tekst: "Groep verwijderd." },
+  "groep-gepost": { toon: "groen", tekst: "Genoteerd: in die groep kan u over twee weken weer posten." },
+  "groep-terug": { toon: "blauw", tekst: "Teruggezet." },
+  "groep-fout": { toon: "amber", tekst: "Niet toegevoegd: geef een naam en (optioneel) het adres van de groep op facebook.com." },
 };
 
 export function Melding({ code }: { code?: string }) {

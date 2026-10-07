@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Hourglass,
   ListChecks,
+  Users,
   Plus,
   Share2,
   Sparkles,
@@ -187,6 +188,13 @@ export default async function AdminSocial({ searchParams }: { searchParams: Prom
             {wachtend.length > 0 && (
               <span className="rounded-full bg-stone-950 px-1.5 text-[11px] font-bold text-amber-300">{wachtend.length}</span>
             )}
+          </Link>
+          <Link
+            href="/admin/social/groepen"
+            className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted hover:bg-card-hover hover:text-foreground"
+          >
+            <Users className="h-4 w-4" strokeWidth={2} />
+            Groepen
           </Link>
           <Link
             href="/admin/webactiviteit"

@@ -28,6 +28,7 @@ import {
 import { bufferOrganisatieVast, bufferSleutel, maakBufferDienst } from "@/lib/social/adapters/buffer";
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
+import { bewaarGroepen, leesGroepen } from "@/lib/social/groepen";
 import {
   ALLES_AUTOMATISCH_SLEUTEL,
   LINK_BUDGET_PER_MAAND,
@@ -114,7 +115,7 @@ async function magBewerken(): Promise<boolean> {
 /** Enkel terug naar /admin/social(/wachtrij), met een eenvoudige query. */
 function terugPad(fd: FormData): string | null {
   const t = String(fd.get("terug") ?? "");
-  return /^\/admin\/social(\/wachtrij)?(\?[\w=&%.-]*)?(#[\w-]*)?$/.test(t) ? t : null;
+  return /^\/admin\/social(\/wachtrij|\/groepen)?(\?[\w=&%.-]*)?(#[\w-]*)?$/.test(t) ? t : null;
 }
 
 function metMelding(pad: string, melding: string): string {
@@ -128,6 +129,7 @@ function metMelding(pad: string, melding: string): string {
 function klaar(fd: FormData, melding?: string): void {
   revalidatePath("/admin/social");
   revalidatePath("/admin/social/wachtrij");
+  revalidatePath("/admin/social/groepen");
   const t = terugPad(fd);
   if (t) redirect(melding ? metMelding(t, melding) : t);
 }
@@ -756,4 +758,48 @@ export async function getUtmStats(): Promise<UtmStat[]> {
   return [...map.values()]
     .map((e) => ({ source: e.source, campaign: e.campaign, views: e.views, visitors: e.visitors.size }))
     .sort((a, b) => b.views - a.views);
+}
+
+// =====================================================================
+// Facebook-groepen (met de hand posten; zie lib/social/groepen)
+// =====================================================================
+
+export async function voegGroepToe(formData: FormData): Promise<void> {
+  if (!(await magBewerken())) return;
+  const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
+  let url = String(formData.get("url") ?? "").trim().slice(0, 300);
+  const taal = formData.get("taal") === "fr" ? "fr" : "nl";
+  if (!naam) return klaar(formData, "groep-fout");
+  if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
+  if (url && !/^https:\/\/(www\.|m\.)?facebook\.com\//i.test(url)) return klaar(formData, "groep-fout");
+  const groepen = await leesGroepen();
+  groepen.push({ id: crypto.randomUUID(), naam, url, taal, laatst: null });
+  await bewaarGroepen(groepen);
+  klaar(formData, "groep-toegevoegd");
+}
+
+export async function verwijderGroep(formData: FormData): Promise<void> {
+  if (!(await magBewerken())) return;
+  const id = String(formData.get("id") ?? "");
+  await bewaarGroepen((await leesGroepen()).filter((g) => g.id !== id));
+  klaar(formData, "groep-verwijderd");
+}
+
+/** "Gepost" aanvinken; nog eens klikken op dezelfde dag zet het terug. */
+export async function markeerGroepGepost(formData: FormData): Promise<void> {
+  if (!(await magBewerken())) return;
+  const id = String(formData.get("id") ?? "");
+  const terug = formData.get("terugzetten") === "1";
+  const groepen = await leesGroepen();
+  const g = groepen.find((x) => x.id === id);
+  if (!g) return klaar(formData);
+  if (terug) {
+    g.laatst = g.vorige ?? null;
+    g.vorige = null;
+  } else {
+    g.vorige = g.laatst;
+    g.laatst = new Date().toISOString();
+  }
+  await bewaarGroepen(groepen);
+  klaar(formData, terug ? "groep-terug" : "groep-gepost");
 }

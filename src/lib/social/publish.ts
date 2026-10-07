@@ -412,7 +412,7 @@ export function beeldPad(postId: string, sleutel: BeeldSleutel, v: string): stri
   return socialBeeldPad(postId, sleutel as SocialFormaat, v);
 }
 
-function diaAantal(p: PostRij): number {
+export function diaAantal(p: PostRij): number {
   const d = p.media?.dias;
   return Array.isArray(d) ? Math.min(d.length, 10) : 0;
 }
@@ -443,7 +443,7 @@ export function knip(s: string, max: number, tel: (x: string) => number = (x) =>
   return `${r}…`;
 }
 
-function zonderHashtags(s: string): string {
+export function zonderHashtags(s: string): string {
   return s
     .replace(/(^|\s)#[\p{L}\p{N}_]+/gu, "$1")
     .replace(/[ \t]+\n/g, "\n")

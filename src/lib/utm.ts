@@ -43,7 +43,7 @@ export const UTM_BRONNEN = [
 ] as const;
 export type UtmBron = (typeof UTM_BRONNEN)[number];
 
-export const UTM_MEDIA = ["social", "gbp", "share", "profiel"] as const;
+export const UTM_MEDIA = ["social", "gbp", "share", "profiel", "groep"] as const;
 export type UtmMedium = (typeof UTM_MEDIA)[number];
 
 /** Vaste campagnes voor links die niet bij één bericht horen. */
@@ -79,6 +79,7 @@ export const UTM_MEDIUM_NAAM: Record<UtmMedium, string> = {
   gbp: "Google-bedrijfsprofiel",
   share: "Gedeeld door bezoeker",
   profiel: "Profiel / bio / knop",
+  groep: "Facebook-groep (met de hand)",
 };
 
 export function isUtmBron(v: unknown): v is UtmBron {
