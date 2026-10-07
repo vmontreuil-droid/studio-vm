@@ -544,7 +544,21 @@ export function maakBufferDienst(o: BufferOpties = {}): PublicatieDienst | null 
     async publish(bericht, kanaal) {
       const a = await bufferVraag<MaakPostData>(opties, M_POST, { input: bufferInvoer(bericht, kanaal) });
       onthoud(a.verzoeken);
-      return bufferUitkomst(a);
+      const uit = bufferUitkomst(a);
+      // Een eerste reactie (LinkedIn) vergt een betalend Buffer-plan
+      // ("LinkedIn first comment requires a paid plan"): dan meteen opnieuw,
+      // met de link onderaan de tekst. Met een betalend plan blijft het een reactie.
+      if (!uit.ok && bericht.eersteReactie && /first comment/i.test(uit.error ?? "")) {
+        const metLink = {
+          ...bericht,
+          tekst: `${bericht.tekst}\n\n${bericht.eersteReactie}`.slice(0, 3000),
+          eersteReactie: null,
+        };
+        const b = await bufferVraag<MaakPostData>(opties, M_POST, { input: bufferInvoer(metLink, kanaal) });
+        onthoud(b.verzoeken);
+        return bufferUitkomst(b);
+      }
+      return uit;
     },
     async test() {
       const t = await bufferTest(opties);
