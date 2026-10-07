@@ -23,7 +23,8 @@ export const PAGINA_BIJGEWERKT: Record<
 > = {
   // 4/10: blok "Voor wie" en projectbeelden bij de toepassingen.
   "": "2026-10-04",
-  "/3d-modellen": VANDAAG,
+  // 7/10: zoektermen in de synoniemen (GPS-bestand, guidage machine, groundworks, Tiefbau).
+  "/3d-modellen": "2026-10-07",
   // 4/10: projecten in beeld (archief) met eigen pagina's.
   "/realisaties": "2026-10-04",
   "/tarieven": VANDAAG,

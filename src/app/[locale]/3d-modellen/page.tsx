@@ -54,7 +54,7 @@ const T: Record<
     eyebrow: "3D-modellen",
     titel: "Wat zit er in een 3D-model voor machinesturing?",
     intro: "Een goed machinesturingsmodel is meer dan een oppervlak. Het is een volledig, gecontroleerd ontwerp dat uw machinist op het scherm begrijpt en waarop de machine nauwkeurig stuurt.",
-    synoniem: "Een 3D-model voor machinebesturing (in Vlaanderen zegt men ook machinesturing) is het besturingsbestand dat uw GPS-gestuurde graafkraan, grader of dozer inleest: het DTM van het ontwerp plus het lijnwerk.",
+    synoniem: "Een 3D-model voor machinebesturing (in Vlaanderen zegt men ook machinesturing, en op de werf vaak gewoon het GPS-bestand of 3D-bestand) is het besturingsbestand dat uw GPS-gestuurde graafkraan, grader of dozer inleest: het DTM van het ontwerp plus het lijnwerk.",
     onderdelen: [
       {
         titel: "Ontwerpoppervlak",
@@ -103,7 +103,7 @@ const T: Record<
     eyebrow: "Modèles 3D",
     titel: "Que contient un modèle 3D pour le guidage d'engins ?",
     intro: "Un bon modèle de guidage est plus qu'une surface. C'est un projet complet et contrôlé, que votre conducteur comprend à l'écran et sur lequel la machine se guide avec précision.",
-    synoniem: "Un modèle 3D pour le guidage d'engins (guidage 3D ou GPS) est le fichier que lit votre pelle, pelleteuse, niveleuse ou bulldozer : le MNT du projet et son filaire.",
+    synoniem: "Un modèle 3D pour le guidage d'engins (guidage machine, guidage 3D ou GPS) est le fichier que lit votre pelle, pelleteuse, niveleuse ou bulldozer : le MNT du projet et son filaire.",
     onderdelen: [
       {
         titel: "Surface de projet",
@@ -152,7 +152,7 @@ const T: Record<
     eyebrow: "3D models",
     titel: "What is in a 3D model for machine control?",
     intro: "A good machine control model is more than a surface. It is a complete, checked design that your operator understands on screen and that the machine guides on accurately.",
-    synoniem: "Machine control data preparation: the design DTM (TIN) and linework your GPS-guided excavator, grader or dozer loads straight into its control box.",
+    synoniem: "Machine control data preparation: the design DTM (TIN) and linework your GPS-guided excavator, grader or dozer loads straight into its control box, for groundworks, roads and civil engineering projects.",
     onderdelen: [
       {
         titel: "Design surface",
@@ -201,7 +201,7 @@ const T: Record<
     eyebrow: "3D-Modelle",
     titel: "Was steckt in einem 3D-Modell für Maschinensteuerung?",
     intro: "Ein gutes Modell für die Maschinensteuerung ist mehr als eine Oberfläche. Es ist ein vollständiger, geprüfter Entwurf, den Ihr Maschinenführer auf dem Bildschirm versteht und an dem die Maschine präzise steuert.",
-    synoniem: "Datenaufbereitung für die 3D-Maschinensteuerung: das Planungs-DGM (Soll-DGM), Bruchkanten und Linien für Ihre 3D-Baggersteuerung, Raupe oder Grader.",
+    synoniem: "Datenaufbereitung für die 3D-Maschinensteuerung im Tief- und Erdbau: das Planungs-DGM (Soll-DGM), Bruchkanten und Linien für Ihre 3D-Baggersteuerung, Raupe oder Grader.",
     onderdelen: [
       {
         titel: "Planungsoberfläche",
