@@ -2,19 +2,23 @@
 // toe (Meta sloot de Groups-API in 2024). Hier staat per week en per taal een
 // groepsvriendelijke versie van een paginapost klaar om met de hand te
 // plakken: zonder hashtags, met een vraag aan de groep, de link apart voor in
-// een reactie (utm_medium=groep) en de beelden om te downloaden. De lijst met
-// groepen houdt bij waar en wanneer er laatst gepost werd.
+// een reactie (utm_medium=groep) en altijd 4 beelden om te downloaden. Elk
+// bericht staat er in beide talen (vertaald via zijn sjabloon), zodat u per
+// taal de beste kiest. De lijst met groepen houdt bij waar en wanneer er
+// laatst gepost werd.
 
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { weekBereik } from "@/lib/admin/social-generator";
-import { metUtm, utmWeek } from "@/lib/utm";
+import { SITE_ADRES, metUtm, utmWeek } from "@/lib/utm";
 import {
   KANAAL_REGELS,
+  beeldPad,
   beeldUrlVoor,
-  diaAantal,
+  versieVan,
   zonderHashtags,
   type PostRij,
 } from "@/lib/social/publish";
+import { GROEP_DIAS, postInTaal, postTaal, type Vertaling } from "@/lib/social/vertaling";
 
 export type GroepTaal = "nl" | "fr";
 export const GROEP_TALEN: GroepTaal[] = ["nl", "fr"];
@@ -88,37 +92,60 @@ export type Groepspost = {
   /** Te plakken als eerste reactie (de link). */
   reactie: string;
   link: string;
+  /** Altijd 4: de hoofdkaart + 3 dia's (zie groepsDias). */
   beelden: { url: string; naam: string }[];
+  /** Vertaald uit deze taal (de pagina kreeg de andere versie); null = origineel. */
+  vertaaldUit: GroepTaal | null;
 };
 
-/** Groepsversie van een paginapost. Puur. */
-export function groepsversie(p: PostRij & { taal?: string | null; post_type?: string | null }): Groepspost {
-  const taal: GroepTaal = p.taal === "fr" ? "fr" : "nl";
-  const body = zonderHashtags((p.body ?? "").replace(/\r\n/g, "\n").trim() || p.title);
+function metParams(pad: string, params: Record<string, string>): string {
+  const q = new URLSearchParams(params).toString();
+  return `${SITE_ADRES}${pad}${pad.includes("?") ? "&" : "?"}${q}`;
+}
+
+function maakGroepspost(p: PostRij, taal: GroepTaal, vt: Vertaling | null, eigen: GroepTaal): Groepspost {
+  const titel = vt ? vt.title : p.title;
+  const body = zonderHashtags(((vt ? vt.body : p.body) ?? "").replace(/\r\n/g, "\n").trim() || titel);
   // Een vraagpost eindigt al op een vraag; de andere krijgen er een.
   const tekst = p.post_type === "vraag" ? body : `${body}\n\n${VRAAG[taal]}`;
-  const link = metUtm(p.target_url || `/${taal}`, {
+  const link = metUtm((vt ? vt.doel : p.target_url) || `/${taal}`, {
     bron: "facebook",
     medium: "groep",
     campagne: p.utm_campaign || (p.scheduled_for ? utmWeek(new Date(p.scheduled_for)) : undefined),
     inhoud: p.id,
   });
-  const dias = diaAantal(p);
   const sleutel = KANAAL_REGELS.facebook.beeld ?? "portrait";
-  const url = beeldUrlVoor(p);
-  const sleutels = [sleutel, ...Array.from({ length: dias }, (_, i) => `${sleutel}-${i + 1}`)];
+  const v = versieVan(p);
+  const extra: Record<string, string> = vt ? { taal } : {};
+  // Hoofdkaart: de bevroren kopie van het origineel, of de beeldroute in de
+  // andere taal. Dia's: altijd via de route (?groep=1 vult aan tot 3).
+  const hoofd = vt ? metParams(beeldPad(p.id, sleutel, v), extra) : beeldUrlVoor(p)(sleutel);
+  const dias = Array.from({ length: GROEP_DIAS }, (_, i) =>
+    metParams(beeldPad(p.id, `${sleutel}-${i + 1}`, v), { ...extra, groep: "1" }),
+  );
   return {
     postId: p.id,
     taal,
-    titel: p.title,
+    titel,
     soort: p.post_type ?? "",
     datum: p.scheduled_for ?? null,
     status: p.status,
     tekst,
-    reactie: `${REACTIE[taal](dias > 0)} ${link}`,
+    reactie: `${REACTIE[taal](true)} ${link}`,
     link,
-    beelden: sleutels.map((s, i) => ({ url: url(s), naam: `studio-vm-${p.id.slice(0, 8)}-${i + 1}.jpg` })),
+    beelden: [hoofd, ...dias].map((url, i) => ({ url, naam: `studio-vm-${taal}-${p.id.slice(0, 8)}-${i + 1}.jpg` })),
+    vertaaldUit: vt ? eigen : null,
   };
+}
+
+/** Groepsversies van een paginapost: in zijn eigen taal én vertaald. Puur. */
+export function groepsversies(p: PostRij): Groepspost[] {
+  const eigen: GroepTaal = postTaal(p.notes) ?? (p.taal === "fr" ? "fr" : "nl");
+  const uit = [maakGroepspost(p, eigen, null, eigen)];
+  const ander: GroepTaal = eigen === "nl" ? "fr" : "nl";
+  const vt = postInTaal(p, ander);
+  if (vt) uit.push(maakGroepspost(p, ander, vt, eigen));
+  return uit;
 }
 
 /**
@@ -136,14 +163,11 @@ export async function groepspostenVanWeek(week: string): Promise<Record<GroepTaa
     .gte("scheduled_for", van.toISOString())
     .lt("scheduled_for", tot.toISOString())
     .order("scheduled_for", { ascending: true });
-  const rijen = (data as (PostRij & { taal?: string | null; post_type?: string | null })[] | null) ?? [];
+  const rijen = (data as PostRij[] | null) ?? [];
   const uit: Record<GroepTaal, Groepspost[]> = { nl: [], fr: [] };
-  for (const r of rijen) {
-    const g = groepsversie(r);
-    uit[g.taal].push(g);
-  }
-  for (const t of GROEP_TALEN) {
-    uit[t].sort((a, b) => Number(b.status === "gepubliceerd") - Number(a.status === "gepubliceerd"));
-  }
+  for (const r of rijen) for (const g of groepsversies(r)) uit[g.taal].push(g);
+  // Voorkeur: een origineel dat al op de pagina stond; daarna op datum.
+  const gewicht = (g: Groepspost) => (g.vertaaldUit ? 0 : 2) + (g.status === "gepubliceerd" ? 1 : 0);
+  for (const t of GROEP_TALEN) uit[t].sort((a, b) => gewicht(b) - gewicht(a) || (a.datum ?? "").localeCompare(b.datum ?? ""));
   return uit;
 }

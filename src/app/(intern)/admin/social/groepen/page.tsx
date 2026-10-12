@@ -20,7 +20,7 @@ import { Melding, Pil } from "../onderdelen";
 export const dynamic = "force-dynamic";
 
 const TAAL_NAAM: Record<GroepTaal, string> = { nl: "Nederlandstalige groepen", fr: "Franstalige groepen" };
-const SOORT: Record<string, string> = { tip: "Tip", realisatie: "Realisatie", vraag: "Vraag", carrousel: "Carrousel" };
+const SOORT: Record<string, string> = { tip: "Tip", realisatie: "Realisatie", vraag: "Vraag", carrousel: "Carrousel", aanbod: "Aanbod", video: "Video" };
 
 // Supabase-opslag geeft met ?download= een bestand terug in plaats van een
 // pagina; beelden van de eigen site downloadt het download-attribuut.
@@ -122,6 +122,7 @@ export default async function Groepen({
                         }`}
                       >
                         {datum(p.datum)} · {SOORT[p.soort] ?? p.soort}
+                        {p.vertaaldUit && <span className="opacity-70"> · vertaald</span>}
                       </Link>
                     ))}
                   </div>
@@ -130,12 +131,16 @@ export default async function Groepen({
                       <div>
                         <p className="font-medium">{g.titel}</p>
                         <p className="mt-0.5 text-xs text-muted">
-                          {g.status === "gepubliceerd" ? "Al op de pagina verschenen" : "Verschijnt nog op de pagina"} ·{" "}
-                          {g.beelden.length} {g.beelden.length === 1 ? "beeld" : "beelden"}
+                          {g.vertaaldUit
+                            ? `Vertaling van het ${g.vertaaldUit === "nl" ? "Nederlandstalige" : "Franstalige"} bericht van de pagina`
+                            : g.status === "gepubliceerd"
+                              ? "Al op de pagina verschenen"
+                              : "Verschijnt nog op de pagina"}{" "}
+                          · {g.beelden.length} beelden
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         {g.beelden.map((b, i) => (
                           <a
                             key={b.url}
