@@ -19,7 +19,13 @@ import { Melding, Pil } from "../onderdelen";
 
 export const dynamic = "force-dynamic";
 
-const TAAL_NAAM: Record<GroepTaal, string> = { nl: "Nederlandstalige groepen", fr: "Franstalige groepen" };
+const TAAL_NAAM: Record<GroepTaal, string> = {
+  nl: "Nederlandstalige groepen",
+  fr: "Franstalige groepen",
+  en: "Engelstalige groepen",
+  de: "Duitstalige groepen",
+};
+const TAAL_BIJV: Record<GroepTaal, string> = { nl: "Nederlandstalige", fr: "Franstalige", en: "Engelstalige", de: "Duitstalige" };
 const SOORT: Record<string, string> = { tip: "Tip", realisatie: "Realisatie", vraag: "Vraag", carrousel: "Carrousel", aanbod: "Aanbod", video: "Video" };
 
 // Supabase-opslag geeft met ?download= een bestand terug in plaats van een
@@ -42,21 +48,19 @@ function vandaag(iso: string | null): boolean {
 export default async function Groepen({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string; nl?: string; fr?: string; melding?: string }>;
+  searchParams: Promise<Partial<Record<GroepTaal | "week" | "melding", string>>>;
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const sp = await searchParams;
   const deze = huidigeWeek();
   const week = sp.week && parseWeek(sp.week) ? sp.week : deze;
   const [posten, groepen] = await Promise.all([groepspostenVanWeek(week), leesGroepen()]);
-  const gekozen: Record<GroepTaal, Groepspost | undefined> = {
-    nl: posten.nl.find((p) => p.postId === sp.nl) ?? posten.nl[0],
-    fr: posten.fr.find((p) => p.postId === sp.fr) ?? posten.fr[0],
-  };
-  const hier = (extra: Partial<Record<"week" | "nl" | "fr", string>>) => {
+  const gekozen = Object.fromEntries(
+    GROEP_TALEN.map((t) => [t, posten[t].find((p) => p.postId === sp[t]) ?? posten[t][0]]),
+  ) as Record<GroepTaal, Groepspost | undefined>;
+  const hier = (extra: Partial<Record<GroepTaal | "week", string>>) => {
     const q = new URLSearchParams({ week });
-    if (gekozen.nl) q.set("nl", gekozen.nl.postId);
-    if (gekozen.fr) q.set("fr", gekozen.fr.postId);
+    for (const t of GROEP_TALEN) if (gekozen[t]) q.set(t, gekozen[t]!.postId);
     for (const [k, v] of Object.entries(extra)) if (v) q.set(k, v);
     return `/admin/social/groepen?${q.toString()}`;
   };
@@ -109,7 +113,7 @@ export default async function Groepen({
             <section key={taal} className="rounded-2xl bg-card p-5 shadow-sm">
               <h2 className="font-semibold">{TAAL_NAAM[taal]}</h2>
               {posten[taal].length === 0 ? (
-                <p className="mt-3 text-sm text-muted">Deze week geen {taal === "nl" ? "Nederlandstalig" : "Franstalig"} bericht op de pagina.</p>
+                <p className="mt-3 text-sm text-muted">Deze week geen bericht om te gebruiken.</p>
               ) : (
                 <>
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -132,7 +136,7 @@ export default async function Groepen({
                         <p className="font-medium">{g.titel}</p>
                         <p className="mt-0.5 text-xs text-muted">
                           {g.vertaaldUit
-                            ? `Vertaling van het ${g.vertaaldUit === "nl" ? "Nederlandstalige" : "Franstalige"} bericht van de pagina`
+                            ? `Vertaling van het ${TAAL_BIJV[g.vertaaldUit]} bericht van de pagina`
                             : g.status === "gepubliceerd"
                               ? "Al op de pagina verschenen"
                               : "Verschijnt nog op de pagina"}{" "}
@@ -260,6 +264,8 @@ export default async function Groepen({
           <select name="taal" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" defaultValue="nl">
             <option value="nl">NL</option>
             <option value="fr">FR</option>
+            <option value="en">EN</option>
+            <option value="de">DE</option>
           </select>
           <button type="submit" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-foreground px-3.5 py-2 text-sm font-medium text-background hover:opacity-90">
             <Plus className="h-4 w-4" strokeWidth={2.25} />

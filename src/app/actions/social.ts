@@ -29,6 +29,7 @@ import { bufferOrganisatieVast, bufferSleutel, maakBufferDienst } from "@/lib/so
 import { adminConfigured } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/admin-auth";
 import { bewaarGroepen, leesGroepen } from "@/lib/social/groepen";
+import { isPostTaal } from "@/lib/social/vertaling";
 import {
   ALLES_AUTOMATISCH_SLEUTEL,
   LINK_BUDGET_PER_MAAND,
@@ -768,7 +769,8 @@ export async function voegGroepToe(formData: FormData): Promise<void> {
   if (!(await magBewerken())) return;
   const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
   let url = String(formData.get("url") ?? "").trim().slice(0, 300);
-  const taal = formData.get("taal") === "fr" ? "fr" : "nl";
+  const t = String(formData.get("taal") ?? "");
+  const taal = isPostTaal(t) ? t : "nl";
   if (!naam) return klaar(formData, "groep-fout");
   if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
   if (url && !/^https:\/\/(www\.|m\.)?facebook\.com\//i.test(url)) return klaar(formData, "groep-fout");

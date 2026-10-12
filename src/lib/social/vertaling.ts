@@ -6,7 +6,9 @@
 
 import { REALISATIE_IDS, bouwTekst, realisatieKeuze, templateOpId, type Dia } from "@/lib/admin/social-templates";
 
-export type PostTaal = "nl" | "fr";
+export type PostTaal = "nl" | "fr" | "en" | "de";
+export const POST_TALEN: PostTaal[] = ["nl", "fr", "en", "de"];
+export const isPostTaal = (v: unknown): v is PostTaal => typeof v === "string" && (POST_TALEN as string[]).includes(v);
 
 export type Vertaling = {
   taal: PostTaal;
@@ -24,7 +26,7 @@ function notitie(notes: string | null | undefined, sleutel: string): string | nu
 /** Taal waarin het bericht gemaakt werd (notitie taal:…), anders null. */
 export function postTaal(notes: string | null | undefined): PostTaal | null {
   const t = notitie(notes, "taal");
-  return t === "nl" || t === "fr" ? t : null;
+  return isPostTaal(t) ? t : null;
 }
 
 /**
@@ -66,5 +68,5 @@ export function groepsDias(postId: string, taal: PostTaal, eigen: Dia[]): Dia[] 
   let h = 0;
   for (const c of postId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const r = kandidaten[h % kandidaten.length]!;
-  return [...eigen, ...r.dias![taal].slice(0, nodig)];
+  return [...eigen, ...(r.dias?.[taal] ?? []).slice(0, nodig)];
 }

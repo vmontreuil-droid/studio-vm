@@ -18,10 +18,10 @@ import {
   zonderHashtags,
   type PostRij,
 } from "@/lib/social/publish";
-import { GROEP_DIAS, postInTaal, postTaal, type Vertaling } from "@/lib/social/vertaling";
+import { GROEP_DIAS, POST_TALEN, postInTaal, postTaal, type PostTaal, type Vertaling } from "@/lib/social/vertaling";
 
-export type GroepTaal = "nl" | "fr";
-export const GROEP_TALEN: GroepTaal[] = ["nl", "fr"];
+export type GroepTaal = PostTaal;
+export const GROEP_TALEN: GroepTaal[] = POST_TALEN;
 
 export type FbGroep = {
   id: string;
@@ -74,10 +74,14 @@ export function dagenTotVrij(g: FbGroep, nu = new Date()): number {
 const VRAAG: Record<GroepTaal, string> = {
   nl: "Herkenbaar? Hoe pakken jullie dit aan op de werf?",
   fr: "Ça vous parle ? Comment faites-vous sur vos chantiers ?",
+  en: "Sound familiar? How do you handle this on site?",
+  de: "Kommt Ihnen das bekannt vor? Wie lösen Sie das auf der Baustelle?",
 };
 const REACTIE: Record<GroepTaal, (dias: boolean) => string> = {
   nl: (dias) => (dias ? "Alle beelden en meer uitleg:" : "Meer uitleg:"),
   fr: (dias) => (dias ? "Toutes les images et plus d'explications :" : "Plus d'explications :"),
+  en: (dias) => (dias ? "All images and more details:" : "More details:"),
+  de: (dias) => (dias ? "Alle Bilder und mehr Infos:" : "Mehr Infos:"),
 };
 
 export type Groepspost = {
@@ -142,9 +146,11 @@ function maakGroepspost(p: PostRij, taal: GroepTaal, vt: Vertaling | null, eigen
 export function groepsversies(p: PostRij): Groepspost[] {
   const eigen: GroepTaal = postTaal(p.notes) ?? (p.taal === "fr" ? "fr" : "nl");
   const uit = [maakGroepspost(p, eigen, null, eigen)];
-  const ander: GroepTaal = eigen === "nl" ? "fr" : "nl";
-  const vt = postInTaal(p, ander);
-  if (vt) uit.push(maakGroepspost(p, ander, vt, eigen));
+  for (const ander of GROEP_TALEN) {
+    if (ander === eigen) continue;
+    const vt = postInTaal(p, ander);
+    if (vt) uit.push(maakGroepspost(p, ander, vt, eigen));
+  }
   return uit;
 }
 
@@ -164,7 +170,7 @@ export async function groepspostenVanWeek(week: string): Promise<Record<GroepTaa
     .lt("scheduled_for", tot.toISOString())
     .order("scheduled_for", { ascending: true });
   const rijen = (data as PostRij[] | null) ?? [];
-  const uit: Record<GroepTaal, Groepspost[]> = { nl: [], fr: [] };
+  const uit: Record<GroepTaal, Groepspost[]> = { nl: [], fr: [], en: [], de: [] };
   for (const r of rijen) for (const g of groepsversies(r)) uit[g.taal].push(g);
   // Voorkeur: een origineel dat al op de pagina stond; daarna op datum.
   const gewicht = (g: Groepspost) => (g.vertaaldUit ? 0 : 2) + (g.status === "gepubliceerd" ? 1 : 0);

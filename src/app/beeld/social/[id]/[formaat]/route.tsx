@@ -14,7 +14,7 @@ import { SOCIAL_FORMATEN, type SocialFormaat } from "@/lib/social/beeld-url";
 import { kaartVoorDia, kaartVoorPost, merkkaartAntwoord, type SocialPostRij } from "@/lib/social/merkkaart";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { monitorConfigured } from "@/lib/supabase/config";
-import { groepsDias, postInTaal, postTaal } from "@/lib/social/vertaling";
+import { groepsDias, isPostTaal, postInTaal, postTaal } from "@/lib/social/vertaling";
 import type { Dia } from "@/lib/admin/social-templates";
 
 export const dynamic = "force-dynamic";
@@ -55,19 +55,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   const url = new URL(req.url);
   let post = await leesBericht(id);
-  // Groepspagina: ?taal=nl|fr = hetzelfde bericht in de andere taal;
+  // Groepspagina: ?taal=nl|fr|en|de = hetzelfde bericht in een andere taal;
   // ?groep=1 = precies 3 dia's (aangevuld met een archiefproject).
   const taal = url.searchParams.get("taal");
   if (post) {
     const media = () => (post!.media && typeof post!.media === "object" ? (post!.media as Record<string, unknown>) : {});
-    if (taal === "nl" || taal === "fr") {
+    if (isPostTaal(taal)) {
       const vt = postInTaal(post, taal);
       if (vt) post = { ...post, title: vt.title, body: vt.body, media: { ...media(), dias: vt.dias ?? [] } };
     }
     if (url.searchParams.get("groep") === "1" && post.id) {
       const huidig = media().dias;
       const eigen = (Array.isArray(huidig) ? huidig : []) as Dia[];
-      const t = taal === "nl" || taal === "fr" ? taal : (postTaal(post.notes) ?? "nl");
+      const t = isPostTaal(taal) ? taal : (postTaal(post.notes) ?? "nl");
       post = { ...post, media: { ...media(), dias: groepsDias(post.id, t, eigen) } };
     }
   }

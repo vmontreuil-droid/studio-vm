@@ -211,11 +211,14 @@ export type RealisatieKeuze = {
   systemen: Systeem[];
   nl: { titel: string; tekst: string; cat: string };
   fr: { titel: string; tekst: string; cat: string };
+  /** Enkel bij archiefprojecten (groepsposts in het Engels en Duits). */
+  en?: { titel: string; tekst: string; cat: string };
+  de?: { titel: string; tekst: string; cat: string };
   /** Donkere render van het project (kan .webp zijn). */
   beeld: string;
   /** Archiefproject: eigen pagina (zonder taal) en de andere weergaven als dia's. */
   pad?: string;
-  dias?: Record<"nl" | "fr", Dia[]>;
+  dias?: Record<"nl" | "fr", Dia[]> & Partial<Record<"en" | "de", Dia[]>>;
 };
 
 export type TemplateCtx = { realisatie?: RealisatieKeuze };
@@ -235,7 +238,7 @@ export type Template = {
   /** Variant voor het Google Bedrijfsprofiel (NL, zonder hashtags). */
   google?: (ctx: TemplateCtx) => { kop: string; body: string };
   /** Dia's voor een carrousel. */
-  dias?: Record<"nl" | "fr", Dia[]>;
+  dias?: Record<"nl" | "fr", Dia[]> & Partial<Record<"en" | "de", Dia[]>>;
   /** Hoogstens één keer per zoveel dagen (bv. een sjabloon dat altijd hetzelfde project toont). */
   pauzeDagen?: number;
 };
@@ -250,7 +253,7 @@ const fr = (extra: string) => [...FR_BASIS, extra];
 const CTA_NL = "Plannen doorsturen voor een prijs? Dat kan via de link in ons profiel.";
 const CTA_FR = "Un prix pour vos plans ? Envoyez-les via le lien de notre profil.";
 
-const eur = (c: TariefCategorie, l: "nl" | "fr" = "nl") => euro(UURTARIEF_CENT[c], l);
+const eur = (c: TariefCategorie, l: Taal = "nl") => euro(UURTARIEF_CENT[c], l);
 
 const SYSTEEM_TAG: Record<Systeem, string> = {
   Trimble: "#Trimble",
@@ -262,22 +265,30 @@ const SYSTEEM_TAG: Record<Systeem, string> = {
   Caterpillar: "#Caterpillar",
 };
 
-const CAT_ZIN: Record<Categorie, { nl: string; fr: string }> = {
+const CAT_ZIN: Record<Categorie, { nl: string; fr: string; en: string; de: string }> = {
   wegenis: {
     nl: "Bij wegenis zit de nauwkeurigheid in de details: verkanting in de bochten, aansluitingen op bestaande wegen, boordstenen en goten op het juiste peil.",
     fr: "En voirie, la précision est dans les détails : dévers dans les courbes, raccords aux voiries existantes, bordures et filets d'eau au bon niveau.",
+    en: "On roads, accuracy is in the details: superelevation on the bends, tie-ins to existing roads, kerbs and channels at the right level.",
+    de: "Im Straßenbau steckt die Genauigkeit im Detail: Querneigung in den Kurven, Anschlüsse an bestehende Straßen, Bordsteine und Rinnen auf der richtigen Höhe.",
   },
   grondwerk: {
     nl: "Platformen op verschillende niveaus, overgangstaluds en funderingsputten op eigen diepte: alles zit in één model, per laag te kiezen in de cabine.",
     fr: "Plateformes à plusieurs niveaux, talus de transition, puits de fondation à leur propre profondeur : tout est dans un seul modèle, couche par couche en cabine.",
+    en: "Platforms at different levels, transition slopes and foundation pits at their own depth: it is all in one model, layer by layer in the cab.",
+    de: "Planien auf verschiedenen Höhen, Übergangsböschungen und Fundamentgruben in eigener Tiefe: alles in einem Modell, Schicht für Schicht in der Kabine wählbar.",
   },
   bouwput: {
     nl: "Bodem op niveau, taluds op de juiste helling, putten en sleuven elk op hun eigen diepte. De machinist ziet in de cabine meteen hoeveel er nog af moet.",
     fr: "Fond de fouille à niveau, talus à la bonne pente, puits et tranchées chacun à sa profondeur. En cabine, le conducteur voit directement ce qu'il reste à enlever.",
+    en: "Formation at level, batters at the right gradient, pits and trenches each at their own depth. In the cab, the operator sees straight away how much is still to come out.",
+    de: "Sohle auf Höhe, Böschungen in der richtigen Neigung, Gruben und Gräben jeweils in eigener Tiefe. Der Maschinenführer sieht in der Kabine sofort, wie viel noch abzutragen ist.",
   },
   terrein: {
     nl: "Een goed model van de bestaande toestand is de basis: daarop sluit het ontwerp aan, en daarmee ziet u hoeveel grond er af moet of bij komt.",
     fr: "Un bon modèle de l'existant est la base : le projet s'y raccorde, et il montre combien de terre déblayer ou remblayer.",
+    en: "A good model of the existing ground is the basis: the design ties into it, and it shows how much material has to come out or go in.",
+    de: "Ein gutes Modell des Bestands ist die Grundlage: Der Entwurf schließt daran an, und es zeigt, wie viel Boden ab- oder aufzutragen ist.",
   },
 };
 
@@ -293,7 +304,7 @@ export const REALISATIE_IDS: string[] = ARCHIEF.map((p) => p.code);
 function archiefKeuze(code: string): RealisatieKeuze | undefined {
   const p = archiefProject(code);
   if (!p) return undefined;
-  const dias = (l: "nl" | "fr"): Dia[] =>
+  const dias = (l: "nl" | "fr" | "en" | "de"): Dia[] =>
     p.weergaven.slice(1).map((w) => ({
       kop: ARCHIEF_WEERGAVE[w][l].naam,
       tekst: metLuchtfoto(w)
@@ -307,9 +318,11 @@ function archiefKeuze(code: string): RealisatieKeuze | undefined {
     systemen: p.systemen,
     nl: { titel: p.nl.titel, tekst: p.nl.tekst, cat: CATEGORIEEN[p.cat].nl },
     fr: { titel: p.fr.titel, tekst: p.fr.tekst, cat: CATEGORIEEN[p.cat].fr },
+    en: { titel: p.en.titel, tekst: p.en.tekst, cat: CATEGORIEEN[p.cat].en },
+    de: { titel: p.de.titel, tekst: p.de.tekst, cat: CATEGORIEEN[p.cat].de },
     beeld: archiefBeeld(p.code, p.weergaven[0] ?? "3d"),
     pad: archiefPad(p.code),
-    dias: { nl: dias("nl"), fr: dias("fr") },
+    dias: { nl: dias("nl"), fr: dias("fr"), en: dias("en"), de: dias("de") },
   };
 }
 
@@ -1599,6 +1612,1066 @@ ${CTA_FR}`,
     },
   },
 ];
+
+// ---------- Engels en Duits (groepsposts) ----------
+//
+// De contentmachine plant enkel Nederlands en Frans. Voor Engelse en Duitse
+// Facebook-groepen staat elk sjabloon hier ook in het Engels (VK-termen:
+// groundworks, formation, batter, setting out) en het Duits (Tiefbau,
+// Planum, Böschung, Absteckung). Zelfde regels: geen link in de tekst, geen
+// persoonsnaam, nooit "surveyor"/"Vermesser" over onszelf, België = Lambert 72
+// en TAW.
+
+const EN_BASIS = ["#machinecontrol", "#groundworks"];
+const DE_BASIS = ["#Maschinensteuerung", "#Tiefbau"];
+const en = (extra: string) => [...EN_BASIS, extra];
+const de = (extra: string) => [...DE_BASIS, extra];
+const CTA_EN = "Need a price for your drawings? Send them via the link in our profile.";
+const CTA_DE = "Ein Preis für Ihre Pläne? Senden Sie sie über den Link in unserem Profil.";
+
+type EnDe = {
+  tekst: Partial<Record<"en" | "de", (ctx: TemplateCtx) => Tekst>>;
+  dias?: Partial<Record<"en" | "de", Dia[]>>;
+};
+
+/** Projecttekst in het Engels of Duits (archiefprojecten hebben ze). */
+function projectIn(c: TemplateCtx, l: "en" | "de") {
+  const r = c.realisatie ?? realisatieKeuze();
+  return { r, p: r[l] ?? { titel: r.nl.titel, tekst: r.nl.tekst, cat: CATEGORIEEN[r.cat][l] } };
+}
+
+const EN_DE: Record<string, EnDe> = {
+  "tip-gekend-punt": {
+    tekst: {
+      en: () => ({
+        kop: "Check first, then dig",
+        body: `Never load a new model and start digging straight away.
+
+Check on site first:
+1. Is the project found and does it open?
+2. Is the model where you expect it, relative to the machine?
+3. Is the level right on a known point?
+4. Are all the layers there?
+
+We check every model for levels and gradients before it goes out. The final check happens on site, with your machine, your calibration and your software version.
+
+Two minutes of checking against half a day of rework.`,
+        kort: "New model on the machine? Check on a known point first: position, level and layers. Two minutes of checking against half a day of rework.",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "Erst prüfen, dann baggern",
+        body: `Laden Sie ein neues Modell nie, um sofort loszubaggern.
+
+Prüfen Sie zuerst auf der Baustelle:
+1. Wird das Projekt gefunden und geöffnet?
+2. Liegt das Modell an der erwarteten Stelle zur Maschine?
+3. Stimmt die Höhe auf einem bekannten Punkt?
+4. Sind alle Schichten vorhanden?
+
+Wir prüfen jedes Modell vor der Lieferung auf Höhen und Neigungen. Die letzte Kontrolle erfolgt auf der Baustelle, mit Ihrer Maschine, Ihrer Kalibrierung und Ihrer Softwareversion.
+
+Zwei Minuten Kontrolle gegen einen halben Tag Nacharbeit.`,
+        kort: "Neues Modell auf der Maschine? Zuerst auf einem bekannten Punkt prüfen: Lage, Höhe und Schichten. Zwei Minuten Kontrolle gegen einen halben Tag Nacharbeit.",
+        tags: de("#GNSS"),
+      }),
+    },
+  },
+  "tip-breeklijnen": {
+    tekst: {
+      en: () => ({
+        kop: "Breaklines make the difference",
+        body: `A 3D model is more than a cloud of spot levels.
+
+Without proper breaklines, the triangle network cuts straight across kerbs, slope edges and ditches. On screen it looks smooth, but on site the machine rounds off an edge that should be sharp.
+
+That is why we build every model with linework:
+• centrelines and edge lines
+• kerbs and channels
+• toe and top of batter
+• ditches and tie-ins
+
+That linework controls the surface and helps the operator find their way in the cab.`,
+        kort: "Without breaklines the triangle network cuts across kerbs and slope edges. So we build every model with linework: centrelines, kerbs, batters and ditches.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Bruchkanten machen den Unterschied",
+        body: `Ein 3D-Modell ist mehr als eine Wolke aus Höhenpunkten.
+
+Ohne korrekte Bruchkanten läuft das Dreiecksnetz quer durch Bordsteine, Böschungskanten und Gräben. Auf dem Bildschirm sieht das glatt aus, auf der Baustelle rundet die Maschine eine Kante ab, die scharf sein sollte.
+
+Deshalb bauen wir jedes Modell mit Linien auf:
+• Achsen und Kantenlinien
+• Bordsteine und Rinnen
+• Böschungsfuß und Böschungskrone
+• Gräben und Anschlüsse
+
+Diese Linien steuern die Oberfläche und helfen dem Maschinenführer, sich in der Kabine zu orientieren.`,
+        kort: "Ohne Bruchkanten läuft das Dreiecksnetz quer durch Bordsteine und Böschungskanten. Deshalb hat jedes Modell Linien: Achsen, Bordsteine, Böschungen und Gräben.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "tip-lagen": {
+    tekst: {
+      en: () => ({
+        kop: "One site, several layers",
+        body: `A road scheme or an excavation rarely has just one design level.
+
+For the machine, we build a separate surface for each stage:
+• dig level or formation of the excavation
+• top of sub-base and base
+• finished level, for example underside of surfacing
+• batters, ditches and tie-ins to the existing ground
+
+In the cab, the operator simply picks the layer they are working on. No calculations, no pegs.`,
+        kort: "A site rarely has one design level. We build a surface per stage: dig level, sub-base, finished level. The operator just picks the right layer.",
+        tags: en("#roadworks"),
+      }),
+      de: () => ({
+        kop: "Eine Baustelle, mehrere Schichten",
+        body: `Ein Straßenprojekt oder eine Baugrube hat selten nur eine Planungshöhe.
+
+Für die Maschine erstellen wir für jede Phase eine eigene Oberfläche:
+• Aushubsohle bzw. Planum der Baugrube
+• Oberkante Frostschutz- und Tragschicht
+• fertige Höhe, zum Beispiel Unterkante Deckschicht
+• Böschungen, Gräben und Anschlüsse an das Gelände
+
+In der Kabine wählt der Maschinenführer einfach die Schicht, an der er arbeitet. Ohne Rechnen, ohne Pflöcke.`,
+        kort: "Eine Baustelle hat selten nur eine Planungshöhe. Wir erstellen pro Phase eine Oberfläche: Aushub, Tragschicht, fertige Höhe. Der Maschinenführer wählt die richtige Schicht.",
+        tags: de("#Straßenbau"),
+      }),
+    },
+  },
+  "tip-pdf": {
+    tekst: {
+      en: () => ({
+        kop: "Only a PDF? That works too",
+        body: `Not every job comes with CAD files. Sometimes there is only a PDF, or even a paper drawing.
+
+We build a 3D model from that too. The drawing is first scaled and brought onto coordinates, using known points or the grid on the drawing. Then come the linework and the surfaces, just as with a DWG.
+
+Good to know:
+• it takes more time, which you will see in the estimated hours on the quote;
+• accuracy depends on the document: a scan of a paper drawing is less accurate than a digital PDF.
+
+Does the designer have a DWG? Always ask for it. It saves time and centimetres.`,
+        kort: "Only a PDF or a paper drawing? We build a 3D model from that too: scaled and put onto coordinates, then linework and surfaces. A DWG is still faster.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Nur ein PDF? Das geht auch",
+        body: `Nicht jedes Projekt kommt mit CAD-Dateien. Manchmal gibt es nur ein PDF oder sogar einen Papierplan.
+
+Auch daraus erstellen wir ein 3D-Modell. Der Plan wird zuerst maßstäblich und auf Koordinaten gebracht, anhand bekannter Punkte oder des Gitters auf der Zeichnung. Danach folgen Linien und Oberflächen, wie bei einem DWG.
+
+Gut zu wissen:
+• es braucht mehr Zeit, das sehen Sie an den geschätzten Stunden im Angebot;
+• die Genauigkeit hängt vom Dokument ab: ein gescannter Papierplan ist ungenauer als ein digitales PDF.
+
+Hat der Planer ein DWG? Fragen Sie immer danach. Es spart Zeit und Zentimeter.`,
+        kort: "Nur ein PDF oder ein Papierplan? Auch daraus erstellen wir ein 3D-Modell: maßstäblich und auf Koordinaten gebracht, dann Linien und Oberflächen. Ein DWG ist schneller.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "tip-volumes": {
+    tekst: {
+      en: () => ({
+        kop: "How much has to come out?",
+        body: `A design model does more than guide the machine. Together with a survey of the existing ground, it also shows where you cut and where you fill, and how much.
+
+Handy for planning: how many loads, where the spoil can go, whether you will be short.
+
+But a volume calculation is only as good as the survey it is based on. An old or incomplete survey gives a neat figure that does not match the site. And settlement, bulking and compaction are not included.`,
+        kort: "Design model plus a survey of the existing ground: that shows your cut and fill. But a volume is only as good as the survey it is based on.",
+        tags: en("#earthworks"),
+      }),
+      de: () => ({
+        kop: "Wie viel Boden muss weg?",
+        body: `Ein Planungsmodell steuert nicht nur die Maschine. Zusammen mit einer Bestandsaufnahme des Geländes zeigt es auch, wo abgetragen und wo aufgefüllt wird, und wie viel.
+
+Praktisch für die Planung: wie viele Fuhren, wohin mit dem Boden, ob Material fehlt.
+
+Aber eine Mengenberechnung ist nur so gut wie die Aufnahme, auf der sie beruht. Eine alte oder unvollständige Aufnahme ergibt eine schöne Zahl, die auf der Baustelle nicht stimmt. Und Setzungen, Auflockerung und Verdichtung sind nicht enthalten.`,
+        kort: "Planungsmodell plus Bestandsaufnahme des Geländes: so sehen Sie Abtrag und Auftrag. Aber eine Menge ist nur so gut wie die Aufnahme, auf der sie beruht.",
+        tags: de("#Erdbau"),
+      }),
+    },
+  },
+  "tip-aanleveren": {
+    tekst: {
+      en: () => ({
+        kop: "What do we need from you?",
+        body: `The question we get most: what should come with the request?
+
+In short: everything you use yourself to build it.
+• setting-out plan with coordinates
+• long sections and cross-sections
+• levels: floor levels, manhole covers, kerbs
+• survey of the existing ground, if there is one
+• details of tie-ins, accesses and excavations
+
+DWG or DXF is preferred: that is where the real coordinates are. A PDF works too, but takes more time.
+
+Also tell us which system is on the machine and which coordinate system it works in.
+
+${CTA_EN}`,
+        kort: "What to send for a 3D model? Setting-out plan, sections, levels and a survey if there is one. Ideally DWG or DXF, and tell us the system on the machine.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Was brauchen wir von Ihnen?",
+        body: `Die Frage, die wir am häufigsten hören: Was gehört zur Anfrage?
+
+Kurz gesagt: alles, was Sie selbst für die Ausführung nutzen.
+• Absteckplan mit Koordinaten
+• Längs- und Querprofile
+• Höhen: Fußbodenhöhen, Schachtdeckel, Bordsteine
+• Bestandsaufnahme des Geländes, falls vorhanden
+• Details zu Anschlüssen, Zufahrten und Baugruben
+
+DWG oder DXF ist am besten: Dort stecken die echten Koordinaten. Ein PDF geht auch, braucht aber mehr Zeit.
+
+Nennen Sie auch das System auf der Maschine und das Koordinatensystem, in dem sie arbeitet.
+
+${CTA_DE}`,
+        kort: "Was senden für ein 3D-Modell? Absteckplan, Profile, Höhen und eine Bestandsaufnahme, falls vorhanden. Am besten DWG oder DXF, und nennen Sie das System auf der Maschine.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "carrousel-stelsels-be": {
+    tekst: {
+      en: () => ({
+        kop: "Lambert 72 and TAW: position and height",
+        body: `On a Belgian site, the machine works in Lambert 72 for position and in TAW for height. Sounds simple, but that is exactly where it often goes wrong.
+
+A wrong coordinate system rarely gives an error message. The model loads fine, but sits in the wrong place or at the wrong height. And a few centimetres of height difference do not show in the cab.
+
+What we check on every job:
+• is the drawing in Lambert 72, or in local coordinates with its own origin;
+• are the levels in TAW, or relative to a +0.00 datum;
+• does the machine use the right geoid model (hBG18): without it, GNSS is more than 40 metres off TAW.
+
+And before you start: always check on a known point, in position and height.`,
+        kort: "Lambert 72 and TAW: position and height. A wrong system rarely gives an error: the model simply sits in the wrong place or height. We check it on every job.",
+        tags: en("#Lambert72"),
+      }),
+      de: () => ({
+        kop: "Lambert 72 und TAW: Lage und Höhe",
+        body: `Auf einer belgischen Baustelle arbeitet die Maschine in Lambert 72 für die Lage und in TAW für die Höhe. Klingt einfach, aber genau da läuft es oft schief.
+
+Ein falsches Koordinatensystem gibt fast nie eine Fehlermeldung. Das Modell wird geladen, liegt aber an der falschen Stelle oder auf der falschen Höhe. Und ein paar Zentimeter Höhenunterschied fallen in der Kabine nicht auf.
+
+Was wir bei jedem Auftrag prüfen:
+• ist der Plan in Lambert 72 gezeichnet oder in lokalen Koordinaten mit eigenem Nullpunkt;
+• stehen die Höhen in TAW oder bezogen auf eine Höhe ±0,00;
+• nutzt die Maschine das richtige Geoidmodell (hBG18): ohne es liegt GNSS über 40 Meter neben TAW.
+
+Und vor dem Start: immer auf einem bekannten Punkt prüfen, in Lage und Höhe.`,
+        kort: "Lambert 72 und TAW: Lage und Höhe. Ein falsches System gibt fast nie eine Fehlermeldung: Das Modell liegt einfach falsch. Wir prüfen es bei jedem Auftrag.",
+        tags: de("#Lambert72"),
+      }),
+    },
+    dias: {
+      en: [
+        { kop: "Lambert 72 and TAW", tekst: "Position and height: both must be right." },
+        { kop: "No error message", tekst: "The model loads fine, but in the wrong place or at the wrong height." },
+        { kop: "Drawn locally?", tekst: "Its own origin or a +0.00 datum must first go to Lambert 72 and TAW." },
+        { kop: "Geoid hBG18", tekst: "Without the right geoid model, GNSS is more than 40 metres off TAW." },
+        { kop: "Check on a known point", tekst: "In position and height, before the first bucket." },
+      ],
+      de: [
+        { kop: "Lambert 72 und TAW", tekst: "Lage und Höhe: Beides muss stimmen." },
+        { kop: "Keine Fehlermeldung", tekst: "Das Modell lädt, aber an der falschen Stelle oder Höhe." },
+        { kop: "Lokal gezeichnet?", tekst: "Ein eigener Nullpunkt oder ±0,00 muss erst nach Lambert 72 und TAW." },
+        { kop: "Geoid hBG18", tekst: "Ohne das richtige Geoidmodell liegt GNSS über 40 Meter neben TAW." },
+        { kop: "Auf bekanntem Punkt prüfen", tekst: "In Lage und Höhe, vor dem ersten Löffel." },
+      ],
+    },
+  },
+  "carrousel-stelsels-europa": {
+    tekst: {
+      en: () => ({
+        kop: "Working across the border?",
+        body: `More and more contractors work across borders. Every country has its own coordinate system and height datum, and the machine must use exactly the same one as the model.
+
+The systems we come across most:
+• United Kingdom: OSGB36 / British National Grid, heights ODN
+• Belgium: Lambert 72, heights TAW
+• Netherlands: RD New, heights NAP
+• France: Lambert-93 or CC42–CC50, heights NGF-IGN69
+• Germany: ETRS89 / UTM 32 or 33, heights DHHN2016
+
+Is the system not on the drawing? Then we propose one based on where the site is, and ask you to confirm before we start.`,
+        kort: "Site across the border? UK: OSGB36 and ODN. Belgium: Lambert 72 and TAW. Netherlands: RD and NAP. France: Lambert-93 and IGN69. Machine and model must use the same system.",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "Baustelle im Ausland?",
+        body: `Immer mehr Bauunternehmen arbeiten über die Grenze hinweg. Jedes Land hat sein eigenes Koordinatensystem und Höhenbezugssystem, und die Maschine muss genau dasselbe nutzen wie das Modell.
+
+Die Systeme, die uns am häufigsten begegnen:
+• Deutschland: ETRS89 / UTM 32 oder 33, Höhen DHHN2016
+• Belgien: Lambert 72, Höhen TAW
+• Niederlande: RD New, Höhen NAP
+• Frankreich: Lambert-93 oder CC42–CC50, Höhen NGF-IGN69
+• Luxemburg: LUREF, Höhen NG95
+
+Steht das System nicht auf dem Plan? Dann schlagen wir eines anhand der Lage der Baustelle vor und bitten vor dem Start um Ihre Bestätigung.`,
+        kort: "Baustelle im Ausland? Deutschland: ETRS89/UTM und DHHN2016. Belgien: Lambert 72 und TAW. Niederlande: RD und NAP. Maschine und Modell müssen dasselbe System nutzen.",
+        tags: de("#GNSS"),
+      }),
+    },
+    dias: {
+      en: [
+        { kop: "Working across the border?", tekst: "Every country has its own system and height datum." },
+        { kop: "United Kingdom", tekst: "OSGB36 / British National Grid, heights ODN." },
+        { kop: "Belgium", tekst: "Lambert 72, heights TAW." },
+        { kop: "Netherlands and France", tekst: "RD New and NAP; Lambert-93 or CC42–CC50 and NGF-IGN69." },
+        { kop: "Germany", tekst: "ETRS89 / UTM 32 or 33, heights DHHN2016." },
+      ],
+      de: [
+        { kop: "Baustelle im Ausland?", tekst: "Jedes Land hat sein System und seinen Höhenbezug." },
+        { kop: "Deutschland", tekst: "ETRS89 / UTM 32 oder 33, Höhen DHHN2016." },
+        { kop: "Belgien", tekst: "Lambert 72, Höhen TAW." },
+        { kop: "Niederlande", tekst: "RD New, Höhen NAP." },
+        { kop: "Frankreich und Luxemburg", tekst: "Lambert-93 oder CC42–CC50 und NGF-IGN69; LUREF und NG95." },
+      ],
+    },
+  },
+  "carrousel-merken": {
+    tekst: {
+      en: () => ({
+        kop: "One model, every brand its format",
+        body: `Different machine control brands work side by side on site: Trimble, Topcon, Leica, Unicontrol, CHCNAV, and the factory-fitted systems from Komatsu and Caterpillar.
+
+Each system reads its own files, and even within one brand it varies by software version.
+
+That is why we ask on every job which system and which version is on the machine. You get the model in exactly that format.
+
+Hiring in a machine with a different system? We deliver the same model in that format too, at no extra cost.`,
+        kort: "Trimble, Topcon, Leica, Unicontrol, CHCNAV: each system reads its own files. You get the model in your machine's format, and for a second system at no extra cost.",
+        tags: en("#Trimble"),
+      }),
+      de: () => ({
+        kop: "Ein Modell, jede Marke ihr Format",
+        body: `Auf den Baustellen arbeiten verschiedene Marken der Maschinensteuerung nebeneinander: Trimble, Topcon, Leica, Unicontrol, CHCNAV und die ab Werk verbauten Systeme von Komatsu und Caterpillar.
+
+Jedes System liest seine eigenen Dateien, und selbst innerhalb einer Marke unterscheidet es sich je nach Softwareversion.
+
+Deshalb fragen wir bei jedem Auftrag, welches System und welche Version auf der Maschine läuft. Sie erhalten das Modell genau in diesem Format.
+
+Mieten Sie eine Maschine mit einem anderen System? Dann liefern wir dasselbe Modell auch in diesem Format, ohne Aufpreis.`,
+        kort: "Trimble, Topcon, Leica, Unicontrol, CHCNAV: Jedes System liest seine eigenen Dateien. Sie erhalten das Modell im Format Ihrer Maschine, für ein zweites System ohne Aufpreis.",
+        tags: de("#Trimble"),
+      }),
+    },
+    dias: {
+      en: [
+        { kop: "One model, every brand its format", tekst: "Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar." },
+        { kop: "Their own files", tekst: "Each system reads its own format, sometimes per software version." },
+        { kop: "Which system, which version?", tekst: "We ask on every job." },
+        { kop: "Second system on site?", tekst: "The same model, at no extra cost." },
+      ],
+      de: [
+        { kop: "Ein Modell, jede Marke ihr Format", tekst: "Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu, Caterpillar." },
+        { kop: "Eigene Dateien", tekst: "Jedes System liest sein Format, teils je nach Softwareversion." },
+        { kop: "Welches System, welche Version?", tekst: "Das fragen wir bei jedem Auftrag." },
+        { kop: "Zweites System auf der Baustelle?", tekst: "Dasselbe Modell, ohne Aufpreis." },
+      ],
+    },
+  },
+  "carrousel-weergaven": {
+    tekst: {
+      en: () => ({
+        kop: "One model, four views",
+        body: `A large platform with a grid of strip footings, each at its own level.
+
+The same model, four ways to look at it:
+• height colours: what is higher, what is lower?
+• gradient: does every strip drain correctly?
+• contours: readable like a classic drawing
+• triangle network: the surface the machine actually works to
+
+The gradient map is a standard check before delivery: a strip that drains the wrong way stands out straight away.`,
+        kort: "One model, four views: height colours, gradient, contours and triangle network. The gradient map is a standard check before delivery.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Ein Modell, vier Ansichten",
+        body: `Eine große Planie mit einem Raster aus Streifenfundamenten, jedes auf seiner eigenen Höhe.
+
+Dasselbe Modell, vier Arten, es zu lesen:
+• Höhenfarben: Was liegt höher, was tiefer?
+• Neigung: Entwässert jeder Streifen richtig?
+• Höhenlinien: lesbar wie ein klassischer Plan
+• Dreiecksnetz: die Oberfläche, nach der die Maschine tatsächlich steuert
+
+Die Neigungskarte ist eine feste Kontrolle vor der Lieferung: Ein Streifen, der falsch entwässert, fällt sofort auf.`,
+        kort: "Ein Modell, vier Ansichten: Höhenfarben, Neigung, Höhenlinien und Dreiecksnetz. Die Neigungskarte ist eine feste Kontrolle vor der Lieferung.",
+        tags: de("#DGM"),
+      }),
+    },
+    dias: {
+      en: [
+        { kop: "Height colours", tekst: "What is higher, what is lower?", beeld: "/3d/r/p-platform-hoogte-donker.webp" },
+        { kop: "Gradient", tekst: "Does every strip drain correctly?", beeld: "/3d/r/p-platform-helling-donker.webp" },
+        { kop: "Contours", tekst: "Readable like a classic drawing.", beeld: "/3d/r/p-platform-hoogtelijn-donker.webp" },
+        { kop: "Triangle network", tekst: "The surface the machine works to.", beeld: "/3d/r/p-platform-draad-donker.webp" },
+      ],
+      de: [
+        { kop: "Höhenfarben", tekst: "Was liegt höher, was tiefer?", beeld: "/3d/r/p-platform-hoogte-donker.webp" },
+        { kop: "Neigung", tekst: "Entwässert jeder Streifen richtig?", beeld: "/3d/r/p-platform-helling-donker.webp" },
+        { kop: "Höhenlinien", tekst: "Lesbar wie ein klassischer Plan.", beeld: "/3d/r/p-platform-hoogtelijn-donker.webp" },
+        { kop: "Dreiecksnetz", tekst: "Die Oberfläche, nach der die Maschine steuert.", beeld: "/3d/r/p-platform-draad-donker.webp" },
+      ],
+    },
+  },
+  "realisatie-project": {
+    tekst: {
+      en: (c) => {
+        const { r, p } = projectIn(c, "en");
+        return {
+          kop: p.titel,
+          body: `${p.titel} (${p.cat.toLowerCase()})
+
+${p.tekst}
+
+${CAT_ZIN[r.cat].en}
+
+From drawing to a model the machine can load straight away: design surface, linework and contours, in the right coordinate system.${r.dias ? "\n\nSwipe through the images: the same model on the aerial photo, as contours and as a triangle network. All images are on our website." : ""}`,
+          kort: `${p.titel}: ${p.tekst} From drawing to a model the machine can load straight away.`,
+          tags: en(SYSTEEM_TAG[r.systemen[0] ?? "Trimble"]),
+        };
+      },
+      de: (c) => {
+        const { r, p } = projectIn(c, "de");
+        return {
+          kop: p.titel,
+          body: `${p.titel} (${p.cat})
+
+${p.tekst}
+
+${CAT_ZIN[r.cat].de}
+
+Vom Plan zu einem Modell, das die Maschine sofort laden kann: Planungsoberfläche, Linien und Höhenlinien, im richtigen Koordinatensystem.${r.dias ? "\n\nBlättern Sie durch die Bilder: dasselbe Modell auf dem Luftbild, als Höhenlinien und als Dreiecksnetz. Alle Bilder stehen auf unserer Website." : ""}`,
+          kort: `${p.titel}: ${p.tekst} Vom Plan zu einem Modell, das die Maschine sofort laden kann.`,
+          tags: de(SYSTEEM_TAG[r.systemen[0] ?? "Trimble"]),
+        };
+      },
+    },
+  },
+  "realisatie-uitgraving": {
+    dias: {
+      en: [
+        { kop: "Gradient map", tekst: "Flat formation, batters at the right gradient: at a glance.", beeld: "/3d/r/p-uitgraving-helling-donker.webp" },
+        { kop: "Contours", tekst: "The closer the lines, the steeper the batter.", beeld: "/3d/r/p-uitgraving-hoogtelijn-donker.webp" },
+        { kop: "Triangle network", tekst: "The surface the machine works to, triangle by triangle.", beeld: "/3d/r/p-uitgraving-draad-donker.webp" },
+      ],
+      de: [
+        { kop: "Neigungskarte", tekst: "Ebene Sohle, Böschungen in der richtigen Neigung: auf einen Blick.", beeld: "/3d/r/p-uitgraving-helling-donker.webp" },
+        { kop: "Höhenlinien", tekst: "Je dichter die Linien, desto steiler die Böschung.", beeld: "/3d/r/p-uitgraving-hoogtelijn-donker.webp" },
+        { kop: "Dreiecksnetz", tekst: "Die Oberfläche, nach der die Maschine steuert, Dreieck für Dreieck.", beeld: "/3d/r/p-uitgraving-draad-donker.webp" },
+      ],
+    },
+    tekst: {
+      en: () => ({
+        kop: UITGRAVING.en.titel,
+        body: `${UITGRAVING.en.titel}
+
+${UITGRAVING.en.tekst}
+
+Formation at level, batters at the right gradient: in the cab, the operator sees straight away how much is still to come out. No pegs, no arguments about the level.`,
+        kort: `${UITGRAVING.en.titel}: formation at level, batters at the right gradient. In the cab, the operator sees straight away how much is still to come out.`,
+        tags: en("#Unicontrol"),
+      }),
+      de: () => ({
+        kop: UITGRAVING.de.titel,
+        body: `${UITGRAVING.de.titel}
+
+${UITGRAVING.de.tekst}
+
+Sohle auf Höhe, Böschungen in der richtigen Neigung: Der Maschinenführer sieht in der Kabine sofort, wie viel noch abzutragen ist. Keine Pflöcke, keine Diskussion über die Höhe.`,
+        kort: `${UITGRAVING.de.titel}: Sohle auf Höhe, Böschungen in der richtigen Neigung. Der Maschinenführer sieht in der Kabine sofort, wie viel noch abzutragen ist.`,
+        tags: de("#Unicontrol"),
+      }),
+    },
+  },
+  "aanbod-vroegtijdig": {
+    tekst: {
+      en: () => ({
+        kop: `Book early: ${eur("vroegtijdig", "en")}/h`,
+        body: `Already know which sites start in the coming months? Then request the 3D model early.
+
+More than 3 weeks ahead: ${eur("vroegtijdig", "en")}/h instead of ${eur("normaal", "en")}/h (excl. VAT).
+
+The model is ready in your client portal when the machine arrives on site, with every revision.
+
+${CTA_EN}`,
+        kort: `Site starting in more than 3 weeks? Then we build the 3D model at ${eur("vroegtijdig", "en")}/h instead of ${eur("normaal", "en")}/h (excl. VAT). Send your drawings via our profile.`,
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: `Früh anfragen: ${eur("vroegtijdig", "de")}/Std.`,
+        body: `Sie wissen schon, welche Baustellen in den nächsten Monaten starten? Dann fragen Sie das 3D-Modell früh an.
+
+Mehr als 3 Wochen im Voraus: ${eur("vroegtijdig", "de")}/Std. statt ${eur("normaal", "de")}/Std. (zzgl. MwSt.).
+
+Das Modell liegt in Ihrem Kundenportal bereit, wenn die Maschine auf die Baustelle kommt, mit jeder Revision.
+
+${CTA_DE}`,
+        kort: `Baustelle in mehr als 3 Wochen? Dann erstellen wir das 3D-Modell für ${eur("vroegtijdig", "de")}/Std. statt ${eur("normaal", "de")}/Std. (zzgl. MwSt.). Pläne über unser Profil senden.`,
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "aanbod-lastminute": {
+    tekst: {
+      en: () => ({
+        kop: "Design change? Model in 5 working days",
+        body: `It happens to every contractor: a design change, a site that starts early, a model that is missing.
+
+That is what last-minute is for: delivery within 5 working days, at ${eur("last-minute", "en")}/h excl. VAT.
+
+You get a quote with the estimated hours first. We only start once you agree.
+
+${CTA_EN}`,
+        kort: `Design change and the machine is already waiting? Last-minute: 3D model within 5 working days at ${eur("last-minute", "en")}/h excl. VAT, with a quote first.`,
+        tags: en("#roadworks"),
+      }),
+      de: () => ({
+        kop: "Planänderung? Modell in 5 Arbeitstagen",
+        body: `Das kennt jedes Bauunternehmen: eine Planänderung, eine Baustelle, die früher startet, ein Modell, das fehlt.
+
+Dafür gibt es Last-Minute: Lieferung innerhalb von 5 Arbeitstagen, für ${eur("last-minute", "de")}/Std. zzgl. MwSt.
+
+Sie erhalten zuerst ein Angebot mit den geschätzten Stunden. Wir beginnen erst nach Ihrer Zusage.
+
+${CTA_DE}`,
+        kort: `Planänderung und die Maschine wartet schon? Last-Minute: 3D-Modell innerhalb von 5 Arbeitstagen für ${eur("last-minute", "de")}/Std. zzgl. MwSt., zuerst mit Angebot.`,
+        tags: de("#Straßenbau"),
+      }),
+    },
+  },
+  "aanbod-meersystemen": {
+    tekst: {
+      en: () => ({
+        kop: "Two brands on one site?",
+        body: `Your own excavator with Trimble, a hired dozer with Topcon, a subcontractor with Unicontrol. On many sites, more than one system is running.
+
+The model underneath is identical, only the packaging differs. So we deliver the same model for every system you name, at no extra cost.
+
+That way, every machine on site follows exactly the same design.`,
+        kort: "Trimble on the excavator, Topcon on the dozer? We deliver the same model for every system you name, at no extra cost. Every machine follows the same design.",
+        tags: en("#Topcon"),
+      }),
+      de: () => ({
+        kop: "Zwei Marken auf einer Baustelle?",
+        body: `Der eigene Bagger mit Trimble, eine gemietete Raupe mit Topcon, ein Nachunternehmer mit Unicontrol. Auf vielen Baustellen läuft mehr als ein System.
+
+Das zugrunde liegende Modell ist identisch, nur die Verpackung unterscheidet sich. Deshalb liefern wir dasselbe Modell für jedes System, das Sie nennen, ohne Aufpreis.
+
+So folgen alle Maschinen auf der Baustelle genau demselben Entwurf.`,
+        kort: "Trimble auf dem Bagger, Topcon auf der Raupe? Wir liefern dasselbe Modell für jedes genannte System, ohne Aufpreis. Alle Maschinen folgen demselben Entwurf.",
+        tags: de("#Topcon"),
+      }),
+    },
+  },
+  "aanbod-portaal": {
+    tekst: {
+      en: () => ({
+        kop: "Every revision in one place",
+        body: `Design change after design change, and which version is actually on the machine now?
+
+Every model comes with its own client portal. That is where you download the files, with every revision kept separately. Revisions after a design change are charged at the same hourly rate.
+
+No digging through mailboxes, no outdated version on the USB stick.`,
+        kort: "Which version is on the machine now? Your client portal keeps every model with every revision separately. No digging through mailboxes, no old version on the USB stick.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Jede Revision an einem Ort",
+        body: `Planänderung auf Planänderung, und welche Version ist jetzt eigentlich auf der Maschine?
+
+Zu jedem Modell gehört ein eigenes Kundenportal. Dort laden Sie die Dateien herunter, jede Revision einzeln. Revisionen nach einer Planänderung kosten denselben Stundensatz.
+
+Kein Suchen in Postfächern, keine veraltete Version auf dem USB-Stick.`,
+        kort: "Welche Version ist jetzt auf der Maschine? Ihr Kundenportal hat jedes Modell mit jeder Revision einzeln. Kein Suchen in Postfächern, keine alte Version auf dem USB-Stick.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "vraag-systeem": {
+    tekst: {
+      en: () => ({
+        kop: "Which system is on your machine?",
+        body: `A question for groundworks and road contractors: which machine control system do you use?
+
+Trimble? Topcon? Leica? Unicontrol? CHCNAV? Or factory-fitted on your Komatsu or Cat?
+
+And what goes wrong most often when you load a new model: the coordinate system, the levels, the file names?
+
+We are keen to read your answers in the comments.`,
+        kort: "Which machine control system do you use? Trimble, Topcon, Leica, Unicontrol, CHCNAV, or factory-fitted on your Komatsu or Cat? Let us know in the comments.",
+        tags: en("#Trimble"),
+      }),
+      de: () => ({
+        kop: "Welches System ist auf Ihrer Maschine?",
+        body: `Eine Frage an die Erdbauer und Straßenbauer: Mit welchem System der Maschinensteuerung arbeiten Sie?
+
+Trimble? Topcon? Leica? Unicontrol? CHCNAV? Oder ab Werk auf Ihrem Komatsu oder Cat?
+
+Und was geht am häufigsten schief, wenn Sie ein neues Modell laden: das Koordinatensystem, die Höhen, die Dateinamen?
+
+Wir lesen Ihre Antworten gern in den Kommentaren.`,
+        kort: "Mit welchem System der Maschinensteuerung arbeiten Sie? Trimble, Topcon, Leica, Unicontrol, CHCNAV oder ab Werk auf Ihrem Komatsu oder Cat? Schreiben Sie es in die Kommentare.",
+        tags: de("#Trimble"),
+      }),
+    },
+  },
+  "vraag-planning": {
+    tekst: {
+      en: () => ({
+        kop: "When do you order your 3D model?",
+        body: `A question for contractors and site managers: when do you order the 3D model for a site?
+
+When the job is awarded, weeks ahead? Or only when the machine is already on site?
+
+In practice we see both. That is why we work with three rates: early (${eur("vroegtijdig", "en")}/h), standard (${eur("normaal", "en")}/h) and last-minute within 5 working days (${eur("last-minute", "en")}/h), all excl. VAT.
+
+How do you handle it?`,
+        kort: "When do you order the 3D model for a site: weeks ahead, or when the machine is already waiting? We are curious how you handle it.",
+        tags: en("#roadworks"),
+      }),
+      de: () => ({
+        kop: "Wann bestellen Sie Ihr 3D-Modell?",
+        body: `Eine Frage an Bauunternehmen und Bauleiter: Wann bestellen Sie das 3D-Modell für eine Baustelle?
+
+Bei der Auftragsvergabe, Wochen im Voraus? Oder erst, wenn die Maschine schon auf der Baustelle steht?
+
+In der Praxis sehen wir beides. Deshalb arbeiten wir mit drei Tarifen: frühzeitig (${eur("vroegtijdig", "de")}/Std.), normal (${eur("normaal", "de")}/Std.) und Last-Minute innerhalb von 5 Arbeitstagen (${eur("last-minute", "de")}/Std.), jeweils zzgl. MwSt.
+
+Wie machen Sie das?`,
+        kort: "Wann bestellen Sie das 3D-Modell für eine Baustelle: Wochen im Voraus oder wenn die Maschine schon wartet? Wir sind gespannt, wie Sie das machen.",
+        tags: de("#Straßenbau"),
+      }),
+    },
+  },
+  "vraag-fout": {
+    tekst: {
+      en: () => ({
+        kop: "What has gone wrong before?",
+        body: `Everyone who works with machine control knows it: a model that will not open, a site ten centimetres too high, a missing layer.
+
+What is your best, or worst, experience with a new model on the machine?
+
+We will bundle the most common causes into a tip later.`,
+        kort: "A model that will not open, a site ten centimetres too high, a missing layer: what has gone wrong for you with a new model on the machine?",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "Was ist schon einmal schiefgelaufen?",
+        body: `Jeder, der mit Maschinensteuerung arbeitet, kennt es: ein Modell, das sich nicht öffnen lässt, eine Baustelle zehn Zentimeter zu hoch, eine fehlende Schicht.
+
+Was ist Ihre beste, oder schlechteste, Erfahrung mit einem neuen Modell auf der Maschine?
+
+Die häufigsten Ursachen fassen wir später in einem Tipp zusammen.`,
+        kort: "Ein Modell, das sich nicht öffnet, eine Baustelle zehn Zentimeter zu hoch, eine fehlende Schicht: Was ist bei Ihnen mit einem neuen Modell schon schiefgelaufen?",
+        tags: de("#GNSS"),
+      }),
+    },
+  },
+  "tip-tegenstrijdig": {
+    tekst: {
+      en: () => ({
+        kop: "Level does not add up? We flag it",
+        body: `Drawings sometimes contradict each other. A level on the general arrangement that does not match the long section. A gradient that does not fit the given levels.
+
+We do not quietly fill in such points ourselves. We flag them, with the location and both values, so the designer or the site manager decides which value applies.
+
+Better one question before delivery than an argument on site.`,
+        kort: "Drawings sometimes contradict each other: a level that does not match the long section. We do not quietly pick one, we flag it, so the designer decides.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Höhe passt nicht? Wir melden es",
+        body: `Pläne widersprechen sich manchmal. Eine Höhe im Lageplan, die nicht zum Längsprofil passt. Eine Neigung, die nicht zu den angegebenen Höhen passt.
+
+Solche Punkte füllen wir nicht stillschweigend selbst aus. Wir melden sie, mit der Stelle und beiden Werten, damit der Planer oder der Bauleiter entscheidet, welcher Wert gilt.
+
+Lieber eine Frage vor der Lieferung als eine Diskussion auf der Baustelle.`,
+        kort: "Pläne widersprechen sich manchmal: eine Höhe, die nicht zum Längsprofil passt. Wir entscheiden das nicht stillschweigend, wir melden es, und der Planer entscheidet.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "tip-werfkalibratie": {
+    tekst: {
+      en: () => ({
+        kop: "Site calibration: only within the points",
+        body: `On many sites the machine works with a local calibration: a few known points are surveyed and the GNSS readings are fitted exactly to them.
+
+That works well, but only within the area covered by those points. Outside it, errors can build up quickly.
+
+Is the site getting bigger, or is the machine working well outside the calibrated area? Have extra points surveyed and check again on a known point.
+
+We deliver the model in the agreed coordinate system; the calibration on the machine is managed by the contractor or their site engineer.`,
+        kort: "A local site calibration is right within the area of the surveyed points; outside it, errors can build up quickly. Site got bigger? Add points and check again.",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "Baustellenkalibrierung: nur innerhalb der Punkte",
+        body: `Auf vielen Baustellen arbeitet die Maschine mit einer lokalen Kalibrierung: Einige bekannte Punkte werden eingemessen, und die GNSS-Messungen werden genau darauf abgestimmt.
+
+Das funktioniert gut, aber nur innerhalb des Bereichs dieser Punkte. Außerhalb können die Abweichungen schnell wachsen.
+
+Wird die Baustelle größer, oder arbeitet die Maschine weit außerhalb der kalibrierten Zone? Lassen Sie zusätzliche Punkte einmessen und prüfen Sie erneut auf einem bekannten Punkt.
+
+Wir liefern das Modell im vereinbarten Koordinatensystem; die Kalibrierung auf der Maschine verantwortet das Bauunternehmen oder sein Vermessungstrupp.`,
+        kort: "Eine lokale Baustellenkalibrierung stimmt im Bereich der gemessenen Punkte; außerhalb wachsen die Abweichungen schnell. Baustelle größer geworden? Punkte ergänzen und neu prüfen.",
+        tags: de("#GNSS"),
+      }),
+    },
+  },
+  "tip-planwijziging": {
+    tekst: {
+      en: () => ({
+        kop: "Design changed? Here is how it works",
+        body: `Designs change during a project. That is normal.
+
+Send the revised drawings with a short description of what has changed: which area, which levels, which revision. We then update the model where needed, and the new version appears in your client portal next to the previous one.
+
+Design changes are charged by the hour. An error in the model against the drawings supplied is, of course, put right free of charge.`,
+        kort: "Design changed? Send the new drawings with a short description. You get a new version in your portal, next to the old one. An error in the model is fixed free of charge.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Entwurf geändert? So geht es",
+        body: `Entwürfe ändern sich während eines Projekts. Das ist normal.
+
+Senden Sie die geänderten Pläne mit einer kurzen Beschreibung der Änderungen: welcher Bereich, welche Höhen, welcher Planstand. Dann passen wir das Modell gezielt an, und die neue Version liegt in Ihrem Kundenportal neben der vorigen.
+
+Änderungen am Entwurf werden nach Stunden abgerechnet. Einen Fehler im Modell gegenüber den gelieferten Plänen korrigieren wir selbstverständlich kostenlos.`,
+        kort: "Entwurf geändert? Neue Pläne mit kurzer Beschreibung senden. Sie erhalten eine neue Version im Portal, neben der alten. Einen Fehler im Modell beheben wir kostenlos.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "tip-grondbalans": {
+    tekst: {
+      en: () => ({
+        kop: "Cut and fill: loose soil takes more room",
+        body: `A volume calculation sets the existing ground against the design: how much has to come out, how much has to go in.
+
+But soil changes volume. Once dug, it takes up more room than in the ground; compacted, it takes up less. And not all excavated material is fit to reuse.
+
+A geometric cut and fill balance is therefore a starting point for planning haulage and materials, not a final answer. For the final account, a survey on site and the specification still decide.`,
+        kort: "A cut and fill balance from the model is a starting point, not a final answer: dug soil bulks up, compacted soil shrinks, and not all of it can be reused.",
+        tags: en("#earthworks"),
+      }),
+      de: () => ({
+        kop: "Massenbilanz: lockerer Boden braucht mehr Platz",
+        body: `Eine Mengenberechnung stellt das Gelände dem Entwurf gegenüber: Wie viel Boden muss weg, wie viel muss dazu?
+
+Aber Boden ändert sein Volumen. Gelöster Boden braucht mehr Platz als im gewachsenen Zustand, verdichteter Boden weniger. Und nicht jeder Aushub ist wieder verwendbar.
+
+Eine geometrische Massenbilanz ist deshalb ein Ausgangspunkt für die Planung von Transport und Material, keine endgültige Antwort. Für die Abrechnung bleiben das Aufmaß vor Ort und das Leistungsverzeichnis maßgeblich.`,
+        kort: "Eine Massenbilanz aus dem Modell ist ein Ausgangspunkt, keine endgültige Antwort: gelöster Boden lockert auf, verdichteter Boden setzt sich, und nicht alles ist wiederverwendbar.",
+        tags: de("#Erdbau"),
+      }),
+    },
+  },
+  "tip-laagdikte": {
+    tekst: {
+      en: () => ({
+        kop: "A few centimetres of layer thickness add up",
+        body: `Under a pavement there are usually several layers: sub-base, base and surfacing, each with its own design thickness.
+
+If you calculate the dig volume down to finished level instead of the bottom of the construction, you underestimate the earthworks. A few centimetres seems small, but over a large area it adds up fast.
+
+That is why we model each layer as a separate surface. The machine follows the right level at every stage, and you see the volume per layer.`,
+        kort: "Dig volume calculated to finished level? Then you underestimate the earthworks. We model each layer separately: the right level at every stage, and the volume per layer.",
+        tags: en("#roadworks"),
+      }),
+      de: () => ({
+        kop: "Ein paar Zentimeter Schichtdicke summieren sich",
+        body: `Unter einer Befestigung liegen meist mehrere Schichten: Frostschutzschicht, Tragschicht und Deckschicht, jede mit eigener Planungsdicke.
+
+Wer den Aushub bis zur fertigen Höhe berechnet statt bis zur Unterkante des Aufbaus, unterschätzt den Erdbau. Ein paar Zentimeter wirken klein, aber auf einer großen Fläche summiert sich das schnell.
+
+Deshalb modellieren wir jede Schicht als eigene Oberfläche. So folgt die Maschine in jeder Phase der richtigen Höhe, und Sie sehen die Menge pro Schicht.`,
+        kort: "Aushub bis zur fertigen Höhe berechnet? Dann unterschätzen Sie den Erdbau. Wir modellieren jede Schicht einzeln: die richtige Höhe in jeder Phase und die Menge pro Schicht.",
+        tags: de("#Straßenbau"),
+      }),
+    },
+  },
+  "tip-open-formaten": {
+    tekst: {
+      en: () => ({
+        kop: "LandXML and DXF: the open formats",
+        body: `Alongside each brand's own formats, there are two open formats that are read almost everywhere.
+
+LandXML: an open standard for surfaces (triangle network), linework, alignments and points, with their coordinates. Many machine control systems read it directly or convert it.
+
+DXF: the common CAD format, mainly for linework and 3D polylines, and as a background drawing in the cab.
+
+Using a system that is not on our list? With LandXML and DXF you are almost always covered. Do tell us the system and software version in your request.`,
+        kort: "LandXML for surfaces, linework and points; DXF for linework and background. With those two open formats, almost every machine control system is covered.",
+        tags: en("#LandXML"),
+      }),
+      de: () => ({
+        kop: "LandXML und DXF: die offenen Formate",
+        body: `Neben den eigenen Formaten jeder Marke gibt es zwei offene Formate, die fast überall gelesen werden.
+
+LandXML: ein offener Standard für Oberflächen (Dreiecksnetz), Linien, Achsen und Punkte, mit ihren Koordinaten. Viele Maschinensteuerungen lesen ihn direkt oder wandeln ihn um.
+
+DXF: das gängige CAD-Format, vor allem für Linien und 3D-Polylinien, und als Hintergrundplan in der Kabine.
+
+Ihr System steht nicht auf unserer Liste? Mit LandXML und DXF sind Sie fast immer abgedeckt. Nennen Sie in der Anfrage trotzdem System und Softwareversion.`,
+        kort: "LandXML für Oberflächen, Linien und Punkte; DXF für Linien und Hintergrund. Mit diesen zwei offenen Formaten ist fast jede Maschinensteuerung abgedeckt.",
+        tags: de("#LandXML"),
+      }),
+    },
+  },
+  "tip-gnss-hoogte": {
+    tekst: {
+      en: () => ({
+        kop: "GNSS is less accurate in height",
+        body: `A machine on GNSS control usually fixes its position more accurately in plan than in height. On bulk earthworks that rarely shows, but on sub-base and finishing layers it does matter.
+
+So:
+• the model itself must sit well within the tolerances of the job;
+• check on a known point before you start, in height too;
+• for fine finishing, a total station or an extra check may be needed.
+
+The tolerances in the specification always decide.`,
+        kort: "GNSS machine control is usually less accurate in height than in plan. On sub-base and finishing that counts: check the height on a known point before you start.",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "GNSS ist in der Höhe ungenauer",
+        body: `Eine Maschine mit GNSS-Steuerung bestimmt ihre Position meist genauer in der Lage als in der Höhe. Beim Erdbau fällt das selten auf, bei Tragschichten und Deckschichten aber schon.
+
+Deshalb:
+• muss das Modell selbst deutlich innerhalb der Toleranzen der Arbeit liegen;
+• prüfen Sie vor dem Start auf einem bekannten Punkt, auch in der Höhe;
+• für die Feinplanie kann eine Totalstation oder eine zusätzliche Kontrolle nötig sein.
+
+Die Toleranzen des Leistungsverzeichnisses bleiben immer maßgeblich.`,
+        kort: "GNSS-Maschinensteuerung ist meist ungenauer in der Höhe als in der Lage. Bei Trag- und Deckschichten zählt das: vor dem Start auch die Höhe auf einem bekannten Punkt prüfen.",
+        tags: de("#GNSS"),
+      }),
+    },
+  },
+  "aanbod-buitenland": {
+    tekst: {
+      en: () => ({
+        kop: "For sites in other countries too",
+        body: `A site in the UK, the Netherlands, France, Germany or Luxembourg? We build the 3D model in that country's coordinate system and height datum, or in a local grid of your choice.
+
+The same way of working everywhere: you send the drawings, you get a quote with the estimated hours, then the model in your machine's format.
+
+We work in English, Dutch, French, German and Spanish.
+
+${CTA_EN}`,
+        kort: "Site in the UK, the Netherlands, France, Germany or Luxembourg? The 3D model comes in that country's coordinate system and height datum. We work in five languages.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Auch für Baustellen in anderen Ländern",
+        body: `Eine Baustelle in Deutschland, Luxemburg, den Niederlanden oder Frankreich? Wir erstellen das 3D-Modell im Koordinatensystem und Höhenbezug des Landes oder in einem lokalen System Ihrer Wahl.
+
+Überall dieselbe Arbeitsweise: Sie senden die Pläne, erhalten ein Angebot mit den geschätzten Stunden und danach das Modell im Format Ihrer Maschine.
+
+Wir kommunizieren auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch.
+
+${CTA_DE}`,
+        kort: "Baustelle in Deutschland, Luxemburg, den Niederlanden oder Frankreich? Das 3D-Modell kommt im Koordinatensystem und Höhenbezug des Landes. Kommunikation in fünf Sprachen.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "vraag-test-stelsel": {
+    tekst: {
+      en: () => ({
+        kop: "Test: which coordinate system is your drawing in?",
+        body: `A quick test for your next site.
+
+Open the drawing and look for the coordinate system. British National Grid (OSGB36)? And the levels: to ODN, or relative to a +0.00 site datum? In Belgium: Lambert 72 and TAW?
+
+Cannot find it? You are not alone. But your machine needs to know, and a wrong system gives no error message: the model simply sits in the wrong place or at the wrong height.
+
+We check it on every job, before we start.
+
+${CTA_EN}`,
+        kort: "Test: open your drawing. British National Grid? Levels to ODN or to a +0.00 site datum? Cannot find it? Your machine still needs to know. We check it on every job.",
+        tags: en("#GNSS"),
+      }),
+      de: () => ({
+        kop: "Test: In welchem System ist Ihr Plan?",
+        body: `Ein kleiner Test für Ihre nächste Baustelle.
+
+Öffnen Sie den Plan und suchen Sie das Koordinatensystem. ETRS89 / UTM? Und die Höhen: in DHHN2016 (NHN) oder bezogen auf eine Höhe ±0,00? In Belgien: Lambert 72 und TAW?
+
+Nicht zu finden? Damit sind Sie nicht allein. Aber Ihre Maschine muss es wissen, und ein falsches System gibt keine Fehlermeldung: Das Modell liegt einfach an der falschen Stelle oder Höhe.
+
+Wir prüfen es bei jedem Auftrag, noch bevor wir beginnen.
+
+${CTA_DE}`,
+        kort: "Test: Öffnen Sie Ihren Plan. ETRS89/UTM? Höhen in DHHN2016 oder bezogen auf ±0,00? Nicht zu finden? Ihre Maschine muss es trotzdem wissen. Wir prüfen es bei jedem Auftrag.",
+        tags: de("#GNSS"),
+      }),
+    },
+  },
+  "vraag-piketten": {
+    tekst: {
+      en: () => ({
+        kop: "How many hours did your crew spend on pegs?",
+        body: `An honest question: how many hours went on setting out, knocking in pegs and checking levels last year?
+
+With a 3D model in the cab, the operator sees the design level right on the screen. Fewer pegs, less waiting for the setting-out engineer, and the design is built the way it was drawn.
+
+The model for a site is a few hours of modelling work, at ${eur("vroegtijdig", "en")} to ${eur("last-minute", "en")} per hour (excl. VAT). Set that against the hours you spend now.
+
+${CTA_EN}`,
+        kort: "How many hours went on pegs and checking levels last year? With a 3D model in the cab, the operator sees the design on the screen. Compare the two.",
+        tags: en("#settingout"),
+      }),
+      de: () => ({
+        kop: "Wie viele Stunden Absteckung waren es?",
+        body: `Eine ehrliche Frage: Wie viele Stunden gingen letztes Jahr für Abstecken, Pflöcke setzen und Höhen nachmessen drauf?
+
+Mit einem 3D-Modell in der Kabine sieht der Maschinenführer die Planungshöhe direkt auf dem Bildschirm. Weniger Pflöcke, weniger Warten auf den Vermessungstrupp, und der Entwurf wird so gebaut, wie er gezeichnet ist.
+
+Das Modell für eine Baustelle sind einige Stunden Modellierung, für ${eur("vroegtijdig", "de")} bis ${eur("last-minute", "de")} pro Stunde (zzgl. MwSt.). Stellen Sie das den Stunden gegenüber, die Sie heute dafür aufwenden.
+
+${CTA_DE}`,
+        kort: "Wie viele Stunden gingen letztes Jahr für Pflöcke und Höhenkontrolle drauf? Mit einem 3D-Modell in der Kabine sieht der Maschinenführer den Entwurf auf dem Bildschirm. Vergleichen Sie.",
+        tags: de("#Absteckung"),
+      }),
+    },
+  },
+  "vraag-herwerk": {
+    tekst: {
+      en: () => ({
+        kop: "What does half a day of rework cost?",
+        body: `Do the sum. Half a day of rework because of a wrong level: the machine, the operator, the lorries waiting or doing extra runs, the material that has to come out again.
+
+Many errors on a machine-controlled site do not start in the cab, but already in the model: a wrong coordinate system, a missing layer, a level that does not match the long section.
+
+That is why we check every model for levels, gradients and tie-ins before it goes out. And we flag contradictions in the drawings instead of filling them in ourselves.
+
+${CTA_EN}`,
+        kort: "Half a day of rework because of a wrong level: machine, operator, lorries, material. So we check every model for levels, gradients and tie-ins before delivery.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Was kostet ein halber Tag Nacharbeit?",
+        body: `Rechnen Sie kurz mit. Ein halber Tag Nacharbeit wegen einer falschen Höhe: die Maschine, der Maschinenführer, die Lkw, die warten oder extra fahren, das Material, das wieder raus muss.
+
+Viele Fehler auf einer Baustelle mit Maschinensteuerung entstehen nicht in der Kabine, sondern schon im Modell: ein falsches Koordinatensystem, eine fehlende Schicht, eine Höhe, die nicht zum Längsprofil passt.
+
+Deshalb prüfen wir jedes Modell vor der Lieferung auf Höhen, Neigungen und Anschlüsse. Und wir melden Widersprüche in den Plänen, statt sie selbst auszufüllen.
+
+${CTA_DE}`,
+        kort: "Ein halber Tag Nacharbeit wegen einer falschen Höhe: Maschine, Maschinenführer, Lkw, Material. Deshalb prüfen wir jedes Modell vor der Lieferung auf Höhen, Neigungen und Anschlüsse.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+  "vraag-machinist": {
+    tekst: {
+      en: () => ({
+        kop: "Operators: what is missing on your screen?",
+        body: `A question for everyone who sits in the cab every day.
+
+What makes a 3D model good or bad for you? Linework for kerbs and ditches? Contours? Clear layer names? Or actually less on the screen?
+
+We build every model with linework, separate layers per stage and a gradient check. But the best tips come from the people who use them.
+
+Let us know in the comments.`,
+        kort: "Operators, what makes a 3D model good for you? Linework, contours, clear layers, or less on the screen? Let us know.",
+        tags: en("#plantoperator"),
+      }),
+      de: () => ({
+        kop: "Maschinenführer: Was fehlt auf Ihrem Bildschirm?",
+        body: `Eine Frage an alle, die jeden Tag in der Kabine sitzen.
+
+Was macht ein 3D-Modell für Sie gut oder schlecht? Linien von Bordsteinen und Gräben? Höhenlinien? Klare Schichtnamen? Oder gerade weniger auf dem Bildschirm?
+
+Wir bauen jedes Modell mit Linien, getrennten Schichten pro Phase und einer Neigungskontrolle. Aber die besten Tipps kommen von denen, die damit arbeiten.
+
+Schreiben Sie es in die Kommentare.`,
+        kort: "Maschinenführer, was macht ein 3D-Modell für Sie gut? Linien, Höhenlinien, klare Schichten oder weniger auf dem Bildschirm? Schreiben Sie es uns.",
+        tags: de("#Baggerfahrer"),
+      }),
+    },
+  },
+  "vraag-kleine-werf": {
+    tekst: {
+      en: () => ({
+        kop: "Only for big sites? Not true",
+        body: `Many contractors think a 3D model only pays off on a motorway or a large industrial estate.
+
+But a car park, a driveway with drainage, an excavation or a sports pitch also has gradients and levels that have to be right. That is exactly where a small mistake quickly means rework.
+
+We charge by the hour, with a minimum of ${MINIMUM_UREN} hour per job. So a small site is a small invoice too.
+
+${CTA_EN}`,
+        kort: "A 3D model only for big sites? A car park, driveway, excavation or sports pitch also has gradients that must be right. Charged by the hour: small site, small invoice.",
+        tags: en("#contractor"),
+      }),
+      de: () => ({
+        kop: "Nur für große Baustellen? Falsch",
+        body: `Viele Bauunternehmen denken, ein 3D-Modell lohne sich nur für eine Autobahn oder ein großes Gewerbegebiet.
+
+Aber auch ein Parkplatz, eine Zufahrt mit Entwässerung, eine Baugrube oder ein Sportplatz hat Neigungen und Höhen, die stimmen müssen. Gerade dort kostet ein kleiner Fehler schnell Nacharbeit.
+
+Wir rechnen nach Stunden ab, mit mindestens ${MINIMUM_UREN} Stunde pro Auftrag. Eine kleine Baustelle ist also auch eine kleine Rechnung.
+
+${CTA_DE}`,
+        kort: "Ein 3D-Modell nur für große Baustellen? Auch ein Parkplatz, eine Zufahrt, Baugrube oder ein Sportplatz hat Neigungen, die stimmen müssen. Nach Stunden: kleine Baustelle, kleine Rechnung.",
+        tags: de("#Bauunternehmen"),
+      }),
+    },
+  },
+  "video-model": {
+    tekst: {
+      en: () => ({
+        kop: "From drawing to model",
+        body: `This is what a 3D model for machine control looks like: design surface, linework and contours, in the right coordinate system and ready to load.
+
+We deliver the model for Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu and Caterpillar.
+
+${CTA_EN}`,
+        kort: "This is what a 3D model for machine control looks like: design surface, linework and contours, in the right system and ready to load.",
+        tags: en("#3Dmodel"),
+      }),
+      de: () => ({
+        kop: "Vom Plan zum Modell",
+        body: `So sieht ein 3D-Modell für die Maschinensteuerung aus: Planungsoberfläche, Linien und Höhenlinien, im richtigen Koordinatensystem und bereit zum Laden.
+
+Wir liefern das Modell für Trimble, Topcon, Leica, Unicontrol, CHCNAV, Komatsu und Caterpillar.
+
+${CTA_DE}`,
+        kort: "So sieht ein 3D-Modell für die Maschinensteuerung aus: Planungsoberfläche, Linien und Höhenlinien, im richtigen System und bereit zum Laden.",
+        tags: de("#DGM"),
+      }),
+    },
+  },
+};
+
+// Engels en Duits bij de sjablonen voegen (de NL/FR-teksten blijven ongemoeid).
+for (const t of TEMPLATES) {
+  const x = EN_DE[t.id];
+  if (!x) continue;
+  Object.assign(t.tekst, x.tekst);
+  if (x.dias && t.dias) t.dias = { ...t.dias, ...x.dias };
+}
 
 export function templateOpId(id: string): Template | undefined {
   return TEMPLATES.find((t) => t.id === id);
