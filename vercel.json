@@ -45,6 +45,10 @@
       "schedule": "30 5 * * *"
     },
     {
+      "path": "/api/cron/groepspost",
+      "schedule": "15 11 * * *"
+    },
+    {
       "path": "/api/cron/social-generate",
       "schedule": "0 6 * * 1"
     },
