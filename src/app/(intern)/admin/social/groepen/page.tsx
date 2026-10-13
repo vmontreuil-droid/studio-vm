@@ -48,23 +48,31 @@ function vandaag(iso: string | null): boolean {
 export default async function Groepen({
   searchParams,
 }: {
-  searchParams: Promise<Partial<Record<GroepTaal | "week" | "melding", string>>>;
+  searchParams: Promise<Partial<Record<"week" | "post" | "melding", string>>>;
 }) {
   if (!adminConfigured || !(await requireAdmin())) return null;
   const sp = await searchParams;
   const deze = huidigeWeek();
   const week = sp.week && parseWeek(sp.week) ? sp.week : deze;
   const [posten, groepen] = await Promise.all([groepspostenVanWeek(week), leesGroepen()]);
-  const gekozen = Object.fromEntries(
-    GROEP_TALEN.map((t) => [t, posten[t].find((p) => p.postId === sp[t]) ?? posten[t][0]]),
+  // Elk bericht van de week één keer (in zijn eigen taal); u kiest er één en
+  // ziet het meteen in de vier talen naast elkaar.
+  const berichten = GROEP_TALEN.flatMap((t) => posten[t].filter((p) => !p.vertaaldUit)).sort((a, b) =>
+    (a.datum ?? "").localeCompare(b.datum ?? ""),
+  );
+  // Standaard het laatst verschenen bericht, anders het eerstvolgende.
+  const verschenen = berichten.filter((b) => b.status === "gepubliceerd");
+  const kies = berichten.find((b) => b.postId === sp.post) ?? verschenen[verschenen.length - 1] ?? berichten[0];
+  const versies = Object.fromEntries(
+    GROEP_TALEN.map((t) => [t, kies ? posten[t].find((p) => p.postId === kies.postId) : undefined]),
   ) as Record<GroepTaal, Groepspost | undefined>;
-  const hier = (extra: Partial<Record<GroepTaal | "week", string>>) => {
+  const hier = (post?: string) => {
     const q = new URLSearchParams({ week });
-    for (const t of GROEP_TALEN) if (gekozen[t]) q.set(t, gekozen[t]!.postId);
-    for (const [k, v] of Object.entries(extra)) if (v) q.set(k, v);
+    const id = post ?? kies?.postId;
+    if (id) q.set("post", id);
     return `/admin/social/groepen?${q.toString()}`;
   };
-  const terug = hier({});
+  const terug = hier();
   const nr = Number(week.slice(-2));
 
   return (
@@ -106,30 +114,40 @@ export default async function Groepen({
         <Melding code={sp.melding} />
       </div>
 
-      <div className="mt-4 grid gap-5 lg:grid-cols-2">
+      <section className="mt-4 rounded-2xl bg-card p-5 shadow-sm">
+        <h2 className="font-semibold">Kies het bericht</h2>
+        {berichten.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">Deze week staan er geen berichten op de pagina.</p>
+        ) : (
+          <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+            {berichten.map((p) => (
+              <Link
+                key={p.postId}
+                href={hier(p.postId)}
+                className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                  p.postId === kies?.postId ? "border-accent bg-accent/10 text-accent" : "text-muted hover:bg-card-hover hover:text-foreground"
+                }`}
+              >
+                <span className="shrink-0 font-mono text-[11px] uppercase tracking-wide">
+                  {datum(p.datum)} · {SOORT[p.soort] ?? p.soort}
+                </span>
+                <span className="truncate font-medium">{p.titel}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
         {GROEP_TALEN.map((taal) => {
-          const g = gekozen[taal];
+          const g = versies[taal];
           return (
             <section key={taal} className="rounded-2xl bg-card p-5 shadow-sm">
               <h2 className="font-semibold">{TAAL_NAAM[taal]}</h2>
-              {posten[taal].length === 0 ? (
-                <p className="mt-3 text-sm text-muted">Deze week geen bericht om te gebruiken.</p>
+              {!g ? (
+                <p className="mt-3 text-sm text-muted">Geen versie in deze taal voor dit bericht.</p>
               ) : (
                 <>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {posten[taal].map((p) => (
-                      <Link
-                        key={p.postId}
-                        href={hier({ [taal]: p.postId })}
-                        className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                          p.postId === g?.postId ? "border-accent bg-accent/10 font-medium text-accent" : "text-muted hover:bg-card-hover"
-                        }`}
-                      >
-                        {datum(p.datum)} · {SOORT[p.soort] ?? p.soort}
-                        {p.vertaaldUit && <span className="opacity-70"> · vertaald</span>}
-                      </Link>
-                    ))}
-                  </div>
                   {g && (
                     <div className="mt-4 space-y-4">
                       <div>
